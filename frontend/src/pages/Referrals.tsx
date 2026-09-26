@@ -27,7 +27,7 @@ export default function Referrals() {
   const pending = typeof localStorage !== "undefined" ? localStorage.getItem(REF_KEY) : null;
   const [refInput, setRefInput] = useState(pending ?? "");
   const [nonce, setNonce] = useState(0);
-  const link = `${window.location.origin}/?ref=${viewer.address || DEMO_ADDR}`;
+  const link = `${window.location.origin}${import.meta.env.BASE_URL}?ref=${viewer.address || DEMO_ADDR}`;
 
   const chain = useChain(async () => {
     const r = await readReferrals(viewer.address);

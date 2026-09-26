@@ -490,7 +490,7 @@ function ReferralVisual() {
   const [copied, setCopied] = useState(false);
   const who = addr || w.address || "";
   const valid = /^G[A-Z2-7]{55}$/.test(who);
-  const link = valid ? `${window.location.origin}/?ref=${who}` : "";
+  const link = valid ? `${window.location.origin}${import.meta.env.BASE_URL}?ref=${who}` : "";
   const refs = useChain(() => readReferrals(DEMO_ACCOUNTS.lp), []);
   return (
     <div className="l-grid-2">

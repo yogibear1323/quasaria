@@ -15,7 +15,7 @@ import { WalletProvider } from "./lib/wallet";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <WalletProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "") || "/"}>
         <App />
       </BrowserRouter>
     </WalletProvider>

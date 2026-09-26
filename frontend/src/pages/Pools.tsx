@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHead, SourceTag, Stat, Tabs, TxStatus, ViewerNote, useTx } from "../components/ui";
 import { DEMO_POOLS } from "../lib/demo";
 import { CONTRACTS, expertContract, symbolOf } from "../lib/config";
@@ -51,7 +52,7 @@ export default function Pools() {
 
   return (
     <>
-      <PageHead kicker="Scene · Nebula Drift" title="Liquidity Pools" right={<div className="row"><SourceTag {...chain} /><span className="pill pink">Constant product · SEP-41 LP shares</span></div>}>
+      <PageHead kicker="Scene · Nebula Drift" title="Liquidity Pools" right={<div className="row"><SourceTag {...chain} /><span className="pill pink">Constant product · SEP-41 LP shares</span><Link className="pill cyan" to="/calculators?c=lp">🧮 LP calculator</Link></div>}>
         Deposit both assets into an x·y=k pool, receive QLP share tokens, and earn 80% of the 0.30% swap fee (20% goes to the trader's referrer, if any).
       </PageHead>
       <div className="grid g-main-side">
@@ -121,6 +122,7 @@ export default function Pools() {
           )}
           <TxStatus status={tx.status} />
           <div className="notice" style={{ marginTop: 14 }}>Impermanent loss: when prices move, LPs end up with more of the asset that fell. Fees may or may not compensate.</div>
+          <Link className="calc-panel-link" to={`/calculators?c=lp${chain.live || stable?.soroban ? `&pool=${p.id}` : ""}`} data-testid="pools-calc-link">🧮 Estimate fees &amp; impermanent loss for {p.a}/{p.b} →</Link>
         </div>
       </div>
       <StablePairs picked={stable?.entry.pool ?? null} onPick={(l) => { setStable(l); window.scrollTo({ top: 0, behavior: "smooth" }); }} />

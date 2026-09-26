@@ -12,7 +12,7 @@ const base = process.env.VITE_BASE || "/";
 //    serves for the extensionless URL (/quasaria/markets) with HTTP 200;
 //  - any other path falls back to 404.html (a copy of index.html, served with HTTP 404).
 // Harmless elsewhere (Netlify uses _redirects). Keep in sync with the routes in src/App.tsx.
-const SPA_ROUTES = ["app", "markets", "trade", "pools", "stake", "rewards", "referrals", "bots"];
+const SPA_ROUTES = ["app", "markets", "trade", "pools", "earn", "calculators", "stake", "rewards", "referrals", "bots"];
 let outDir = "dist";
 const spa404: Plugin = {
   name: "spa-404",

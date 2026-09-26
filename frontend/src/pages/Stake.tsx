@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHead, SourceTag, Stat, TxStatus, ViewerNote, useTx } from "../components/ui";
 import { DEMO_STAKING } from "../lib/demo";
 import { CONTRACTS, symbolOf } from "../lib/config";
@@ -33,7 +34,7 @@ export default function Stake() {
 
   return (
     <>
-      <PageHead kicker="Scene · Orbital Rings" title="Stake" right={<div className="row"><SourceTag {...chain} /><span className="pill gold">Admin-whitelisted orbits</span></div>}>
+      <PageHead kicker="Scene · Orbital Rings" title="Stake" right={<div className="row"><SourceTag {...chain} /><span className="pill gold">Admin-whitelisted orbits</span><Link className="pill cyan" to="/calculators?c=staking">🧮 Staking calculator</Link></div>}>
         Put whitelisted tokens into orbit. Each pool streams its own reward rate from a pre-funded reserve; some pools have lock periods for boosted rewards.
       </PageHead>
       <div className="grid g-3">
@@ -65,6 +66,7 @@ export default function Stake() {
                 <button className="btn ghost" disabled={tx.busy} onClick={() => call("unstake", "unstake", p.id, Number(amount[p.id] || 0))}>Unstake</button>
                 <button className="btn ghost" disabled={tx.busy} onClick={() => call("claim", "claim", p.id)}>Claim</button>
               </div>
+              <Link className="calc-panel-link" to={`/calculators?c=staking&pool=${p.id}`} data-testid={`stake-calc-link-${p.id}`}>🧮 Estimate rewards for this pool →</Link>
             </div>
           );
         })}

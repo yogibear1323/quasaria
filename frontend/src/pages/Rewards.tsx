@@ -1,29 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHead, SourceTag, Stat, TxStatus, ViewerNote, useTx } from "../components/ui";
 import MintRedeem from "../components/MintRedeem";
 import { DEMO_QFX } from "../lib/demo";
 import { CONTRACTS } from "../lib/config";
 import { addr, invokeContract } from "../lib/soroban";
 import { readQfx, useChain, useViewer } from "../lib/chain";
-import { apyFromApr, projectBalance } from "../lib/math";
+import { apyFromApr } from "../lib/math";
+import HolderYieldCalculator from "../components/calc/HolderYieldCalculator";
 import { fmt, fmtCompact, pct } from "../lib/format";
-
-function GrowthChart({ principal, aprBps }: { principal: number; aprBps: number }) {
-  const W = 600, H = 180;
-  const pts = Array.from({ length: 366 }, (_, d) => projectBalance(principal, aprBps, d));
-  const max = pts[365], min = principal;
-  const path = pts.map((v, d) => `${d ? "L" : "M"}${(d / 365) * W},${H - ((v - min) / (max - min || 1)) * (H - 20) - 10}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="g-growth" x1="0" x2="1"><stop offset="0" stopColor="#ffd166" /><stop offset="0.5" stopColor="#ff9a3d" /><stop offset="1" stopColor="#ff3dcb" /></linearGradient>
-        <linearGradient id="g-growth-a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff9a3d" stopOpacity="0.35" /><stop offset="1" stopColor="#ff3dcb" stopOpacity="0" /></linearGradient>
-      </defs>
-      <path d={`${path} L${W},${H} L0,${H} Z`} fill="url(#g-growth-a)" />
-      <path d={path} fill="none" stroke="url(#g-growth)" strokeWidth={3} />
-    </svg>
-  );
-}
 
 export default function Rewards() {
   const viewer = useViewer("trader");
@@ -32,8 +17,6 @@ export default function Rewards() {
   const chain = useChain(() => readQfx(viewer.address), [viewer.address, refresh]);
   const info = chain.data ?? DEMO_QFX;
   const balance = chain.data ? chain.data.balance : DEMO_QFX.demoBalance;
-  const [principal, setPrincipal] = useState("1000");
-  const [days, setDays] = useState(365);
   const [now, setNow] = useState(() => Date.now() / 1000);
 
   useEffect(() => {
@@ -46,11 +29,10 @@ export default function Rewards() {
   const myDaily = (balance * info.aprBps) / 10_000 / 365;
   const apy = apyFromApr(info.aprBps);
   const runwayDays = info.dailyEmission > 0 ? info.rewardPool / info.dailyEmission : Infinity;
-  const proj = useMemo(() => projectBalance(Number(principal) || 0, info.aprBps, days), [principal, info.aprBps, days]);
 
   return (
     <>
-      <PageHead kicker="Scene · Supernova" title="QFX · Quasaria Flux" right={<div className="row"><SourceTag {...chain} /><span className="pill gold">1 QFX = 1 XLM · fully backed</span></div>}>
+      <PageHead kicker="Scene · Supernova" title="QFX · Quasaria Flux" right={<div className="row"><SourceTag {...chain} /><span className="pill gold">1 QFX = 1 XLM · fully backed</span><Link className="pill cyan" to="/calculators?c=holder">🧮 Yield calculator</Link></div>}>
         QFX is XLM in a Soroban wrapper: every QFX is minted only when the same amount of XLM is deposited, and can be redeemed 1:1 at any time. Holders also earn a capped, variable rate paid out of a pre-funded reward reserve, never by minting new tokens.
       </PageHead>
       <div className="grid g-main-side">
@@ -73,6 +55,7 @@ export default function Rewards() {
             <button className="btn" disabled={tx.busy} onClick={() => tx.run("Credit yield", async () => { const r = await invokeContract(tx.wallet.address!, tx.wallet.sign, CONTRACTS.qfx, "settle", [addr(tx.wallet.address!)]); setRefresh((x) => x + 1); return r.hash.slice(0, 10); })}>Credit my yield (compound)</button>
           </div>
           <TxStatus status={tx.status} />
+          <a className="calc-panel-link" href="#calculator" data-testid="rewards-calc-link">🧮 Project your yield (simple vs compounding) ↓</a>
         </div>
       </div>
       <div className="card" style={{ marginTop: 18 }}>
@@ -90,15 +73,9 @@ export default function Rewards() {
           <li>Contracts that cannot absorb yield (the staking contract and the QFX/QUSD pool) are excluded; staking rewards come from their own pre-funded QFX reserves.</li>
         </ul>
       </div>
-      <div className="card" style={{ marginTop: 18 }}>
-        <h2>Yield calculator</h2>
-        <div className="grid g-3">
-          <div className="field"><label>Principal (QFX = XLM)</label><input className="input" value={principal} onChange={(e) => setPrincipal(e.target.value)} /></div>
-          <div className="field"><label>Days held: {days}</label><input type="range" min={1} max={1095} value={days} onChange={(e) => setDays(Number(e.target.value))} /></div>
-          <Stat label="Projected balance" value={fmt(proj, 2)} sub={`+${fmt(proj - Number(principal), 2)} QFX at ${pct(info.aprBps)} APR`} className="gold" />
-        </div>
-        <GrowthChart principal={Number(principal) || 1} aprBps={info.aprBps} />
-        <p className="muted" style={{ fontSize: "0.78rem" }}>Projection assumes the APR stays constant, your yield is credited daily, and the reward reserve does not run out. Rates can change at any time and the reserve is finite. Testnet only, unaudited. Not financial advice.</p>
+      <div style={{ marginTop: 18 }} id="calculator">
+        <HolderYieldCalculator embedded />
+        <p className="muted" style={{ fontSize: "0.8rem", margin: "8px 4px 0" }}>Also see the <Link to="/calculators">staking and liquidity calculators</Link>.</p>
       </div>
     </>
   );

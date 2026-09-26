@@ -9,6 +9,8 @@ import Referrals, { REF_KEY } from "./pages/Referrals";
 import Bots from "./pages/Bots";
 import Markets from "./pages/Markets";
 import Landing from "./pages/Landing";
+import Earn from "./pages/Earn";
+import Calculators from "./pages/Calculators";
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
 function RefCapture() {
@@ -32,6 +34,8 @@ export default function App() {
           <Route path="/markets" element={<Markets />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/pools" element={<Pools />} />
+          <Route path="/earn" element={<Earn />} />
+          <Route path="/calculators" element={<Calculators />} />
           <Route path="/stake" element={<Stake />} />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/referrals" element={<Referrals />} />

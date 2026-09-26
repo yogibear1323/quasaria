@@ -74,6 +74,7 @@ relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md)
 | 4 | **Staking** | `staking`: admin-whitelisted pools, per-pool reward rate, funded reserves, optional lock | Stake page |
 | 5 | **Referrals** | `referral`: set-once, no self-referral, no cycles; pools & vault pay referrers a share of fees | Referral dashboard, `?ref=` shareable link |
 | 6 | **Bot leverage trading** | `leverage-vault`: collateral, positions with max-leverage cap, health-factor liquidation, operator delegation, on-chain SL/TP; `mock-oracle` with a Reflector-compatible interface | `bot/`: grid / DCA / momentum strategies, risk manager, paper vault, liquidation + SL/TP keeper |
+| 7 | **Earn calculators** | Reads staking pools (rate, lock, reserve), QFX `yield_info`/`reserves`, pool `info` (fee) and recent `swap` events | `/earn` hub + `/calculators` (staking, holder yield, LP fees + impermanent loss); pure math in `src/lib/calc.ts` |
 
 ---
 
@@ -653,6 +654,33 @@ invitee to confirm it on-chain. It also shows referral count, earnings and activ
   acknowledgement, a leverage slider with estimated liquidation price, health
   gauges and config export.
 
+### 7. Earn calculators
+
+`/earn` (in the nav) links the three ways to earn, each with its live panel and a
+calculator; `/calculators` shows all three (`?c=staking|holder|lp` focuses one,
+`?pool=` preselects a pool). The Stake, QFX and Pools panels link straight to the
+matching calculator, and the QFX page embeds the holder-yield one.
+
+* **Staking**: pool/lock picker, amount, duration. Rate, lock, total staked and
+  remaining reward reserve come from `staking.pool(i)`. Rewards = rate × your share ×
+  time, capped where the reserve runs dry, with warnings when the reserve depletes
+  within the horizon or your payout alone exceeds it. The chart shows capped vs
+  uncapped rewards, the unlock day and the depletion day.
+* **Holder yield**: QFX amount, duration, simple (default, matches the contract)
+  vs settled-weekly / settled-daily compounding, a what-if APR slider (≤ the 25% cap).
+  Shows the unallocated reserve and its runway at the current earning supply, with
+  your amount added, and if all circulating QFX earned; the estimate stops at your
+  share of the reserve.
+* **Liquidity**: any live pool (core + XLM/stablecoin), deposit, duration, daily
+  volume (defaults to the on-chain 7-day average from `swap` events; 24h or custom),
+  the referred-volume share (observed from `referral_fee`), fee rate from `info()`.
+  Shows fee earnings, pool share, fee APR, and an impermanent-loss simulator
+  (−90% … +400%) with IL vs holding, fees-adjusted result and break-even days.
+
+Values are shown in tokens and ≈ USD (the existing XLM/USD ticker price; QFX = 1 XLM,
+other tokens valued through pool spot prices). All math is in pure functions
+(`frontend/src/lib/calc.ts`, tested in `frontend/test/calc.test.ts`). Estimates only.
+
 ---
 
 ## Tests
@@ -662,10 +690,11 @@ invitee to confirm it on-chain. It also shows referral count, earnings and activ
 | Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 41 tests across 7 crates, incl. 14 QFX peg tests (reserve == supply after deposits, redeems, yield and mixed activity; over-redeem fails; no `mint` entry point; yield stops when the reserve is empty) and a staking ↔ QFX test (rewards from an XLM-funded reserve, peg holds) |
 | Wasm build | `cd contracts && stellar contract build` | 7 `.wasm` (wasm32v1-none) |
 | Bot | `cd bot && npm run typecheck && npm test` | 20 vitest tests |
-| Frontend unit | `cd frontend && npm test` | 58 vitest tests: stellarchain client + build-time snapshot fallback (live first, snapshot, newer-of cache/snapshot, search/paging) and the snapshot script (trimming; keeps the old file and exits 0 when the API is down), exact Mint/Redeem amount parsing, keys/signer, stablecoin filter + verification, landing copy |
+| Frontend unit | `cd frontend && npm test` | 79 vitest tests: calculator math (staking stream + reserve cap, simple vs daily/weekly compounding, reserve runway, LP fees, impermanent loss, swap-event summaries, pool-price valuation) plus stellarchain client + build-time snapshot fallback (live first, snapshot, newer-of cache/snapshot, search/paging) and the snapshot script (trimming; keeps the old file and exits 0 when the API is down), exact Mint/Redeem amount parsing, keys/signer, stablecoin filter + verification, landing copy |
 | Frontend | `cd frontend && npm run build` | tsc + vite build |
 | Screenshots | `cd frontend && npx vite preview & node ../scripts/screenshots.mjs` | landing (desktop + mobile), 7 app pages, account flow (secrets blurred); `ONLY=landing` for just the landing |
 | Live site check | `ROUNDTRIP=1 node scripts/verify-live.mjs` | headless Chromium on the Pages site: Markets rows, Mint/Redeem reserve + supply, optional real testnet mint → redeem with a throwaway friendbot key; writes `screenshots/live-markets.png`, `screenshots/live-mint-redeem.png` |
+| Calculators check | `node scripts/verify-calculators.mjs` | headless Chromium: each calculator loads live rates and produces numbers, IL at +200%/−50% matches the formula, panel links, no mobile overflow; writes `screenshots/calc-*.png` + `calc-verify.json` |
 
 ## What is real vs. simplified
 

@@ -7,8 +7,12 @@ import { resolve } from "node:path";
 // Local dev/builds default to "/".
 const base = process.env.VITE_BASE || "/";
 
-// GitHub Pages has no SPA rewrites: serve the app shell for unknown paths (deep links)
-// by shipping a copy of index.html as 404.html. Harmless elsewhere (Netlify uses _redirects).
+// GitHub Pages has no SPA rewrites. So that deep links work:
+//  - every top-level app route gets a copy of index.html as <route>.html, which Pages
+//    serves for the extensionless URL (/quasaria/markets) with HTTP 200;
+//  - any other path falls back to 404.html (a copy of index.html, served with HTTP 404).
+// Harmless elsewhere (Netlify uses _redirects). Keep in sync with the routes in src/App.tsx.
+const SPA_ROUTES = ["app", "markets", "trade", "pools", "stake", "rewards", "referrals", "bots"];
 let outDir = "dist";
 const spa404: Plugin = {
   name: "spa-404",
@@ -18,7 +22,9 @@ const spa404: Plugin = {
   },
   closeBundle() {
     const out = outDir;
-    if (existsSync(resolve(out, "index.html"))) copyFileSync(resolve(out, "index.html"), resolve(out, "404.html"));
+    const index = resolve(out, "index.html");
+    if (!existsSync(index)) return;
+    for (const name of ["404", ...SPA_ROUTES]) copyFileSync(index, resolve(out, `${name}.html`));
   },
 };
 

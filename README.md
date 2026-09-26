@@ -681,7 +681,11 @@ page without a wallet, and reads the live SDEX order book from Horizon testnet.
 - staking, vault deposits and positions with SL/TP
 - the keeper (`--once`, 0 actions needed)
 - an in-app (browser-generated) account signing a real `set_referrer`
-- a real QFX mint → redeem round trip through the live Pages UI (throwaway friendbot key; see `scripts/verify-live.mjs`)
+- a real QFX mint → redeem round trip through the live Pages UI (throwaway friendbot key; see `scripts/verify-live.mjs`):
+  25 XLM → 25 QFX ([`d2ef64d2…1abf`](https://stellar.expert/explorer/testnet/tx/d2ef64d2240a7db0de7f10d6dc32ff3d9577f8284c5ce08dca83609605291abf)),
+  25 QFX → 25 XLM ([`b4ab35d7…f253`](https://stellar.expert/explorer/testnet/tx/b4ab35d7c3ad53d005e429a07a28295a72c5736e68ad691cf4eefd45f560f253)).
+  `reserves()` read 8,500 = 8,500 before, 8,525 = 8,525 after the mint, and 8,500 = 8,500 after the redeem.
+  Screenshots: `screenshots/live-markets.png` (snapshot fallback on github.io), `screenshots/live-mint-redeem.png`.
 - the 21 XLM/stablecoin Soroban + native pools
 
 **Not exercised end-to-end:** Freighter-signed transactions (they use the same `Signer` path as in-app keys) and the bot's live strategy mode.

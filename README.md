@@ -1,3 +1,8 @@
+> [!NOTE]
+> **Live demo (testnet):** <https://yogibear1323.github.io/quasaria/> · **Repo:** <https://github.com/yogibear1323/quasaria>
+> Stellar **testnet** only, unaudited. Do not use real funds. The site is built and deployed to
+> GitHub Pages by [`.github/workflows/pages.yml`](.github/workflows/pages.yml) on every push to `main`.
+
 <p align="center">
   <img src="docs/brand/banner.png" alt="Quasaria — trade at the speed of light on Stellar" width="100%" />
 </p>
@@ -177,6 +182,26 @@ Without a wallet or deployed contracts the app runs in **read-only demo mode**:
 the SDEX order book is fetched live from Horizon testnet (falling back to demo
 data if unreachable/empty), and Soroban-backed panels show demo numbers. Set
 `VITE_OFFLINE_DEMO=1` to avoid all network calls.
+
+### GitHub Pages build
+
+The live demo is served from a subpath (`/quasaria/`). The Vite `base` comes from
+`VITE_BASE` (default `/`, so local builds are unchanged) and the router uses
+`import.meta.env.BASE_URL` as its basename:
+
+```bash
+cd frontend && VITE_BASE=/quasaria/ npm run build   # what the Pages workflow runs
+```
+
+GitHub Pages has no SPA rewrites, so the build also writes `<route>.html` copies of
+`index.html` (deep links such as `/quasaria/markets` return 200) plus a `404.html`
+fallback. `public/_redirects` stays for Netlify.
+
+**Known limitation on GitHub Pages:** the stellarchain.io API only sends CORS headers
+for allow-listed origins, and `yogibear1323.github.io` is not on that list. On the Pages
+demo the stellarchain-backed panels (the Markets table and the market cards) therefore
+show their "stellarchain.io unavailable" state. Horizon/Soroban testnet data (the XLM/USD
+fallback ticker, order books, pools and contracts) still works.
 
 ### Run the bot
 

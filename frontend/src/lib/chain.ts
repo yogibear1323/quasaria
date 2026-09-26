@@ -95,11 +95,74 @@ export async function readStaking(viewer: string) {
   return { pools, positions };
 }
 
-// ---------------------------------------------------------------- QFX
-export async function readQfx(viewer: string) {
-  const r = await readContract<{ index: bigint; apr_bps: number; max_apr_bps: number; total_supply: bigint; max_supply: bigint; genesis: bigint }>(CONTRACTS.qfx, "reward_info");
+// ---------------------------------------------------------------- QFX (1 QFX = 1 XLM, fully backed)
+export type QfxReserves = {
+  /** Live XLM held by the QFX contract (native XLM SAC balance). */
+  xlmReserve: number;
+  totalSupply: number;
+  surplus: number;
+  fullyBacked: boolean;
+  /** QFX held for holder yield (unallocated + accrued, unsettled). */
+  rewardReserve: number;
+  circulating: number;
+  /** Raw stroop values, for exact equality checks. */
+  raw: { xlmReserve: bigint; totalSupply: bigint };
+};
+
+export async function readQfxReserves(): Promise<QfxReserves> {
+  const r = await readContract<{ xlm_reserve: bigint; total_supply: bigint; surplus: bigint; fully_backed: boolean; reward_reserve: bigint; circulating: bigint }>(CONTRACTS.qfx, "reserves");
+  return {
+    xlmReserve: fromUnits(r.xlm_reserve),
+    totalSupply: fromUnits(r.total_supply),
+    surplus: fromUnits(r.surplus),
+    fullyBacked: r.fully_backed,
+    rewardReserve: fromUnits(r.reward_reserve),
+    circulating: fromUnits(r.circulating),
+    raw: { xlmReserve: BigInt(r.xlm_reserve), totalSupply: BigInt(r.total_supply) },
+  };
+}
+
+/** XLM (native SAC) and QFX balances of `who`. */
+export async function readMintBalances(who: string) {
+  if (!who) return { xlm: 0, qfx: 0 };
+  const [xlm, qfx] = await Promise.all([tokenBalance(CONTRACTS.xlmSac, who), tokenBalance(CONTRACTS.qfx, who)]);
+  return { xlm, qfx };
+}
+
+export type QfxInfo = QfxReserves & {
+  aprBps: number;
+  apyBps: number;
+  maxAprBps: number;
+  genesis: number;
+  nextAccrualAt: number;
+  /** Unallocated holder-yield reserve (QFX). */
+  rewardPool: number;
+  eligibleSupply: number;
+  dailyEmission: number;
+  balance: number;
+  pending: number;
+};
+
+export async function readQfx(viewer: string): Promise<QfxInfo> {
+  const [y, res] = await Promise.all([
+    readContract<{ apr_bps: number; apy_bps: number; max_apr_bps: number; genesis: bigint; next_accrual_at: bigint; reward_pool: bigint; eligible_supply: bigint; daily_emission: bigint }>(CONTRACTS.qfx, "yield_info"),
+    readQfxReserves(),
+  ]);
   const balance = viewer ? await tokenBalance(CONTRACTS.qfx, viewer) : 0;
-  return { aprBps: r.apr_bps, maxAprBps: r.max_apr_bps, totalSupply: fromUnits(r.total_supply), maxSupply: fromUnits(r.max_supply), genesis: Number(r.genesis), index: Number(r.index) / 1e18, balance };
+  const pending = viewer ? fromUnits(await readContract<bigint>(CONTRACTS.qfx, "pending_yield", [addr(viewer)])) : 0;
+  return {
+    ...res,
+    aprBps: y.apr_bps,
+    apyBps: y.apy_bps,
+    maxAprBps: y.max_apr_bps,
+    genesis: Number(y.genesis),
+    nextAccrualAt: Number(y.next_accrual_at),
+    rewardPool: fromUnits(y.reward_pool),
+    eligibleSupply: fromUnits(y.eligible_supply),
+    dailyEmission: fromUnits(y.daily_emission),
+    balance,
+    pending,
+  };
 }
 
 // ---------------------------------------------------------------- referrals

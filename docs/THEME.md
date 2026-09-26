@@ -74,7 +74,7 @@ shared parallax starfield) plus a CSS nebula layer per scene
 | Trade | **Quasar Core** | Spinning particle accretion disk, pulsing twin jets | The brand's namesake — the engine of the exchange |
 | Pools | **Nebula Drift** | Breathing, drifting magenta/violet/cyan gas clouds | Liquidity as a nebula that pools matter |
 | Stake | **Orbital Rings** | Planets orbiting a golden star on tilted ellipses | Staked tokens "in orbit" |
-| QFX Rewards | **Supernova** | Expanding shock rings + sparks spiralling outwards | Compounding growth radiating from a core |
+| QFX Mint & Rewards | **Supernova** | Expanding shock rings + sparks spiralling outwards | Fully backed value (1 QFX = 1 XLM) radiating from a core |
 | Referrals | **Constellations** | Drifting stars that link up when near | Your referral network as a constellation |
 | Bots & Leverage | **Warp Speed** | Hyperspace streaks accelerating from the centre | Leverage = warp speed (and the danger that comes with it) |
 

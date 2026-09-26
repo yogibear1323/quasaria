@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Seed a fresh TESTNET deployment (run after deploy-testnet.sh):
-#  * mint QFX to the admin (QUSD is issued by the admin, so the admin can pay it out directly)
-#  * add initial liquidity to both AMM pools
-#  * fund staking rewards and the leverage-vault reserve
+#  * QFX is 1:1 backed: the admin DEPOSITS testnet XLM to get QFX (there is no
+#    admin mint). QUSD is issued by the admin, so the admin can pay it out.
+#  * fund the QFX holder-yield reserve with XLM (fund_yield)
+#  * add initial liquidity to both AMM pools (QFX/QUSD at the XLM/QUSD price)
+#  * fund staking rewards (QFX from deposited XLM) and the leverage-vault reserve
 #  * create a public demo trader (friendbot) that: trusts QUSD, links the admin
 #    as referrer, swaps through the router, stakes QFX, and opens two
 #    leveraged positions with SL/TP. The frontend shows this account's live
@@ -28,16 +30,19 @@ inv() { # inv <source-identity> <contract-id> <fn> args...
 U=10000000 # 7 decimals
 now_price() { inv "$IDENTITY" "$(C oracle)" set_price --asset '{"Other":"XLM"}' --price "${1:-12000000000000}" --timestamp 0 >/dev/null; }
 
-echo "==> Mint 5,000,000 QFX to admin"
-inv "$IDENTITY" "$(C qfx)" mint --to "$ADMIN" --amount $((5000000 * U)) >/dev/null
+echo "==> QFX holder-yield reserve: 2,500 testnet XLM (fund_yield)"
+inv "$IDENTITY" "$(C qfx)" fund_yield --from "$ADMIN" --amount $((2500 * U)) >/dev/null
 
-echo "==> Liquidity: 5,000 XLM + 600 QUSD ; 200,000 QFX + 100,000 QUSD"
+echo "==> Deposit 5,500 XLM -> 5,500 QFX (1:1) for staking reserves + pool liquidity"
+inv "$IDENTITY" "$(C qfx)" deposit --from "$ADMIN" --amount $((5500 * U)) >/dev/null
+
+echo "==> Liquidity: 5,000 XLM + 600 QUSD ; 2,500 QFX + 300 QUSD (same price: QFX = XLM)"
 inv "$IDENTITY" "$(C poolXlmQusd)" deposit --to "$ADMIN" --desired_a $((5000 * U)) --desired_b $((600 * U)) --min_a 0 --min_b 0
-inv "$IDENTITY" "$(C poolQfxQusd)" deposit --to "$ADMIN" --desired_a $((200000 * U)) --desired_b $((100000 * U)) --min_a 0 --min_b 0
+inv "$IDENTITY" "$(C poolQfxQusd)" deposit --to "$ADMIN" --desired_a $((2500 * U)) --desired_b $((300 * U)) --min_a 0 --min_b 0
 
-echo "==> Fund staking rewards (QFX) and vault liquidity (QUSD)"
-inv "$IDENTITY" "$(C staking)" fund --from "$ADMIN" --pool_id 0 --amount $((500000 * U)) >/dev/null
-inv "$IDENTITY" "$(C staking)" fund --from "$ADMIN" --pool_id 1 --amount $((500000 * U)) >/dev/null
+echo "==> Fund staking rewards (1,500 QFX per pool, XLM-backed) and vault liquidity (QUSD)"
+inv "$IDENTITY" "$(C staking)" fund --from "$ADMIN" --pool_id 0 --amount $((1500 * U)) >/dev/null
+inv "$IDENTITY" "$(C staking)" fund --from "$ADMIN" --pool_id 1 --amount $((1500 * U)) >/dev/null
 inv "$IDENTITY" "$(C vault)" fund_liquidity --from "$ADMIN" --amount $((200000 * U)) >/dev/null
 
 echo "==> Admin stakes 100 QLP (XLM/QUSD) in staking pool 1"
@@ -51,7 +56,7 @@ if [[ "${DRY_RUN:-0}" != "1" ]]; then
 else T="GDRYRUNTRADER"; fi
 echo "   trader: $T"
 inv "$IDENTITY" "$(C qusdSac)" transfer --from "$ADMIN" --to "$T" --amount $((5000 * U)) >/dev/null
-inv "$IDENTITY" "$(C qfx)" transfer --from "$ADMIN" --to "$T" --amount $((50000 * U)) >/dev/null
+inv "$TRADER" "$(C qfx)" deposit --from "$T" --amount $((500 * U)) >/dev/null   # trader wraps its own XLM
 
 echo "==> Trader links admin as referrer, swaps 200 XLM -> QUSD via router (referrer earns 20% of fee)"
 inv "$TRADER" "$(C referral)" set_referrer --user "$T" --referrer "$ADMIN" >/dev/null 2>&1 || echo "   (referrer already set)"
@@ -59,8 +64,8 @@ DEADLINE=$(( $(date +%s) + 600 ))
 inv "$TRADER" "$(C router)" swap_exact_in --user "$T" --pools "[\"$(C poolXlmQusd)\"]" --token_in "$(C xlmSac)" \
   --amount_in $((200 * U)) --min_out 0 --deadline "$DEADLINE"
 
-echo "==> Trader stakes 10,000 QFX in pool 0 (7-day lock)"
-inv "$TRADER" "$(C staking)" stake --user "$T" --pool_id 0 --amount $((10000 * U)) >/dev/null
+echo "==> Trader stakes 200 QFX in pool 0 (7-day lock)"
+inv "$TRADER" "$(C staking)" stake --user "$T" --pool_id 0 --amount $((200 * U)) >/dev/null
 
 echo "==> Trader deposits 1,000 QUSD to the vault and opens two positions with SL/TP"
 inv "$TRADER" "$(C vault)" deposit --user "$T" --amount $((1000 * U)) >/dev/null

@@ -7,7 +7,12 @@
 //!   O(1).
 //! * **Funding model:** rewards are *pre-funded* by anyone via `fund`; only
 //!   funded rewards are ever distributed (emission stops when the reserve runs
-//!   dry — no unbacked promises).
+//!   dry — no unbacked promises). Staking never mints. For QFX rewards the
+//!   reserve is created by depositing testnet XLM into the QFX wrapper
+//!   (`qfx.deposit`, 1 QFX = 1 XLM, fully backed) and/or by routing fees in,
+//!   then calling `fund`; so every QFX paid out is backed 1:1 by XLM. The
+//!   staking contract should be marked `yield_exempt` on QFX so the token's
+//!   holder yield is not stranded in its balance.
 //! * Optional lock: each stake resets `unlock_at = max(unlock_at, now + lock)`;
 //!   `unstake` before that reverts. Claiming is always allowed.
 #![no_std]

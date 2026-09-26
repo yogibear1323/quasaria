@@ -69,19 +69,19 @@ QUSD_SAC="$(run stellar contract asset deploy --asset "$QUSD_ASSET" --source "$I
 echo "==> Referral registry (20% of fees to referrers)"
 REFERRAL="$(deploy quasaria_referral.wasm quasaria-referral -- --admin "$ADMIN" --share_bps 2000)"
 
-echo "==> Quasaria Flux (QFX) holder-reward token: 12% APR compounded daily, 1B max supply"
-QFX="$(deploy quasaria_reward_token.wasm quasaria-qfx -- --admin "$ADMIN" --decimals 7 \
-  --name "Quasaria Flux" --symbol QFX --apr_bps 1200 --max_supply 10000000000000000)"
+echo "==> Quasaria Flux (QFX): 1 QFX = 1 XLM, fully backed by native XLM (SAC); 12% holder APR paid from a pre-funded reserve"
+QFX="$(deploy quasaria_reward_token.wasm quasaria-qfx-v2 -- --admin "$ADMIN" --xlm "$XLM_SAC" \
+  --name "Quasaria Flux" --symbol QFX --apr_bps 1200)"
 
 echo "==> AMM pools (0.30% fee) + router"
 POOL_XLM_QUSD="$(deploy quasaria_amm_pool.wasm quasaria-pool-xlm-qusd -- --admin "$ADMIN" \
   --token_a "$XLM_SAC" --token_b "$QUSD_SAC" --fee_bps 30 --referral "\"$REFERRAL\"")"
-POOL_QFX_QUSD="$(deploy quasaria_amm_pool.wasm quasaria-pool-qfx-qusd -- --admin "$ADMIN" \
+POOL_QFX_QUSD="$(deploy quasaria_amm_pool.wasm quasaria-pool-qfx-qusd-v2 -- --admin "$ADMIN" \
   --token_a "$QFX" --token_b "$QUSD_SAC" --fee_bps 30 --referral "\"$REFERRAL\"")"
 ROUTER="$(deploy quasaria_router.wasm quasaria-router)"
 
 echo "==> Staking"
-STAKING="$(deploy quasaria_staking.wasm quasaria-staking -- --admin "$ADMIN")"
+STAKING="$(deploy quasaria_staking.wasm quasaria-staking-v2 -- --admin "$ADMIN")"
 
 echo "==> Mock oracle (swap for Reflector: see README) + leverage vault"
 ORACLE="$(deploy quasaria_mock_oracle.wasm quasaria-oracle -- --admin "$ADMIN" --decimals 14)"
@@ -95,6 +95,9 @@ echo "==> Wiring: fee sources, markets, staking pools, oracle prices"
 invoke "$REFERRAL" set_fee_source --source "$POOL_XLM_QUSD" --allowed true >/dev/null
 invoke "$REFERRAL" set_fee_source --source "$POOL_QFX_QUSD" --allowed true >/dev/null
 invoke "$REFERRAL" set_fee_source --source "$VAULT" --allowed true >/dev/null
+# Contracts whose internal accounting cannot absorb QFX holder yield.
+invoke "$QFX" set_yield_exempt --id "$STAKING" --exempt true >/dev/null
+invoke "$QFX" set_yield_exempt --id "$POOL_QFX_QUSD" --exempt true >/dev/null
 invoke "$VAULT" set_market --asset '{"Other":"XLM"}' --enabled true >/dev/null
 invoke "$ORACLE" set_price --asset '{"Other":"XLM"}' --price 12000000000000 --timestamp 0 >/dev/null
 # Stake QFX -> earn QFX (7-day lock), stake XLM/QUSD LP -> earn QFX (no lock)
@@ -124,7 +127,9 @@ cat > "$OUT" <<JSON
     "oracle": "$ORACLE",
     "vault": "$VAULT"
   },
-  "assets": { "QUSD": "$QUSD_ASSET" }
+  "assets": { "QUSD": "$QUSD_ASSET" },
+  "qfx": { "peg": "1 QFX = 1 XLM", "collateral": "$XLM_SAC", "decimals": 7, "holderAprBps": 1200,
+           "yieldExempt": ["$STAKING", "$POOL_QFX_QUSD"] }
 }
 JSON
 mkdir -p "$ROOT/frontend/src/config" && cp "${OUT:-$DEP}" "$ROOT/frontend/src/config/testnet.json"
@@ -149,4 +154,4 @@ QUASARIA_VAULT_ID=$VAULT
 QUASARIA_ORACLE_ID=$ORACLE
 # QUASARIA_SECRET=S...   # bot/keeper key (testnet only!). Never commit.
 ENV
-echo "Done. Next: mint QUSD / QFX to test accounts and seed pools (see README 'Seeding')."
+echo "Done. Next: ./scripts/seed-testnet.sh (reserves are funded with testnet XLM: QFX can only be minted by depositing XLM)."

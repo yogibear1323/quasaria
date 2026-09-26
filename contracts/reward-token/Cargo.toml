@@ -1,6 +1,6 @@
 [package]
 name = "quasaria-reward-token"
-description = "Quasaria Flux (QFX): SEP-41 holder-reward token with daily compounding index"
+description = "Quasaria Flux (QFX): 1 QFX = 1 XLM fully backed SEP-41 wrapper; holder yield paid from a pre-funded reserve"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

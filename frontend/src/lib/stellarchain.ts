@@ -81,6 +81,25 @@ export interface RawProject {
   updatedAt?: string | null;
 }
 
+// ---- build-time snapshot (public/data/stellarchain-snapshot.json, written by scripts/fetch-market-snapshot.mjs)
+export interface MarketSnapshot {
+  version: number;
+  generatedAt: string | null;
+  overview?: Partial<Record<ScNetwork, { fetchedAt: string; data: RawOverview }>>;
+  marketAssets?: Partial<Record<ScNetwork, { fetchedAt: string; totalItems?: number; member: RawMarketAsset[] }>>;
+}
+
+/** Where a value came from: the live API, an expired browser cache of it, or the build-time snapshot. */
+export type DataSource = "live" | "cache" | "snapshot";
+export type Sourced = { source: DataSource; /** ISO time the snapshot/cache was taken (not set for live). */ snapshotAt?: string };
+
+/** "snapshot, updated Sep 26, 7:25 AM" — shown whenever the build-time snapshot is used. */
+export function snapshotLabel(at: string | null | undefined): string {
+  if (!at || !Number.isFinite(Date.parse(at))) return "snapshot";
+  const d = new Date(at);
+  return `snapshot, updated ${d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`;
+}
+
 // ---- normalized shapes
 export interface MarketOverview {
   xlmPriceUsd: number | null;
@@ -91,6 +110,8 @@ export interface MarketOverview {
   totalAccounts: number | null;
   totalContracts: number | null;
   updatedAt: string;
+  source?: DataSource;
+  snapshotAt?: string;
 }
 export interface MarketAsset {
   key: string;
@@ -181,6 +202,8 @@ export interface StorageLike {
 
 export interface ClientOptions {
   baseUrl?: string;
+  /** Build-time snapshot: a URL to fetch, or a loader. Used when the live API fails. */
+  snapshot?: string | (() => Promise<MarketSnapshot | null>) | null;
   fetch?: typeof fetch;
   ttlMs?: number;
   timeoutMs?: number;
@@ -204,6 +227,8 @@ export class StellarchainClient {
   private readonly now: () => number;
   private readonly mem = new Map<string, { at: number; data: unknown }>();
   private readonly inflight = new Map<string, Promise<unknown>>();
+  private readonly snapshotSrc: ClientOptions["snapshot"];
+  private snapshotP: Promise<MarketSnapshot | null> | null = null;
 
   constructor(o: ClientOptions = {}) {
     this.base = (o.baseUrl ?? STELLARCHAIN_BASE).replace(/\/$/, "");
@@ -212,17 +237,26 @@ export class StellarchainClient {
     this.timeout = o.timeoutMs ?? 8_000;
     this.storage = o.storage === undefined ? (typeof localStorage !== "undefined" ? localStorage : null) : o.storage;
     this.now = o.now ?? Date.now;
+    this.snapshotSrc = o.snapshot ?? null;
   }
 
   /** GET a path (relative to /v1) with the required JSON-LD Accept header, cached. */
   async get<T>(path: string, query: Record<string, string | number | undefined> = {}): Promise<T> {
+    return (await this.getEx<T>(path, query)).data;
+  }
+
+  /**
+   * Like `get`, but reports whether the data is fresh (live or within TTL) or an
+   * expired cache entry served because the API failed (`at` = when it was cached).
+   */
+  async getEx<T>(path: string, query: Record<string, string | number | undefined> = {}): Promise<{ data: T; fresh: boolean; at: number }> {
     const qs = Object.entries(query).filter(([, v]) => v !== undefined && v !== "").map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join("&");
     const url = `${this.base}${path}${qs ? `?${qs}` : ""}`;
     const key = `quasaria.sc:${url}`;
     const hit = this.mem.get(key) ?? this.readStorage(key);
-    if (hit && this.now() - hit.at < this.ttl) return hit.data as T;
+    if (hit && this.now() - hit.at < this.ttl) return { data: hit.data as T, fresh: true, at: hit.at };
     const pending = this.inflight.get(key);
-    if (pending) return pending as Promise<T>;
+    if (pending) return pending as Promise<{ data: T; fresh: boolean; at: number }>;
     const p = this.fetchJson<T>(url)
       .then((data) => {
         const entry = { at: this.now(), data };
@@ -232,16 +266,51 @@ export class StellarchainClient {
         } catch {
           /* quota / private mode */
         }
-        return data;
+        return { data, fresh: true, at: entry.at };
       })
       .catch((e) => {
         // serve an expired cache entry rather than nothing
-        if (hit) return hit.data as T;
+        if (hit) return { data: hit.data as T, fresh: false, at: hit.at };
         throw e;
       })
       .finally(() => this.inflight.delete(key));
     this.inflight.set(key, p);
     return p;
+  }
+
+  /** The build-time snapshot (fetched once, null if absent/invalid). */
+  loadSnapshot(): Promise<MarketSnapshot | null> {
+    if (!this.snapshotSrc) return Promise.resolve(null);
+    if (!this.snapshotP) {
+      const src = this.snapshotSrc;
+      this.snapshotP = (typeof src === "function"
+        ? src()
+        : this.f(src, { headers: { Accept: "application/json" } }).then((r) => (r.ok ? (r.json() as Promise<MarketSnapshot>) : null))
+      )
+        .then((s) => (s && typeof s === "object" && s.version === 1 ? s : null))
+        .catch(() => null);
+    }
+    return this.snapshotP;
+  }
+
+  /**
+   * Live first; if the API fails, use whichever is newer of the expired browser
+   * cache and the build-time snapshot; if neither exists, rethrow.
+   */
+  private async withSnapshot<R, T>(live: () => Promise<{ data: R; fresh: boolean; at: number }>, fromLive: (r: R) => T, fromSnap: (s: MarketSnapshot) => { value: T; at: string } | null): Promise<T & Sourced> {
+    let r: { data: R; fresh: boolean; at: number } | null = null;
+    let err: unknown = null;
+    try {
+      r = await live();
+      if (r.fresh) return { ...fromLive(r.data), source: "live" };
+    } catch (e) {
+      err = e;
+    }
+    const snap = await this.loadSnapshot();
+    const s = snap ? fromSnap(snap) : null;
+    if (s && (!r || Date.parse(s.at) >= r.at)) return { ...s.value, source: "snapshot", snapshotAt: s.at };
+    if (r) return { ...fromLive(r.data), source: "cache", snapshotAt: new Date(r.at).toISOString() };
+    throw err;
   }
 
   private readStorage(key: string) {
@@ -272,14 +341,37 @@ export class StellarchainClient {
   }
 
   async overview(network: ScNetwork = "mainnet"): Promise<MarketOverview | null> {
-    const c = await this.get<HydraCollection<RawOverview>>("/market/overview", { network, "order[recordedAt]": "desc" });
-    return c.member[0] ? normalizeOverview(c.member[0]) : null;
+    const r = await this.withSnapshot(
+      () => this.getEx<HydraCollection<RawOverview>>("/market/overview", { network, "order[recordedAt]": "desc" }),
+      (c) => ({ o: c.member[0] ? normalizeOverview(c.member[0]) : null }),
+      (s) => {
+        const e = s.overview?.[network];
+        return e?.data ? { value: { o: normalizeOverview(e.data) }, at: e.fetchedAt } : null;
+      },
+    );
+    return r.o ? { ...r.o, source: r.source, snapshotAt: r.snapshotAt } : null;
   }
 
-  async marketAssets(o: { network?: ScNetwork; itemsPerPage?: number; page?: number; search?: string } = {}): Promise<{ total: number; assets: MarketAsset[] }> {
-    const c = await this.get<HydraCollection<RawMarketAsset>>("/market/assets", { network: o.network ?? "mainnet", itemsPerPage: o.itemsPerPage ?? 25, page: o.page, search: o.search });
-    const assets = c.member.map(normalizeMarketAsset).sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
-    return { total: c.totalItems ?? assets.length, assets };
+  async marketAssets(o: { network?: ScNetwork; itemsPerPage?: number; page?: number; search?: string } = {}): Promise<{ total: number; assets: MarketAsset[] } & Sourced> {
+    const network = o.network ?? "mainnet";
+    const per = o.itemsPerPage ?? 25;
+    const rank = (xs: MarketAsset[]) => xs.sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
+    return this.withSnapshot(
+      () => this.getEx<HydraCollection<RawMarketAsset>>("/market/assets", { network, itemsPerPage: per, page: o.page, search: o.search }),
+      (c) => {
+        const assets = rank(c.member.map(normalizeMarketAsset));
+        return { total: c.totalItems ?? assets.length, assets };
+      },
+      (s) => {
+        const e = s.marketAssets?.[network];
+        if (!e?.member?.length) return null;
+        let all = rank(e.member.map(normalizeMarketAsset));
+        const q = o.search?.trim().toLowerCase();
+        if (q) all = all.filter((a) => [a.code, a.issuer, a.key, a.orgName ?? "", a.homeDomain ?? ""].some((f) => f.toLowerCase().includes(q)));
+        const start = ((o.page ?? 1) - 1) * per;
+        return { value: { total: q ? all.length : (e.totalItems ?? all.length), assets: all.slice(start, start + per) }, at: e.fetchedAt };
+      },
+    );
   }
 
   async asset(assetKey: string, network: ScNetwork = "mainnet") {
@@ -297,5 +389,9 @@ export class StellarchainClient {
   }
 }
 
-/** Shared browser instance. */
-export const stellarchain = new StellarchainClient();
+/** Build-time snapshot URL under the app's base path (e.g. /quasaria/data/…). */
+const BASE_URL: string = import.meta.env?.BASE_URL ?? "/";
+export const SNAPSHOT_URL = `${BASE_URL.replace(/\/?$/, "/")}data/stellarchain-snapshot.json`;
+
+/** Shared browser instance: live API first, build-time snapshot as fallback. */
+export const stellarchain = new StellarchainClient({ snapshot: typeof window !== "undefined" ? SNAPSHOT_URL : null });

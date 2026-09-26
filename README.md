@@ -14,7 +14,8 @@
 # Quasaria
 
 **A quasar-bright decentralized exchange scaffold for the Stellar network.**
-SDEX order books + Soroban AMM pools, staking orbits, the QFX holder-reward token,
+SDEX order books + Soroban AMM pools, staking orbits, the QFX token (**1 QFX = 1 XLM,
+fully backed**, with holder yield paid from a pre-funded reserve),
 an on-chain referral constellation, and leveraged trading bots with a liquidation
 keeper. **Everything defaults to Stellar TESTNET.**
 
@@ -56,7 +57,7 @@ relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md)
 | Trade — Quasar Core | Pools — Nebula Drift | Stake — Orbital Rings |
 |---|---|---|
 | ![Trade](screenshots/01-trade.png) | ![Pools](screenshots/02-pools.png) | ![Stake](screenshots/03-stake.png) |
-| **QFX Rewards — Supernova** | **Referrals — Constellations** | **Bots & Leverage — Warp Speed** |
+| **QFX Mint & Rewards — Supernova** | **Referrals — Constellations** | **Bots & Leverage — Warp Speed** |
 | ![Rewards](screenshots/04-rewards.png) | ![Referrals](screenshots/05-referrals.png) | ![Bots](screenshots/06-bots.png) |
 | **Markets (stellarchain.io)** | **Create account** (secret blurred) | **Backup check** (secret blurred) |
 | ![Markets](screenshots/07-markets.png) | ![Create account](screenshots/09-create-account-secret-blurred.png) | ![Backup](screenshots/10-backup-check-blurred.png) |
@@ -68,7 +69,7 @@ relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md)
 | # | Feature | On-chain (Soroban / Stellar) | Off-chain |
 |---|---|---|---|
 | 1 | **Core DEX** | Stellar **SDEX** (manage buy/sell offers, strict-send path payments, automatic trustlines) + `amm-pool` / `router` contracts | Horizon order books, trade aggregations, path finding; Freighter signing |
-| 2 | **QFX holder-reward token** | `reward-token`: SEP-41 token, balances stored as shares, global index compounds daily, capped APR, max-supply-bounded emission | Rewards page: countdown to next compounding, calculator |
+| 2 | **QFX: 1 QFX = 1 XLM, fully backed** | `reward-token`: SEP-41 wrapper around native XLM (via the XLM SAC). `deposit` mints 1:1, `redeem`/`burn` returns XLM 1:1, `reserves()` proves XLM held = supply, no admin mint. Holder yield (capped APR) is paid from a pre-funded reserve, never minted | QFX page: Mint/Redeem panel with live reserve + supply, holder-yield stats, calculator |
 | 3 | **Liquidity providing** | `amm-pool`: x·y=k, SEP-41 **QLP** share token, 0.30% fee accrues to LPs | Pools page: deposit/withdraw, fee APR estimate |
 | 4 | **Staking** | `staking`: admin-whitelisted pools, per-pool reward rate, funded reserves, optional lock | Stake page |
 | 5 | **Referrals** | `referral`: set-once, no self-referral, no cycles; pools & vault pay referrers a share of fees | Referral dashboard, `?ref=` shareable link |
@@ -93,7 +94,7 @@ flowchart LR
     subgraph Soroban["Soroban contracts (contracts/)"]
       ROUTER["router"]
       POOL["amm-pool ×N<br/>(QLP SEP-41 shares)"]
-      QFX["reward-token<br/>QFX (SEP-41, daily index)"]
+      QFX["reward-token<br/>QFX (SEP-41, 1:1 XLM-backed)"]
       STAKE["staking"]
       REF["referral registry"]
       VAULT["leverage-vault"]
@@ -116,6 +117,8 @@ flowchart LR
   VAULT -- fee share --> REF
   POOL & STAKE & VAULT --> SAC
   POOL -.QFX pairs.-> QFX
+  QFX -- deposit / redeem XLM --> SAC
+  STAKE -. QFX rewards from funded reserve .-> QFX
   VAULT -- lastprice --> ORACLE
   VAULT -. set_oracle .-> REFLECTOR
   ENGINE --> RISK --> VAULT
@@ -126,7 +129,7 @@ flowchart LR
 
 ```
 contracts/            Cargo workspace (soroban-sdk 28), one crate per contract
-  reward-token/       QFX: SEP-41 holder-reward token (index/shares)
+  reward-token/       QFX: 1:1 XLM-backed SEP-41 wrapper + reserve-funded holder yield
   amm-pool/           constant-product pool + QLP SEP-41 LP token
   router/             multi-hop exact-in swap router
   staking/            whitelisted multi-pool staking with locks
@@ -197,11 +200,20 @@ GitHub Pages has no SPA rewrites, so the build also writes `<route>.html` copies
 `index.html` (deep links such as `/quasaria/markets` return 200) plus a `404.html`
 fallback. `public/_redirects` stays for Netlify.
 
-**Known limitation on GitHub Pages:** the stellarchain.io API only sends CORS headers
-for allow-listed origins, and `yogibear1323.github.io` is not on that list. On the Pages
-demo the stellarchain-backed panels (the Markets table and the market cards) therefore
-show their "stellarchain.io unavailable" state. Horizon/Soroban testnet data (the XLM/USD
-fallback ticker, order books, pools and contracts) still works.
+**Market-data snapshot for GitHub Pages:** the stellarchain.io API only sends CORS
+headers for allow-listed origins, and `yogibear1323.github.io` is not on that list. So
+the Pages workflow runs `node scripts/fetch-market-snapshot.mjs` (in `frontend/`) right
+before `vite build`. It fetches what the Markets page, the landing market cards and the
+XLM/USD ticker need (the mainnet overview plus the top 50 assets on testnet and on
+mainnet, trimmed to the fields the app reads) and writes
+`frontend/public/data/stellarchain-snapshot.json`, which Vite copies into the build.
+Every deploy therefore ships fresh data. In the browser the client tries the live API
+first and falls back to the snapshot (or to a newer expired browser cache, if one
+exists), labelled **"snapshot, updated &lt;time&gt;"**. If the fetch fails during the
+build, the script keeps the last committed snapshot section by section and exits 0
+(the step is also `continue-on-error`), so the deploy never breaks over market data.
+Refresh the committed copy locally with `cd frontend && npm run snapshot`.
+Horizon/Soroban testnet data (order books, pools, contracts) is read live as before.
 
 ### Run the bot
 
@@ -230,11 +242,11 @@ and copied to `frontend/src/config/testnet.json`. Any `VITE_*` env var overrides
 | `xlmSac` | Native XLM Stellar Asset Contract | [`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC) |
 | `qusdSac` | QUSD demo stablecoin SAC | [`CD4BXA4OL37HBNWDLTBYQK32HEHUZPMVV4F272F7YKOZM2MIB5HDNLUZ`](https://stellar.expert/explorer/testnet/contract/CD4BXA4OL37HBNWDLTBYQK32HEHUZPMVV4F272F7YKOZM2MIB5HDNLUZ) |
 | `referral` | Referral registry | [`CBUKO4MSYOFSDKEDK6WZRXCFXLS3Q4OM5ZMF4PURQCHUNF3AAH76OUJ3`](https://stellar.expert/explorer/testnet/contract/CBUKO4MSYOFSDKEDK6WZRXCFXLS3Q4OM5ZMF4PURQCHUNF3AAH76OUJ3) |
-| `qfx` | QFX reward token | [`CDUMMYBMXILXLPFI5ZI534W6NGUILN2WSMXWKX2HAMT5BWCHN2E774HZ`](https://stellar.expert/explorer/testnet/contract/CDUMMYBMXILXLPFI5ZI534W6NGUILN2WSMXWKX2HAMT5BWCHN2E774HZ) |
+| `qfx` | QFX: 1 QFX = 1 XLM, fully backed | [`CBHUO4V3P5U4FAF6LZCG3UFNP2VACTRYBU7MDQJOQJBZFBZVZJWFBX66`](https://stellar.expert/explorer/testnet/contract/CBHUO4V3P5U4FAF6LZCG3UFNP2VACTRYBU7MDQJOQJBZFBZVZJWFBX66) |
 | `poolXlmQusd` | AMM pool XLM/QUSD | [`CB4HOL3DI3C2YE5M3HERSGKHOIOMFPZXT27TDHHMQJZRPTIHEP7QOV7F`](https://stellar.expert/explorer/testnet/contract/CB4HOL3DI3C2YE5M3HERSGKHOIOMFPZXT27TDHHMQJZRPTIHEP7QOV7F) |
-| `poolQfxQusd` | AMM pool QFX/QUSD | [`CABGFGIJSWCZVVKLFGJUYWZJC3L3Y2OV5J7Z6DX3TZ2VO7B2RBW4F36Q`](https://stellar.expert/explorer/testnet/contract/CABGFGIJSWCZVVKLFGJUYWZJC3L3Y2OV5J7Z6DX3TZ2VO7B2RBW4F36Q) |
+| `poolQfxQusd` | AMM pool QFX/QUSD | [`CCT64AIVO7LT7YGU4NNMPKIGBGMZOVMIOAHNLHL7AESY5534BZPBEVIV`](https://stellar.expert/explorer/testnet/contract/CCT64AIVO7LT7YGU4NNMPKIGBGMZOVMIOAHNLHL7AESY5534BZPBEVIV) |
 | `router` | Router | [`CDVMF4C3MH7VQSHDKWOPEYTH7TRNZCDHREWO2JJ2C4OD57AAIRGXRCIK`](https://stellar.expert/explorer/testnet/contract/CDVMF4C3MH7VQSHDKWOPEYTH7TRNZCDHREWO2JJ2C4OD57AAIRGXRCIK) |
-| `staking` | Staking | [`CCT3POPX42HVLHC2CWZ3NYMGM4QK7ENUWHOM2UJGENVP663I7O2PAYZB`](https://stellar.expert/explorer/testnet/contract/CCT3POPX42HVLHC2CWZ3NYMGM4QK7ENUWHOM2UJGENVP663I7O2PAYZB) |
+| `staking` | Staking | [`CCYPZCFRGTJULJ7NKWT36PXGHITINJENIEJLPNRIZVAYZ33KGQAQF4OO`](https://stellar.expert/explorer/testnet/contract/CCYPZCFRGTJULJ7NKWT36PXGHITINJENIEJLPNRIZVAYZ33KGQAQF4OO) |
 | `oracle` | Mock oracle | [`CBE3RO7HTU766G3RHQYBBUNQY3WJLY7C5JRKYGTELIHHVI26HSEVJMPK`](https://stellar.expert/explorer/testnet/contract/CBE3RO7HTU766G3RHQYBBUNQY3WJLY7C5JRKYGTELIHHVI26HSEVJMPK) |
 | `vault` | Leverage vault | [`CDBGDS5KB6QJ3E5GQH7T66C6CED576ZCIQAJXEYDWRV27OJLTICNKZNF`](https://stellar.expert/explorer/testnet/contract/CDBGDS5KB6QJ3E5GQH7T66C6CED576ZCIQAJXEYDWRV27OJLTICNKZNF) |
 
@@ -242,16 +254,34 @@ and copied to `frontend/src/config/testnet.json`. Any `VITE_*` env var overrides
 - Demo trader: [`GBSMEW3XCI3YNPD4U5VYEHLALFWKOX634XZIHQXAXAWLBXTG36OLOP56`](https://stellar.expert/explorer/testnet/account/GBSMEW3XCI3YNPD4U5VYEHLALFWKOX634XZIHQXAXAWLBXTG36OLOP56)
 - Keys live only in the local Stellar CLI keystore (`~/.config/stellar/identity`). They are never in the repo.
 
-**What the seed created:**
-- 5M QFX minted.
-- XLM/QUSD pool: 5,000 XLM + 600 QUSD. QFX/QUSD pool: 200k + 100k.
-- Two staking pools, each funded with 500k QFX: QFX→QFX with a 7-day lock, and QLP(XLM/QUSD)→QFX flexible.
+**QFX peg migration (2026-09-26, `scripts/migrate-qfx-peg-testnet.sh`).** `qfx`,
+`staking` and `poolQfxQusd` were redeployed because the staking pools and the QFX/QUSD
+pool reference the token address. Everything QFX-related is funded with testnet XLM:
+- **Holder-yield reserve:** 2,500 XLM → `fund_yield` (2,500 QFX in the reserve; 12% APR on
+  non-exempt holders, about 0.1 QFX/day at today's eligible supply).
+- **Staking reserves:** 3,000 XLM deposited → 3,000 QFX, 1,500 QFX funded into each staking
+  pool (QFX→QFX, 7-day lock, 0.0001 QFX/s; QLP(XLM/QUSD)→QFX, flexible, 0.0002 QFX/s).
+- **QFX/QUSD pool re-seeded** at the XLM/QUSD pool price (QFX = XLM): 2,500 QFX (from 2,500
+  deposited XLM) + 277.41 QUSD.
+- The admin staked 100 QLP (XLM/QUSD) in the new pool 1. The demo trader deposited 500 XLM →
+  500 QFX and staked 200 QFX in pool 0.
+- The staking contract and the QFX/QUSD pool are `yield_exempt` (their internal accounting
+  can't absorb holder yield).
+- Proof of reserves right after the migration: `xlm_reserve = total_supply = 8,500 QFX`,
+  `fully_backed: true`, `surplus: 0`.
+- **Legacy (unbacked) contracts, retired:** old QFX
+  [`CDUMMYBM…774HZ`](https://stellar.expert/explorer/testnet/contract/CDUMMYBMXILXLPFI5ZI534W6NGUILN2WSMXWKX2HAMT5BWCHN2E774HZ)
+  (had an admin `mint` and minted its holder interest) now has APR 0; old staking
+  `CCT3POPX…AYZB` has both pools deactivated (users can still exit); old QFX/QUSD pool
+  `CABGFGIJ…F36Q` is no longer a referral fee source. They are listed under `legacy` in
+  `deployments/testnet.json`. Nothing in the app uses them.
+
+**What the original seed created** (non-QFX parts, still live):
+- XLM/QUSD pool: 5,000 XLM + 600 QUSD.
 - 200k QUSD of vault liquidity, and oracle price XLM = 0.1234 QUSD.
-- The admin staked 100 QLP.
 - The demo trader:
   - set the admin as referrer
   - swapped 200 XLM → 23.01 QUSD through the router, which paid a 0.12 XLM referral fee on-chain
-  - staked 10k QFX
   - deposited 1,000 QUSD into the vault
   - opened a 5× long (#1) and a 3× short (#2) with SL/TP
 
@@ -259,7 +289,7 @@ and copied to `frontend/src/config/testnet.json`. Any `VITE_*` env var overrides
 - **Live from Soroban testnet** (tagged "● live"):
   - Pools: reserves, LP share, 24h volume from swap events.
   - Stake: pools, stake and pending rewards.
-  - QFX Rewards: `reward_info` and balances.
+  - QFX: `reserves()` (XLM reserve vs supply), `yield_info()`, balances; Mint/Redeem signs `deposit` / `redeem`.
   - Referrals: count, earnings and payout history from `referral_paid` events.
   - Bots: on-chain positions, health, vault liquidity, oracle mark and staleness.
   - Trade: the AMM quote.
@@ -286,7 +316,7 @@ QUASARIA_SECRET="$(stellar keys show quasaria-admin)" npm run keeper -- --once
 cd contracts && stellar contract build && cd ..
 DRY_RUN=1 ./scripts/deploy-testnet.sh   # preview every CLI command
 ./scripts/deploy-testnet.sh             # deploy (refuses anything but NETWORK=testnet)
-./scripts/seed-testnet.sh               # mint demo QUSD/QFX, add liquidity, fund rewards
+./scripts/seed-testnet.sh               # QUSD to demo accounts; XLM -> QFX deposits; liquidity; reserves
 cd frontend && npm run dev              # uses frontend/src/config/testnet.json written by deploy
 ```
 
@@ -294,14 +324,21 @@ What `deploy-testnet.sh` does:
 
 1. Adds the `testnet` network, creates + friendbot-funds identity `quasaria-admin`.
 2. Resolves the native XLM SAC and deploys a SAC for demo stablecoin `QUSD:<admin>`.
-3. Deploys `referral` (20% fee share), `reward-token` (QFX, 12% APR, 1B cap),
+3. Deploys `referral` (20% fee share), `reward-token` (QFX backed 1:1 by the native
+   XLM SAC, 12% holder APR paid from a reserve; no max-supply knob and no admin mint),
    two `amm-pool`s (XLM/QUSD, QFX/QUSD, 0.30% fee), `router`, `staking`,
    `mock-oracle` (14 decimals) and `leverage-vault` (10× max, 5% maintenance,
    5% liquidation bonus, 0.10% open fee, 15-min max price age) using constructor
    arguments.
 4. Wires permissions: pools + vault as referral fee sources, XLM market enabled,
-   initial oracle price, two staking pools (QFX 7-day lock; XLM/QUSD QLP flexible).
+   initial oracle price, two staking pools (QFX 7-day lock; XLM/QUSD QLP flexible),
+   staking + QFX/QUSD pool marked `yield_exempt` on QFX.
 5. Writes `deployments/testnet.json` (copied to `frontend/src/config/testnet.json`) and `bot/.env`.
+
+`seed-testnet.sh` then funds the QFX holder-yield reserve with 2,500 XLM (`fund_yield`),
+deposits 5,500 XLM for 5,500 QFX (staking reserves + QFX/QUSD liquidity at the XLM price),
+and has the demo trader wrap 500 of its own XLM. **Upgrading an older deployment** that
+still has the unbacked QFX: `./scripts/migrate-qfx-peg-testnet.sh` (`DRY_RUN=1` to preview).
 
 **Using Reflector instead of the mock oracle:** the vault only needs
 `lastprice(Asset) -> Option<PriceData>` and `decimals()`, with the same XDR
@@ -325,17 +362,17 @@ We kept the routes rather than moving them under `/app` so that shared links
 - **Buttons.** **Launch app** → `/trade`. **Create a wallet** opens the non-custodial account modal
   straight at the freshly generated key (`openModal("create")`).
 - **Real data:**
-  - the XLM/USD ticker and markets preview (stellarchain.io, with "as of" and stale flags)
+  - the XLM/USD ticker and markets preview (stellarchain.io live, or the build-time snapshot labelled "snapshot, updated <time>", with "as of" and stale flags)
   - the live SDEX XLM/USDC book (Horizon testnet)
   - the XLM/QUSD swap quote and pool list (Soroban reserves)
   - the latest ledger number and close gap
-  - live staking pools, QFX `reward_info`, and the demo referrer's on-chain earnings
+  - live staking pools, QFX proof of reserves (`reserves()`: XLM held vs supply) and `yield_info`, and the demo referrer's on-chain earnings
   - the stablecoin logo grid and world map, built from `docs/stablecoin-pairs.json`. The badge says **Verified by issuer** when the issuer's stellar.toml confirmed the coin, and **Allowlisted issuer** for Circle's USDC and EURC, whose toml returns 404.
   - contract links to stellar.expert from the deployed IDs
 - **Labelled as example, estimate or simulation:**
   - the LP fee estimator (an estimate that depends on the user's volume assumption)
   - the staking lock slider (made-up example rates)
-  - the QFX compounding chart (example numbers at the current APR)
+  - the QFX yield chart (example numbers at the current APR, assuming the reserve lasts)
   - the bot performance preview (a synthetic random walk)
   - the order-settling animation
 - **Footer.** It carries the risk disclosure and "Audit status: not yet audited".
@@ -353,9 +390,11 @@ Data from stellarchain.io is attributed on the page.
 
 - **Display only.** Prices never feed the oracle, the vault or any swap math.
   Trading always uses on-chain testnet reserves and Horizon order books.
-- **Caching.** Responses are cached for 5 minutes in memory and in localStorage.
-  If the API fails, the last good (expired) cache is served and marked stale.
-  Requests time out.
+- **Caching + snapshot.** Responses are cached for 5 minutes in memory and in localStorage.
+  If the live API fails (e.g. the CORS block on github.io), the client serves the newer of
+  the last good (expired) cache and the build-time snapshot
+  (`public/data/stellarchain-snapshot.json`, see *GitHub Pages build*), and the UI says
+  "snapshot, updated &lt;time&gt;" (or "cached, updated &lt;time&gt;"). Requests time out.
 - **Staleness.** Every row shows its "as of" time and a stale flag.
   - When this was built, the mainnet asset snapshots were dated **2026-09-11**, about 2 weeks old. The overview XLM price was fresh.
   - Testnet feed prices are null, so testnet prices are filled in from the Horizon testnet order book against XLM.
@@ -494,29 +533,47 @@ slippage (`min_out`) and a deadline.
 and paths from Horizon and builds the XDR. `soroban.ts` simulates and prepares
 contract calls. Freighter signs.
 
-### 2. QFX — holder reward token with daily compounding
+### 2. QFX — 1 QFX = 1 XLM, fully backed, with reserve-funded holder yield
 
 *On-chain* (`contracts/reward-token`):
-- The token implements the SEP-41 `TokenInterface` from soroban-sdk (balance,
-  transfer, approve/allowance, burn, metadata). Name "Quasaria Flux", symbol QFX, 7 decimals.
-- Balances are stored as **shares**: `balance = shares × index / 1e18`.
-- `index` starts at 1.0. For each full UTC day since `genesis` it is multiplied by
-  `(1 + APR/365)`. The update is lazy: exponentiation-by-squaring covers all
-  elapsed days in O(log n), and it runs before any transfer, mint or burn (or
-  anyone can call `accrue`). All holders compound together, with no loop over holders.
-- **Rate governance:** the admin sets `apr_bps`, which is hard-capped at
-  `MAX_APR_BPS = 2500` (25% APR ≈ 28.4% APY). A rate change accrues at the old
-  rate first. `current_apy_bps` returns the effective compounded APY.
-- **Funding / emission model:** interest is **minted**, so it's inflationary
-  and is never taken from other holders. It's bounded by `max_supply`: if
-  compounding would push supply past the cap, the index is clamped to land
-  exactly on it and rewards stop. The cap can only be lowered, never raised.
-  Rounding favours the protocol (floor on credit, ceil on debit).
-- Contracts that hold QFX, like AMM pools, also earn. `amm-pool.sync()`
-  absorbs that growth into reserves, which benefits LPs.
+- SEP-41 `TokenInterface` (balance, transfer, approve/allowance, burn, metadata). Name
+  "Quasaria Flux", symbol QFX. **Decimals are read from the XLM SAC at construction and
+  must be 7**, so 1 stroop of QFX = 1 stroop of XLM.
+- **Peg.** The constructor takes the native XLM Stellar Asset Contract.
+  - `deposit(from, amount)` pulls `amount` XLM from `from` through the SAC and mints the
+    same amount of QFX.
+  - `redeem(from, amount)` burns QFX and sends the same amount of XLM back. It fails with
+    `InsufficientBalance` if `from` holds less. SEP-41 `burn` / `burn_from` behave like
+    `redeem` (XLM goes to the owner), so burning can't strand collateral.
+  - **There is no admin mint.** The admin can only set the holder APR (capped), mark
+    contracts `yield_exempt`, and transfer admin; none of these change supply.
+  - `reserves()` returns `xlm_reserve` (the contract's live SAC balance), `total_supply`,
+    `surplus`, `fully_backed`, `reward_reserve` and `circulating`. `deposit`, `redeem` and
+    `fund_yield` also assert `xlm_reserve ≥ total_supply` on-chain. XLM sent straight to the
+    contract (a donation) shows up as `surplus`; the permissionless `sweep_surplus()` mints
+    exactly that amount into the yield reserve.
+- **Holder yield, paid from a pre-funded reserve (never minted).**
+  - `fund_yield(from, amount)` pulls XLM and mints the same amount of QFX *into the
+    reserve*, just like a deposit. `fund_yield_qfx(from, amount)` moves existing QFX
+    (e.g. protocol fees) into it.
+  - Once per elapsed UTC day, `min(eligible × ((1 + APR/365)^days − 1), reserve)` moves
+    from the reserve to holders through a MasterChef-style accumulator (O(1) per holder).
+    Paying yield moves existing QFX, so **total supply and backing are unchanged**. When
+    the reserve is empty, yield stops.
+  - `balance()` includes accrued yield right away. It is credited to the stored balance
+    (and starts compounding) whenever the holder's balance moves or anyone calls
+    `settle(holder)`. `yield_info()` shows the APR, reserve, eligible supply and daily
+    payout.
+  - Contracts that can't account for yield are `yield_exempt` (the staking contract and
+    the QFX/QUSD pool on testnet). This replaces the old "pools earn and `sync()`" rule,
+    which also let a router `swap_prepaid` caller take the pool's accrued yield.
+  - The APR is capped at `MAX_APR_BPS = 2500`. Rounding favours the reserve, so a few
+    stroops of dust stay in it.
 
-*Off-chain.* The Rewards page shows the balance, a countdown to the next
-compounding tick, the index, emission usage and a compounding calculator.
+*Off-chain.* The QFX page (`/rewards`) has the **Mint / Redeem** panel (XLM in, QFX out
+and back, labelled "1 QFX = 1 XLM, fully backed", live XLM reserve and QFX supply from
+`reserves()`), holder-yield stats (balance, accrued, next reward day, reserve runway) and
+a yield calculator.
 
 ### 3. Liquidity providing
 
@@ -536,7 +593,9 @@ cut (below).
 `(stake_token, reward_token, reward_rate/sec, lock_seconds)`. Rewards stream
 MasterChef-style through an accumulated reward-per-share, which is O(1) per user.
 **Only funded rewards are paid**: `fund` tops up a reserve, and emission pauses
-when it runs out. Each stake sets `unlock_at = max(unlock_at, now + lock)`.
+when it runs out. Staking never mints: the QFX reward reserves on testnet were created
+by depositing testnet XLM into QFX (1:1) and funding the pools, and anyone (e.g. a fee
+collector) can top them up the same way. Each stake sets `unlock_at = max(unlock_at, now + lock)`.
 `unstake` reverts before that time, while `claim` always works. The admin can
 change rates or deactivate a pool, and users can still exit.
 
@@ -600,12 +659,13 @@ invitee to confirm it on-chain. It also shows referral count, earnings and activ
 
 | Suite | Command | Count |
 |---|---|---|
-| Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 34 tests across 7 crates |
+| Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 41 tests across 7 crates, incl. 14 QFX peg tests (reserve == supply after deposits, redeems, yield and mixed activity; over-redeem fails; no `mint` entry point; yield stops when the reserve is empty) and a staking ↔ QFX test (rewards from an XLM-funded reserve, peg holds) |
 | Wasm build | `cd contracts && stellar contract build` | 7 `.wasm` (wasm32v1-none) |
 | Bot | `cd bot && npm run typecheck && npm test` | 20 vitest tests |
-| Frontend unit | `cd frontend && npm test` | 50 vitest tests: stellarchain client, keys/signer, stablecoin filter + verification (fixtures include the impostors), landing copy |
+| Frontend unit | `cd frontend && npm test` | 58 vitest tests: stellarchain client + build-time snapshot fallback (live first, snapshot, newer-of cache/snapshot, search/paging) and the snapshot script (trimming; keeps the old file and exits 0 when the API is down), exact Mint/Redeem amount parsing, keys/signer, stablecoin filter + verification, landing copy |
 | Frontend | `cd frontend && npm run build` | tsc + vite build |
 | Screenshots | `cd frontend && npx vite preview & node ../scripts/screenshots.mjs` | landing (desktop + mobile), 7 app pages, account flow (secrets blurred); `ONLY=landing` for just the landing |
+| Live site check | `ROUNDTRIP=1 node scripts/verify-live.mjs` | headless Chromium on the Pages site: Markets rows, Mint/Redeem reserve + supply, optional real testnet mint → redeem with a throwaway friendbot key; writes `screenshots/live-markets.png`, `screenshots/live-mint-redeem.png` |
 
 ## What is real vs. simplified
 
@@ -621,6 +681,7 @@ page without a wallet, and reads the live SDEX order book from Horizon testnet.
 - staking, vault deposits and positions with SL/TP
 - the keeper (`--once`, 0 actions needed)
 - an in-app (browser-generated) account signing a real `set_referrer`
+- a real QFX mint → redeem round trip through the live Pages UI (throwaway friendbot key; see `scripts/verify-live.mjs`)
 - the 21 XLM/stablecoin Soroban + native pools
 
 **Not exercised end-to-end:** Freighter-signed transactions (they use the same `Signer` path as in-app keys) and the bot's live strategy mode.
@@ -634,7 +695,8 @@ page without a wallet, and reads the live SDEX order book from Horizon testnet.
   open-interest caps, no partial closes. The reserve is the only counterparty.
   `open_position_ids` is an unbounded on-chain list (fine for a scaffold, but an
   indexer is needed at scale).
-- The QFX emission cap is global. There's no exclusion list for contract holders.
+- QFX holder yield is simple interest between credits; it compounds only when a holder's balance is touched or `settle` is called. The exempt list is admin-managed.
+- The legacy (pre-peg) QFX contract can't be upgraded or removed. It is retired (APR 0) and unused, but its old admin `mint` still exists on that old contract.
 - The referral cycle check is bounded to 32 hops (deeper chains are rejected conservatively).
 - The mock oracle is admin-pushed. Real deployments need Reflector (or similar)
   and careful asset-key and decimals configuration.

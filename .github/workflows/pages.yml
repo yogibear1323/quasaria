@@ -28,6 +28,14 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      # stellarchain.io blocks browsers on github.io (no CORS), so bake a fresh
+      # market snapshot into the build for the Markets page, landing cards and
+      # XLM ticker. The script keeps the last committed snapshot and exits 0 on
+      # any failure; continue-on-error is a second safety net.
+      - name: Market data snapshot (stellarchain.io -> public/data)
+        run: node scripts/fetch-market-snapshot.mjs
+        continue-on-error: true
+        timeout-minutes: 3
       - name: Build (served under /<repo>/)
         run: npm run build
         env:

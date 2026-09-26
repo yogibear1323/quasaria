@@ -7,3 +7,11 @@ export const short = (addr: string, n = 4) => (addr ? `${addr.slice(0, n)}…${a
 /** Stroops / 7-decimal fixed point to number. */
 export const fromUnits = (v: bigint | number | string, decimals = 7) => Number(BigInt(v)) / 10 ** decimals;
 export const toUnits = (v: number, decimals = 7) => BigInt(Math.round(v * 10 ** decimals));
+/** Exact decimal string -> 7-decimal fixed point (no float rounding). Throws on bad input. */
+export function parseUnits(s: string, decimals = 7): bigint {
+  const t = s.trim();
+  const m = /^(\d*)(?:\.(\d*))?$/.exec(t);
+  if (!m || (!m[1] && !m[2])) throw new Error(`invalid amount: ${s}`);
+  const frac = (m[2] ?? "").slice(0, decimals).padEnd(decimals, "0");
+  return BigInt(m[1] || "0") * 10n ** BigInt(decimals) + BigInt(frac || "0");
+}

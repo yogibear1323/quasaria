@@ -137,3 +137,78 @@ fn unknown_pool_and_overdraw() {
     );
     assert_eq!(t.c.pool_count(), 1);
 }
+
+/// Integration: QFX (1:1 XLM wrapper) as stake + reward token. Rewards come
+/// from a reserve created by depositing XLM, so the peg holds throughout.
+#[test]
+fn qfx_rewards_come_from_xlm_backed_reserve() {
+    use quasaria_reward_token::{QuasariaFlux, QuasariaFluxClient};
+    use soroban_sdk::String;
+    let env = Env::default();
+    env.mock_all_auths();
+    env.ledger().set_timestamp(10_000);
+    let admin = Address::generate(&env);
+    let xlm = env
+        .register_stellar_asset_contract_v2(Address::generate(&env))
+        .address();
+    let xlm_admin = StellarAssetClient::new(&env, &xlm);
+    let xlm_t = TokenClient::new(&env, &xlm);
+    let qfx_id = env.register(
+        QuasariaFlux,
+        (
+            &admin,
+            &xlm,
+            String::from_str(&env, "Quasaria Flux"),
+            String::from_str(&env, "QFX"),
+            1_200u32,
+        ),
+    );
+    let qfx = QuasariaFluxClient::new(&env, &qfx_id);
+    let staking_id = env.register(Staking, (&admin,));
+    let c = StakingClient::new(&env, &staking_id);
+    qfx.set_yield_exempt(&staking_id, &true);
+    let pid = c.add_pool(&qfx_id, &qfx_id, &1_000, &0);
+
+    let peg = || {
+        let r = qfx.reserves();
+        assert_eq!(r.xlm_reserve, r.total_supply, "reserve == supply");
+        assert_eq!(xlm_t.balance(&qfx_id), qfx.total_supply());
+    };
+
+    // Reward reserve: admin deposits 1,000,000 stroops of XLM -> QFX and funds the pool.
+    xlm_admin.mint(&admin, &1_000_000);
+    qfx.deposit(&admin, &1_000_000);
+    c.fund(&admin, &pid, &1_000_000);
+    peg();
+    let supply_after_funding = qfx.total_supply();
+
+    let a = Address::generate(&env);
+    xlm_admin.mint(&a, &50_000);
+    qfx.deposit(&a, &50_000);
+    c.stake(&a, &pid, &50_000);
+    warp_env(&env, 600); // 600 * 1_000 = 600_000 reward
+    assert_eq!(c.pending_rewards(&pid, &a), 600_000);
+    assert_eq!(c.claim(&a, &pid), 600_000);
+    peg();
+    assert_eq!(
+        qfx.total_supply(),
+        supply_after_funding + 50_000,
+        "claiming rewards mints nothing"
+    );
+    warp_env(&env, 10_000); // reserve (400_000 left) runs dry
+    assert_eq!(c.claim(&a, &pid), 400_000);
+    assert_eq!(c.pool(&pid).reward_reserve, 0);
+    c.unstake(&a, &pid, &50_000);
+    // a redeems stake + all rewards for XLM 1:1
+    let bal = qfx.balance(&a);
+    assert_eq!(bal, 1_050_000);
+    qfx.redeem(&a, &bal);
+    assert_eq!(xlm_t.balance(&a), 1_050_000);
+    peg();
+    assert_eq!(qfx.balance(&staking_id), 0);
+}
+
+fn warp_env(env: &Env, secs: u64) {
+    let now = env.ledger().timestamp();
+    env.ledger().set_timestamp(now + secs);
+}

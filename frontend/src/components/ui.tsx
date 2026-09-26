@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useWallet } from "../lib/wallet";
 import { CONTRACTS_CONFIGURED } from "../lib/config";
+import { snapshotLabel, type DataSource } from "../lib/stellarchain";
 
 export function PageHead({ kicker, title, children, right }: { kicker: string; title: string; children?: ReactNode; right?: ReactNode }) {
   return (
@@ -100,5 +101,17 @@ export function ViewerNote({ address, isDemo, role }: { address: string; isDemo:
       Read-only: showing the public seeded {role} account{" "}
       <a className="mono" href={`https://stellar.expert/explorer/testnet/account/${address}`} target="_blank" rel="noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Create an account or connect a wallet to see your own.
     </p>
+  );
+}
+
+/** Market-data provenance: live stellarchain.io, expired browser cache, or the build-time snapshot. */
+export function FeedBadge({ source, snapshotAt }: { source?: DataSource; snapshotAt?: string }) {
+  if (!source) return null;
+  if (source === "live") return <span className="pill green" data-testid="feed-badge">● live · stellarchain.io</span>;
+  const label = source === "snapshot" ? snapshotLabel(snapshotAt) : snapshotLabel(snapshotAt).replace("snapshot", "cached");
+  return (
+    <span className="pill gold" data-testid="feed-badge" title={source === "snapshot" ? `stellarchain.io data fetched at build time (${snapshotAt ?? "unknown"}); the live API is not reachable from this site` : `last live response, cached in this browser (${snapshotAt ?? "unknown"})`}>
+      {label}
+    </span>
   );
 }

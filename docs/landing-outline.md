@@ -36,9 +36,9 @@ Pitch: Lock selected tokens into staking pools to earn rewards, with optional lo
 Visual: the orbital rings scene, with a lock-period slider that shows how rewards change.
 
 8. Holder rewards (QFX)
-Headline: Rewards that grow just by holding.
-Pitch: QFX, Quasaria's reward token, compounds daily for everyone who holds it, with no staking or claiming needed. The rate is capped and total supply has a hard limit.
-Visual: a compounding growth chart with example numbers clearly marked as illustrations, and a "how the daily index works" explainer.
+Headline: One XLM in, one QFX out. Fully backed.
+Pitch: QFX, Quasaria's reward token, is pegged 1:1 to XLM: it is only minted when the same amount of XLM is deposited, and you can redeem it for XLM at any time. Holders earn a capped, variable rate paid from a pre-funded reserve, never from new unbacked tokens; when the reserve runs out, rewards stop.
+Visual: live proof of reserves (XLM held vs QFX supply) with a link to Mint/Redeem, a growth chart with example numbers clearly marked as illustrations, and a "how the backing and the yield work" explainer.
 
 9. Trading bots and leverage
 Headline: Let a bot trade while you sleep.

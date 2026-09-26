@@ -7,14 +7,15 @@ import { useEffect, useState } from "react";
 import { Asset } from "@stellar/stellar-sdk";
 import { OFFLINE_DEMO } from "./config";
 import { horizon, ASSETS } from "./stellar";
-import { isStale, stellarchain, type MarketAsset, type ScNetwork } from "./stellarchain";
+import { isStale, stellarchain, type DataSource, type MarketAsset, type ScNetwork } from "./stellarchain";
 
 export const OVERVIEW_MAX_AGE = 2 * 3600_000; // XLM/USD older than 2h → fall back
 export const ASSET_MAX_AGE = 24 * 3600_000; // per-asset snapshot older than 24h → "stale"
 
 export type PriceSource = "stellarchain" | "horizon" | "none";
 
-export type XlmUsd = { price: number | null; updatedAt: string | null; source: PriceSource; stale: boolean; note?: string };
+/** `feed`: for stellarchain prices, whether they came live or from the build-time snapshot. */
+export type XlmUsd = { price: number | null; updatedAt: string | null; source: PriceSource; stale: boolean; note?: string; feed?: DataSource; snapshotAt?: string };
 
 /** Mid of a Horizon order book (price of `selling` in `buying`). */
 export async function horizonMid(selling: Asset, buying: Asset): Promise<number | null> {
@@ -30,7 +31,7 @@ export async function loadXlmUsd(): Promise<XlmUsd> {
   try {
     const o = await stellarchain.overview("mainnet");
     if (o?.xlmPriceUsd) {
-      const r: XlmUsd = { price: o.xlmPriceUsd, updatedAt: o.updatedAt, source: "stellarchain", stale: isStale(o.updatedAt, OVERVIEW_MAX_AGE), note: "mainnet reference price" };
+      const r: XlmUsd = { price: o.xlmPriceUsd, updatedAt: o.updatedAt, source: "stellarchain", stale: isStale(o.updatedAt, OVERVIEW_MAX_AGE), note: "mainnet reference price", feed: o.source, snapshotAt: o.snapshotAt };
       if (!r.stale) return r;
       staleSc = r;
     }
@@ -69,13 +70,19 @@ export type MarketRow = MarketAsset & { priceSource: PriceSource; priceAsOf: str
  * Horizon book vs XLM on the configured (testnet) Horizon — only meaningful
  * for `network === "testnet"` because Quasaria never talks to mainnet Horizon.
  */
-export async function loadMarkets(network: ScNetwork, o: { itemsPerPage?: number; search?: string; enrich?: number } = {}): Promise<{ rows: MarketRow[]; total: number; error?: string }> {
+export type MarketsResult = { rows: MarketRow[]; total: number; error?: string; source?: DataSource; snapshotAt?: string };
+
+export async function loadMarkets(network: ScNetwork, o: { itemsPerPage?: number; search?: string; enrich?: number } = {}): Promise<MarketsResult> {
   let rows: MarketRow[] = [];
   let total = 0;
   let error: string | undefined;
+  let source: DataSource | undefined;
+  let snapshotAt: string | undefined;
   try {
     const r = await stellarchain.marketAssets({ network, itemsPerPage: o.itemsPerPage ?? 25, search: o.search });
     total = r.total;
+    source = r.source;
+    snapshotAt = r.snapshotAt;
     rows = r.assets.map((a) => {
       const stale = isStale(a.updatedAt, ASSET_MAX_AGE);
       return { ...a, priceSource: a.priceXlm !== null ? "stellarchain" : "none", priceAsOf: a.priceXlm !== null ? a.updatedAt : null, stale };
@@ -99,5 +106,5 @@ export async function loadMarkets(network: ScNetwork, o: { itemsPerPage?: number
       }),
     );
   }
-  return { rows, total, error };
+  return { rows, total, error, source, snapshotAt };
 }

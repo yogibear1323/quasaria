@@ -47,14 +47,24 @@ export const DEMO_STAKING = [
   { id: 2, stake: "XLM", reward: "QFX", ratePerSec: 0.0093, lockDays: 30, totalStaked: 3_900_000, reserve: 150_000, active: true },
 ];
 
+/** Offline demo numbers for the QFX page (1 QFX = 1 XLM; reserve == supply). */
 export const DEMO_QFX = {
   aprBps: 1200,
+  apyBps: 1274,
   maxAprBps: 2500,
-  totalSupply: 412_880_000,
-  maxSupply: 1_000_000_000,
   genesis: Date.UTC(2026, 8, 1) / 1000,
-  index: 1.0081,
-  demoBalance: 12_500,
+  nextAccrualAt: Date.UTC(2026, 8, 2) / 1000,
+  xlmReserve: 8_500,
+  totalSupply: 8_500,
+  surplus: 0,
+  fullyBacked: true,
+  rewardReserve: 2_500,
+  circulating: 6_000,
+  rewardPool: 2_500,
+  eligibleSupply: 300,
+  dailyEmission: 0.0986,
+  pending: 0,
+  demoBalance: 300,
 };
 
 export const DEMO_REFERRAL = {

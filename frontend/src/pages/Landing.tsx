@@ -15,11 +15,11 @@ import AccountModal from "../components/AccountModal";
 import OrderBook from "../components/OrderBook";
 import WorldMap, { type MapPin } from "../components/WorldMap";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
-import { RiskWarning } from "../components/ui";
+import { FeedBadge, RiskWarning } from "../components/ui";
 import { parseOutline } from "../lib/landingCopy";
 import { useWallet } from "../lib/wallet";
-import { loadMarkets, useXlmUsd, type MarketRow } from "../lib/markets";
-import { asOf, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
+import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
+import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
 import { ASSETS, fetchOrderBook, horizon } from "../lib/stellar";
 import { readPool, readQfx, readReferrals, readStaking, useChain, type PoolInfo } from "../lib/chain";
 import { CONTRACTS, CONTRACTS_CONFIGURED, DEMO_ACCOUNTS, expertContract, OFFLINE_DEMO, TESTNET_USDC_ISSUER, symbolOf } from "../lib/config";
@@ -71,7 +71,7 @@ function Ticker() {
   return (
     <span className="pill cyan l-ticker" title={`source: ${x.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet (fallback)"}${x.updatedAt ? ` · as of ${x.updatedAt}` : ""}`}>
       XLM/USD <b className="mono">${x.price.toFixed(4)}</b>
-      <span className="muted">{x.source === "stellarchain" ? "stellarchain.io" : "Horizon"}{x.updatedAt ? ` · ${asOf(x.updatedAt)}` : ""}{x.stale ? " · stale" : ""}</span>
+      <span className="muted">{x.source === "stellarchain" ? (x.feed === "snapshot" ? `stellarchain.io · ${snapshotLabel(x.snapshotAt)}` : "stellarchain.io") : "Horizon"}{x.updatedAt && x.feed !== "snapshot" ? ` · ${asOf(x.updatedAt)}` : ""}{x.stale ? " · stale" : ""}</span>
     </span>
   );
 }
@@ -98,7 +98,7 @@ function MarketsPreview() {
   const nav = useNavigate();
   const xlm = useXlmUsd();
   const [net, setNet] = useState<"mainnet" | "testnet">("mainnet");
-  const [data, setData] = useState<{ rows: MarketRow[]; error?: string } | null>(null);
+  const [data, setData] = useState<MarketsResult | null>(null);
   useEffect(() => {
     if (OFFLINE_DEMO) return;
     let alive = true;
@@ -120,7 +120,7 @@ function MarketsPreview() {
           <button className={net === "mainnet" ? "on" : ""} onClick={() => setNet("mainnet")}>Mainnet · reference</button>
           <button className={net === "testnet" ? "on" : ""} onClick={() => setNet("testnet")}>Testnet · tradeable</button>
         </div>
-        <Label kind="live">{STELLARCHAIN_ATTRIBUTION}</Label>
+        {data?.source && data.source !== "live" ? <FeedBadge source={data.source} snapshotAt={data.snapshotAt} /> : <Label kind="live">{STELLARCHAIN_ATTRIBUTION}</Label>}
       </div>
       <div className="l-scroll">
         <table className="t l-click">
@@ -143,7 +143,7 @@ function MarketsPreview() {
         </table>
       </div>
       <p className="muted l-tiny" style={{ marginTop: 8 }}>
-        Display data from the stellarchain.io public API, cached 5 minutes; stale snapshots are flagged. Mainnet rows are for reference; Quasaria trades on Stellar testnet during the beta. <Link to="/markets">All markets →</Link>
+        Display data from the stellarchain.io public API, cached 5 minutes; if the API can't be reached from this site, a snapshot fetched at build time is shown and labelled with its time. Stale rows are flagged. Mainnet rows are for reference; Quasaria trades on Stellar testnet during the beta. <Link to="/markets">All markets →</Link>
       </p>
     </div>
   );
@@ -376,8 +376,14 @@ function QfxVisual() {
   return (
     <div className="l-grid-2">
       <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Holding {fmt(principal, 0)} QFX for a year</h3><Label kind="example">example numbers</Label></div>
-        <svg viewBox={`0 0 ${W} ${H}`} className="l-chart" role="img" aria-label="Illustrative compounding curve">
+        <div className="row between"><h3 style={{ margin: 0 }}>1 QFX = 1 XLM, fully backed</h3>{q.live ? <Label kind="live">live reserves</Label> : <Label kind="example">loading</Label>}</div>
+        <div className="l-est" style={{ marginTop: 12 }}>
+          <div><span className="muted l-tiny">XLM reserve</span><b className="mono">{q.data ? fmt(q.data.xlmReserve, 2) : "—"}</b></div>
+          <div><span className="muted l-tiny">QFX supply</span><b className="mono">{q.data ? fmt(q.data.totalSupply, 2) : "—"}</b></div>
+          <div><span className="muted l-tiny">Backing</span><b className="mono">{q.data && q.data.totalSupply > 0 ? `${fmt((q.data.xlmReserve / q.data.totalSupply) * 100, 2)}%` : "—"}</b></div>
+        </div>
+        <div className="row between" style={{ marginTop: 14 }}><h3 style={{ margin: 0, fontSize: "1rem" }}>Holding {fmt(principal, 0)} QFX for a year</h3><Label kind="example">example numbers</Label></div>
+        <svg viewBox={`0 0 ${W} ${H}`} className="l-chart" role="img" aria-label="Illustrative reward curve">
           <defs><linearGradient id="qfxg" x1="0" x2="1"><stop offset="0" stopColor="#ffd166" /><stop offset=".5" stopColor="#ff3dcb" /><stop offset="1" stopColor="#9b5cff" /></linearGradient></defs>
           <path d={`${path} L${W},${H} L0,${H} Z`} fill="rgba(255,61,203,.08)" />
           <path d={path} fill="none" stroke="url(#qfxg)" strokeWidth={3} />
@@ -387,18 +393,18 @@ function QfxVisual() {
           <div><span className="muted l-tiny">Day 30</span><b className="mono">{fmt(pts[30], 2)}</b></div>
           <div><span className="muted l-tiny">Day 365</span><b className="mono">{fmt(max, 2)}</b></div>
         </div>
-        <p className="muted l-tiny">Illustration only: assumes the rate stays at {fmt(aprBps / 100, 2)}% APR ({q.live ? "the current on-chain rate" : "the deployed default"}) for a full year. The rate is variable, capped at {fmt((q.data?.maxAprBps ?? aprBps) / 100, 2)}%, and emission stops at the supply cap.</p>
+        <p className="muted l-tiny">Illustration only: assumes the rate stays at {fmt(aprBps / 100, 2)}% APR ({q.live ? "the current on-chain rate" : "the deployed default"}), yield is credited daily, and the reward reserve lasts the whole year. The rate is variable and capped at {fmt((q.data?.maxAprBps ?? 2500) / 100, 2)}%; when the reserve runs out, yield stops.</p>
       </div>
       <div className="card">
-        <h3>How the daily index works</h3>
+        <h3>How the backing and the yield work</h3>
         <ol className="l-ol">
-          <li>Balances are stored as <b>shares</b>, not raw token amounts.</li>
-          <li>A global <b>index</b> starts at 1.0. Once per day it grows by <span className="mono">1 + APR / 365</span>.</li>
-          <li>Your balance is <span className="mono">shares × index</span>, so every holder compounds at once: no staking, no claiming, no transactions.</li>
-          <li>The APR is capped by the contract, and the total supply can never exceed the hard <b>max supply</b>{q.data ? ` (${fmtCompact(q.data.maxSupply)} QFX; ${fmtCompact(q.data.totalSupply)} in circulation on testnet)` : ""}.</li>
+          <li><b>Mint:</b> deposit XLM and the contract mints exactly the same amount of QFX. <b>Redeem:</b> burn QFX and get the same amount of XLM back. There is no admin mint.</li>
+          <li>The contract's XLM balance always equals QFX total supply; anyone can check it with the <span className="mono">reserves()</span> view.</li>
+          <li>Holder yield is <b>paid from a reward reserve</b> that was pre-funded with testnet XLM{q.data ? ` (${fmtCompact(q.data.rewardPool)} QFX left on testnet)` : ""}. Paying it moves existing QFX; it never creates unbacked tokens.</li>
+          <li>The APR is capped by the contract. When the reserve is empty, yield stops until someone tops it up.</li>
         </ol>
-        {q.live && <Label kind="live">index {fmt(q.data!.index, 6)} · APR {fmt(aprBps / 100, 2)}%</Label>}
-        <div style={{ marginTop: 12 }}><Link to="/rewards" className="btn ghost small">QFX Rewards →</Link></div>
+        {q.live && <Label kind="live">APR {fmt(aprBps / 100, 2)}% · reserve = supply {q.data!.raw.xlmReserve === q.data!.raw.totalSupply ? "✓" : "✗"}</Label>}
+        <div style={{ marginTop: 12 }}><Link to="/rewards" className="btn ghost small">Mint / Redeem QFX →</Link></div>
       </div>
     </div>
   );
@@ -536,7 +542,7 @@ function OpenDataVisual() {
 
 // ---------------------------------------------------------------- 12. transparency
 const CONTRACT_LIST: [string, string][] = [
-  ["Router", CONTRACTS.router], ["AMM pool XLM/QUSD", POOL_XLM_QUSD], ["AMM pool QFX/QUSD", POOL_QFX_QUSD], ["Staking", CONTRACTS.staking], ["QFX reward token", CONTRACTS.qfx],
+  ["Router", CONTRACTS.router], ["AMM pool XLM/QUSD", POOL_XLM_QUSD], ["AMM pool QFX/QUSD", POOL_QFX_QUSD], ["Staking", CONTRACTS.staking], ["QFX (1:1 XLM-backed)", CONTRACTS.qfx],
   ["Referral registry", CONTRACTS.referral], ["Leverage vault", CONTRACTS.vault], ["Price oracle (mock)", CONTRACTS.oracle], ["QUSD token (SAC)", CONTRACTS.qusdSac], ["XLM token (SAC)", CONTRACTS.xlmSac],
 ];
 function TransparencyVisual() {

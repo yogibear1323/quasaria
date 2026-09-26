@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PageHead, Stat, Tabs } from "../components/ui";
+import { FeedBadge, PageHead, Stat, Tabs } from "../components/ui";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
-import { loadMarkets, useXlmUsd, type MarketRow } from "../lib/markets";
-import { asOf, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
+import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
+import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
 import { OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
 
@@ -15,7 +15,7 @@ export default function Markets() {
   const [network, setNetwork] = useState<ScNetwork>("testnet");
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
-  const [data, setData] = useState<{ rows: MarketRow[]; total: number; error?: string } | null>(null);
+  const [data, setData] = useState<MarketsResult | null>(null);
   const [overview, setOverview] = useState<MarketOverview | null>(null);
   const xlm = useXlmUsd();
 
@@ -44,12 +44,12 @@ export default function Markets() {
 
   return (
     <>
-      <PageHead kicker="Scene · Constellations" title="Markets" right={<span className="pill cyan">{STELLARCHAIN_ATTRIBUTION} · Horizon fallback</span>}>
+      <PageHead kicker="Scene · Constellations" title="Markets" right={<div className="row" style={{ gap: 8, flexWrap: "wrap" }}><span className="pill cyan">{STELLARCHAIN_ATTRIBUTION} · Horizon fallback</span><FeedBadge source={data?.source} snapshotAt={data?.snapshotAt} /></div>}>
         Discover Stellar assets ranked by stellarchain.io — price, momentum, volume and issuer info. Display data only: every trade still settles on the SDEX via Horizon or through Soroban.
       </PageHead>
       <div className="grid g-4" style={{ marginBottom: 18 }}>
-        <div className="card"><Stat label="XLM / USD" value={xlm?.price ? `$${fmt(xlm.price, 4)}` : "—"} sub={xlm ? `${xlm.source === "stellarchain" ? "stellarchain.io" : xlm.source === "horizon" ? "Horizon testnet (fallback)" : "unavailable"}${xlm.updatedAt ? ` · as of ${asOf(xlm.updatedAt)}` : ""}${xlm.stale ? " · stale" : ""}` : "loading…"} className="gold" /></div>
-        <div className="card"><Stat label="Tracked assets" value={overview?.trackedAssets ? fmtCompact(overview.trackedAssets) : "—"} sub={overview ? `mainnet · as of ${asOf(overview.updatedAt)}` : "stellarchain overview"} /></div>
+        <div className="card"><Stat label="XLM / USD" value={xlm?.price ? `$${fmt(xlm.price, 4)}` : "—"} sub={xlm ? `${xlm.source === "stellarchain" ? (xlm.feed === "snapshot" ? `stellarchain.io · ${snapshotLabel(xlm.snapshotAt)}` : "stellarchain.io") : xlm.source === "horizon" ? "Horizon testnet (fallback)" : "unavailable"}${xlm.updatedAt ? ` · as of ${asOf(xlm.updatedAt)}` : ""}${xlm.stale ? " · stale" : ""}` : "loading…"} className="gold" /></div>
+        <div className="card"><Stat label="Tracked assets" value={overview?.trackedAssets ? fmtCompact(overview.trackedAssets) : "—"} sub={overview ? `mainnet · as of ${asOf(overview.updatedAt)}${overview.source === "snapshot" ? ` · ${snapshotLabel(overview.snapshotAt)}` : ""}` : "stellarchain overview"} /></div>
         <div className="card"><Stat label="Accounts" value={overview?.totalAccounts ? fmtCompact(overview.totalAccounts) : "—"} sub="mainnet" /></div>
         <div className="card"><Stat label="Contracts" value={overview?.totalContracts ? fmtCompact(overview.totalContracts) : "—"} sub={overview && overview.trades24h === 0 ? "24h trades: 0 reported (snapshot may lag)" : "mainnet"} /></div>
       </div>
@@ -58,6 +58,7 @@ export default function Markets() {
           <Tabs value={network} onChange={setNetwork} options={[{ v: "testnet", label: "Testnet · tradeable here" }, { v: "mainnet", label: "Mainnet · reference" }]} />
           <input className="input" style={{ maxWidth: 280 }} placeholder="Search code, issuer or org…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        {data?.source === "snapshot" && <div className="notice" data-testid="snapshot-notice">The live stellarchain.io API isn't reachable from this site, so this table shows the {snapshotLabel(data.snapshotAt)} ({asOf(data.snapshotAt ?? "")}), fetched when the site was last deployed. Testnet prices are still refreshed from Horizon where possible.</div>}
         {data?.error && <div className="notice warn">stellarchain.io unavailable ({data.error}). {network === "testnet" ? "Showing nothing until it recovers; the Trade page keeps working from Horizon." : ""}</div>}
         <table className="t">
           <thead>
@@ -66,7 +67,7 @@ export default function Markets() {
           <tbody>
             {!data && <tr><td colSpan={13} className="muted">Loading market data…</td></tr>}
             {data?.rows.map((r) => (
-              <tr key={r.key}>
+              <tr key={r.key} data-testid="market-row">
                 <td className="mono muted">{r.rank ?? "—"}</td>
                 <td>
                   <div className="row" style={{ gap: 10 }}>
@@ -94,7 +95,7 @@ export default function Markets() {
           </tbody>
         </table>
         <p className="muted" style={{ fontSize: "0.75rem", marginTop: 10 }}>
-          Ranking, logos, org names and stats: <a href="https://stellarchain.io" target="_blank" rel="noreferrer">stellarchain.io</a> public API (cached 5 min). Snapshots older than 24h are flagged <span className="neg">stale</span>; on testnet, missing/stale prices fall back to the Horizon order book vs XLM. Testnet prices come from sparse testnet order books and are not real market prices (so no USD conversion is shown). Mainnet rows are reference-only — Quasaria trades on TESTNET. Listing ≠ endorsement: always verify the issuer.
+          Ranking, logos, org names and stats: <a href="https://stellarchain.io" target="_blank" rel="noreferrer">stellarchain.io</a> public API (cached 5 min; falls back to a build-time snapshot, labelled with its time, when the API can't be reached from the browser). Snapshots older than 24h are flagged <span className="neg">stale</span>; on testnet, missing/stale prices fall back to the Horizon order book vs XLM. Testnet prices come from sparse testnet order books and are not real market prices (so no USD conversion is shown). Mainnet rows are reference-only — Quasaria trades on TESTNET. Listing ≠ endorsement: always verify the issuer.
         </p>
       </div>
     </>

@@ -106,3 +106,16 @@ describe("StellarchainClient", () => {
     await expect(c.overview()).rejects.toBeInstanceOf(StellarchainError);
   });
 });
+
+describe("parseUnits (Mint/Redeem amounts)", async () => {
+  const { parseUnits } = await import("../src/lib/format");
+  it("parses exact 7-decimal amounts without float error", () => {
+    expect(parseUnits("1")).toBe(10_000_000n);
+    expect(parseUnits("0.1")).toBe(1_000_000n);
+    expect(parseUnits("12.3456789")).toBe(123_456_789n);
+    expect(parseUnits(".5")).toBe(5_000_000n);
+    expect(parseUnits("1.00000009")).toBe(10_000_000n); // truncates beyond 7 decimals
+    expect(() => parseUnits("abc")).toThrow();
+    expect(() => parseUnits("")).toThrow();
+  });
+});

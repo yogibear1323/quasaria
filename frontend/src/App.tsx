@@ -7,6 +7,7 @@ import Stake from "./pages/Stake";
 import Rewards from "./pages/Rewards";
 import Referrals, { REF_KEY } from "./pages/Referrals";
 import Bots from "./pages/Bots";
+import Markets from "./pages/Markets";
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
 function RefCapture() {
@@ -25,6 +26,7 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Navigate to="/trade" replace />} />
+          <Route path="/markets" element={<Markets />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/pools" element={<Pools />} />
           <Route path="/stake" element={<Stake />} />

@@ -4,8 +4,23 @@ import CosmicBackground, { type Scene } from "./CosmicBackground";
 import { useWallet } from "../lib/wallet";
 import { short } from "../lib/format";
 import { CONTRACTS_CONFIGURED } from "../lib/config";
+import { useXlmUsd } from "../lib/markets";
+import { asOf } from "../lib/stellarchain";
+
+function XlmTicker() {
+  const x = useXlmUsd();
+  if (!x?.price) return null;
+  const src = x.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet";
+  return (
+    <span className="pill" title={`${x.note ?? ""} · ${src}${x.updatedAt ? ` · ${x.updatedAt}` : ""}`}>
+      XLM <b className="mono" style={{ color: "var(--star, #fff)" }}>${x.price.toFixed(4)}</b>
+      <span className="muted" style={{ fontSize: "0.65rem" }}>{x.updatedAt ? asOf(x.updatedAt) : ""}{x.stale ? " · stale" : ""} · {src}</span>
+    </span>
+  );
+}
 
 const NAV: { to: string; label: string; scene: Scene }[] = [
+  { to: "/markets", label: "Markets", scene: "constellation" },
   { to: "/trade", label: "Trade", scene: "quasar" },
   { to: "/pools", label: "Pools", scene: "nebula" },
   { to: "/stake", label: "Stake", scene: "orbits" },
@@ -62,6 +77,7 @@ export default function Layout() {
               </NavLink>
             ))}
           </nav>
+          <XlmTicker />
           <span className="net-badge">Testnet</span>
           <WalletButton />
         </header>

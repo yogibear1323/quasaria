@@ -18,18 +18,28 @@ export const PAIRS = [
   { base: "XLM", quote: "USDC" },
 ];
 
-export async function fetchOrderBook(base: Asset, quote: Asset): Promise<Book> {
-  if (OFFLINE_DEMO) return demoBook();
+/** `demoFallback`: show the demo book when Horizon is empty/unreachable (default pair only). */
+export async function fetchOrderBook(base: Asset, quote: Asset, demoFallback = true): Promise<Book> {
+  const empty: Book = { bids: [], asks: [], source: "horizon" };
+  if (OFFLINE_DEMO) return demoFallback ? demoBook() : empty;
   try {
     const ob = await horizon.orderbook(base, quote).limit(15).call();
     const bids = ob.bids.map((b) => ({ price: Number(b.price), amount: Number(b.amount) / Number(b.price) }));
     const asks = ob.asks.map((a) => ({ price: Number(a.price), amount: Number(a.amount) }));
-    if (!bids.length && !asks.length) return demoBook();
+    if (!bids.length && !asks.length) return demoFallback ? demoBook() : empty;
     return { ...cleanBook(bids, asks), source: "horizon" };
   } catch {
-    return demoBook();
+    return demoFallback ? demoBook() : empty;
   }
 }
+
+/** "XLM" | "CODE-ISSUER" (stellarchain assetKey format) → Asset. */
+export function assetFromKey(key: string): Asset {
+  if (!key || key === "XLM" || key === "native") return Asset.native();
+  const [code, issuer] = key.split("-");
+  return new Asset(code, issuer);
+}
+export const assetKeyOf = (a: Asset) => (a.isNative() ? "XLM" : `${a.getCode()}-${a.getIssuer()}`);
 
 /**
  * Testnet books often contain absurd "junk" offers far from the market. Hide

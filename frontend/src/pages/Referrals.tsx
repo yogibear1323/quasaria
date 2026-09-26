@@ -1,9 +1,19 @@
-import { useEffect, useState } from "react";
-import { PageHead, Stat, TxStatus, useTx } from "../components/ui";
+import { useState } from "react";
+import { PageHead, SourceTag, Stat, TxStatus, ViewerNote, useTx } from "../components/ui";
 import { DEMO_REFERRAL } from "../lib/demo";
-import { CONTRACTS, CONTRACTS_CONFIGURED } from "../lib/config";
-import { addr, invokeContract, readContract } from "../lib/soroban";
+import { CONTRACTS, DEMO_ACCOUNTS, symbolOf } from "../lib/config";
+import { addr, invokeContract } from "../lib/soroban";
+import { readReferrals, readReferrerOf, useChain, useViewer } from "../lib/chain";
 import { fmt, pct, short } from "../lib/format";
+
+type Row = { key: string; who: string; when: string; token: string; amount: number };
+
+function ago(iso: string) {
+  const s = (Date.now() - Date.parse(iso)) / 1000;
+  if (s < 3600) return `${Math.max(1, Math.round(s / 60))}m ago`;
+  if (s < 86_400) return `${Math.round(s / 3600)}h ago`;
+  return `${Math.round(s / 86_400)}d ago`;
+}
 
 export const REF_KEY = "quasaria.ref";
 const DEMO_ADDR = "GDEMOQUASARIAREFERRALXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
@@ -11,18 +21,27 @@ const DEMO_ADDR = "GDEMOQUASARIAREFERRALXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 export default function Referrals() {
   const tx = useTx();
   const me = tx.wallet.address;
-  const [count, setCount] = useState(DEMO_REFERRAL.count);
-  const [myReferrer, setMyReferrer] = useState<string | null>(null);
+  // Referrer view: your account, or the seeded deployer (the demo trader's referrer).
+  const viewer = useViewer("lp");
   const [copied, setCopied] = useState(false);
   const pending = typeof localStorage !== "undefined" ? localStorage.getItem(REF_KEY) : null;
   const [refInput, setRefInput] = useState(pending ?? "");
-  const link = `${window.location.origin}/?ref=${me ?? DEMO_ADDR}`;
+  const [nonce, setNonce] = useState(0);
+  const link = `${window.location.origin}/?ref=${viewer.address || DEMO_ADDR}`;
 
-  useEffect(() => {
-    if (!CONTRACTS_CONFIGURED || !me) return;
-    readContract<number>(CONTRACTS.referral, "referral_count", [addr(me)]).then(setCount).catch(() => void 0);
-    readContract<string | null>(CONTRACTS.referral, "get_referrer", [addr(me)]).then(setMyReferrer).catch(() => void 0);
-  }, [me]);
+  const chain = useChain(async () => {
+    const r = await readReferrals(viewer.address);
+    const myReferrer = await readReferrerOf(me ?? DEMO_ACCOUNTS.trader);
+    return { ...r, myReferrer };
+  }, [viewer.address, me, nonce]);
+
+  const count = chain.data?.count ?? DEMO_REFERRAL.count;
+  const shareBps = chain.data?.shareBps ?? DEMO_REFERRAL.shareBps;
+  const earned = chain.data ? chain.data.earned.map((e) => ({ token: symbolOf(e.token), amount: e.amount })) : DEMO_REFERRAL.earned;
+  const rows: Row[] = chain.data
+    ? chain.data.recent.map((r, i) => ({ key: `${r.ledger}-${i}`, who: `${symbolOf(r.source).startsWith("QLP") ? "AMM " + symbolOf(r.source).slice(4) : r.source === CONTRACTS.vault ? "Leverage vault" : short(r.source)}`, when: ago(r.when), token: symbolOf(r.token), amount: r.amount }))
+    : DEMO_REFERRAL.recent.map((r) => ({ key: r.who, who: r.who, when: r.when, token: "QUSD", amount: r.volume * 0.003 * 0.2 }));
+  const myReferrer = me ? chain.data?.myReferrer ?? null : null;
 
   const copy = async () => {
     try {
@@ -36,7 +55,7 @@ export default function Referrals() {
 
   return (
     <>
-      <PageHead kicker="Scene · Constellations" title="Referrals" right={<span className="pill green">{pct(DEMO_REFERRAL.shareBps, 0)} of fees to referrers</span>}>
+      <PageHead kicker="Scene · Constellations" title="Referrals" right={<div className="row"><SourceTag {...chain} /><span className="pill green">{pct(shareBps, 0)} of fees to referrers</span></div>}>
         Grow your constellation. Anyone who links to you on-chain sends you a share of every swap fee and leverage opening fee they pay — forever.
       </PageHead>
       <div className="grid g-main-side">
@@ -47,28 +66,31 @@ export default function Referrals() {
               <input className="input" readOnly value={link} />
               <button className="btn" onClick={copy}>{copied ? "Copied ✦" : "Copy"}</button>
             </div>
-            {!me && <p className="muted" style={{ fontSize: "0.8rem" }}>Demo link shown — connect Freighter to get your own.</p>}
+            {!me && (chain.live ? <ViewerNote {...viewer} role="referrer (deployer)" /> : <p className="muted" style={{ fontSize: "0.8rem" }}>Demo link shown — connect Freighter to get your own.</p>)}
           </div>
           <div className="grid g-4">
             <div className="card"><Stat label="Referred traders" value={count} /></div>
-            {DEMO_REFERRAL.earned.map((e) => (
-              <div className="card" key={e.token}><Stat label={`Earned · ${e.token}`} value={fmt(e.amount, 2)} className="pos" sub={CONTRACTS_CONFIGURED ? "registry.earned()" : "demo"} /></div>
+            {earned.map((e) => (
+              <div className="card" key={e.token}><Stat label={`Earned · ${e.token}`} value={fmt(e.amount, e.amount && e.amount < 1 ? 4 : 2)} className="pos" sub={chain.live ? "registry.earned()" : "demo"} /></div>
             ))}
           </div>
           <div className="card">
-            <h2>Recent referred activity</h2>
+            <h2>Recent referral payouts</h2>
             <table className="t">
-              <thead><tr><th>Trader</th><th>When</th><th>Volume</th><th>Your cut (est.)</th></tr></thead>
+              <thead><tr><th>Fee source</th><th>When</th><th>Token</th><th>Your cut</th></tr></thead>
               <tbody>
-                {DEMO_REFERRAL.recent.map((r) => (
-                  <tr key={r.who}><td className="mono">{r.who}</td><td className="muted">{r.when}</td><td className="mono">{fmt(r.volume, 0)}</td><td className="mono pos">{fmt(r.volume * 0.003 * 0.2, 2)}</td></tr>
+                {rows.map((r) => (
+                  <tr key={r.key}><td className="mono">{r.who}</td><td className="muted">{r.when}</td><td>{r.token}</td><td className="mono pos">{fmt(r.amount, 4)}</td></tr>
                 ))}
+                {!rows.length && <tr><td colSpan={4} className="muted">No referral_paid events in the RPC retention window.</td></tr>}
               </tbody>
             </table>
+            {chain.live && <p className="muted" style={{ fontSize: "0.78rem" }}>From on-chain <span className="mono">referral_paid</span> events (Soroban RPC keeps ~7 days).</p>}
           </div>
         </div>
         <div className="card">
           <h2>Link your referrer</h2>
+          {!me && chain.data?.myReferrer && <div className="notice">On-chain example: the demo trader <span className="mono">{short(DEMO_ACCOUNTS.trader, 6)}</span> is linked to referrer <span className="mono">{short(chain.data.myReferrer, 6)}</span>.</div>}
           {myReferrer ? (
             <p>You were referred by <span className="mono">{short(myReferrer, 6)}</span>. This is permanent.</p>
           ) : (
@@ -77,7 +99,9 @@ export default function Referrals() {
               <div className="field"><label>Referrer address (G…)</label><input className="input" value={refInput} onChange={(e) => setRefInput(e.target.value.trim())} placeholder="G..." /></div>
               <button className="btn block" disabled={tx.busy || !refInput} onClick={() => tx.run("set referrer", async () => {
                 if (refInput === me) throw new Error("self-referral is not allowed");
-                return (await invokeContract(me!, tx.wallet.sign, CONTRACTS.referral, "set_referrer", [addr(me!), addr(refInput)])).hash.slice(0, 10);
+                const h = (await invokeContract(me!, tx.wallet.sign, CONTRACTS.referral, "set_referrer", [addr(me!), addr(refInput)])).hash.slice(0, 10);
+                setNonce((n) => n + 1);
+                return h;
               })}>Set referrer (one time)</button>
             </>
           )}

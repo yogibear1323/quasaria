@@ -8,7 +8,8 @@ import { demoBook, demoCandles, DEMO_POOLS, type Book } from "../lib/demo";
 import { ammAmountOut, priceImpact } from "../lib/math";
 import { CONTRACTS, CONTRACTS_CONFIGURED, NETWORK_PASSPHRASE } from "../lib/config";
 import { addr, i128, invokeContract, u64, vecAddr } from "../lib/soroban";
-import { fmt, toUnits } from "../lib/format";
+import { fmt, fmtCompact, toUnits } from "../lib/format";
+import { readPool, useChain } from "../lib/chain";
 
 const BASE = "XLM", QUOTE = "USDC";
 
@@ -48,7 +49,13 @@ function SwapPanel() {
   const [amountIn, setAmountIn] = useState("500");
   const [slippage, setSlippage] = useState(0.5);
   const tx = useTx(route === "amm");
-  const pool = DEMO_POOLS[0];
+  const live = useChain(() => readPool(CONTRACTS.pools[0]), []);
+  const pool = live.data
+    ? (() => {
+        const xlmIsA = live.data.tokenA === CONTRACTS.xlmSac;
+        return { reserveA: xlmIsA ? live.data.reserveA : live.data.reserveB, reserveB: xlmIsA ? live.data.reserveB : live.data.reserveA, feeBps: live.data.feeBps };
+      })()
+    : DEMO_POOLS[0];
   const out = ammAmountOut(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
   const impact = priceImpact(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
   const minOut = out * (1 - slippage / 100);
@@ -59,6 +66,7 @@ function SwapPanel() {
       <div style={{ textAlign: "center", fontSize: "1.4rem", color: "var(--quasar)", textShadow: "var(--glow-cyan)" }}>⇣</div>
       <div className="field"><label>You receive (est. {route === "amm" ? "QUSD" : "USDC"})</label><input className="input" readOnly value={fmt(out, 4)} /></div>
       <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Price impact</span><span className={impact > 0.01 ? "neg mono" : "mono"}>{fmt(impact * 100, 3)}%</span></div>
+      {route === "amm" && <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Pool reserves</span><span className="mono">{fmtCompact(pool.reserveA)} XLM / {fmtCompact(pool.reserveB)} QUSD {live.live ? "· live" : "· demo"}</span></div>}
       <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Fee (0.30%, 20% to referrer)</span><span className="mono">{fmt(Number(amountIn) * 0.003, 4)} XLM</span></div>
       <div className="field" style={{ marginTop: 10 }}>
         <label>Max slippage: {slippage}%</label>
@@ -79,7 +87,7 @@ function SwapPanel() {
             }
             const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
             const r = await invokeContract(me, tx.wallet.sign, CONTRACTS.router, "swap_exact_in", [
-              addr(me), vecAddr([CONTRACTS.pools[0]]), addr(await xlmSacId()), i128(toUnits(Number(amountIn))), i128(toUnits(minOut)), u64(deadline),
+              addr(me), vecAddr([CONTRACTS.pools[0]]), addr(CONTRACTS.xlmSac || (await xlmSacId())), i128(toUnits(Number(amountIn))), i128(toUnits(minOut)), u64(deadline),
             ]);
             return r.hash.slice(0, 10);
           })
@@ -133,7 +141,7 @@ export default function Trade() {
 
   return (
     <>
-      <PageHead kicker="Scene · Quasar Core" title="Trade" right={<span className="pill cyan">{CONTRACTS_CONFIGURED ? "Router live" : "AMM: demo reserves"}</span>}>
+      <PageHead kicker="Scene · Quasar Core" title="Trade" right={<span className="pill cyan">{CONTRACTS_CONFIGURED ? "Router + AMM live on testnet" : "AMM: demo reserves"}</span>}>
         Order-book trading on Stellar's native SDEX plus instant swaps through Quasaria's Soroban AMM router.
       </PageHead>
       <div className="grid g-trade">

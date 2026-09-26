@@ -84,3 +84,21 @@ export function RiskWarning({ children }: { children?: ReactNode }) {
     </div>
   );
 }
+
+/** Small badge telling the user where a panel's numbers come from. */
+export function SourceTag({ live, loading, error, what }: { live: boolean; loading?: boolean; error?: string | null; what?: string }) {
+  if (loading) return <span className="pill">⟳ reading testnet…</span>;
+  if (live) return <span className="pill green" title={what}>● live · Soroban testnet</span>;
+  return <span className="pill pink" title={error ?? "contracts not configured"}>demo data{error ? " (RPC error)" : ""}</span>;
+}
+
+/** "Viewing public demo account" note for read-only mode. */
+export function ViewerNote({ address, isDemo, role }: { address: string; isDemo: boolean; role: string }) {
+  if (!isDemo || !address) return null;
+  return (
+    <p className="muted" style={{ fontSize: "0.78rem", margin: "6px 0 0" }}>
+      Read-only: showing the public seeded {role} account{" "}
+      <a className="mono" href={`https://stellar.expert/explorer/testnet/account/${address}`} target="_blank" rel="noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Connect Freighter to see your own.
+    </p>
+  );
+}

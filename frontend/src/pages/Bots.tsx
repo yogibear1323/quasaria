@@ -1,14 +1,16 @@
 import { useMemo, useState } from "react";
-import { PageHead, RiskWarning, Stat, Tabs, TxStatus, useTx } from "../components/ui";
+import { PageHead, RiskWarning, SourceTag, Stat, Tabs, TxStatus, ViewerNote, useTx } from "../components/ui";
 import { DEMO_POSITIONS } from "../lib/demo";
-import { CONTRACTS } from "../lib/config";
+import { CONTRACTS, expertContract } from "../lib/config";
+import { readVault, useChain, useViewer } from "../lib/chain";
 import { addr, assetOther, bool, i128, invokeContract, u32, u64 } from "../lib/soroban";
 import { healthFactor, liquidationPrice, pnl } from "../lib/math";
 import { fmt, toUnits } from "../lib/format";
 
 type Strat = "grid" | "dca" | "momentum";
-const MAX_LEV = 10; // mirrors vault config (hard cap 20x on-chain)
-const MM_BPS = 500;
+const DEMO_MAX_LEV = 10; // mirrors vault config (hard cap 20x on-chain)
+const DEMO_MM_BPS = 500;
+type Row = { id: number; asset: string; isLong: boolean; margin: number; leverage: number; entry: number; mark: number; sl: number; tp: number };
 
 export default function Bots() {
   const [ack, setAck] = useState(false);
@@ -22,7 +24,22 @@ export default function Bots() {
   const [dca, setDca] = useState({ intervalH: "24", orders: "10" });
   const [mom, setMom] = useState({ fast: "9", slow: "21" });
   const tx = useTx();
-  const mark = 0.1234;
+  const viewer = useViewer("trader");
+  const [nonce, setNonce] = useState(0);
+  const chain = useChain(() => readVault(viewer.address), [viewer.address, nonce]);
+  const v = chain.data;
+  const MAX_LEV = v?.maxLeverage ?? DEMO_MAX_LEV;
+  const MM_BPS = v?.mmBps ?? DEMO_MM_BPS;
+  const mark = v?.mark ?? 0.1234;
+  const priceAge = v?.priceTimestamp ? Math.max(0, Date.now() / 1000 - v.priceTimestamp) : null;
+  const stale = v && priceAge !== null ? priceAge > v.maxPriceAge : false;
+  const rows: Row[] = v
+    ? v.positions.map((p) => ({ id: p.id, asset: p.asset, isLong: p.isLong, margin: p.margin, leverage: p.margin ? p.size / p.margin : 0, entry: p.entry, mark, sl: p.sl, tp: p.tp }))
+    : DEMO_POSITIONS;
+  const refresh = (h: string) => {
+    setNonce((n) => n + 1);
+    return h;
+  };
   const size = Number(margin) * lev;
   const liq = liquidationPrice(side === "long", Number(margin), size, mark, MM_BPS);
 
@@ -45,7 +62,7 @@ export default function Bots() {
 
   return (
     <>
-      <PageHead kicker="Scene · Warp Speed" title="Bots & Leverage" right={<span className="pill pink">Max {MAX_LEV}× · oracle: Reflector-compatible</span>}>
+      <PageHead kicker="Scene · Warp Speed" title="Bots & Leverage" right={<div className="row"><SourceTag {...chain} /><span className="pill pink">Max {MAX_LEV}× · oracle: Reflector-compatible</span></div>}>
         Configure automated grid, DCA and momentum strategies that trade leveraged positions in the Warp vault — with on-chain stop-loss / take-profit and a liquidation keeper.
       </PageHead>
       <RiskWarning />
@@ -92,7 +109,7 @@ export default function Bots() {
               <button className="btn" disabled={!ack} onClick={download}>Export bot config</button>
               <button className="btn ghost" disabled={!ack || tx.busy} onClick={() => tx.run("open position", async () => {
                 const me = tx.wallet.address!;
-                return (await invokeContract(me, tx.wallet.sign, CONTRACTS.vault, "open_position", [addr(me), addr(me), assetOther("XLM"), bool(side === "long"), i128(toUnits(Number(margin))), u32(lev * 10_000)])).hash.slice(0, 10);
+                return refresh((await invokeContract(me, tx.wallet.sign, CONTRACTS.vault, "open_position", [addr(me), addr(me), assetOther("XLM"), bool(side === "long"), i128(toUnits(Number(margin))), u32(lev * 10_000)])).hash.slice(0, 10));
               })}>Open manually</button>
               <button className="btn ghost" disabled={!ack || tx.busy} onClick={() => {
                 const op = window.prompt("Bot operator address (G…) — it can trade but never withdraw:");
@@ -106,7 +123,7 @@ export default function Bots() {
             <table className="t">
               <thead><tr><th>#</th><th>Side</th><th>Margin</th><th>Lev.</th><th>Entry → Mark</th><th>PnL</th><th>Health</th><th>SL / TP</th><th /></tr></thead>
               <tbody>
-                {DEMO_POSITIONS.map((p) => {
+                {rows.map((p) => {
                   const s = p.margin * p.leverage;
                   const v = pnl(p.isLong, s, p.entry, p.mark);
                   const hf = healthFactor(p.margin, s, v, MM_BPS);
@@ -115,21 +132,23 @@ export default function Bots() {
                       <td className="mono">{p.id}</td>
                       <td className={p.isLong ? "pos" : "neg"}>{p.isLong ? "LONG" : "SHORT"} {p.asset}</td>
                       <td className="mono">{fmt(p.margin, 0)}</td>
-                      <td className="mono">{p.leverage}×</td>
-                      <td className="mono">{p.entry} → {p.mark}</td>
+                      <td className="mono">{fmt(p.leverage, 2)}×</td>
+                      <td className="mono">{fmt(p.entry, 4)} → {fmt(p.mark, 4)}</td>
                       <td className={`mono ${v >= 0 ? "pos" : "neg"}`}>{v >= 0 ? "+" : ""}{fmt(v, 2)}</td>
                       <td style={{ minWidth: 110 }}>
                         <div className="gauge"><i style={{ left: `${Math.min(100, (hf / 5) * 100)}%` }} /></div>
                         <span className="mono" style={{ fontSize: "0.75rem" }}>HF {fmt(hf, 2)}</span>
                       </td>
-                      <td className="mono muted">{p.sl} / {p.tp}</td>
-                      <td><button className="btn small ghost" onClick={() => tx.run("close", async () => (await invokeContract(tx.wallet.address!, tx.wallet.sign, CONTRACTS.vault, "close_position", [addr(tx.wallet.address!), u64(p.id)])).hash.slice(0, 10))}>Close</button></td>
+                      <td className="mono muted">{p.sl ? fmt(p.sl, 4) : "—"} / {p.tp ? fmt(p.tp, 4) : "—"}</td>
+                      <td><button className="btn small ghost" onClick={() => tx.run("close", async () => (await invokeContract(tx.wallet.address!, tx.wallet.sign, CONTRACTS.vault, "close_position", [addr(tx.wallet.address!), u64(p.id)])).hash.slice(0, 10)).then(() => void refresh(""))}>Close</button></td>
                     </tr>
                   );
                 })}
+                {!rows.length && <tr><td colSpan={9} className="muted">No open positions.</td></tr>}
               </tbody>
             </table>
-            <p className="muted" style={{ fontSize: "0.78rem" }}>Demo positions shown. Health factor = equity ÷ maintenance margin (5% of notional); below 1.0 anyone can liquidate.</p>
+            {chain.live && <ViewerNote {...viewer} role="demo trader" />}
+            <p className="muted" style={{ fontSize: "0.78rem" }}>{chain.live ? `On-chain positions from the vault; mark = oracle lastprice ${fmt(mark, 4)}${priceAge !== null ? ` (${Math.round(priceAge / 60)} min old${stale ? " — STALE: vault rejects trades/liquidations until the oracle is updated" : ""})` : ""}. Free collateral: ${fmt(v!.free, 2)} QUSD.` : "Demo positions shown."} Health factor = equity ÷ maintenance margin (5% of notional); below 1.0 anyone can liquidate.</p>
           </div>
         </div>
         <div className="grid" style={{ alignContent: "start" }}>
@@ -141,9 +160,12 @@ export default function Bots() {
           <div className="card">
             <h2>Keeper status</h2>
             <div className="grid g-2">
-              <Stat label="Liquidation keeper" value={<span className="pos">● demo</span>} sub="scans open_position_ids()" />
-              <Stat label="SL/TP executor" value={<span className="pos">● demo</span>} sub="execute_trigger(id)" />
+              <Stat label="Liquidation keeper" value={<span className="pos">{chain.live ? `${v!.openCount} open` : "● demo"}</span>} sub="scans open_position_ids()" />
+              <Stat label="SL/TP executor" value={<span className="pos">{chain.live ? "bot/ --keeper-only" : "● demo"}</span>} sub="execute_trigger(id)" />
+              {chain.live && <Stat label="Vault liquidity" value={fmt(v!.liquidity, 0)} sub="QUSD profit reserve" />}
+              {chain.live && <Stat label="Oracle mark" value={fmt(mark, 4)} sub={stale ? "stale" : "fresh"} className={stale ? "neg" : "pos"} />}
             </div>
+            {chain.live && <p className="muted" style={{ fontSize: "0.75rem" }}><a href={expertContract(CONTRACTS.vault)} target="_blank" rel="noreferrer">Vault on stellar.expert ↗</a></p>}
             <ul className="muted" style={{ fontSize: "0.82rem", paddingLeft: 18 }}>
               <li>Bots trade via a delegated <b>operator</b> key that cannot withdraw funds.</li>
               <li>Stale oracle prices (older than max age) make the vault reject trades.</li>

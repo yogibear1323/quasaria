@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { PageHead, Stat, TxStatus, useTx } from "../components/ui";
+import { PageHead, SourceTag, Stat, TxStatus, ViewerNote, useTx } from "../components/ui";
 import { DEMO_QFX } from "../lib/demo";
-import { CONTRACTS, CONTRACTS_CONFIGURED } from "../lib/config";
-import { addr, invokeContract, readContract } from "../lib/soroban";
+import { CONTRACTS } from "../lib/config";
+import { invokeContract } from "../lib/soroban";
+import { readQfx, useChain, useViewer } from "../lib/chain";
 import { apyFromApr, DAY, projectBalance } from "../lib/math";
-import { fmt, fmtCompact, fromUnits, pct } from "../lib/format";
+import { fmt, fmtCompact, pct } from "../lib/format";
 
 type Info = { aprBps: number; maxAprBps: number; totalSupply: number; maxSupply: number; genesis: number; index: number };
 
@@ -26,8 +27,10 @@ function GrowthChart({ principal, aprBps }: { principal: number; aprBps: number 
 }
 
 export default function Rewards() {
-  const [info, setInfo] = useState<Info>({ ...DEMO_QFX });
-  const [balance, setBalance] = useState(DEMO_QFX.demoBalance);
+  const viewer = useViewer("trader");
+  const chain = useChain(() => readQfx(viewer.address), [viewer.address]);
+  const info: Info = chain.data ?? DEMO_QFX;
+  const balance = chain.data ? chain.data.balance : DEMO_QFX.demoBalance;
   const [principal, setPrincipal] = useState("10000");
   const [days, setDays] = useState(365);
   const [now, setNow] = useState(() => Date.now() / 1000);
@@ -37,17 +40,6 @@ export default function Rewards() {
     const t = setInterval(() => setNow(Date.now() / 1000), 1000);
     return () => clearInterval(t);
   }, []);
-
-  useEffect(() => {
-    if (!CONTRACTS_CONFIGURED) return;
-    readContract<{ index: bigint; apr_bps: number; max_apr_bps: number; total_supply: bigint; max_supply: bigint; genesis: bigint }>(CONTRACTS.qfx, "reward_info")
-      .then((r) => setInfo({ aprBps: r.apr_bps, maxAprBps: r.max_apr_bps, totalSupply: fromUnits(r.total_supply), maxSupply: fromUnits(r.max_supply), genesis: Number(r.genesis), index: Number(r.index) / 1e18 }))
-      .catch(() => void 0);
-  }, []);
-  useEffect(() => {
-    if (!CONTRACTS_CONFIGURED || !tx.wallet.address) return;
-    readContract<bigint>(CONTRACTS.qfx, "balance", [addr(tx.wallet.address)]).then((b) => setBalance(fromUnits(b))).catch(() => void 0);
-  }, [tx.wallet.address]);
 
   const secsIntoDay = (now - info.genesis) % DAY;
   const toNext = DAY - secsIntoDay;
@@ -59,14 +51,15 @@ export default function Rewards() {
 
   return (
     <>
-      <PageHead kicker="Scene · Supernova" title="QFX · Quasaria Flux" right={<span className="pill gold">SEP-41 · compounding daily</span>}>
+      <PageHead kicker="Scene · Supernova" title="QFX · Quasaria Flux" right={<div className="row"><SourceTag {...chain} /><span className="pill gold">SEP-41 · compounding daily</span></div>}>
         Hold QFX, do nothing, grow. Every UTC day since genesis the global reward index multiplies by (1 + APR/365) — every wallet compounds at once.
       </PageHead>
       <div className="grid g-main-side">
         <div className="card glow" style={{ textAlign: "center", padding: 28 }}>
-          <h3>{tx.wallet.address ? "Your QFX balance" : "Demo wallet balance"}</h3>
+          <h3>{tx.wallet.address ? "Your QFX balance" : chain.live ? "Demo trader balance (on-chain)" : "Demo wallet balance"}</h3>
           <div className="orb-counter">{fmt(balance, 4)}</div>
           <div className="muted">QFX</div>
+          {chain.live && <ViewerNote {...viewer} role="demo trader" />}
           <div className="grid g-3" style={{ marginTop: 22, textAlign: "left" }}>
             <Stat label="Next compounding in" value={`${hh}:${mm}:${ss}`} className="mono" />
             <Stat label="After next tick" value={fmt(nextBal, 4)} sub={`+${fmt(nextBal - balance, 4)} QFX`} className="pos" />

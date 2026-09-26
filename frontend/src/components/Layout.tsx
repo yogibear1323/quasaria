@@ -46,7 +46,7 @@ export default function Layout() {
       <div className="app">
         {(!w.address || !CONTRACTS_CONFIGURED) && (
           <div className="demo-banner">
-            {!w.address ? "Read-only demo mode — connect Freighter (TESTNET) to trade. " : ""}
+            {!w.address ? (CONTRACTS_CONFIGURED ? "Read-only mode — live Soroban TESTNET contracts, viewed through public seeded demo accounts. Connect Freighter (TESTNET) to trade. " : "Read-only demo mode — connect Freighter (TESTNET) to trade. ") : ""}
             {!CONTRACTS_CONFIGURED ? "Soroban contracts not configured: showing demo data (run scripts/deploy-testnet.sh)." : ""}
           </div>
         )}

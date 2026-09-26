@@ -46,6 +46,12 @@ echo "Admin: $ADMIN"
 
 deploy() { # deploy <wasm> <alias> [-- constructor args...]
   local wasm="$1" alias="$2"; shift 2
+  # Idempotent re-runs: reuse an existing alias unless FRESH=1.
+  if [[ "${FRESH:-0}" != "1" && "${DRY_RUN:-0}" != "1" ]]; then
+    local existing
+    existing="$(stellar contract alias show "$alias" --network "$NETWORK" 2>/dev/null || true)"
+    if [[ -n "$existing" ]]; then echo "   (reusing $alias = $existing)" >&2; echo "$existing"; return; fi
+  fi
   run stellar contract deploy --wasm "$WASM/$wasm" --source "$IDENTITY" \
     --network "$NETWORK" --alias "$alias" "$@"
 }
@@ -69,9 +75,9 @@ QFX="$(deploy quasaria_reward_token.wasm quasaria-qfx -- --admin "$ADMIN" --deci
 
 echo "==> AMM pools (0.30% fee) + router"
 POOL_XLM_QUSD="$(deploy quasaria_amm_pool.wasm quasaria-pool-xlm-qusd -- --admin "$ADMIN" \
-  --token_a "$XLM_SAC" --token_b "$QUSD_SAC" --fee_bps 30 --referral "$REFERRAL")"
+  --token_a "$XLM_SAC" --token_b "$QUSD_SAC" --fee_bps 30 --referral "\"$REFERRAL\"")"
 POOL_QFX_QUSD="$(deploy quasaria_amm_pool.wasm quasaria-pool-qfx-qusd -- --admin "$ADMIN" \
-  --token_a "$QFX" --token_b "$QUSD_SAC" --fee_bps 30 --referral "$REFERRAL")"
+  --token_a "$QFX" --token_b "$QUSD_SAC" --fee_bps 30 --referral "\"$REFERRAL\"")"
 ROUTER="$(deploy quasaria_router.wasm quasaria-router)"
 
 echo "==> Staking"
@@ -80,7 +86,7 @@ STAKING="$(deploy quasaria_staking.wasm quasaria-staking -- --admin "$ADMIN")"
 echo "==> Mock oracle (swap for Reflector: see README) + leverage vault"
 ORACLE="$(deploy quasaria_mock_oracle.wasm quasaria-oracle -- --admin "$ADMIN" --decimals 14)"
 VAULT="$(deploy quasaria_leverage_vault.wasm quasaria-vault -- --admin "$ADMIN" \
-  --collateral "$QUSD_SAC" --oracle "$ORACLE" --referral "$REFERRAL" \
+  --collateral "$QUSD_SAC" --oracle "$ORACLE" --referral "\"$REFERRAL\"" \
   --config '{"max_leverage_bps":100000,"maintenance_margin_bps":500,"liquidation_bonus_bps":500,"open_fee_bps":10,"max_price_age":900}')"
 
 invoke() { run stellar contract invoke --id "$1" --source "$IDENTITY" --network "$NETWORK" -- "${@:2}"; }
@@ -92,8 +98,11 @@ invoke "$REFERRAL" set_fee_source --source "$VAULT" --allowed true >/dev/null
 invoke "$VAULT" set_market --asset '{"Other":"XLM"}' --enabled true >/dev/null
 invoke "$ORACLE" set_price --asset '{"Other":"XLM"}' --price 12000000000000 --timestamp 0 >/dev/null
 # Stake QFX -> earn QFX (7-day lock), stake XLM/QUSD LP -> earn QFX (no lock)
+POOLS_N="$(invoke "$STAKING" pool_count 2>/dev/null || echo 0)"
+if [[ "$POOLS_N" == "0" || "${DRY_RUN:-0}" == "1" ]]; then
 invoke "$STAKING" add_pool --stake_token "$QFX" --reward_token "$QFX" --reward_rate 1000 --lock_seconds 604800 >/dev/null
 invoke "$STAKING" add_pool --stake_token "$POOL_XLM_QUSD" --reward_token "$QFX" --reward_rate 2000 --lock_seconds 0 >/dev/null
+else echo "   (staking already has $POOLS_N pools)"; fi
 
 mkdir -p "$(dirname "$OUT")"
 cat > "$OUT" <<JSON
@@ -118,6 +127,7 @@ cat > "$OUT" <<JSON
   "assets": { "QUSD": "$QUSD_ASSET" }
 }
 JSON
+mkdir -p "$ROOT/frontend/src/config" && cp "${OUT:-$DEP}" "$ROOT/frontend/src/config/testnet.json"
 echo "Wrote $OUT"
 
 # Frontend + bot env files

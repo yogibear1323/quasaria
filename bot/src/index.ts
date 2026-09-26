@@ -4,6 +4,8 @@
  *   npm run paper                                  # simulated vault + random-walk prices
  *   npm start -- --config my.json --mode paper --ticks 1000
  *   npm run keeper                                 # live liquidation/SL-TP keeper (needs .env)
+ *   npm run keeper -- --once                       # one live sweep, then exit
+ *   npm run keeper -- --dry-run                    # one read-only sweep (no key needed, no txs)
  *   npm start -- --config my.json --mode live      # live strategies via delegated operator key
  */
 import { readFileSync, existsSync } from "node:fs";
@@ -11,6 +13,7 @@ import { parseConfig } from "./config.js";
 import { BotEngine, randomWalk } from "./engine.js";
 import { PaperVault } from "./exchange.js";
 import { runKeeperOnce } from "./keeper.js";
+import { Keypair } from "@stellar/stellar-sdk";
 import { SorobanVault } from "./soroban.js";
 
 function arg(name: string, def?: string) {
@@ -32,7 +35,7 @@ async function main() {
   const cfgPath = arg("config", "quasaria-bot.config.example.json")!;
   const cfg = parseConfig(JSON.parse(readFileSync(cfgPath, "utf8")));
   const mode = arg("mode", "paper") ?? "paper";
-  console.log(`Quasaria bot · ${mode.toUpperCase()} · TESTNET · ${cfg.strategies.length} strategies`);
+  console.log(`Quasaria bot · ${flag("keeper-only") ? "KEEPER" : mode.toUpperCase()} · TESTNET · ${cfg.strategies.length} strategies`);
   console.log("⚠  Unaudited software. Leverage can wipe out your margin. Not financial advice.\n");
 
   if (mode === "paper" && !flag("keeper-only")) {
@@ -58,16 +61,24 @@ async function main() {
     return;
   }
 
-  const need = ["QUASARIA_RPC_URL", "QUASARIA_VAULT_ID", "QUASARIA_ORACLE_ID", "QUASARIA_SECRET"];
+  const dryRun = flag("dry-run");
+  const need = ["QUASARIA_RPC_URL", "QUASARIA_VAULT_ID", "QUASARIA_ORACLE_ID", ...(dryRun ? [] : ["QUASARIA_SECRET"])];
   const missing = need.filter((k) => !process.env[k]);
   if (missing.length) throw new Error(`live mode needs env: ${missing.join(", ")} (see .env.example)`);
   if ((process.env.QUASARIA_NETWORK ?? "testnet") !== "testnet") throw new Error("QUASARIA_NETWORK must be testnet");
   const live = new SorobanVault({
     rpcUrl: process.env.QUASARIA_RPC_URL!, vaultId: process.env.QUASARIA_VAULT_ID!, oracleId: process.env.QUASARIA_ORACLE_ID!,
-    secret: process.env.QUASARIA_SECRET!, owner: process.env.QUASARIA_OWNER,
+    // dry-run without a key: throwaway keypair, used only as the simulation source
+    secret: process.env.QUASARIA_SECRET || Keypair.random().secret(), owner: process.env.QUASARIA_OWNER,
   });
   await live.assertTestnet();
 
+  if (flag("keeper-only") && (flag("once") || dryRun)) {
+    console.log(`keeper: single sweep${dryRun ? " (dry-run: plan only, no transactions)" : " (live testnet)"} · vault ${process.env.QUASARIA_VAULT_ID}`);
+    const results = await runKeeperOnce(live, console.log, { dryRun });
+    console.log(`keeper: done, ${results.length} action(s)${dryRun ? " planned" : ` executed (${results.filter((r) => r.ok).length} ok)`}`);
+    return;
+  }
   if (flag("keeper-only")) {
     console.log(`keeper: sweeping every ${cfg.keeper.intervalSec}s`);
     for (;;) {

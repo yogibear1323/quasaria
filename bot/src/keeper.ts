@@ -3,6 +3,7 @@ import { healthFactor, triggerHit } from "./math.js";
 import type { Position } from "./types.js";
 
 export type KeeperAction = { id: number; kind: "liquidate" | "trigger"; detail: string };
+export type KeeperResult = { action: KeeperAction; ok: boolean; value?: number; error?: string };
 
 /** Pure decision function: which positions to liquidate or trigger at `prices`. */
 export function planKeeperActions(positions: Position[], prices: Record<string, number>, mmBps: number): KeeperAction[] {
@@ -22,7 +23,7 @@ export function planKeeperActions(positions: Position[], prices: Record<string, 
 }
 
 /** One keeper sweep over all open positions. Failures are logged, not fatal. */
-export async function runKeeperOnce(vault: KeeperVault, log: (m: string) => void = console.log) {
+export async function runKeeperOnce(vault: KeeperVault, log: (m: string) => void = console.log, opts: { dryRun?: boolean } = {}): Promise<KeeperResult[]> {
   const ids = await vault.openPositionIds();
   const positions: Position[] = [];
   for (const id of ids) {
@@ -40,8 +41,18 @@ export async function runKeeperOnce(vault: KeeperVault, log: (m: string) => void
       log(`keeper: no price for ${a}: ${(e as Error).message}`);
     }
   }
-  const actions = planKeeperActions(positions, prices, await vault.maintenanceMarginBps());
-  const results: { action: KeeperAction; ok: boolean; value?: number; error?: string }[] = [];
+  const mmBps = await vault.maintenanceMarginBps();
+  const actions = planKeeperActions(positions, prices, mmBps);
+  log(`keeper: ${ids.length} open position(s), prices ${JSON.stringify(prices)}, ${actions.length} action(s) planned`);
+  for (const p of positions) {
+    const price = prices[p.asset];
+    if (price) log(`keeper:   #${p.id} ${p.side} ${p.asset} margin ${p.margin} size ${p.size} entry ${p.entryPrice} SL ${p.stopLoss ?? "-"} TP ${p.takeProfit ?? "-"} -> HF ${healthFactor(p, price, mmBps).toFixed(3)}`);
+  }
+  const results: KeeperResult[] = [];
+  if (opts.dryRun) {
+    for (const a of actions) log(`keeper (dry-run): would ${a.kind} #${a.id} (${a.detail})`);
+    return actions.map<KeeperResult>((action) => ({ action, ok: true }));
+  }
   for (const a of actions) {
     try {
       const value = a.kind === "liquidate" ? await vault.liquidate(a.id) : await vault.executeTrigger(a.id);

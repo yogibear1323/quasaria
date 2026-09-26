@@ -47,8 +47,19 @@ const rememberError = (r: { on: boolean; pw: string; pw2: string }) =>
 
 export default function AccountModal() {
   const w = useWallet();
-  const [step, setStep] = useState<Step>(w.stored ? "unlock" : "choose");
-  const [acct, setAcct] = useState<NewAccount | null>(null);
+  // "Create a wallet" (landing page) jumps straight to a freshly generated key.
+  const [initial] = useState<{ step: Step; acct: NewAccount | null }>(() => {
+    if (w.modalIntent === "create" && !w.stored) {
+      try {
+        return { step: "reveal", acct: generateAccount() };
+      } catch {
+        /* no Web Crypto: fall back to the chooser, which shows the error on click */
+      }
+    }
+    return { step: w.stored ? "unlock" : "choose", acct: null };
+  });
+  const [step, setStep] = useState<Step>(initial.step);
+  const [acct, setAcct] = useState<NewAccount | null>(initial.acct);
   const [saved, setSaved] = useState(false);
   const [answer, setAnswer] = useState("");
   const [remember, setRemember] = useState({ on: false, pw: "", pw2: "" });

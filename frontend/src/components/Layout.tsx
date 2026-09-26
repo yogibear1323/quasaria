@@ -79,7 +79,7 @@ export default function Layout() {
           </div>
         )}
         <header className="topbar">
-          <NavLink to="/trade" className="brand" aria-label="Quasaria home">
+          <NavLink to="/" className="brand" aria-label="Quasaria home">
             <img src={logo} alt="" />
             <span className="word grad-text">QUASARIA</span>
           </NavLink>

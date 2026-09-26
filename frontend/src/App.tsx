@@ -8,6 +8,7 @@ import Rewards from "./pages/Rewards";
 import Referrals, { REF_KEY } from "./pages/Referrals";
 import Bots from "./pages/Bots";
 import Markets from "./pages/Markets";
+import Landing from "./pages/Landing";
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
 function RefCapture() {
@@ -24,8 +25,10 @@ export default function App() {
     <>
       <RefCapture />
       <Routes>
+        {/* Public landing page; the app keeps its top-level routes (/trade, /pools, …). /app is an alias for Trade. */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/app" element={<Navigate to="/trade" replace />} />
         <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/trade" replace />} />
           <Route path="/markets" element={<Markets />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/pools" element={<Pools />} />
@@ -33,7 +36,7 @@ export default function App() {
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/referrals" element={<Referrals />} />
           <Route path="/bots" element={<Bots />} />
-          <Route path="*" element={<Navigate to="/trade" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </>

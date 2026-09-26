@@ -22,7 +22,9 @@ type WalletState = {
   stored: EncryptedKey | null;
   /** Account modal visibility (create / import / Freighter / unlock). */
   modalOpen: boolean;
-  openModal: () => void;
+  /** Open the account modal; pass "create" to jump straight into new-account creation. */
+  openModal: (intent?: unknown) => void;
+  modalIntent: "create" | null;
   closeModal: () => void;
   connect: () => Promise<void>;
   loginWithSecret: (secret: string, rememberWithPassword?: string) => Promise<void>;
@@ -42,6 +44,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [stored, setStored] = useState<EncryptedKey | null>(() => loadStoredKey());
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalIntent, setModalIntent] = useState<"create" | null>(null);
   const current = useRef<Signer | null>(null);
 
   const replaceSigner = useCallback((s: Signer | null) => {
@@ -139,7 +142,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         error,
         stored,
         modalOpen,
-        openModal: () => setModalOpen(true),
+        modalIntent,
+        openModal: (intent?: unknown) => { setModalIntent(intent === "create" ? "create" : null); setModalOpen(true); },
         closeModal: () => setModalOpen(false),
         connect,
         loginWithSecret,

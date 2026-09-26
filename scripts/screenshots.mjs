@@ -12,7 +12,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const out = resolve(root, "screenshots");
 mkdirSync(out, { recursive: true });
 const BASE = process.env.BASE_URL || "http://127.0.0.1:4173";
-const pages = ["trade", "pools", "stake", "rewards", "referrals", "bots", "markets"];
+const ONLY = process.env.ONLY; // e.g. ONLY=landing to capture just the landing shots
+const pages = ONLY === "landing" ? [] : ["trade", "pools", "stake", "rewards", "referrals", "bots", "markets"];
 const BLUR = ".secret-value { filter: blur(9px) !important; color: transparent !important; text-shadow: 0 0 12px rgba(255,255,255,.8) !important; }";
 
 const browser = await chromium.launch();
@@ -34,6 +35,47 @@ for (const [i, p] of pages.entries()) {
   await page.setViewportSize({ width: 1440, height: Math.max(900, h) });
   await page.waitForTimeout(800);
   await shot(`${String(i + 1).padStart(2, "0")}-${p}.png`);
+}
+
+// ---- public landing page: desktop full page + mobile full page
+{
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${BASE}/`, { waitUntil: "networkidle" }).catch(() => page.goto(`${BASE}/`));
+  await page.waitForTimeout(7000); // stellarchain + Horizon + Soroban reads
+  const h = await page.evaluate(() => document.documentElement.scrollHeight);
+  await page.setViewportSize({ width: 1440, height: h });
+  await page.waitForTimeout(1200);
+  await shot("00-landing-desktop.png");
+  // "Create a wallet" must jump straight into the create flow (secret blurred)
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.addStyleTag({ content: BLUR });
+  await page.getByRole("button", { name: "Create a wallet" }).first().click();
+  await page.locator("input.secret-value").first().waitFor({ timeout: 5000 });
+  await shot("12-landing-create-wallet-blurred.png", false);
+  await page.keyboard.press("Escape");
+  const m = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const mp = await m.newPage();
+  mp.on("pageerror", (e) => errors.push(`mobile ${mp.url()}: ${e.message}`));
+  await mp.goto(`${BASE}/`, { waitUntil: "networkidle" }).catch(() => mp.goto(`${BASE}/`));
+  await mp.waitForTimeout(6000);
+  // scroll through once so lazy-loaded logos are fetched before the full-page capture
+  const mh = await mp.evaluate(() => document.documentElement.scrollHeight);
+  for (let y = 0; y < mh; y += 700) { await mp.evaluate((yy) => window.scrollTo(0, yy), y); await mp.waitForTimeout(120); }
+  await mp.evaluate(() => window.scrollTo(0, 0));
+  await mp.waitForTimeout(2500);
+  const overflow = await mp.evaluate(() => document.documentElement.scrollWidth - 390); // >0 = page wider than the phone
+  console.log("mobile horizontal overflow px:", overflow);
+  await mp.screenshot({ path: resolve(out, "00-landing-mobile.png"), fullPage: true });
+  console.log("wrote", resolve(out, "00-landing-mobile.png"));
+  await mp.screenshot({ path: resolve(out, "00-landing-mobile-hero.png"), fullPage: false });
+  await m.close();
+}
+
+if (ONLY === "landing") {
+  await browser.close();
+  if (errors.length) console.log("Page errors:\n" + errors.join("\n"));
+  process.exit(0);
 }
 
 // ---- in-app (non-custodial) account creation with a throwaway testnet key

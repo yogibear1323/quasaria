@@ -114,7 +114,7 @@ export default function StablePairs({ onPick, picked }: { onPick: (l: StableLive
         </table>
       </div>
       <p className="muted" style={{ fontSize: "0.72rem" }}>
-        Mainnet columns are a read-only Horizon snapshot taken when the list was generated ({pairsDoc.generatedAt.slice(0, 16).replace("T", " ")} UTC); Quasaria never trades on mainnet. Mainnet issuers don't exist on testnet, so testnet pairs use Circle's real testnet USDC/EURC where the stellarchain testnet feed lists them and clearly-labelled <b>MOCK</b> assets (code prefix "mk", issuer home_domain mock-stables.quasaria.invalid) otherwise. Source: stellarchain.io + issuer stellar.toml files.
+        Mainnet columns are a read-only Horizon snapshot taken when the list was generated ({pairsDoc.generatedAt.slice(0, 16).replace("T", " ")} UTC); Quasaria never trades on mainnet. Mainnet issuers don't exist on testnet, so testnet pairs use a real testnet stablecoin from the stellarchain testnet feed where one is tradeable (Circle's testnet USDC; testnet EURC had no sell-side liquidity) and clearly-labelled <b>MOCK</b> assets (code prefix "mk", issuer home_domain mock-stables.quasaria.invalid) otherwise. Source: stellarchain.io + issuer stellar.toml files.
       </p>
     </div>
   );

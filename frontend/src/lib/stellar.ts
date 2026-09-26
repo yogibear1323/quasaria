@@ -3,7 +3,7 @@
  * path payments. All transactions are built for TESTNET and signed by the
  * active signer (in-app key or Freighter, see lib/signer.ts).
  */
-import { Asset, BASE_FEE, Horizon, Operation, TransactionBuilder, Memo } from "@stellar/stellar-sdk";
+import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Operation, TransactionBuilder, Memo, getLiquidityPoolId } from "@stellar/stellar-sdk";
 import { HORIZON_URL, NETWORK_PASSPHRASE, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "./config";
 import { demoBook, type Book } from "./demo";
 
@@ -149,4 +149,35 @@ export async function fetchTradeCandles(base: Asset, quote: Asset) {
   } catch {
     return null;
   }
+}
+
+// ---- native (protocol-level) liquidity pools, CAP-38
+export const nativePoolId = (a: Asset, b: Asset, fee = 30) => Array.from(getLiquidityPoolId("constant_product", { assetA: a, assetB: b, fee }) as Uint8Array, (x) => x.toString(16).padStart(2, "0")).join("");
+
+export type NativePool = { id: string; reserveA: number; reserveB: number; totalShares: number; feeBp: number; holders: number };
+
+/** Native pool state on the configured (testnet) Horizon, or null if it does not exist. */
+export async function fetchNativePool(id: string): Promise<NativePool | null> {
+  try {
+    const r = await horizon.liquidityPools().liquidityPoolId(id).call();
+    return { id, reserveA: Number(r.reserves[0].amount), reserveB: Number(r.reserves[1].amount), totalShares: Number(r.total_shares), feeBp: r.fee_bp, holders: Number(r.total_trustlines) };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Deposit into the native XLM/<asset> pool (asset A must sort first; native always does).
+ * Adds the asset trustline and the pool-share trustline when missing. `slippage` bounds the price.
+ */
+export async function buildNativeLpDeposit(pubkey: string, a: Asset, b: Asset, maxA: number, maxB: number, slippage = 0.02) {
+  const balances = await fetchBalances(pubkey);
+  const acct = await horizon.loadAccount(pubkey);
+  const id = nativePoolId(a, b);
+  const bld = withTrust(await builder(pubkey), balances, [a, b]);
+  const hasShare = acct.balances.some((x) => x.asset_type === "liquidity_pool_shares" && (x as { liquidity_pool_id: string }).liquidity_pool_id === id);
+  if (!hasShare) bld.addOperation(Operation.changeTrust({ asset: new LiquidityPoolAsset(a, b, 30) }));
+  const ratio = maxA / maxB;
+  bld.addOperation(Operation.liquidityPoolDeposit({ liquidityPoolId: id, maxAmountA: maxA.toFixed(7), maxAmountB: maxB.toFixed(7), minPrice: (ratio * (1 - slippage)).toPrecision(7), maxPrice: (ratio * (1 + slippage)).toPrecision(7) }));
+  return bld.build().toXDR();
 }

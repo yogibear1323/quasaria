@@ -1,0 +1,1457 @@
+{
+  "network": "mainnet",
+  "source": "stellarchain.io /v1/market/assets + issuer stellar.toml",
+  "generatedAt": "2026-09-26T01:37:11.629Z",
+  "asOf": "2026-09-11T02:50:01+00:00",
+  "config": {
+    "network": "mainnet",
+    "minTrustlines": 1000,
+    "minTrades24h": 10,
+    "itemsPerPage": 100,
+    "maxPages": 10,
+    "verifyToml": true,
+    "allow": [
+      "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "EURC:GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2"
+    ],
+    "deny": [
+      "@apay.io",
+      "@pyusd-qfs.com",
+      "@stellarusdtzero.com",
+      "@stellarallbridge.io",
+      "@q-maga.com",
+      "@mgusdstellar.org"
+    ],
+    "denyDomainPatterns": [
+      "qfs",
+      "maga",
+      "new-stellar",
+      "usd1-stellar"
+    ],
+    "brandDomains": {
+      "USDC": [
+        "circle.com"
+      ],
+      "EURC": [
+        "circle.com",
+        "mykobo.co"
+      ],
+      "PYUSD": [
+        "paxos.com"
+      ],
+      "USDT0": [
+        "usdt0.to"
+      ],
+      "USDT": []
+    },
+    "_comment": "Overrides for shared/stablecoins.ts discovery. allow/deny accept CODE:ISSUER, CODE@domain or @domain. Allowlisted assets skip heuristics but are still toml-verified when possible; if the toml fetch fails they count as verified ('allowlisted'). circle.com's stellar.toml returned 404 when this was generated (2026-09-25), so Circle's USDC/EURC issuers are pinned here explicitly."
+  },
+  "scanned": 998,
+  "pairs": [
+    {
+      "base": "XLM",
+      "code": "USDC",
+      "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "assetKey": "USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "domain": "circle.com",
+      "org": "Circle Internet Financial, LLC",
+      "logo": "https://www.circle.com/usdc-icon",
+      "peg": "USD",
+      "holders": 2394128,
+      "trades24h": 33118,
+      "rank": 1,
+      "verified": true,
+      "verification": "allowlisted",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": true,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/USDC",
+      "mainnet": {
+        "nativePool": {
+          "id": "a468d41d8e9b8f3c7209651608b74b7db7ac9952dcae0cdf24871d1d9c7b0088",
+          "reserveXlm": 12641256.1685661,
+          "reserveStable": 2787067.2527189,
+          "totalShares": 4413192.3552888,
+          "feeBp": 30,
+          "holders": 834
+        },
+        "sdex": {
+          "bestBid": 0.220975,
+          "bestAsk": 0.2213813
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "ARST",
+      "issuer": "GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG",
+      "assetKey": "ARST-GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG",
+      "domain": "pubnet-sep.latamex.com",
+      "org": "Relay Tech Services Ltd",
+      "logo": "https://stellarchain.dev/stellarchain-logo.svg",
+      "peg": "ARS",
+      "holders": 328633,
+      "trades24h": 148,
+      "rank": 68,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/ARST",
+      "mainnet": {
+        "nativePool": {
+          "id": "18adc72c11a1397867c836ad2883944d2a71272090bceda8fe497da47f4a1e4a",
+          "reserveXlm": 727.697257,
+          "reserveStable": 269686.6221815,
+          "totalShares": 12012.643024,
+          "feeBp": 30,
+          "holders": 21
+        },
+        "sdex": {
+          "bestBid": 338.426994,
+          "bestAsk": 344.040458
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "ZARZ",
+      "issuer": "GAROH4EV3WVVTRQKEY43GZK3XSRBEYETRVZ7SVG5LHWOAANSMCTJBB3U",
+      "assetKey": "ZARZ-GAROH4EV3WVVTRQKEY43GZK3XSRBEYETRVZ7SVG5LHWOAANSMCTJBB3U",
+      "domain": "zeam.money",
+      "org": "ZEAM LIMITED",
+      "logo": "https://imagedelivery.net/oLenz0kq92Vui1vUax_Fhg/f2dcbefd-6e1a-4f64-5366-7dd29d429100/public",
+      "peg": "ZAR",
+      "holders": 181442,
+      "trades24h": 123,
+      "rank": 50,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/ZARZ",
+      "mainnet": {
+        "nativePool": {
+          "id": "fb7072d551e853826e4a5497e2da1e6765c8cc29fa938ceeeeef579adc53a9f6",
+          "reserveXlm": 21938.9837988,
+          "reserveStable": 78593.5187739,
+          "totalShares": 37987.8350307,
+          "feeBp": 30,
+          "holders": 1
+        },
+        "sdex": {
+          "bestBid": 2.2779044,
+          "bestAsk": 9.65
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "USDZ",
+      "issuer": "GAKTLPC4ZV37SSCITQ5IS5AQ4WPF4CF4VZJQPPAROSGXMYOATF5U6XPR",
+      "assetKey": "USDZ-GAKTLPC4ZV37SSCITQ5IS5AQ4WPF4CF4VZJQPPAROSGXMYOATF5U6XPR",
+      "domain": "zeam.money",
+      "org": "ZEAM LIMITED",
+      "logo": "https://imagedelivery.net/oLenz0kq92Vui1vUax_Fhg/f2dcbefd-6e1a-4f64-5366-7dd29d429100/public",
+      "peg": "USD",
+      "holders": 181062,
+      "trades24h": 151,
+      "rank": 41,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/USDZ",
+      "mainnet": {
+        "nativePool": {
+          "id": "7001fca2d71456cda8a061e4733f035fce36423ccf942e92db139a116d7e557b",
+          "reserveXlm": 24403.3170377,
+          "reserveStable": 5365.6513776,
+          "totalShares": 10315.7360698,
+          "feeBp": 30,
+          "holders": 2
+        },
+        "sdex": {
+          "bestBid": 0.2059775,
+          "bestAsk": 0.2368731
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "PEN",
+      "issuer": "GA4TDPNUCZPTOHB3TKUYMDCRVATXKEADH7ZEYEBWJKQKE2UBFCYNBPEN",
+      "assetKey": "PEN-GA4TDPNUCZPTOHB3TKUYMDCRVATXKEADH7ZEYEBWJKQKE2UBFCYNBPEN",
+      "domain": "api.anclap.com",
+      "org": "Grupo Anchor S.A.",
+      "logo": "https://static.anclap.com/coin/pen.png",
+      "peg": "PEN",
+      "holders": 41396,
+      "trades24h": 27,
+      "rank": 303,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/PEN",
+      "mainnet": {
+        "nativePool": {
+          "id": "d728f444239d7429c39ce0b0213a0e06be5559eef3f16ff6c975f6eb76b07d04",
+          "reserveXlm": 54.1313323,
+          "reserveStable": 22.4129734,
+          "totalShares": 29.0520288,
+          "feeBp": 30,
+          "holders": 10
+        },
+        "sdex": {
+          "bestBid": 0.0563,
+          "bestAsk": 0.4141061
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "USD",
+      "issuer": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+      "assetKey": "USD-GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+      "domain": "stablecoin.anchorusd.com",
+      "org": "AnchorCoin LLC",
+      "logo": "https://stablecoin.anchorusd.com/img/usdx.png",
+      "peg": "USD",
+      "holders": 38351,
+      "trades24h": 32,
+      "rank": 552,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/USD",
+      "mainnet": {
+        "nativePool": {
+          "id": "a75f810b19fd77af3955da980679db82dacb4264a0062493d08fe935aab4993e",
+          "reserveXlm": 117.4703444,
+          "reserveStable": 103.6356286,
+          "totalShares": 96.9138483,
+          "feeBp": 30,
+          "holders": 4
+        },
+        "sdex": {
+          "bestBid": 0.2819164,
+          "bestAsk": 0.8813731
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "ARS",
+      "issuer": "GCYE7C77EB5AWAA25R5XMWNI2EDOKTTFTTPZKM2SR5DI4B4WFD52DARS",
+      "assetKey": "ARS-GCYE7C77EB5AWAA25R5XMWNI2EDOKTTFTTPZKM2SR5DI4B4WFD52DARS",
+      "domain": "api.anclap.com",
+      "org": "Grupo Anchor S.A.",
+      "logo": "https://static.anclap.com/coin/ars.png",
+      "peg": "ARS",
+      "holders": 38238,
+      "trades24h": 212,
+      "rank": 79,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/ARS",
+      "mainnet": {
+        "nativePool": {
+          "id": "5553416049889609c6f45c4cbe29e4207cc4d07c90294d2de7b12d392f294d5e",
+          "reserveXlm": 758.0258175,
+          "reserveStable": 268882.1881484,
+          "totalShares": 11469.8746737,
+          "feeBp": 30,
+          "holders": 16
+        },
+        "sdex": {
+          "bestBid": 329.305888,
+          "bestAsk": 357.340935
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "EURC",
+      "issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+      "assetKey": "EURC-GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+      "domain": "circle.com",
+      "org": "Circle Internet Financial, LLC",
+      "logo": "https://www.circle.com/eurc-icon",
+      "peg": "EUR",
+      "holders": 35483,
+      "trades24h": 3058,
+      "rank": 8,
+      "verified": true,
+      "verification": "allowlisted",
+      "primary": true,
+      "duplicate": true,
+      "allowlisted": true,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/EURC",
+      "mainnet": {
+        "nativePool": {
+          "id": "5af87fae05b76e76c423fc1cc592a45828a0773afea0ba0e12aa92a58bfbb4e3",
+          "reserveXlm": 2461.8347259,
+          "reserveStable": 476.6300091,
+          "totalShares": 937.3892003,
+          "feeBp": 30,
+          "holders": 42
+        },
+        "sdex": {
+          "bestBid": 0.1940877,
+          "bestAsk": 0.1948934
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "USDT0",
+      "issuer": "GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q",
+      "assetKey": "USDT0-GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q",
+      "domain": "usdt0.to",
+      "org": "Everdawn Labs Limited",
+      "logo": "https://ipfs.io/ipfs/bafkreifaalohkkikosp27qp6qczwaffwseejvoaafkgv7ahyrqvejmpqou",
+      "peg": "USD",
+      "holders": 13345,
+      "trades24h": 201,
+      "rank": 138,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/USDT0",
+      "mainnet": {
+        "nativePool": {
+          "id": "9ecf9f2dedcf94d97d545c16cee59b2e5b0743e90362b7f09353c0cd2a51f310",
+          "reserveXlm": 155.5709797,
+          "reserveStable": 34.1759347,
+          "totalShares": 72.1879954,
+          "feeBp": 30,
+          "holders": 5
+        },
+        "sdex": {
+          "bestBid": 0.1824517,
+          "bestAsk": 0.2451771
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "PYUSD",
+      "issuer": "GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5",
+      "assetKey": "PYUSD-GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5",
+      "domain": "token-metadata.paxos.com",
+      "org": "Paxos Trust Company",
+      "logo": "https://424565.fs1.hubspotusercontent-na1.net/hubfs/424565/PYUSDLOGO.png",
+      "peg": "USD",
+      "holders": 9847,
+      "trades24h": 694,
+      "rank": 17,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/PYUSD",
+      "mainnet": {
+        "nativePool": {
+          "id": "02002cb976154f8afc010425aa66b74f26a4269485b652001be9dd75d0aa3c42",
+          "reserveXlm": 197.0942441,
+          "reserveStable": 43.3100309,
+          "totalShares": 84.1792584,
+          "feeBp": 30,
+          "holders": 6
+        },
+        "sdex": {
+          "bestBid": 0.2208739,
+          "bestAsk": 0.2210768
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "IDRT",
+      "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+      "assetKey": "IDRT-GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+      "domain": "kbtrading.org",
+      "org": "KB Trading",
+      "logo": "https://kbtrading.org/static/idrt.200x200.png",
+      "peg": "IDR",
+      "holders": 8837,
+      "trades24h": 58,
+      "rank": 111,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/IDRT",
+      "mainnet": {
+        "nativePool": {
+          "id": "7d706bc60844082807a50fa4225bd13710497ff5891e7d34420045a93585d8bf",
+          "reserveXlm": 6378.3150967,
+          "reserveStable": 28173202.7160339,
+          "totalShares": 336353.0836671,
+          "feeBp": 30,
+          "holders": 7
+        },
+        "sdex": {
+          "bestBid": 2897.9873903,
+          "bestAsk": 7423.6476164
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "NGNT",
+      "issuer": "GAWODAROMJ33V5YDFY3NPYTHVYQG7MJXVJ2ND3AOGIHYRWINES6ACCPD",
+      "assetKey": "NGNT-GAWODAROMJ33V5YDFY3NPYTHVYQG7MJXVJ2ND3AOGIHYRWINES6ACCPD",
+      "domain": "cowrie.exchange",
+      "org": "Cowrie Integrated Systems",
+      "logo": "https://cowrie.exchange/ngnt-logo.png",
+      "peg": "NGN",
+      "holders": 8810,
+      "trades24h": 24,
+      "rank": 412,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/NGNT",
+      "mainnet": {
+        "nativePool": {
+          "id": "a8f760ae0b96c86561e8b003c52a2c93f3ccfd9a33e235b54bbd0ad3b2f986a7",
+          "reserveXlm": 423.3752458,
+          "reserveStable": 742405.0229183,
+          "totalShares": 13800.4910198,
+          "feeBp": 30,
+          "holders": 22
+        },
+        "sdex": {
+          "bestBid": 1019.8883223,
+          "bestAsk": 1810.409028
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "BRL",
+      "issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP",
+      "assetKey": "BRL-GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP",
+      "domain": "ntokens.com",
+      "org": "nTokens Serviços Digitais Ltda",
+      "logo": "https://ntokens.com/img/brl-icon.png",
+      "peg": "BRL",
+      "holders": 6999,
+      "trades24h": 62,
+      "rank": 233,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/BRL",
+      "mainnet": {
+        "nativePool": {
+          "id": "5c26f4215cc18073c0961139c7bb9b1c200698ff1a6a13c29fb704eb95c89872",
+          "reserveXlm": 1036.3122338,
+          "reserveStable": 1408.1498042,
+          "totalShares": 1125.3872309,
+          "feeBp": 30,
+          "holders": 14
+        },
+        "sdex": {
+          "bestBid": 1.2358188,
+          "bestAsk": 1.3628982
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "NGNC",
+      "issuer": "GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6",
+      "assetKey": "NGNC-GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6",
+      "domain": "ngnc.online",
+      "org": "LINK.IO LTD.",
+      "logo": "https://uploads-ssl.webflow.com/60a70a1080cf2974d4b1595e/61961ce43c530394bcb05349_NGRC.png",
+      "peg": "NGN",
+      "holders": 6238,
+      "trades24h": 46,
+      "rank": 297,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/NGNC",
+      "mainnet": {
+        "nativePool": {
+          "id": "3f0d8ff10c72e96de6de44b96bf7a9bd29b9529a5c21d7982f0f30c4e9c9d052",
+          "reserveXlm": 825.3048609,
+          "reserveStable": 195516.9042699,
+          "totalShares": 9310.3135262,
+          "feeBp": 30,
+          "holders": 16
+        },
+        "sdex": {
+          "bestBid": 222.23,
+          "bestAsk": 640
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "CLPX",
+      "issuer": "GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G",
+      "assetKey": "CLPX-GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G",
+      "domain": "clpx.finance",
+      "org": "CLPX S.A.",
+      "logo": "https://stellarchain.dev/stellarchain-logo.svg",
+      "peg": "CLP",
+      "holders": 5790,
+      "trades24h": 58,
+      "rank": 211,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/CLPX",
+      "mainnet": {
+        "nativePool": {
+          "id": "bb965f20ff4427cac2a7d4119cdc3d45ec716b6baa8c86b618b0e8083ada1d10",
+          "reserveXlm": 138.1033572,
+          "reserveStable": 9823.6051292,
+          "totalShares": 726.4569485,
+          "feeBp": 30,
+          "holders": 10
+        },
+        "sdex": {
+          "bestBid": 55.6399484,
+          "bestAsk": 99.1866693
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "XCHF",
+      "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+      "assetKey": "XCHF-GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+      "domain": "kbtrading.org",
+      "org": "KB Trading",
+      "logo": "https://kbtrading.org/static/xchf.png",
+      "peg": "CHF",
+      "holders": 5335,
+      "trades24h": 45,
+      "rank": 176,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/XCHF",
+      "mainnet": {
+        "nativePool": {
+          "id": "b12bca2c5c2bd4b71be673d85bfebf697c5997487ff11a35b7063cfa737758fa",
+          "reserveXlm": 18115.7063481,
+          "reserveStable": 4118.4958053,
+          "totalShares": 7836.9562773,
+          "feeBp": 30,
+          "holders": 7
+        },
+        "sdex": {
+          "bestBid": 0.191333,
+          "bestAsk": 0.2999917
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "EURMTL",
+      "issuer": "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+      "assetKey": "EURMTL-GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+      "domain": "mtl.montelibero.org",
+      "org": "Montelibero",
+      "logo": "https://mtl.montelibero.org/images/eurmtl-small-logo.png",
+      "peg": "EUR",
+      "holders": 4676,
+      "trades24h": 1911,
+      "rank": 24,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/EURMTL",
+      "mainnet": {
+        "nativePool": {
+          "id": "4ed8d49dd64134a2a19e8e2f0f035df095dfe6443a487af5018e6974a2065059",
+          "reserveXlm": 138443.5438623,
+          "reserveStable": 26105.3104349,
+          "totalShares": 48005.5612758,
+          "feeBp": 30,
+          "holders": 4
+        },
+        "sdex": {
+          "bestBid": 0.1695203,
+          "bestAsk": 0.1944122
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "USDM",
+      "issuer": "GDHDC4GBNPMENZAOBB4NCQ25TGZPDRK6ZGWUGSI22TVFATOLRPSUUSDM",
+      "assetKey": "USDM-GDHDC4GBNPMENZAOBB4NCQ25TGZPDRK6ZGWUGSI22TVFATOLRPSUUSDM",
+      "domain": "mtl.montelibero.org",
+      "org": "Montelibero",
+      "logo": "https://mtl.montelibero.org/images/USDM100.png",
+      "peg": "USD",
+      "holders": 2568,
+      "trades24h": 157,
+      "rank": 43,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/USDM",
+      "mainnet": {
+        "nativePool": {
+          "id": "49a48dd6aa8b247a553a07acd2957efa85fc0233a40af5bb75cf5d27624d42d9",
+          "reserveXlm": 147230.6436179,
+          "reserveStable": 33281.6818727,
+          "totalShares": 62338.0063384,
+          "feeBp": 30,
+          "holders": 4
+        },
+        "sdex": {
+          "bestBid": 0.0529873,
+          "bestAsk": 0.2431324
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "GYEN",
+      "issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+      "assetKey": "GYEN-GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+      "domain": "stablecoin.z.com",
+      "org": "GMO-Z.com Trust Company, Inc.",
+      "logo": "https://stablecoin.z.com/assets/images/token/icon_gyen_300_300.png",
+      "peg": "JPY",
+      "holders": 2280,
+      "trades24h": 145,
+      "rank": 120,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/GYEN",
+      "mainnet": {
+        "nativePool": {
+          "id": "b97629bec616dcf2c32952bfb7605b36b2a9458165732728116e593df4e58645",
+          "reserveXlm": 1460.8467665,
+          "reserveStable": 43982.2998264,
+          "totalShares": 5694.8178419,
+          "feeBp": 30,
+          "holders": 9
+        },
+        "sdex": {
+          "bestBid": 29.9636242,
+          "bestAsk": 30.1966648
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "ZUSD",
+      "issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+      "assetKey": "ZUSD-GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+      "domain": "stablecoin.z.com",
+      "org": "GMO-Z.com Trust Company, Inc.",
+      "logo": "https://stablecoin.z.com/assets/images/token/icon_zusd_300_300.png",
+      "peg": "USD",
+      "holders": 1978,
+      "trades24h": 60,
+      "rank": 305,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/ZUSD",
+      "mainnet": {
+        "nativePool": {
+          "id": "bdabb1a67a43d9865087024bcc5abc8757af89a3ac1a1de07cbde0af698d8af4",
+          "reserveXlm": 156.8001919,
+          "reserveStable": 34.4097919,
+          "totalShares": 64.4489959,
+          "feeBp": 30,
+          "holders": 7
+        },
+        "sdex": {
+          "bestBid": 0.04,
+          "bestAsk": 0.2857143
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "AUDD",
+      "issuer": "GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU",
+      "assetKey": "AUDD-GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU",
+      "domain": "audd.digital",
+      "org": "AUDC PTY LTD",
+      "logo": "https://www.audd.digital/wp-content/uploads/2022/12/AUDD-Logo-Blue-512x512px.png",
+      "peg": "AUD",
+      "holders": 1469,
+      "trades24h": 1438,
+      "rank": 70,
+      "verified": true,
+      "verification": "verified",
+      "primary": true,
+      "duplicate": false,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/AUDD",
+      "mainnet": {
+        "nativePool": {
+          "id": "859035ab93b30f2c3e02db61cd01631955090ee82d3c53b34a1ed5741a511f40",
+          "reserveXlm": 8704.4628517,
+          "reserveStable": 2707.6260121,
+          "totalShares": 4289.9898317,
+          "feeBp": 30,
+          "holders": 10
+        },
+        "sdex": {
+          "bestBid": 0.15353,
+          "bestAsk": 0.3185573
+        }
+      }
+    },
+    {
+      "base": "XLM",
+      "code": "EURC",
+      "issuer": "GAQRF3UGHBT6JYQZ7YSUYCIYWAF4T2SAA5237Q5LIQYJOHHFAWDXZ7NM",
+      "assetKey": "EURC-GAQRF3UGHBT6JYQZ7YSUYCIYWAF4T2SAA5237Q5LIQYJOHHFAWDXZ7NM",
+      "domain": "mykobo.co",
+      "org": "MYKOBO",
+      "logo": "https://mykobo.co/assets/img/eurc_icon_128.png",
+      "peg": "EUR",
+      "holders": 12807,
+      "trades24h": 158,
+      "rank": 121,
+      "verified": false,
+      "verification": "fetch-failed",
+      "primary": false,
+      "duplicate": true,
+      "allowlisted": false,
+      "asOf": "2026-09-11T02:50:01+00:00",
+      "pair": "XLM/EURC",
+      "mainnet": null
+    }
+  ],
+  "rejected": [
+    {
+      "code": "yUSDC",
+      "issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF",
+      "domain": "ultracapital.xyz",
+      "holders": 34859,
+      "trades24h": 1779,
+      "reasons": [
+        "yield-bearing / wrapped variant"
+      ]
+    },
+    {
+      "code": "AIDR",
+      "issuer": "GCJFH6HI5UPQVTUUOAS7JPOEPCQZCNGM63GWMBL6ULGUL4XUXRIXXIEQ",
+      "domain": "afreum.com",
+      "holders": 34074,
+      "trades24h": 12,
+      "reasons": [
+        "not fiat-anchored in stellar.toml"
+      ]
+    },
+    {
+      "code": "SSLX",
+      "issuer": "GBHFGY3ZNEJWLNO4LBUKLYOCEK4V7ENEBJGPRHHX7JU47GWHBREH37UR",
+      "domain": "sslx.sl8.online",
+      "holders": 21792,
+      "trades24h": 1349,
+      "reasons": [
+        "crypto-backed token not named as a USD stablecoin"
+      ]
+    },
+    {
+      "code": "CHF",
+      "issuer": "GAME7NF5G4D6ICN6NSUGEGBT6BF6M2ZDOOWR5KL7NILOHDVMH3IMCR7Q",
+      "domain": "swisscustody.org",
+      "holders": 8608,
+      "trades24h": 8,
+      "reasons": [
+        "trades24h 8 < 10"
+      ]
+    },
+    {
+      "code": "USDT",
+      "issuer": "GCQTGZQQ5G4PTM2GL7CDIFKUBIPEC52BROAQIAPW53XBRJVN6ZJVTG6V",
+      "domain": "dead.apay.io",
+      "holders": 7595,
+      "trades24h": 44,
+      "reasons": [
+        "denylisted",
+        "USDT has no official Stellar issuer (impostor)"
+      ]
+    },
+    {
+      "code": "FIDR",
+      "issuer": "GBZQNUAGO4DZFWOHJ3PVXZKZ2LTSOVAMCTVM46OEMWNWTED4DFS3NAYH",
+      "domain": "fixedidr.com",
+      "holders": 5834,
+      "trades24h": 61,
+      "reasons": [
+        "not fiat-anchored in stellar.toml"
+      ]
+    },
+    {
+      "code": "ANGN",
+      "issuer": "GDNUVPUOMWOF2ML5FA5E4HQDX7EHV3VCJTLLTO563PUMZKMHJUJIJSYI",
+      "domain": "afreum.com",
+      "holders": 5435,
+      "trades24h": 29,
+      "reasons": [
+        "not fiat-anchored in stellar.toml"
+      ]
+    },
+    {
+      "code": "USD",
+      "issuer": "GB3OE4IBQTYQFZZS5RXQHE4IPQL7ONOFOSAIS2NFRNMJKZEAI3AAUT2A",
+      "domain": "swisscustody.org",
+      "holders": 5360,
+      "trades24h": 7,
+      "reasons": [
+        "trades24h 7 < 10"
+      ]
+    },
+    {
+      "code": "USDS",
+      "issuer": "GBK4AYTOYIAYT4UJECSQGMACUWLKYOOM4VCAUUZ3Y3FG5XD2LYK3FGK2",
+      "domain": null,
+      "holders": 2760,
+      "trades24h": 14,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain"
+      ]
+    },
+    {
+      "code": "USDY",
+      "issuer": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+      "domain": "ondo.finance",
+      "holders": 2723,
+      "trades24h": 117,
+      "reasons": [
+        "not fiat-anchored in stellar.toml"
+      ]
+    },
+    {
+      "code": "AUSD",
+      "issuer": "GDNUVPUOMWOF2ML5FA5E4HQDX7EHV3VCJTLLTO563PUMZKMHJUJIJSYI",
+      "domain": "afreum.com",
+      "holders": 2704,
+      "trades24h": 25,
+      "reasons": [
+        "not fiat-anchored in stellar.toml"
+      ]
+    },
+    {
+      "code": "RLUSD",
+      "issuer": "GB5JDCHBQICSWITVUHHCYWUALVXFUKTFK5A4AIMHTU2OK2AR4PIMWUSD",
+      "domain": null,
+      "holders": 2521,
+      "trades24h": 40,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain"
+      ]
+    },
+    {
+      "code": "USDr",
+      "issuer": "GCVNEYFLWPWNUO3BJ7LVES5DCM2WF3S4SO3T3RHXWIONKM2TSWOQUSDR",
+      "domain": "usdripple.com",
+      "holders": 2444,
+      "trades24h": 20,
+      "reasons": [
+        "not fiat-anchored in stellar.toml"
+      ]
+    },
+    {
+      "code": "USD1",
+      "issuer": "GAIH5EPAQ5GOPR6FR6YPC4LBMJAPLVLICADQPUZIH3CHCUOZXCCU52CZ",
+      "domain": "magafree.org",
+      "holders": 1825,
+      "trades24h": 2,
+      "reasons": [
+        "suspicious home domain (matches \"maga\")",
+        "not fiat-anchored in stellar.toml",
+        "trades24h 2 < 10"
+      ]
+    },
+    {
+      "code": "iFIDR",
+      "issuer": "GBVVM7ZYANANRP3DWVRANRDUU4M7J5W77EDTSZFD62LQ7SOHJD5IFIDR",
+      "domain": "fixedidr.com",
+      "holders": 1591,
+      "trades24h": 18,
+      "reasons": [
+        "not fiat-anchored in stellar.toml"
+      ]
+    },
+    {
+      "code": "yUSDC",
+      "issuer": "GCIAZN2Z6NFWHBFHIXDE4UKH5W7U5E5M6P426JXDUCIRJUAWSTVENVPS",
+      "domain": "go-dls.com",
+      "holders": 1473,
+      "trades24h": 51,
+      "reasons": [
+        "yield-bearing / wrapped variant"
+      ]
+    },
+    {
+      "code": "USD1",
+      "issuer": "GB6NB645EBTOGMZN33E3HXZQYXTAWQI3PIJC4OQX6UAN62E56I6WPUSD",
+      "domain": "usd1-stellar.com",
+      "holders": 1373,
+      "trades24h": 1,
+      "reasons": [
+        "suspicious home domain (matches \"usd1-stellar\")",
+        "not fiat-anchored in stellar.toml",
+        "trades24h 1 < 10"
+      ]
+    },
+    {
+      "code": "MGUSD",
+      "issuer": "GBX7XCWI3ZLDZ72WHNLDM4P2SFXZQMVQJAN37BWHWGP2DWZ3BW5N5USD",
+      "domain": "mgusdstellar.org",
+      "holders": 1219,
+      "trades24h": 8,
+      "reasons": [
+        "denylisted",
+        "trades24h 8 < 10"
+      ]
+    },
+    {
+      "code": "OUSD",
+      "issuer": "GBPGNJOBVYXNVR2AK5DHIVFVFD4AC23C4WTDXH3UYLIMZLZGZMPWMXY2",
+      "domain": "q-maga.com",
+      "holders": 1185,
+      "trades24h": 11,
+      "reasons": [
+        "denylisted",
+        "suspicious home domain (matches \"maga\")"
+      ]
+    },
+    {
+      "code": "asUSDC",
+      "issuer": "GALLBRBQHAPW5FOVXXHYWR6J4ZDAQ35BMSNADYGBW25VOUHUYRZM4XIL",
+      "domain": "allbridge.io",
+      "holders": 973,
+      "trades24h": 122,
+      "reasons": [
+        "yield-bearing / wrapped variant",
+        "holders 973 < 1000"
+      ]
+    },
+    {
+      "code": "sUSD",
+      "issuer": "GCHW7CWI7GMIYQYFXMFJNJX5645XGWIINIAEQK3SABQO6CAYL5T7JYIH",
+      "domain": "synt.tech",
+      "holders": 947,
+      "trades24h": 115,
+      "reasons": [
+        "yield-bearing / wrapped variant",
+        "holders 947 < 1000"
+      ]
+    },
+    {
+      "code": "NEWUSDC",
+      "issuer": "GDRSIM5I76XKPHWFDVX4JF2SEC7OHZMW4PJQXELR6O223UBBWLYYUUSD",
+      "domain": "new-stellar.org",
+      "holders": 780,
+      "trades24h": 1,
+      "reasons": [
+        "suspicious home domain (matches \"new-stellar\")",
+        "not fiat-anchored in stellar.toml",
+        "holders 780 < 1000",
+        "trades24h 1 < 10"
+      ]
+    },
+    {
+      "code": "NEWPYUSD",
+      "issuer": "GDRSIM5I76XKPHWFDVX4JF2SEC7OHZMW4PJQXELR6O223UBBWLYYUUSD",
+      "domain": "new-stellar.org",
+      "holders": 779,
+      "trades24h": 1,
+      "reasons": [
+        "suspicious home domain (matches \"new-stellar\")",
+        "not fiat-anchored in stellar.toml",
+        "holders 779 < 1000",
+        "trades24h 1 < 10"
+      ]
+    },
+    {
+      "code": "KRW",
+      "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+      "domain": "kbtrading.org",
+      "holders": 718,
+      "trades24h": 17,
+      "reasons": [
+        "holders 718 < 1000"
+      ]
+    },
+    {
+      "code": "USDM1",
+      "issuer": "GD6W2QMLFMPSFDIVVD62H6Z2ZW3AWYFDZOKOA7MNZEDMYNYXPAFL6IFG",
+      "domain": "usdm1bond.com",
+      "holders": 678,
+      "trades24h": 1,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 678 < 1000",
+        "trades24h 1 < 10"
+      ]
+    },
+    {
+      "code": "aeUSDC",
+      "issuer": "GALLBRBQHAPW5FOVXXHYWR6J4ZDAQ35BMSNADYGBW25VOUHUYRZM4XIL",
+      "domain": "allbridge.io",
+      "holders": 670,
+      "trades24h": 41,
+      "reasons": [
+        "yield-bearing / wrapped variant",
+        "holders 670 < 1000"
+      ]
+    },
+    {
+      "code": "NEWXUSD",
+      "issuer": "GCWF3BSY544LGQ67G5DNXDGX6P3CMBS4L3U2QJV6AB7CO5TNYCRJNUSD",
+      "domain": "newxusd.com",
+      "holders": 669,
+      "trades24h": 3,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 669 < 1000",
+        "trades24h 3 < 10"
+      ]
+    },
+    {
+      "code": "MXPC",
+      "issuer": "GBTHB2BPXQLWO6ET7V7MC47T24XUP6WFWZ67EJFUOHHGO2C7KFAEEIKA",
+      "domain": "mxpcoin.io",
+      "holders": 644,
+      "trades24h": 1,
+      "reasons": [
+        "holders 644 < 1000",
+        "trades24h 1 < 10"
+      ]
+    },
+    {
+      "code": "USDGLO",
+      "issuer": "GBBS25EGYQPGEZCGCFBKG4OAGFXU6DSOQBGTHELLJT3HZXZJ34HWS6XV",
+      "domain": "app.glodollar.org",
+      "holders": 625,
+      "trades24h": 37,
+      "reasons": [
+        "holders 625 < 1000"
+      ]
+    },
+    {
+      "code": "AGBP",
+      "issuer": "GDNUVPUOMWOF2ML5FA5E4HQDX7EHV3VCJTLLTO563PUMZKMHJUJIJSYI",
+      "domain": "afreum.com",
+      "holders": 612,
+      "trades24h": 3,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 612 < 1000",
+        "trades24h 3 < 10"
+      ]
+    },
+    {
+      "code": "apUSDC",
+      "issuer": "GALLBRBQHAPW5FOVXXHYWR6J4ZDAQ35BMSNADYGBW25VOUHUYRZM4XIL",
+      "domain": "allbridge.io",
+      "holders": 606,
+      "trades24h": 51,
+      "reasons": [
+        "yield-bearing / wrapped variant",
+        "holders 606 < 1000"
+      ]
+    },
+    {
+      "code": "USDx",
+      "issuer": "GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN",
+      "domain": "assets.fxdao.io",
+      "holders": 574,
+      "trades24h": 30,
+      "reasons": [
+        "holders 574 < 1000"
+      ]
+    },
+    {
+      "code": "GBPC",
+      "issuer": "GDXF6SYWIQOKOZ7BACXHBFBLQZEIH25KOTTLWQK35GO3JKRNIFHHGBPC",
+      "domain": "mirrasets.com",
+      "holders": 547,
+      "trades24h": 25,
+      "reasons": [
+        "holders 547 < 1000"
+      ]
+    },
+    {
+      "code": "TONUSD",
+      "issuer": "GBYI77J3LLDCPJO3OTOEQF6KWNBA6RT23PKQQD3HWUICIDODDPGLZUSD",
+      "domain": null,
+      "holders": 421,
+      "trades24h": 6,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain",
+        "holders 421 < 1000",
+        "trades24h 6 < 10"
+      ]
+    },
+    {
+      "code": "EURC",
+      "issuer": "GAP2JFYUBSSY65FIFUN3NTUKP6MQQ52QETQEBDM25PFMQE2EEN2EEURC",
+      "domain": "mirrasets.com",
+      "holders": 416,
+      "trades24h": 35,
+      "reasons": [
+        "impersonates EURC (official: circle.com, mykobo.co)",
+        "holders 416 < 1000"
+      ]
+    },
+    {
+      "code": "abUSDC",
+      "issuer": "GALLBRBQHAPW5FOVXXHYWR6J4ZDAQ35BMSNADYGBW25VOUHUYRZM4XIL",
+      "domain": "allbridge.io",
+      "holders": 403,
+      "trades24h": 20,
+      "reasons": [
+        "yield-bearing / wrapped variant",
+        "holders 403 < 1000"
+      ]
+    },
+    {
+      "code": "WAUD",
+      "issuer": "GDYJXAUIMCBFH2RFGYGRDUOYWWKT4N46N6MTMMNIJ34FTRRX4MVLWAUD",
+      "domain": "waudrev-stellar.com",
+      "holders": 382,
+      "trades24h": 7,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 382 < 1000",
+        "trades24h 7 < 10"
+      ]
+    },
+    {
+      "code": "KRWC",
+      "issuer": "GA4JBPWVFUT2FETDSMSGBYDGH4FROYB5SYKLVQO7WGNZHCSB63OIKRWC",
+      "domain": "mirrasets.com",
+      "holders": 343,
+      "trades24h": 47,
+      "reasons": [
+        "holders 343 < 1000"
+      ]
+    },
+    {
+      "code": "NEWRLUSD",
+      "issuer": "GA5LIDDN2X25MTGMFR7WPHXAOJEMED6ZUQ5NORHXLNK54MTJ6A7STNEW",
+      "domain": "newrlusd.com",
+      "holders": 331,
+      "trades24h": 2,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 331 < 1000",
+        "trades24h 2 < 10"
+      ]
+    },
+    {
+      "code": "USDT0",
+      "issuer": "GADUBOKGYG4E2BZUVXAZBBILGPIYIPOXAXWIIG6DJ4JDXWOQR67HUSDT",
+      "domain": "stellarusdtzero.com",
+      "holders": 281,
+      "trades24h": 2,
+      "reasons": [
+        "denylisted",
+        "not fiat-anchored in stellar.toml",
+        "impersonates USDT0 (official: usdt0.to)",
+        "holders 281 < 1000",
+        "trades24h 2 < 10"
+      ]
+    },
+    {
+      "code": "PYUSD",
+      "issuer": "GB37QWIFMCEEYKVQRVIGOOAHUKKNZK2VBDBZ55QPRYDW4ENK4PPPYUSD",
+      "domain": "pyusd-qfs.com",
+      "holders": 265,
+      "trades24h": 6,
+      "reasons": [
+        "denylisted",
+        "suspicious home domain (matches \"qfs\")",
+        "not fiat-anchored in stellar.toml",
+        "impersonates PYUSD (official: paxos.com)",
+        "holders 265 < 1000",
+        "trades24h 6 < 10"
+      ]
+    },
+    {
+      "code": "GBPx",
+      "issuer": "GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN",
+      "domain": "assets.fxdao.io",
+      "holders": 241,
+      "trades24h": 27,
+      "reasons": [
+        "holders 241 < 1000"
+      ]
+    },
+    {
+      "code": "EURZ",
+      "issuer": "GAM5BKSKTHYS6IE4OUHCISGI6YVH75XIMOCG4RB5TR74KZDJRSNKEURZ",
+      "domain": "zeam.money",
+      "holders": 237,
+      "trades24h": 82,
+      "reasons": [
+        "holders 237 < 1000"
+      ]
+    },
+    {
+      "code": "ZARA",
+      "issuer": "GBDK2QOS24H2HFZRUHUNKVPECSTOWXZWV56R6PQK5UV3SLE2O4UOLP6P",
+      "domain": "stellar-go.com",
+      "holders": 214,
+      "trades24h": 1,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 214 < 1000",
+        "trades24h 1 < 10"
+      ]
+    },
+    {
+      "code": "USDTQFS",
+      "issuer": "GCDKZ3PPTZNQFRHRFBA62LP5G36PPWMPT7FRM2NPIDRLOP7P2RXWYTVB",
+      "domain": "usdtqfs.com",
+      "holders": 158,
+      "trades24h": 89,
+      "reasons": [
+        "suspicious home domain (matches \"qfs\")",
+        "not fiat-anchored in stellar.toml",
+        "holders 158 < 1000"
+      ]
+    },
+    {
+      "code": "USDMAU",
+      "issuer": "GABL7PXSAV4W4L32PI6E46HLLSMTEUKRDUMAY2Q6JXITNV2QCWABRAOB",
+      "domain": "mauaccounts.net",
+      "holders": 153,
+      "trades24h": 49,
+      "reasons": [
+        "holders 153 < 1000"
+      ]
+    },
+    {
+      "code": "SAFEMARS",
+      "issuer": "GAZYCOSN6LMNGXGK33L5I7ERAZTS5Q76ST5RZC4DDQOXAJTM52K3PC73",
+      "domain": "stellar-go.com",
+      "holders": 115,
+      "trades24h": 3,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 115 < 1000",
+        "trades24h 3 < 10"
+      ]
+    },
+    {
+      "code": "GBPZ",
+      "issuer": "GCTG4YT2ZTYRODK5JCXFJ6V7P6HMQ62L27PPG5UGK57VUFDJ7DFDGBPZ",
+      "domain": "zeam.money",
+      "holders": 70,
+      "trades24h": 60,
+      "reasons": [
+        "holders 70 < 1000"
+      ]
+    },
+    {
+      "code": "AEUR",
+      "issuer": "GAMB5TX4HDYOX7UOTKEFGY6CS7WID4HLBB6PQSR46SQSRRTRXL5LYLMT",
+      "domain": "authentic-payment.com",
+      "holders": 63,
+      "trades24h": 19,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 63 < 1000"
+      ]
+    },
+    {
+      "code": "axlUSDC",
+      "issuer": "GATO4FH7SYMV36YP3UREDNZTOB3KHXNK5CMB3YRKOCOK3JOPWDJOL7ZV",
+      "domain": null,
+      "holders": 62,
+      "trades24h": 12,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain",
+        "holders 62 < 1000"
+      ]
+    },
+    {
+      "code": "LUSD",
+      "issuer": "GDSOO73IZXS4VUKRFOAZYSRETNFX5X3XDXPEEQ6HF4FZFTO5HSVBN5CB",
+      "domain": "liquidmonetary.xmint.io",
+      "holders": 59,
+      "trades24h": 158,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 59 < 1000"
+      ]
+    },
+    {
+      "code": "GUSD",
+      "issuer": "GDHWUC2NFBHJYPMR7M6BAYBOSMV2ALSEOYIEZXNVSTMGW5BHGGPCEP25",
+      "domain": "stellarglobal.org",
+      "holders": 47,
+      "trades24h": 16,
+      "reasons": [
+        "holders 47 < 1000"
+      ]
+    },
+    {
+      "code": "USDT",
+      "issuer": "GASU4KIFH22YS3ZBJELT3Y2XQLEL2YZGRLPBIBNSLELOOBGKMQCHUSDT",
+      "domain": null,
+      "holders": 41,
+      "trades24h": 35,
+      "reasons": [
+        "no home_domain",
+        "USDT has no official Stellar issuer (impostor)",
+        "holders 41 < 1000"
+      ]
+    },
+    {
+      "code": "JPY",
+      "issuer": "GDPF6CDU7BHGCUDYVDK2Z3RWKE5V2QR55SM7QIEB2THT6DW5C54QDJPY",
+      "domain": null,
+      "holders": 36,
+      "trades24h": 36,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain",
+        "holders 36 < 1000"
+      ]
+    },
+    {
+      "code": "aeUSDC",
+      "issuer": "GBGGMXAODCY7KY6Y6L4YDH7PGHV7SVM5A2HP67MAI5NHQFH6PI7QMBDG",
+      "domain": "stellarallbridge.io",
+      "holders": 36,
+      "trades24h": 13,
+      "reasons": [
+        "denylisted",
+        "yield-bearing / wrapped variant",
+        "holders 36 < 1000"
+      ]
+    },
+    {
+      "code": "EUR",
+      "issuer": "GAQOKZNKGCNVIVCZOMHFAU3JPNVVLLBLDRNBFJY7YP2SBE3677WTWEUR",
+      "domain": null,
+      "holders": 33,
+      "trades24h": 95,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain",
+        "holders 33 < 1000"
+      ]
+    },
+    {
+      "code": "USD",
+      "issuer": "GD2ZC64RECQQZZT75X4LO2CRDO6YVV5MTEEFUMMJFC5Z2RZZRP32TUSD",
+      "domain": null,
+      "holders": 27,
+      "trades24h": 21,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain",
+        "holders 27 < 1000"
+      ]
+    },
+    {
+      "code": "GBP",
+      "issuer": "GBN2FSV36T7C3IR363RPGF6AX3AYJGFHHG43WWQKZGPUQN42AOQ5XGBP",
+      "domain": null,
+      "holders": 20,
+      "trades24h": 58,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "no home_domain",
+        "holders 20 < 1000"
+      ]
+    },
+    {
+      "code": "USDV",
+      "issuer": "GBLAJOKBIIT7P32BJQFCSRJVOE2SXHI4D5ZGLFJ4DLMFJXI2NN6R37G5",
+      "domain": "valtorum.com",
+      "holders": 18,
+      "trades24h": 184,
+      "reasons": [
+        "holders 18 < 1000"
+      ]
+    },
+    {
+      "code": "USDX",
+      "issuer": "GA5G7HKQBJ4PDKIVE53FOZPY3C7YZI5R4QTDQN3UKILQYME7KUL2CKKH",
+      "domain": "xgoldmining.com",
+      "holders": 9,
+      "trades24h": 32,
+      "reasons": [
+        "not fiat-anchored in stellar.toml",
+        "holders 9 < 1000"
+      ]
+    }
+  ],
+  "note": "Auto-generated. XLM vs each fiat-anchored stablecoin found in the stellarchain.io feed. 'verified' = issuer listed in its home domain's stellar.toml CURRENCIES. Mainnet market snapshots are read-only (Horizon). Review before use; not an endorsement."
+}

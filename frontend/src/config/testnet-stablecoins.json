@@ -1,0 +1,580 @@
+{
+  "network": "testnet",
+  "generatedFrom": "docs/stablecoin-pairs.json",
+  "pairsAsOf": "2026-09-11T02:50:01+00:00",
+  "updatedAt": "2026-09-26T01:39:37.649Z",
+  "pools": [
+    {
+      "mainnetCode": "USDC",
+      "code": "USDC",
+      "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "assetKey": "USDC-GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "mock": false,
+      "label": "Circle testnet USDC (real testnet asset)",
+      "peg": "USD",
+      "mainnet": {
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "domain": "circle.com",
+        "holders": 2394128
+      },
+      "pxXlm": 0.22117815000000002,
+      "nativePoolId": "4cd1f6defba237eecbc5fefe259f89ebc4b5edd49116beb5536c4034fc48d63f",
+      "native": {
+        "xlm": 299.1115955,
+        "stable": 312.1152095
+      },
+      "sac": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CCM32LPLLJTJZG2NRC4B34Y4EQTABG4EFGMUWCZ2E5LU4O6G5ZAJGUT2",
+      "soroban": {
+        "xlm": 500,
+        "stable": 110.589075
+      }
+    },
+    {
+      "mainnetCode": "ARST",
+      "code": "mkARST",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkARST-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK ARST — Quasaria testnet mock, not redeemable, no value",
+      "peg": "ARS",
+      "mainnet": {
+        "issuer": "GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG",
+        "domain": "pubnet-sep.latamex.com",
+        "holders": 328633
+      },
+      "pxXlm": 341.233726,
+      "nativePoolId": "c712e7b77ac27b6b2889b28526080a70d0572cb8f491b07d2ca0f36172e772c9",
+      "native": {
+        "xlm": 300,
+        "stable": 102370.1177999
+      },
+      "sdexOffers": true,
+      "sac": "CBL4UOALXYKSU6EYB7AUCOC763EPFFPEJDNYQPRM4I45547WWDXDT74H",
+      "pool": "CDQFJBOBXBZUOUY4I7U36HHNGC7UHLQN7M5IWVO3YN3M4JDCTC6FX6X3",
+      "soroban": {
+        "xlm": 500,
+        "stable": 170616.8629999
+      }
+    },
+    {
+      "mainnetCode": "ZARZ",
+      "code": "mkZARZ",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkZARZ-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK ZARZ — Quasaria testnet mock, not redeemable, no value",
+      "peg": "ZAR",
+      "mainnet": {
+        "issuer": "GAROH4EV3WVVTRQKEY43GZK3XSRBEYETRVZ7SVG5LHWOAANSMCTJBB3U",
+        "domain": "zeam.money",
+        "holders": 181442
+      },
+      "pxXlm": 3.5823682397814087,
+      "nativePoolId": "baa9847a26f77b0213ec60c94245a48c0a993dffef0d73b78fad989cad6a9e82",
+      "native": {
+        "xlm": 300,
+        "stable": 1074.7104719
+      },
+      "sdexOffers": true,
+      "sac": "CABBQINICYAPLZUGIW56OGZ7NRSHSALOTU3FRUF7ADP4X4XWAQN7RHNW",
+      "pool": "CC6IPS3Y2EHRJDDBXJDVVXUZ2QFK3W5HB5KTECFAOQPIETJKVHY7JSMS",
+      "soroban": {
+        "xlm": 500,
+        "stable": 1791.1841198
+      }
+    },
+    {
+      "mainnetCode": "USDZ",
+      "code": "mkUSDZ",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkUSDZ-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK USDZ — Quasaria testnet mock, not redeemable, no value",
+      "peg": "USD",
+      "mainnet": {
+        "issuer": "GAKTLPC4ZV37SSCITQ5IS5AQ4WPF4CF4VZJQPPAROSGXMYOATF5U6XPR",
+        "domain": "zeam.money",
+        "holders": 181062
+      },
+      "pxXlm": 0.21987385441539592,
+      "nativePoolId": "f543e7040b91fcc84b77b8c985688db235f2e3b2a1b57c529c7fc9ebffa35273",
+      "native": {
+        "xlm": 300,
+        "stable": 65.9621563
+      },
+      "sdexOffers": true,
+      "sac": "CB3WT4FHEGTEW4CFH4KFFL4KSCMF3IOELVI5357C3LS3YY6KMTBZH2Y7",
+      "pool": "CDHCMKQJK7FDOQR7HCE2HSJO4ESQGFF3N3BPA5K4K3OXFPTBG4D6TPT3",
+      "soroban": {
+        "xlm": 500,
+        "stable": 109.9369272
+      }
+    },
+    {
+      "mainnetCode": "PEN",
+      "code": "mkPEN",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkPEN-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK PEN — Quasaria testnet mock, not redeemable, no value",
+      "peg": "PEN",
+      "mainnet": {
+        "issuer": "GA4TDPNUCZPTOHB3TKUYMDCRVATXKEADH7ZEYEBWJKQKE2UBFCYNBPEN",
+        "domain": "api.anclap.com",
+        "holders": 41396
+      },
+      "pxXlm": 0.4140480650981502,
+      "nativePoolId": "97aca7fb7d5eceec4c637e37654134ad2b0154d3b7e21a8ebed8b8cbe073f105",
+      "native": {
+        "xlm": 300,
+        "stable": 124.2144195
+      },
+      "sdexOffers": true,
+      "sac": "CDOZLOK454NGH27KR2ZSGWXNO5MD6IGVKGWQXX6RFM6PZXA6CSU2PPVM",
+      "pool": "CDISZK3CXUHBEWIKHHMOABN73HLBK4PKOKBDGH47GAGQ3NXHTE62FK3G",
+      "soroban": {
+        "xlm": 500,
+        "stable": 207.0240325
+      }
+    },
+    {
+      "mainnetCode": "USD",
+      "code": "mkUSD",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkUSD-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK USD — Quasaria testnet mock, not redeemable, no value",
+      "peg": "USD",
+      "mainnet": {
+        "issuer": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+        "domain": "stablecoin.anchorusd.com",
+        "holders": 38351
+      },
+      "pxXlm": 0.8822280136262204,
+      "nativePoolId": "eaab013ff5216db94fa0cec03a31fe31b7e778a13ca7ea42ab95c29319906410",
+      "native": {
+        "xlm": 300,
+        "stable": 264.668404
+      },
+      "sdexOffers": true,
+      "sac": "CC22PPH4DPUZZMONNPETGTCBGQZ52M63MVWSUUQ7M4CD6SVFRF47TILH",
+      "pool": "CBFDNU4FRQAW56XFQZQV7LBL5ZRM4P2P4ACA2TUEGDGVLV47W3GFCB3U",
+      "soroban": {
+        "xlm": 500,
+        "stable": 441.1140068
+      }
+    },
+    {
+      "mainnetCode": "ARS",
+      "code": "mkARS",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkARS-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK ARS — Quasaria testnet mock, not redeemable, no value",
+      "peg": "ARS",
+      "mainnet": {
+        "issuer": "GCYE7C77EB5AWAA25R5XMWNI2EDOKTTFTTPZKM2SR5DI4B4WFD52DARS",
+        "domain": "api.anclap.com",
+        "holders": 38238
+      },
+      "pxXlm": 343.3234115,
+      "nativePoolId": "14e0c56e74cca083885e37b67648beacf2ab974b2d68c2896acf59673c7eb444",
+      "native": {
+        "xlm": 300,
+        "stable": 102997.02345
+      },
+      "sdexOffers": true,
+      "sac": "CD7H23GTDKSRTAEAJZNPTSBXQQWK6JQAGXVFXHTDLP5DQWXXOHTZGXCA",
+      "pool": "CD3AOG47NMQOMTPA2FC354I3DK5CT2RF3XB2NX6CCJ3JIGXJT566MWCY",
+      "soroban": {
+        "xlm": 500,
+        "stable": 171661.70575
+      }
+    },
+    {
+      "mainnetCode": "EURC",
+      "code": "mkEURC",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkEURC-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK EURC — Quasaria testnet mock, not redeemable, no value",
+      "peg": "EUR",
+      "mainnet": {
+        "issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+        "domain": "circle.com",
+        "holders": 35483
+      },
+      "pxXlm": 0.19449054999999998,
+      "realNote": "no affordable sell-side liquidity for EURC on the testnet SDEX (needed 155.59, no path)",
+      "nativePoolId": "d91001dad5c9db2ff84f615cf35d1f54e5b26ceb2072fa067fc0b250cfb8b279",
+      "native": {
+        "xlm": 300,
+        "stable": 58.347165
+      },
+      "sdexOffers": true,
+      "sac": "CABYRSHVCLKKGYAEJEPEX47CC47RA54YNANJV4LGRCL7C6DUPW63TNRX",
+      "pool": "CACKFTCMSW3FBMHGU3QS6DFVP4JIES7ZZDYHFT6XMXI6ZR22SLXENF6A",
+      "soroban": {
+        "xlm": 500,
+        "stable": 97.2452749
+      }
+    },
+    {
+      "mainnetCode": "USDT0",
+      "code": "mkUSDT0",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkUSDT0-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK USDT0 — Quasaria testnet mock, not redeemable, no value",
+      "peg": "USD",
+      "mainnet": {
+        "issuer": "GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q",
+        "domain": "usdt0.to",
+        "holders": 13345
+      },
+      "pxXlm": 0.21968065487473432,
+      "nativePoolId": "21b092d1ab4495060cdaa8b9c37243ddfadc9e043d0541dd38a1113e09f37d41",
+      "native": {
+        "xlm": 300,
+        "stable": 65.9041964
+      },
+      "sdexOffers": true,
+      "sac": "CCQLHWJ2UK4K3IQFQKLEDGSK3372L6W7IUUMFTILXTFA7SG6ZH7CF4TX",
+      "pool": "CAYG7VZL7YYWBGUYTCKN3UDP5Q4ZQJU3RZE6EJMLEBLRLMV5CJX42DXW",
+      "soroban": {
+        "xlm": 500,
+        "stable": 109.8403274
+      }
+    },
+    {
+      "mainnetCode": "PYUSD",
+      "code": "mkPYUSD",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkPYUSD-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK PYUSD — Quasaria testnet mock, not redeemable, no value",
+      "peg": "USD",
+      "mainnet": {
+        "issuer": "GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5",
+        "domain": "token-metadata.paxos.com",
+        "holders": 9847
+      },
+      "pxXlm": 0.22097535000000001,
+      "nativePoolId": "e23e0e8b7b9794947b29dae85d8a429582854b09e55a65b3fb0b1ace587b17a0",
+      "native": {
+        "xlm": 300,
+        "stable": 66.292605
+      },
+      "sdexOffers": true,
+      "sac": "CDBU2AQQNNQGAR4KGMSNABEKMSJV6Y2DM5PPEGB3RR3VBEJXBCEVNZLJ",
+      "pool": "CCKDHOHB6KKJUFZAAAUU3SBRY32IBAJBTNHW4MBYIOB2HYP2XQQJ6FJK",
+      "soroban": {
+        "xlm": 500,
+        "stable": 110.487675
+      }
+    },
+    {
+      "mainnetCode": "IDRT",
+      "code": "mkIDRT",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkIDRT-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK IDRT — Quasaria testnet mock, not redeemable, no value",
+      "peg": "IDR",
+      "mainnet": {
+        "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+        "domain": "kbtrading.org",
+        "holders": 8837
+      },
+      "pxXlm": 4417.028994163379,
+      "nativePoolId": "4e19329bb8291b395baa1c5d9656e7526df98c848b7711de83ca507dd2ad815c",
+      "native": {
+        "xlm": 300,
+        "stable": 1325108.698249
+      },
+      "sdexOffers": true,
+      "sac": "CA3DBIU3UVZQT5737UVPEVZ2OS4DLQG53RYFH7Z2XVNDLZDZ4H5EVBW2",
+      "pool": "CAE63PELZCITNF2VVCPJCSDFNQR2L2XGYGZSGJ3GJUXFOGBGJFOQOFL3",
+      "soroban": {
+        "xlm": 500,
+        "stable": 2208514.4970816
+      }
+    },
+    {
+      "mainnetCode": "NGNT",
+      "code": "mkNGNT",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkNGNT-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK NGNT — Quasaria testnet mock, not redeemable, no value",
+      "peg": "NGN",
+      "mainnet": {
+        "issuer": "GAWODAROMJ33V5YDFY3NPYTHVYQG7MJXVJ2ND3AOGIHYRWINES6ACCPD",
+        "domain": "cowrie.exchange",
+        "holders": 8810
+      },
+      "pxXlm": 1753.5390419802857,
+      "nativePoolId": "be648a26fba4b8a5b4cfc5cf4a8851a23c3edc76880adf4015e2bc5a26c7aeeb",
+      "native": {
+        "xlm": 300,
+        "stable": 526061.712594
+      },
+      "sdexOffers": true,
+      "sac": "CAM6PTKPXYP72TEFANEEKCQFV3HTH3COMPDP6KBX5SXR2NBZC74B63T2",
+      "pool": "CAXGLGIRGJ5EUM6UCKJEZH7HFCMUPYDKOZBXPYIDP26HVZ5KGDGOWXCF",
+      "soroban": {
+        "xlm": 500,
+        "stable": 876769.5209901
+      }
+    },
+    {
+      "mainnetCode": "BRL",
+      "code": "mkBRL",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkBRL-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK BRL — Quasaria testnet mock, not redeemable, no value",
+      "peg": "BRL",
+      "mainnet": {
+        "issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP",
+        "domain": "ntokens.com",
+        "holders": 6999
+      },
+      "pxXlm": 1.2993585,
+      "nativePoolId": "5bf059128837192b19b792cecd17b0c80e1dde8830419b0e96750dfe357da374",
+      "native": {
+        "xlm": 300,
+        "stable": 389.80755
+      },
+      "sdexOffers": true,
+      "sac": "CAISCQN23ITIK5SDH4JP7DORQ6INZRWWVRGU4VN3S2RFGPXYA4K7F5WC",
+      "pool": "CAS6WKHQJAC2NAIRNX33WGT3D7D2CFUUR4ALAC2RJGP435XRGB6QRZDR",
+      "soroban": {
+        "xlm": 500,
+        "stable": 649.67925
+      }
+    },
+    {
+      "mainnetCode": "NGNC",
+      "code": "mkNGNC",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkNGNC-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK NGNC — Quasaria testnet mock, not redeemable, no value",
+      "peg": "NGN",
+      "mainnet": {
+        "issuer": "GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6",
+        "domain": "ngnc.online",
+        "holders": 6238
+      },
+      "pxXlm": 236.90264474716363,
+      "nativePoolId": "84835e835e95b55cac87029905b65c75ff3150df5954078c19733f84da6ce104",
+      "native": {
+        "xlm": 300,
+        "stable": 71070.7934241
+      },
+      "sdexOffers": true,
+      "sac": "CBKNH6KROUSQMAMES333XZ4RNNV6MMQTD7NOV2IRFD6OPX3DSIYC62FP",
+      "pool": "CB4A4UKLYHJZPHRVK4BEAHQZMUYLNFUHEFC3OHWXSOT36BN3NGJZNPTV",
+      "soroban": {
+        "xlm": 500,
+        "stable": 118451.3223735
+      }
+    },
+    {
+      "mainnetCode": "CLPX",
+      "code": "mkCLPX",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkCLPX-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK CLPX — Quasaria testnet mock, not redeemable, no value",
+      "peg": "CLP",
+      "mainnet": {
+        "issuer": "GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G",
+        "domain": "clpx.finance",
+        "holders": 5790
+      },
+      "pxXlm": 71.13226881931296,
+      "nativePoolId": "11eddefba78f58e25ad84458d729396de7a65fb7258437c3a090775b3fb01cb1",
+      "native": {
+        "xlm": 300,
+        "stable": 21339.6806457
+      },
+      "sdexOffers": true,
+      "sac": "CDQONPSYMCVJ3OUS246ORMCKEBRR26JOMSVMYEE4DJA7KPBUI3H4HIBB",
+      "pool": "CBIQW7U5SUYIGMDXEJ56V4QABKR3P32TWBWEDNTCO5WNPSR23UJZBDBM",
+      "soroban": {
+        "xlm": 500,
+        "stable": 35566.1344096
+      }
+    },
+    {
+      "mainnetCode": "XCHF",
+      "code": "mkXCHF",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkXCHF-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK XCHF — Quasaria testnet mock, not redeemable, no value",
+      "peg": "CHF",
+      "mainnet": {
+        "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+        "domain": "kbtrading.org",
+        "holders": 5335
+      },
+      "pxXlm": 0.22734392610266357,
+      "nativePoolId": "2fe327b3ddaf497667ba334ff70a91dd541572ccee901bf6a372ad8da5c6661b",
+      "native": {
+        "xlm": 300,
+        "stable": 68.2031778
+      },
+      "sdexOffers": true,
+      "sac": "CCA2EGCFYA3MFQXGMEPS6UWPB4P223PAVXNEXV5PMTWKYCILTARL5BVQ",
+      "pool": "CA7Z6AK7XAYFBFFTPPDSDXUWIFZRIXTLUUJ6PJT4ETMUE5M3USI43LNQ",
+      "soroban": {
+        "xlm": 500,
+        "stable": 113.671963
+      }
+    },
+    {
+      "mainnetCode": "EURMTL",
+      "code": "mkEURMTL",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkEURMTL-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK EURMTL — Quasaria testnet mock, not redeemable, no value",
+      "peg": "EUR",
+      "mainnet": {
+        "issuer": "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+        "domain": "mtl.montelibero.org",
+        "holders": 4676
+      },
+      "pxXlm": 0.18856285895762034,
+      "nativePoolId": "24d8c7b3c879ba3bfab5f9e1920ba8f01ee8e44a829e9d3530bb8490012940fa",
+      "native": {
+        "xlm": 300,
+        "stable": 56.5688576
+      },
+      "sdexOffers": true,
+      "sac": "CCAWPUCEXULVVG3DRKBJSYAPDXAS62XFU45J2SCDA6ITT4F7H4UCTTYN",
+      "pool": "CDPWNQWHHL77RM3PO5LIGEESCUE6GPMBXNANPACY5OBCLVFEXI3VHNYZ",
+      "soroban": {
+        "xlm": 500,
+        "stable": 94.2814294
+      }
+    },
+    {
+      "mainnetCode": "USDM",
+      "code": "mkUSDM",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkUSDM-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK USDM — Quasaria testnet mock, not redeemable, no value",
+      "peg": "USD",
+      "mainnet": {
+        "issuer": "GDHDC4GBNPMENZAOBB4NCQ25TGZPDRK6ZGWUGSI22TVFATOLRPSUUSDM",
+        "domain": "mtl.montelibero.org",
+        "holders": 2568
+      },
+      "pxXlm": 0.2260513236570113,
+      "nativePoolId": "17ab5d68e5835bbdf07163bc8edf2ee3ca7284cc0b7e5504770b5482b7f09e26",
+      "native": {
+        "xlm": 300,
+        "stable": 67.815397
+      },
+      "sdexOffers": true,
+      "sac": "CCLPZWH6RTWH7H25PMY6ZNWDMSOEGPC7PJT5II6P7JNAVBT77QTPSHG5",
+      "pool": "CB36KJ7GDB4XHFM36JEFFIHDZBTWERWGKXYUMUQOJ6FM5VFIYZ7QS3QZ",
+      "soroban": {
+        "xlm": 500,
+        "stable": 113.0256618
+      }
+    },
+    {
+      "mainnetCode": "GYEN",
+      "code": "mkGYEN",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkGYEN-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK GYEN — Quasaria testnet mock, not redeemable, no value",
+      "peg": "JPY",
+      "mainnet": {
+        "issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "domain": "stablecoin.z.com",
+        "holders": 2280
+      },
+      "pxXlm": 30.080144500000003,
+      "nativePoolId": "53413b1a01be83d3b73bb05e664b0c968e6efc8c379493d1d67653ae4879c341",
+      "native": {
+        "xlm": 300,
+        "stable": 9024.04335
+      },
+      "sdexOffers": true,
+      "sac": "CDDJVZBNTZHKDD3QQAEVUMT6PF5KBSARDAW42WQC54ON77JW6VGYEVZ6",
+      "pool": "CBULIIONYC5LW2CBYMNZP36IZIDE6EUU6DUGHBIHUU7ZN4MDUFFEYWJS",
+      "soroban": {
+        "xlm": 500,
+        "stable": 15040.07225
+      }
+    },
+    {
+      "mainnetCode": "ZUSD",
+      "code": "mkZUSD",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkZUSD-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK ZUSD — Quasaria testnet mock, not redeemable, no value",
+      "peg": "USD",
+      "mainnet": {
+        "issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "domain": "stablecoin.z.com",
+        "holders": 1978
+      },
+      "pxXlm": 0.21944993486962694,
+      "nativePoolId": "9ed98e78ff21abcbf3ef024eef2ff3af87f2503fec273eca76bce02e912a606c",
+      "native": {
+        "xlm": 300,
+        "stable": 65.8349804
+      },
+      "sdexOffers": true,
+      "sac": "CAQ22H6GFEKG2YQH73QJXJGASJR4YIZHE4G7BUEBJXGR2Q4UH4XHUNGF",
+      "pool": "CA5UHWWQXXFMZNBLVGHIQCBBEQAVHKWVWCCJP77QLHGQB5BQ43R6FRZD",
+      "soroban": {
+        "xlm": 500,
+        "stable": 109.7249674
+      }
+    },
+    {
+      "mainnetCode": "AUDD",
+      "code": "mkAUDD",
+      "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "assetKey": "mkAUDD-GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "mock": true,
+      "label": "MOCK AUDD — Quasaria testnet mock, not redeemable, no value",
+      "peg": "AUD",
+      "mainnet": {
+        "issuer": "GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU",
+        "domain": "audd.digital",
+        "holders": 1469
+      },
+      "pxXlm": 0.3110618148678979,
+      "nativePoolId": "ae0a4a74e99f123ccaf3f6ce5eb8d37cc37cfbd61187327321501b867d56088d",
+      "native": {
+        "xlm": 300,
+        "stable": 93.3185444
+      },
+      "sdexOffers": true,
+      "sac": "CBMNT2CNEVUPKTXLRXKNTXNAA2674M5C5WYH4VYLDCVJM5TLPVMPY6BQ",
+      "pool": "CDMBASDQ7TZNQ2EJYYALTZKL6DJUEMY5RAXVMA2GYCF3HU6D4WYVJQOJ",
+      "soroban": {
+        "xlm": 500,
+        "stable": 155.5309074
+      }
+    }
+  ],
+  "mockIssuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+  "mockHomeDomain": "mock-stables.quasaria.invalid",
+  "realUnavailable": {
+    "EURC": "no affordable sell-side liquidity for EURC on the testnet SDEX (needed 155.59, no path)"
+  }
+}

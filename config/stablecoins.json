@@ -1,0 +1,10 @@
+{
+  "_comment": "Overrides for shared/stablecoins.ts discovery. allow/deny accept CODE:ISSUER, CODE@domain or @domain. Allowlisted assets skip heuristics but are still toml-verified when possible; if the toml fetch fails they count as verified ('allowlisted'). circle.com's stellar.toml returned 404 when this was generated (2026-09-25), so Circle's USDC/EURC issuers are pinned here explicitly.",
+  "allow": [
+    "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+    "EURC:GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2"
+  ],
+  "deny": ["@apay.io", "@pyusd-qfs.com", "@stellarusdtzero.com", "@stellarallbridge.io", "@q-maga.com", "@mgusdstellar.org"],
+  "minTrustlines": 1000,
+  "minTrades24h": 10
+}

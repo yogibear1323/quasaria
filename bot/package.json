@@ -1,0 +1,26 @@
+{
+  "name": "quasaria-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quasaria off-chain bot + keeper: grid / DCA / momentum leveraged strategies and a liquidation / SL-TP keeper (TESTNET only).",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "paper": "tsx src/index.ts --mode paper --ticks 500",
+    "keeper": "tsx src/index.ts --keeper-only",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^17.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.2"
+  }
+}

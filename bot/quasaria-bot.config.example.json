@@ -1,0 +1,13 @@
+{
+  "network": "testnet",
+  "strategies": [
+    { "id": "grid-xlm", "type": "grid", "asset": "XLM", "side": "long", "leverage": 3, "margin": 50,
+      "stopLossPct": 8, "takeProfitPct": 15, "lower": 0.10, "upper": 0.14, "levels": 8 },
+    { "id": "dca-xlm", "type": "dca", "asset": "XLM", "side": "long", "leverage": 2, "margin": 25,
+      "stopLossPct": 20, "takeProfitPct": 30, "intervalSec": 86400, "maxOrders": 10 },
+    { "id": "mom-xlm", "type": "momentum", "asset": "XLM", "side": "long", "leverage": 5, "margin": 100,
+      "stopLossPct": 5, "takeProfitPct": 12, "fastPeriod": 9, "slowPeriod": 21 }
+  ],
+  "risk": { "maxLeverage": 10, "maxOpenPositions": 5, "maxDailyLossPct": 10 },
+  "keeper": { "enabled": true, "intervalSec": 30 }
+}

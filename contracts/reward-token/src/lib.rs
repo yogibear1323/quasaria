@@ -34,6 +34,10 @@ use soroban_sdk::{
     Address, Env, MuxedAddress, String,
 };
 
+soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
+soroban_sdk::contractmeta!(key = "desc", val = "Quasaria Flux (QFX) holder-reward token");
+soroban_sdk::contractmeta!(key = "network", val = "testnet-only scaffold, unaudited");
+
 pub const SCALE: i128 = 1_000_000_000_000_000_000; // 1e18
 pub const DAY_SECONDS: u64 = 86_400;
 /// Hard cap on the admin-configurable nominal APR (basis points).

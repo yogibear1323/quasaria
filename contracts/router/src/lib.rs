@@ -14,6 +14,10 @@ use soroban_sdk::{
     contract, contractclient, contracterror, contractimpl, panic_with_error, Address, Env, Vec,
 };
 
+soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
+soroban_sdk::contractmeta!(key = "desc", val = "Quasaria swap router");
+soroban_sdk::contractmeta!(key = "network", val = "testnet-only scaffold, unaudited");
+
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]

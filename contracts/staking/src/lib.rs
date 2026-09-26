@@ -17,6 +17,10 @@ use soroban_sdk::{
     Address, Env,
 };
 
+soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
+soroban_sdk::contractmeta!(key = "desc", val = "Quasaria Orbit staking");
+soroban_sdk::contractmeta!(key = "network", val = "testnet-only scaffold, unaudited");
+
 const ACC: i128 = 1_000_000_000_000_000_000;
 const DAY_LEDGERS: u32 = 17_280;
 pub const MAX_LOCK_SECONDS: u64 = 365 * 86_400;

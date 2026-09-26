@@ -19,6 +19,10 @@ use soroban_sdk::{
     Env,
 };
 
+soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
+soroban_sdk::contractmeta!(key = "desc", val = "Quasaria referral registry");
+soroban_sdk::contractmeta!(key = "network", val = "testnet-only scaffold, unaudited");
+
 /// Maximum number of ancestor hops inspected for cycle detection.
 pub const MAX_DEPTH: u32 = 32;
 /// Hard cap for the referral share of fees (50%).

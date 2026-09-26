@@ -18,6 +18,10 @@ use soroban_sdk::{
     panic_with_error, token, Address, Env, MuxedAddress, String,
 };
 
+soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
+soroban_sdk::contractmeta!(key = "desc", val = "Quasaria AMM pool");
+soroban_sdk::contractmeta!(key = "network", val = "testnet-only scaffold, unaudited");
+
 pub const MAX_FEE_BPS: u32 = 100;
 pub const MINIMUM_LIQUIDITY: i128 = 1_000;
 const BPS: i128 = 10_000;

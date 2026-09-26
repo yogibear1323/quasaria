@@ -47,7 +47,7 @@ export function useTx(needsContracts = true) {
   const [busy, setBusy] = useState(false);
   const run = async (label: string, fn: () => Promise<string | void>) => {
     if (!w.address) {
-      setStatus("Demo mode: connect Freighter (TESTNET) to sign this transaction.");
+      setStatus("Read-only mode: create an in-app account or connect Freighter (TESTNET) to sign this transaction.");
       return;
     }
     if (needsContracts && !CONTRACTS_CONFIGURED) {
@@ -98,7 +98,7 @@ export function ViewerNote({ address, isDemo, role }: { address: string; isDemo:
   return (
     <p className="muted" style={{ fontSize: "0.78rem", margin: "6px 0 0" }}>
       Read-only: showing the public seeded {role} account{" "}
-      <a className="mono" href={`https://stellar.expert/explorer/testnet/account/${address}`} target="_blank" rel="noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Connect Freighter to see your own.
+      <a className="mono" href={`https://stellar.expert/explorer/testnet/account/${address}`} target="_blank" rel="noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Create an account or connect a wallet to see your own.
     </p>
   );
 }

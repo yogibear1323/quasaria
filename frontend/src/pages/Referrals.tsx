@@ -66,7 +66,7 @@ export default function Referrals() {
               <input className="input" readOnly value={link} />
               <button className="btn" onClick={copy}>{copied ? "Copied ✦" : "Copy"}</button>
             </div>
-            {!me && (chain.live ? <ViewerNote {...viewer} role="referrer (deployer)" /> : <p className="muted" style={{ fontSize: "0.8rem" }}>Demo link shown — connect Freighter to get your own.</p>)}
+            {!me && (chain.live ? <ViewerNote {...viewer} role="referrer (deployer)" /> : <p className="muted" style={{ fontSize: "0.8rem" }}>Demo link shown — create an account or connect a wallet to get your own.</p>)}
           </div>
           <div className="grid g-4">
             <div className="card"><Stat label="Referred traders" value={count} /></div>

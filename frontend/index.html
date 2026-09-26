@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quasaria — Stellar DEX (Testnet)</title>
+    <meta name="description" content="Quasaria: a quasar-bright decentralized exchange on Stellar testnet — SDEX order books, Soroban AMM pools, staking, QFX holder rewards, referrals and leverage bots." />
+    <meta name="theme-color" content="#05030f" />
+    <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta property="og:title" content="Quasaria — trade at the speed of light on Stellar" />
+    <meta property="og:description" content="Unaudited testnet scaffold: SDEX + Soroban AMM, staking, QFX rewards, referrals, leverage bots." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <style>
+      /* Splash: shown until React mounts */
+      #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+        background:radial-gradient(ellipse at 50% 40%,#1a1147 0%,#05030f 70%);z-index:9999;transition:opacity .5s}
+      #splash img{width:132px;height:132px;animation:qpulse 1.6s ease-in-out infinite;filter:drop-shadow(0 0 28px rgba(56,243,255,.55))}
+      #splash span{font:700 14px/1 system-ui,sans-serif;letter-spacing:.5em;color:#38f3ff;text-transform:uppercase}
+      @keyframes qpulse{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.07) rotate(4deg)}}
+      #splash.gone{opacity:0;pointer-events:none}
+    </style>
+  </head>
+  <body>
+    <div id="splash"><img src="/brand/logo.svg" alt="Quasaria" /><span>Quasaria</span></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

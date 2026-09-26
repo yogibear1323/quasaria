@@ -1,0 +1,37 @@
+/* =====================================================================
+   Quasaria design tokens — "deep space + quasar plasma"
+   ===================================================================== */
+:root {
+  /* Deep-space base */
+  --void: #05030f;        /* page background, the dark between galaxies */
+  --deep: #0b0726;        /* raised surfaces */
+  --indigo: #1a1147;      /* borders / hover */
+  --dust: #2a2160;        /* subtle lines */
+  --star: #eef1ff;        /* primary text */
+  --haze: #a9a6d8;        /* secondary text */
+
+  /* Neon / nebula accents */
+  --quasar: #38f3ff;      /* primary accent: quasar-core cyan */
+  --plasma: #ff3dcb;      /* secondary accent: plasma magenta */
+  --nebula: #9b5cff;      /* tertiary: nebula violet */
+  --solar: #ffd166;       /* rewards / highlights: solar gold */
+  --flare: #ff9a3d;       /* accretion-disk orange */
+  --aurora: #3dffa8;      /* positive / bids */
+  --redshift: #ff4d6d;    /* negative / asks / danger */
+
+  --grad-brand: linear-gradient(90deg, var(--quasar), #c9b6ff 45%, var(--plasma));
+  --grad-disk: linear-gradient(120deg, #ffe9a3, var(--flare) 30%, var(--plasma) 65%, var(--nebula));
+  --glass: rgba(16, 10, 48, 0.62);
+  --glass-border: rgba(155, 92, 255, 0.35);
+  --glow-cyan: 0 0 18px rgba(56, 243, 255, 0.45), 0 0 42px rgba(56, 243, 255, 0.18);
+  --glow-pink: 0 0 18px rgba(255, 61, 203, 0.45), 0 0 42px rgba(255, 61, 203, 0.18);
+  --glow-violet: 0 0 22px rgba(155, 92, 255, 0.4);
+
+  /* Typography */
+  --font-display: "Orbitron", "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Space Grotesk", system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius: 18px;
+  --radius-sm: 10px;
+}

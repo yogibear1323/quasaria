@@ -1,0 +1,83 @@
+{
+  "base": "https://yogibear1323.github.io/quasaria",
+  "at": "2026-09-26T15:06:24.508Z",
+  "errors": [],
+  "calculators": {
+    "staking": {
+      "source": "● live · Soroban testnet",
+      "pools": [
+        "QFX\n→ QFX\n🔒 7d lock\n1,576.8%",
+        "QLP XLM/QUSD\n→ QFX\nFlexible\n1,050.4%"
+      ],
+      "rewards": "EST. REWARDS · 30D 86.4000 QFX ≈ $18.83",
+      "total": "TOTAL AT THE END 186.4000 QFX ≈ $40.63",
+      "apr": "APR INCL. YOUR STAKE 1,051.2% pool now 1,576.8%",
+      "facts": "Pool emission 8.6400 QFX/day Staked by others 200.0000 QFX Reward reserve left 1,499.74 QFX Reserve runway 174 days Lock 7 days (resets on each stake)",
+      "chart": 2,
+      "disclaimer": 1,
+      "longHorizon": {
+        "rewards": "EST. REWARDS · 1095D 1,249.79 QFX ≈ $272.44",
+        "depletionWarning": 1,
+        "payoutWarning": 1
+      },
+      "ok": true
+    },
+    "holder": {
+      "source": "● live · Soroban testnet",
+      "yieldSimple": "EST. YIELD · 365D 120.0000 QFX ≈ $26.16",
+      "total": "TOTAL AT THE END 1,120.00 QFX ≈ $244.15",
+      "reserve": "RESERVE (UNALLOCATED) 2,500.00 QFX ≈ $544.97",
+      "runway": "RUNWAY AT CURRENT SUPPLY 69.4 years 300.0000 QFX earning · 0.0986 QFX/day",
+      "caveat": "Reserve caveat: yield is paid from a finite, pre-funded reserve (2,500.00 QFX now), never minted. When it is empty, yield stops for everyone until someone tops it up. At the current earning supply it lasts about 69.4 years; with your 1,000.00 QFX added, about 16.0 years; if all 6,000.00 circulating QFX earned, about 3.5 years.",
+      "disclaimer": 1,
+      "yieldDaily": "EST. YIELD · 365D 127.4746 QFX ≈ $27.79",
+      "ok": true
+    },
+    "lp": {
+      "source": "● live · Soroban testnet",
+      "poolOptions": 23,
+      "selected": "XLM/QUSD · TVL ≈ 10,399.76 XLM · fee 0.30%",
+      "volumeSource": "On-chain: 1 swap in the last 7.0 days (200.0000 XLM-value), 1 in the last 24h. Using the 7-day daily average. ≈ $6.23/day",
+      "fees": "EST. FEE EARNINGS · 30D 0.038822 XLM-value ≈ $0.008463",
+      "share": "YOUR POOL SHARE 1.887% 33.3094 QLP minted (est.)",
+      "apr": "FEE APR (AFTER YOUR DEPOSIT) 0.24% excl. impermanent loss",
+      "disclaimer": 1,
+      "il200": "IMPERMANENT LOSS -13.40% vs just holding",
+      "ilMinus50": "IMPERMANENT LOSS -5.72% vs just holding",
+      "netMinus50": "POOL + 30D FEES VS HOLDING -0.947597 QUSD ≈ −$1.86",
+      "ok": true
+    },
+    "overview": {
+      "cards": 3
+    }
+  },
+  "mobile": {
+    "staking": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "noOverflow": true
+    },
+    "holder": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "noOverflow": true
+    },
+    "lp": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "noOverflow": true
+    }
+  },
+  "links": {
+    "navEarn": 1,
+    "earnToCalculators": 1,
+    "earnCards": 3,
+    "stake": 4,
+    "rewards": {
+      "embeddedCalculator": 1,
+      "link": 1
+    },
+    "pools": 2
+  },
+  "ok": true
+}

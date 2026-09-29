@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { CATEGORIES, EMAIL_RE, MERCH_CONTACT_EMAIL, PRODUCTS, fmtExample, merchImg, readNotify, saveNotify, type Category, type Product } from "../merch/catalog";
+import { CATEGORIES, EMAIL_RE, HERO_IMG, MERCH_CONTACT_EMAIL, PRODUCTS, fmtExample, readNotify, saveNotify, type Category, type Product } from "../merch/catalog";
 
 /** /merch — preview storefront. No checkout, no payments, no backend. */
 export default function Merch() {
@@ -12,7 +12,7 @@ export default function Merch() {
         <div className="m-hero-copy">
           <div className="l-kicker">Quasaria Supply · coming soon</div>
           <h1 id="m-hero-title">Wear the <span className="grad-text">Singularity</span>.</h1>
-          <p>An original merch line built around the Singularity Q: tees in black, bone, lavender and electric lime, a hoodie, embroidered caps, stickers and two mugs, with liquid-chrome type and holographic gradients. It's a preview for now. Nothing is for sale and every price is an example.</p>
+          <p>A minimal line built around the glowing Singularity Q: the Glow hoodie, a pearl iridescent tee and a navy bomber, plus tees, caps, a mug and stickers in black, navy and pearl. It's a preview for now. Nothing is for sale and every price is an example.</p>
           <div className="m-hero-pills">
             <span className="pill cyan">Preview · not for sale yet</span>
             <span className="pill">Example prices</span>
@@ -20,14 +20,11 @@ export default function Merch() {
           </div>
           <div className="row m-hero-cta">
             <a className="btn" href="#m-grid" onClick={(e) => { e.preventDefault(); document.getElementById("m-grid")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }}>Browse the collection</a>
-            <button className="btn ghost" onClick={() => setOpen(PRODUCTS[1])}>See the flagship tee</button>
+            <button className="btn ghost" onClick={() => setOpen(PRODUCTS[0])}>See the Glow hoodie</button>
           </div>
         </div>
-        <div className="m-hero-art" aria-hidden>
-          <img className="m-h1" src={merchImg("mockups/tee-02-black-back.webp")} alt="" />
-          <img className="m-h2" src={merchImg("mockups/hoodie-lavender.webp")} alt="" />
-          <img className="m-h3" src={merchImg("mockups/cap-bone.webp")} alt="" />
-          <img className="m-h4" src={merchImg("mockups/stickers-laptop.webp")} alt="" />
+        <div className="m-hero-art">
+          <img src={HERO_IMG} alt="Glow hoodie, pearl iridescent tee and navy bomber" width={1800} height={612} />
         </div>
       </section>
 

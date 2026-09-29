@@ -191,26 +191,28 @@ export function pixelQ(x, y, px, N = 22) {
 export const pixelPlus = (x, y, px, fill) => `<path d="M${x} ${y - px}h${px}v${px}h${px}v${px}h${-px}v${px}h${-px}v${-px}h${-px}v${-px}h${px}z" fill="${fill}" shape-rendering="crispEdges"/>`;
 
 // ------------------------------------------------------------------ v2 (2026) styling helpers
-/** v2 palette: keeps violet→cyan, adds warm, upbeat accents. */
+/** v3 palette = the website's tokens only: near-black base, deep navy, the violet→cyan accent
+ *  (same as the Singularity Q) and white / light-grey text. No warm or rainbow accents. */
 export const V2 = {
-  violet: "#7C5CFF", violetDeep: "#5B3DF5", lilac: "#C4B5FD", cyan: "#22D3EE", cyanDeep: "#0EA5C6", ice: "#A5F3FC",
-  coral: "#FF5E5B", orange: "#FF8A3D", lime: "#C6FF3D", bone: "#F3EEE4", ink: "#0E0D18", graphite: "#2A2838",
+  base: "#06070D", navy: "#0B0D18", glass: "#12152A", glass2: "#181C34", line: "#2A2F52",
+  violetHi: "#A78BFA", violet: "#7C5CFF", violetSoft: "#8B7CFF", violetDeep: "#6D4AFF", indigo: "#4F46E5", lilac: "#C4B5FD",
+  cyan: "#22D3EE", ice: "#A5F3FC", text: "#EEF0FA", text2: "#A3A9C6", text3: "#7D84A6", ink: "#06070D",
 };
-/** Ink sets per garment tone: "dark" = light ink for black garments, "light" = dark ink for bone/lavender/lime. */
+/** Ink set: every v3 garment is dark (black / navy / charcoal / deep violet), so there is one ink. */
 export const INK = {
-  dark: { fg: "#FFFFFF", fg2: "#CFC8EE", mute: "#8F88B3", warm: V2.coral, pop: V2.lime, sun: V2.orange, cool: V2.cyan, vio: V2.violet, core: "#FFFFFF" },
-  light: { fg: V2.ink, fg2: "#4A4466", mute: "#7A7496", warm: "#F0433F", pop: V2.violetDeep, sun: "#F56A12", cool: V2.cyanDeep, vio: V2.violetDeep, core: V2.ink },
+  dark: { fg: V2.text, fg2: V2.text2, mute: V2.text3, warm: V2.cyan, pop: V2.violetHi, sun: V2.violet, cool: V2.cyan, vio: V2.violet, core: "#FFFFFF" },
 };
+INK.light = INK.dark;
 /** Liquid-chrome vertical gradient for type between y0 (cap top) and y1 (baseline). */
 export function chrome(id, y0, y1, tone = "dark") {
   const s = tone === "dark"
-    ? [[0, "#FFFFFF"], [0.3, "#E4E1F5"], [0.47, "#9A95BC"], [0.5, "#3C3760"], [0.55, "#C9BDFF"], [0.72, "#F4FBFF"], [0.9, "#A9EEFF"], [1, "#E9E4FF"]]
+    ? [[0, "#FFFFFF"], [0.3, "#E6E8F2"], [0.47, "#9EA3BD"], [0.5, "#3A3F5C"], [0.55, "#C7CBE0"], [0.74, "#F4F6FC"], [1, "#B8BED6"]]
     : [[0, "#1A1828"], [0.32, "#47425E"], [0.47, "#A7A2C0"], [0.5, "#FFFFFF"], [0.56, "#3B2FA8"], [0.76, "#15132A"], [1, "#4B3FD0"]];
   return `<linearGradient id="${id}" x1="0" y1="${r2(y0)}" x2="0" y2="${r2(y1)}" gradientUnits="userSpaceOnUse">${s.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join("")}</linearGradient>`;
 }
-/** Holographic (violet → cyan → lime → coral → orange) gradient along a line. */
+/** The site accent gradient (violet → cyan, as in --grad-accent) along a line. */
 export function holo(id, x0, y0, x1, y1, { soft = false, stops } = {}) {
-  const s = stops ?? (soft ? ["#B9A8FF", "#8FEAFF", "#E2FF8A", "#FFB2A6", "#FFC98F"] : [V2.violet, V2.cyan, V2.lime, V2.coral, V2.orange]);
+  const s = stops ?? (soft ? [V2.lilac, V2.violetSoft, V2.ice] : [V2.violetHi, V2.violet, V2.cyan]);
   return `<linearGradient id="${id}" x1="${r2(x0)}" y1="${r2(y0)}" x2="${r2(x1)}" y2="${r2(y1)}" gradientUnits="userSpaceOnUse">${s.map((c, i) => `<stop offset="${r2(i / (s.length - 1))}" stop-color="${c}"/>`).join("")}</linearGradient>`;
 }
 /** Soft film grain as a mask: mask="url(#id)" speckles whatever it's applied to. */
@@ -229,3 +231,24 @@ export function pill(x, y, w, h, label, { fill, color, size, w8 = 700, tracking 
 
 export const svgDoc = (w, h, body, { title = "", desc = "" } = {}) =>
   `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">\n<title>${title}</title>\n<desc>${desc} — Original artwork © Quasaria. Text is outlined; no fonts required.</desc>\n${body}\n</svg>\n`;
+
+// ------------------------------------------------------------------ v4: exact brand wordmark + glowing mark
+const lockupSrc = readFileSync(resolve(root, "frontend/public/brand/concept-a-lockup-dark.svg"), "utf8");
+const WM_D = [...lockupSrc.matchAll(/<path d="([^"]+)" fill="#F4F5FF"/g)].pop()[1];
+const WM = { x: 81.9, y: 18.37, w: 153.82, h: 33.97, base: 46.03 }; // bbox of the outlined wordmark in the lockup
+/** The exact Quasaria wordmark (outlined, from the brand lockup), top-left at (x, y), `width` wide. */
+export function wordmark(x, y, width, fill = "#fff", attrs = "") {
+  const k = width / WM.w;
+  return `<path d="${WM_D}" fill="${fill}" transform="translate(${r2(x - WM.x * k)} ${r2(y - WM.y * k)}) scale(${r2(k * 1000) / 1000})" ${attrs}/>`;
+}
+export const wordmarkH = (width) => (width / WM.w) * WM.h;
+/** Centred wordmark: returns path whose visual box is centred on (cx, cy). */
+export const wordmarkC = (cx, cy, width, fill, attrs) => wordmark(cx - width / 2, cy - wordmarkH(width) / 2, width, fill, attrs);
+/** The full-colour Singularity Q with a soft violet/cyan halo and bloom, `size` square at (x, y). */
+export function glowMark(x, y, size, p, { halo = 1, bloom = 0.75 } = {}) {
+  const cx = x + size / 2, cy = y + size / 2;
+  return `<defs><radialGradient id="${p}hl" cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#22D3EE" stop-opacity="${r2(0.55 * halo)}"/><stop offset=".35" stop-color="#7C5CFF" stop-opacity="${r2(0.28 * halo)}"/><stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/></radialGradient>` +
+    `<filter id="${p}bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${r2(size * 0.035)}"/></filter></defs>` +
+    `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" fill="url(#${p}hl)"/>` +
+    (bloom ? `<g filter="url(#${p}bl)" opacity="${bloom}">${mark(x, y, size, p + "b")}</g>` : "") + mark(x, y, size, p + "m");
+}

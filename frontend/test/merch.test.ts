@@ -65,10 +65,17 @@ describe("merch catalogue (preview storefront)", () => {
   });
 });
 
-describe("merch v2 colourways", () => {
-  it("offers lighter garments alongside black, and dark-ink art is flagged for a light backdrop", () => {
-    const tees = PRODUCTS.filter((p) => p.category === "tees");
-    expect(tees.every((p) => p.colors.some((c) => c.id === "black") && p.colors.some((c) => c.id !== "black"))).toBe(true);
-    for (const p of PRODUCTS) for (const x of p.extras) if (/-on-light\.webp$/.test(x.src)) expect(x.light, x.src).toBe(true);
+describe("merch v4 line (minimal, logo-led)", () => {
+  it("uses only the black / navy / pearl palette and leads with hoodie, pearl tee and bomber", () => {
+    for (const p of PRODUCTS) for (const c of p.colors) expect(["black", "navy", "pearl"], `${p.id}/${c.id}`).toContain(c.id);
+    expect(PRODUCTS.slice(0, 3).map((p) => p.id)).toEqual(["glow-hoodie", "pearl-tee", "glow-bomber"]);
+    for (const id of ["speed-of-light-tee", "level-up-tee", "stardust-quasar-tee"]) expect(PRODUCTS.some((p) => p.id === id), id).toBe(true);
+    const copy = JSON.stringify(PRODUCTS).toLowerCase();
+    for (const w of ["bone", "lavender", "lime", "coral", "chrome", "holographic"]) expect(copy, w).not.toContain(w);
+  });
+
+  it("ships the 3-up hero banner", async () => {
+    const { HERO_IMG } = await import("../src/merch/catalog");
+    expect(existsSync(local(HERO_IMG))).toBe(true);
   });
 });

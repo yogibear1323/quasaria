@@ -13,19 +13,19 @@ export default function PriceChart({ candles, height = 260 }: { candles: Candle[
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" role="img" aria-label="Price chart">
       <defs>
         <linearGradient id="pc-area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#38f3ff" stopOpacity="0.35" />
-          <stop offset="1" stopColor="#9b5cff" stopOpacity="0" />
+          <stop offset="0" stopColor="#22d3ee" stopOpacity="0.3" />
+          <stop offset="1" stopColor="#7c5cff" stopOpacity="0" />
         </linearGradient>
         <filter id="pc-glow"><feGaussianBlur stdDeviation="3" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
       </defs>
       {[0.25, 0.5, 0.75].map((f) => (
-        <line key={f} x1={0} x2={W} y1={H * f} y2={H * f} stroke="#2a2160" strokeDasharray="3 6" />
+        <line key={f} x1={0} x2={W} y1={H * f} y2={H * f} stroke="rgba(255,255,255,0.07)" strokeDasharray="3 6" />
       ))}
       <path d={area} fill="url(#pc-area)" />
       {candles.map((c, i) => {
         const up = c.c >= c.o;
         const x = pad + i * cw;
-        const col = up ? "#3dffa8" : "#ff4d6d";
+        const col = up ? "#34d399" : "#fb7185";
         return (
           <g key={i} opacity={0.9}>
             <line x1={x + cw / 2} x2={x + cw / 2} y1={y(c.h)} y2={y(c.l)} stroke={col} strokeWidth={1} />
@@ -33,7 +33,7 @@ export default function PriceChart({ candles, height = 260 }: { candles: Candle[
           </g>
         );
       })}
-      <path d={line} fill="none" stroke="#38f3ff" strokeWidth={2} filter="url(#pc-glow)" />
+      <path d={line} fill="none" stroke="#22d3ee" strokeWidth={2} filter="url(#pc-glow)" />
     </svg>
   );
 }

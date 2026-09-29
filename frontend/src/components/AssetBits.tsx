@@ -5,7 +5,7 @@ import type { MarketRow } from "../lib/markets";
 export function AssetLogo({ code, logo, size = 24 }: { code: string; logo?: string | null; size?: number }) {
   const [broken, setBroken] = useState(false);
   if (logo && !broken)
-    return <img src={logo} alt="" width={size} height={size} loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} style={{ borderRadius: "50%", background: "#0b0f24", objectFit: "contain", flex: "none" }} />;
+    return <img src={logo} alt="" width={size} height={size} loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} style={{ borderRadius: "50%", background: "#0b0d18", objectFit: "contain", flex: "none" }} />;
   return (
     <span aria-hidden style={{ width: size, height: size, borderRadius: "50%", display: "inline-grid", placeItems: "center", flex: "none", fontSize: size * 0.42, fontWeight: 700, background: "linear-gradient(135deg, rgba(56,243,255,.35), rgba(255,61,203,.35))", color: "#fff" }}>
       {code.slice(0, 2).toUpperCase()}

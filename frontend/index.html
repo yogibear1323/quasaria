@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quasaria — Stellar DEX (Testnet)</title>
     <meta name="description" content="Quasaria: a quasar-bright decentralized exchange on Stellar testnet — SDEX order books, Soroban AMM pools, staking, QFX (1 QFX = 1 XLM, fully backed) with reserve-funded holder rewards, referrals and leverage bots." />
-    <meta name="theme-color" content="#05030f" />
+    <meta name="theme-color" content="#06070d" />
     <link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -16,12 +16,13 @@
     <meta name="twitter:card" content="summary_large_image" />
     <style>
       /* Splash: shown until React mounts */
-      #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-        background:radial-gradient(ellipse at 50% 40%,#1a1147 0%,#05030f 70%);z-index:9999;transition:opacity .5s}
-      #splash img{width:132px;height:132px;animation:qpulse 1.6s ease-in-out infinite;filter:drop-shadow(0 0 28px rgba(56,243,255,.55))}
-      #splash span{font:700 14px/1 system-ui,sans-serif;letter-spacing:.5em;color:#38f3ff;text-transform:uppercase}
-      @keyframes qpulse{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.07) rotate(4deg)}}
+      #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+        background:radial-gradient(ellipse at 50% 42%,rgba(124,92,255,.28) 0%,rgba(6,7,13,0) 55%),#06070d;z-index:9999;transition:opacity .45s}
+      #splash img{width:96px;height:96px;animation:qpulse 1.8s ease-in-out infinite;filter:drop-shadow(0 0 28px rgba(34,211,238,.45))}
+      #splash span{font:600 13px/1 system-ui,sans-serif;letter-spacing:.42em;color:#c4b5fd;text-transform:uppercase}
+      @keyframes qpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
       #splash.gone{opacity:0;pointer-events:none}
+      @media (prefers-reduced-motion:reduce){#splash img{animation:none}}
     </style>
   </head>
   <body>

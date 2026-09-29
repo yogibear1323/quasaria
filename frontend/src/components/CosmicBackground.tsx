@@ -17,14 +17,15 @@ export type Scene = "quasar" | "nebula" | "orbits" | "supernova" | "constellatio
 
 type Star = { x: number; y: number; z: number; r: number; tw: number; hue: number };
 
+// v2 palette: on-brand violet → cyan, with muted warm accents.
 const PALETTE = {
-  cyan: [56, 243, 255],
-  pink: [255, 61, 203],
-  violet: [155, 92, 255],
-  gold: [255, 209, 102],
-  orange: [255, 154, 61],
-  green: [61, 255, 168],
-  red: [255, 77, 109],
+  cyan: [34, 211, 238],
+  pink: [167, 139, 250],
+  violet: [124, 92, 255],
+  gold: [251, 191, 36],
+  orange: [251, 146, 60],
+  green: [52, 211, 153],
+  red: [251, 113, 133],
 };
 const rgba = (c: number[], a: number) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 

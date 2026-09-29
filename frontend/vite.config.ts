@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import { copyFileSync, existsSync } from "node:fs";
+import { copyFileSync, existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 // VITE_BASE lets GitHub Pages serve the app under /<repo>/ (e.g. VITE_BASE=/quasaria/).
@@ -11,8 +11,10 @@ const base = process.env.VITE_BASE || "/";
 //  - every top-level app route gets a copy of index.html as <route>.html, which Pages
 //    serves for the extensionless URL (/quasaria/markets) with HTTP 200;
 //  - any other path falls back to 404.html (a copy of index.html, served with HTTP 404).
+// A route must not share its name with a folder in public/ (Pages would 301 /merch → /merch/
+// instead of serving merch.html), so static assets live in e.g. public/merch-assets/.
 // Harmless elsewhere (Netlify uses _redirects). Keep in sync with the routes in src/App.tsx.
-const SPA_ROUTES = ["app", "markets", "trade", "pools", "earn", "calculators", "stake", "rewards", "referrals", "bots"];
+const SPA_ROUTES = ["app", "markets", "trade", "pools", "earn", "calculators", "stake", "rewards", "referrals", "bots", "quests", "merch"];
 let outDir = "dist";
 const spa404: Plugin = {
   name: "spa-404",
@@ -24,6 +26,11 @@ const spa404: Plugin = {
     const out = outDir;
     const index = resolve(out, "index.html");
     if (!existsSync(index)) return;
+    for (const name of SPA_ROUTES) {
+      const dir = resolve(out, name);
+      if (existsSync(dir) && statSync(dir).isDirectory())
+        throw new Error(`spa-404: dist/${name}/ collides with the /${name} route (GitHub Pages would redirect it). Rename that folder in public/.`);
+    }
     for (const name of ["404", ...SPA_ROUTES]) copyFileSync(index, resolve(out, `${name}.html`));
   },
 };

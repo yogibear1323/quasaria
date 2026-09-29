@@ -1,5 +1,7 @@
 # Build output / dependencies
 node_modules/
+# no trailing slash as well, so a node_modules *symlink* (git worktrees sharing deps) is ignored too
+node_modules
 target/
 dist/
 *.tsbuildinfo

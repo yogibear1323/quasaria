@@ -602,7 +602,7 @@ export default function Landing() {
       <CosmicBackground scene={scene} />
       <div className="app landing">
         <header className="topbar l-top">
-          <Link to="/" className="brand" aria-label="Quasaria home"><img src={logo} alt="" /><span className="word grad-text">QUASARIA</span></Link>
+          <Link to="/" className="brand" aria-label="Quasaria home"><img src={logo} alt="" /><span className="word">Quasaria</span></Link>
           <nav className="nav l-nav">{NAV.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav>
           <Ticker />
           <Link to="/trade" className="btn small">Launch app</Link>
@@ -618,8 +618,22 @@ export default function Landing() {
               <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span></div>
             </div>
             <div className="l-hero-art" aria-hidden>
-              <div className="l-halo" />
-              <img src={logo} alt="" className="l-hero-logo" />
+              {/* Animated quasar: glow, tilted accretion disk (back/front halves), bipolar jets, bright core. Pure CSS. */}
+              <div className="q-orb">
+                <div className="q-glow" />
+                <div className="q-orbit o1" />
+                <div className="q-orbit o2" />
+                <div className="q-disk-wrap back"><div className="q-disk" /></div>
+                <div className="q-jet up" />
+                <div className="q-jet down" />
+                <div className="q-jet up core-line" />
+                <div className="q-jet down core-line" />
+                <div className="q-core" />
+                <div className="q-flare" />
+                <div className="q-flare v" />
+                <div className="q-disk-wrap front"><div className="q-disk" /></div>
+                <div className="q-stars"><i /><i /><i /><i /><i /><i /></div>
+              </div>
             </div>
           </section>
 
@@ -644,6 +658,7 @@ export default function Landing() {
           </section>
         </main>
         <footer className="l-footer">
+          <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
           <p><b>Risk disclosure.</b> Quasaria is experimental software. Nothing on this site is financial advice. Leverage and yield carry real risk of loss and may be regulated where you live.</p>
           <p><b>Audit status:</b> not yet audited. Testnet beta: tokens on Stellar testnet have no real value.</p>
           <p className="muted">{STELLARCHAIN_ATTRIBUTION} · Settlement: Stellar network · <a href="https://stellar.expert/explorer/testnet" target="_blank" rel="noreferrer">stellar.expert</a> · <Link to="/trade">Launch app</Link></p>

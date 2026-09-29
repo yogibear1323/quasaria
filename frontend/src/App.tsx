@@ -11,6 +11,9 @@ import Markets from "./pages/Markets";
 import Landing from "./pages/Landing";
 import Earn from "./pages/Earn";
 import Calculators from "./pages/Calculators";
+import Quests from "./pages/Quests";
+import Merch from "./pages/Merch";
+import { GameProvider } from "./game/GameProvider";
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
 function RefCapture() {
@@ -24,7 +27,7 @@ function RefCapture() {
 
 export default function App() {
   return (
-    <>
+    <GameProvider>
       <RefCapture />
       <Routes>
         {/* Public landing page; the app keeps its top-level routes (/trade, /pools, …). /app is an alias for Trade. */}
@@ -40,9 +43,11 @@ export default function App() {
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/referrals" element={<Referrals />} />
           <Route path="/bots" element={<Bots />} />
+          <Route path="/quests" element={<Quests />} />
+          <Route path="/merch" element={<Merch />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
-    </>
+    </GameProvider>
   );
 }

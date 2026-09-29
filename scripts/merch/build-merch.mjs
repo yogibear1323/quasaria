@@ -53,24 +53,31 @@ if (want("print")) {
 // ------------------------------------------------------------------ 2) mockups
 const G = M.GARMENT;
 const L = (id, x, y, rot) => ({ ...stickerWeb[id], x, y, rot });
+const tone = (c) => (c === "black" ? "dark" : "light");
+const tees = (n, key, colors, placement) => colors.map((c) => [`tee-${n}-${c}`, () => M.tee({ color: G[c], art: svgs[`${key}-${tone(c)}`], placement })]);
 export const MOCKUPS = [
-  ...["black", "navy", "charcoal"].map((c) => [`tee-01-${c}`, () => M.tee({ color: G[c], art: svgs["tee-01-singularity-chest"], placement: "chest" })]),
-  ["tee-02-black-back", () => M.tee({ color: G.black, art: svgs["tee-02-quasar-core-back"], placement: "back" })],
-  ["tee-02-black-front", () => M.tee({ color: G.black, art: svgs["tee-02-quasar-core-chest"], placement: "chest" })],
-  ...["black", "purple", "navy"].map((c) => [`tee-03-${c}`, () => M.tee({ color: G[c], art: svgs["tee-03-speed-of-light"] })]),
-  ...["black", "navy", "purple"].map((c) => [`tee-04-${c}`, () => M.tee({ color: G[c], art: svgs["tee-04-level-up-arcade"] })]),
-  ...["black", "charcoal", "navy"].map((c) => [`tee-05-${c}`, () => M.tee({ color: G[c], art: svgs["tee-05-stardust-to-quasar"] })]),
-  ...["black", "navy"].map((c) => [`hoodie-${c}`, () => M.hoodie({ color: G[c], art: svgs["hoodie-front"] })]),
-  ...["black", "navy"].map((c) => [`cap-${c}`, () => M.cap({ color: G[c], art: svgs["cap-mark-3c"] })]),
-  ["cap-black-lockup", () => M.cap({ color: G.black, art: svgs["cap-lockup"], aspect: 1050 / 2700, width: 430 })],
-  ["mug-logo", () => M.mug({ wrap: svgs["mug-wrap"], center: 700 })],
-  ["mug-ranks", () => M.mug({ wrap: svgs["mug-wrap"], center: 2000 })],
-  ["stickers-laptop", () => M.laptop({ stickers: [L("logo", 285, 330, -8), L("lockup", 585, 280, 4), L("rank-quasar", 780, 410, 10), L("rank-nova", 675, 540, -6), L("badge-risk-aware", 285, 580, 6), L("level-up", 480, 615, -3), L("pixel-q", 800, 615, 8), L("gm", 480, 440, -12), L("rank-comet", 390, 455, 4), L("pioneer", 610, 395, 3)] })],
+  ...tees("01", "tee-01-chest", ["black", "bone", "lavender"], "chest"),
+  ["tee-02-black-back", () => M.tee({ color: G.black, art: svgs["tee-02-back-dark"], placement: "back" })],
+  ["tee-02-bone-back", () => M.tee({ color: G.bone, art: svgs["tee-02-back-light"], placement: "back" })],
+  ["tee-02-black-front", () => M.tee({ color: G.black, art: svgs["tee-02-chest"], placement: "chest" })],
+  ...tees("03", "tee-03", ["black", "bone", "lime"]),
+  ...tees("04", "tee-04", ["black", "lavender", "lime"]),
+  ...tees("05", "tee-05", ["black", "bone", "lavender"]),
+  ...["black", "bone", "lavender"].map((c) => [`hoodie-${c}`, () => M.hoodie({ color: G[c], art: svgs[`hoodie-front-${tone(c)}`] })]),
+  ["cap-black", () => M.cap({ color: G.black, art: svgs["cap-mark-3c"] })],
+  ["cap-bone", () => M.cap({ color: G.bone, art: svgs["cap-mark-tonal"] })],
+  ["cap-black-lockup", () => M.cap({ color: G.black, art: svgs["cap-lockup-dark"], aspect: 1050 / 2700, width: 430 })],
+  ["cap-bone-lockup", () => M.cap({ color: G.bone, art: svgs["cap-lockup-light"], aspect: 1050 / 2700, width: 430 })],
+  ["mug-gm-front", () => M.mug({ wrap: svgs["mug-gm"], center: 700, body: G.white })],
+  ["mug-gm-back", () => M.mug({ wrap: svgs["mug-gm"], center: 2000, body: G.white })],
+  ["mug-singularity-front", () => M.mug({ wrap: svgs["mug-singularity"], center: 700 })],
+  ["mug-singularity-back", () => M.mug({ wrap: svgs["mug-singularity"], center: 2000 })],
+  ["stickers-laptop", () => M.laptop({ stickers: [L("logo", 285, 330, -8), L("lockup", 585, 280, 4), L("rank-quasar", 780, 410, 10), L("rank-nova", 675, 540, -6), L("badge-risk-aware", 285, 580, 6), L("level-up", 480, 615, -3), L("xp", 800, 615, 8), L("gm", 480, 440, -12), L("rank-comet", 390, 455, 4), L("pioneer", 610, 395, 3)] })],
   ["stickers-sheet", () => M.sheetOnDesk({ sheet: svgs["sticker-sheet-preview"] })],
 ];
 if (want("mockups")) {
   for (const [name, fn] of MOCKUPS) {
-    await render(fn(), 1600, 1600, resolve(SHOTS, `mockup-${name}.png`), 1.6, "#12141f");
+    await render(fn(), 1600, 1600, resolve(SHOTS, `mockup-${name}.png`), 1.6, M.STUDIO_BG);
     console.log("mockup", name);
   }
 }
@@ -90,9 +97,9 @@ const css = `body{margin:0;background:#06070d;color:#e8e6f5;font:15px/1.35 syste
 .g{display:grid;gap:18px}.c{background:#0f1120;border:1px solid #242842;border-radius:14px;overflow:hidden}.c img{display:block;width:100%}.c div{padding:10px 12px;font-size:13px;color:#c9c6e0}`;
 if (want("sheets")) {
   const cells = MOCKUPS.map(([n]) => `<div class="c"><img src="mockup-${n}.png"><div>${n}</div></div>`).join("");
-  await sheetPage(`<style>${css}.g{grid-template-columns:repeat(5,1fr)}</style><h1>Quasaria merch — mockups</h1><p>${MOCKUPS.length} programmatic mockups · original artwork only · example products, not for sale yet</p><div class="g">${cells}</div>`, resolve(SHOTS, "merch-contact-sheet.png"), 2000);
-  const dcells = DESIGNS.filter((d) => d.id !== "sticker-sheet").map((d) => `<div class="c"><div style="background:${d.id.startsWith("sticker") ? "#7d8299" : "#15161d"};padding:14px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><img style="max-width:100%;max-height:100%;width:auto" src="${pathToFileURL(resolve(PRINT, "png", d.file + ".png")).href}"></div><div>${d.file}<br><span style="color:#8d93ad">${d.w}×${d.h} · ${d.kind}</span></div></div>`).join("");
-  await sheetPage(`<style>${css}.g{grid-template-columns:repeat(5,1fr)}</style><h1>Quasaria merch — print designs</h1><p>Full-resolution print PNGs (transparent) rendered from outlined SVG</p><div class="g">${dcells}</div>`, resolve(SHOTS, "merch-designs-overview.png"), 2000);
+  await sheetPage(`<style>${css}.g{grid-template-columns:repeat(6,1fr)}</style><h1>Quasaria merch v2 — mockups</h1><p>${MOCKUPS.length} programmatic mockups · original artwork only · example products, not for sale yet</p><div class="g">${cells}</div>`, resolve(SHOTS, "merch-contact-sheet-v2.png"), 2000);
+  const dcells = DESIGNS.filter((d) => d.id !== "sticker-sheet").map((d) => `<div class="c"><div style="background:${d.id.startsWith("sticker") ? "#7d8299" : d.id.endsWith("-light") || d.id === "cap-mark-tonal" || d.id === "mug-gm" ? "#ECE6DA" : "#15161d"};padding:14px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><img style="max-width:100%;max-height:100%;width:auto" src="${pathToFileURL(resolve(PRINT, "png", d.file + ".png")).href}"></div><div>${d.file}<br><span style="color:#8d93ad">${d.w}×${d.h} · ${d.kind}</span></div></div>`).join("");
+  await sheetPage(`<style>${css}.g{grid-template-columns:repeat(6,1fr)}</style><h1>Quasaria merch v2 — print designs</h1><p>Full-resolution print PNGs (transparent) rendered from outlined SVG</p><div class="g">${dcells}</div>`, resolve(SHOTS, "merch-designs-overview-v2.png"), 2000);
   console.log("sheets done");
 }
 
@@ -102,29 +109,37 @@ if (want("readme")) {
   const inch = (d) => `${(d.w / dpi(d)).toFixed(2).replace(/\.00$/, "")} × ${(d.h / dpi(d)).toFixed(2).replace(/\.00$/, "")} in`;
   const rows = DESIGNS.map((d) => `| \`svg/${d.file}.svg\` + \`png/${d.file}.png\` | ${d.kind} | ${d.w} × ${d.h} px | ${dpi(d)} DPI · ${inch(d)} | ${d.garments} | ${d.note} |`).join("\n");
   const srows = stickerPrint.map(({ s, w, h }) => `| \`stickers/svg/sticker-${s.id}.svg\` / \`stickers/png/sticker-${s.id}.png\` | ${s.name} | SVG ${w} × ${h} px (${(w / 300).toFixed(2)} × ${(h / 300).toFixed(2)} in, incl. bleed) · PNG ${stickerWeb[s.id].w} × ${stickerWeb[s.id].h} px |`).join("\n");
-  writeFileSync(resolve(PRINT, "README.md"), `# Quasaria merch — print files
+  writeFileSync(resolve(PRINT, "README.md"), `# Quasaria merch — print files (v2, 2026 refresh)
 
-Original artwork built from the Quasaria **Singularity Q** mark (concept A). No third-party or
-Stellar/XLM logos are used. All text is converted to outlines, so no fonts are needed.
-Regenerate with \`scripts/merch/build-merch.mjs\` + \`scripts/merch/post-merch.py\` in the repo.
+Original artwork built around the Quasaria **Singularity Q** mark (unchanged). No third-party or
+Stellar/XLM logos are used. All text is converted to outlines (Space Grotesk + JetBrains Mono), so
+no fonts are needed. Regenerate with \`scripts/merch/build-merch.mjs\` + \`scripts/merch/post-merch.py\`
+in the repo. The v1 files are archived in \`../print-v1/\`.
 
-* **SVG** = master vector files. Glows use SVG blur filters and gradients, so for vector-only
-  workflows (screen print / embroidery digitising) use the flat designs (tee 04, cap files) or the PNG.
-* **PNG** = transparent, sRGB, tagged ${"`"}300 DPI${"`"} (cap files ${"`"}600 DPI${"`"}). Shirt fronts/backs are 4500 × 5400 px
+**Style:** liquid-chrome type, holographic violet → cyan → lime → coral gradients, soft grain and
+glow, oversized tight grotesk, asymmetric layouts. Designs that go on several garment colours come
+in two inks: \`*-on-dark\` (light ink, for **Black**) and \`*-on-light\` (dark ink, for **Bone**,
+**Lavender** and **Electric Lime**). Always match the file to the garment.
+
+* **SVG** = master vector files. Chrome, holo gradients, glows and grain use SVG gradients/filters;
+  for vector-only workflows (screen print / embroidery digitising) use the flat cap files or the PNG.
+* **PNG** = transparent, sRGB, tagged \`300 DPI\` (cap files \`600 DPI\`). Shirt fronts/backs are 4500 × 5400 px
   (15 × 18 in), the standard DTG print area at Printful/Printify.
-* Soft glows (tee 02, hoodie, stickers) contain semi-transparent pixels. For DTG on dark garments,
-  ask for a white underbase, and keep transparent areas transparent (don't flatten onto black).
-* Colours: violet ${"`"}#7C5CFF${"`"}, lilac ${"`"}#C4B5FD${"`"}, cyan ${"`"}#22D3EE${"`"}, ice ${"`"}#A5F3FC${"`"}, gold ${"`"}#FDE047${"`"}, base ${"`"}#06070D${"`"}.
+* Grain and glows contain semi-transparent pixels. For DTG on dark garments ask for a white
+  underbase, and keep transparent areas transparent (don't flatten onto a background colour).
+* Palette: violet \`#7C5CFF\` / deep \`#5B3DF5\`, cyan \`#22D3EE\` / deep \`#0EA5C6\`, lime \`#C6FF3D\`,
+  electric coral \`#FF5E5B\`, sunset orange \`#FF8A3D\`, bone \`#F3EEE4\`, ink \`#0E0D18\`.
+* Garments (example blanks): Black \`#141418\`, Bone \`#ECE6DA\`, Lavender \`#C9BEF2\`, Electric Lime \`#D4F75A\`.
 
 ## Designs
 
-| Files | Product | Pixels | Resolution / size | Suggested colours | Notes |
+| Files | Product | Pixels | Resolution / size | Garments | Notes |
 |---|---|---|---|---|---|
 ${rows}
 
 ## Individual die-cut stickers (300 DPI)
 
-SVGs include the magenta ${"`"}#EC008C${"`"} **CutContour** hairline (2.5 mm white border, 1.5 mm bleed).
+SVGs include the magenta \`#EC008C\` **CutContour** hairline (2.5 mm white border, 1.5 mm bleed).
 PNGs are the finished look (white border, no bleed/cut line) for kiss-cut sticker products.
 
 | Files | Sticker | Size |
@@ -133,10 +148,11 @@ ${srows}
 
 ## Before ordering
 
-1. Order one physical sample of each item (colours on screen ≠ ink on fabric; cyan and violet
-   gradients in particular shift on DTG).
+1. Order one physical sample of each item: chrome and holographic gradients, lime and coral in
+   particular, shift on DTG. Check the on-light files on real Bone/Lavender/Lime blanks.
 2. Re-check each provider's current template (mug wrap and cap areas vary by blank).
-3. Embroidery: send \`cap-embroidery-*.svg\` for digitising; thread matches ≈ violet, turquoise/cyan, white.
+3. Embroidery: send \`cap-embroidery-*.svg\` for digitising. Threads ≈ violet, turquoise/cyan, white
+   (dark caps); violet + coral (tonal light cap); violet, cyan, ink + coral (light lockup).
 `);
   console.log("README written");
 }

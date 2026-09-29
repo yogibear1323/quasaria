@@ -10,9 +10,12 @@ export const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const require = createRequire(import.meta.url);
 let opentype;
 try { opentype = require("opentype.js"); } catch { opentype = createRequire(import.meta.url)(process.env.OPENTYPE_PATH || "opentype.js"); }
-const fontDir = resolve(root, "frontend/node_modules/@fontsource/space-grotesk/files");
+const fontFile = (w, fam) => fam === "mono"
+  ? resolve(root, `frontend/node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-${w}-normal.woff`)
+  : resolve(root, `frontend/node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-${w}-normal.woff`);
 const FONTS = {};
-const font = (w) => (FONTS[w] ??= opentype.loadSync(resolve(fontDir, `space-grotesk-latin-${w}-normal.woff`)));
+/** w = weight (300–700); fam = "sg" (Space Grotesk, default) | "mono" (JetBrains Mono). */
+const font = (w, fam = "sg") => (FONTS[`${fam}${w}`] ??= opentype.loadSync(fontFile(w, fam)));
 
 export const C = {
   base: "#06070d", ink: "#0b0d18", violet: "#7C5CFF", violetDeep: "#4f46e5", lilac: "#C4B5FD",
@@ -34,12 +37,12 @@ function layout(f, text, size, x, y, tracking) {
   }
   return { d, width: pen - tracking * size - x };
 }
-export const measure = (str, { w = 700, size, tracking = 0 }) => layout(font(w), str, size, 0, 0, tracking).width;
+export const measure = (str, { w = 700, size, tracking = 0, fam }) => layout(font(w, fam), str, size, 0, 0, tracking).width;
 /** Outlined text. anchor: start | middle | end. */
-export function text(str, { w = 700, size, x, y, anchor = "middle", tracking = 0, fill = "#fff", attrs = "" }) {
-  const width = measure(str, { w, size, tracking });
+export function text(str, { w = 700, size, x, y, anchor = "middle", tracking = 0, fill = "#fff", attrs = "", fam }) {
+  const width = measure(str, { w, size, tracking, fam });
   const x0 = anchor === "middle" ? x - width / 2 : anchor === "end" ? x - width : x;
-  return `<path d="${layout(font(w), str, size, x0, y, tracking).d}" fill="${fill}" ${attrs}/>`;
+  return `<path d="${layout(font(w, fam), str, size, x0, y, tracking).d}" fill="${fill}" ${attrs}/>`;
 }
 /** Font size at which `str` is exactly `width` wide. */
 export const fit = (str, width, o = {}) => (width / measure(str, { ...o, size: 1000 })) * 1000;
@@ -186,6 +189,43 @@ export function pixelQ(x, y, px, N = 22) {
   return Object.entries(groups).map(([col, d]) => `<path d="${d}" fill="${col}" shape-rendering="crispEdges"/>`).join("");
 }
 export const pixelPlus = (x, y, px, fill) => `<path d="M${x} ${y - px}h${px}v${px}h${px}v${px}h${-px}v${px}h${-px}v${-px}h${-px}v${-px}h${px}z" fill="${fill}" shape-rendering="crispEdges"/>`;
+
+// ------------------------------------------------------------------ v2 (2026) styling helpers
+/** v2 palette: keeps violet→cyan, adds warm, upbeat accents. */
+export const V2 = {
+  violet: "#7C5CFF", violetDeep: "#5B3DF5", lilac: "#C4B5FD", cyan: "#22D3EE", cyanDeep: "#0EA5C6", ice: "#A5F3FC",
+  coral: "#FF5E5B", orange: "#FF8A3D", lime: "#C6FF3D", bone: "#F3EEE4", ink: "#0E0D18", graphite: "#2A2838",
+};
+/** Ink sets per garment tone: "dark" = light ink for black garments, "light" = dark ink for bone/lavender/lime. */
+export const INK = {
+  dark: { fg: "#FFFFFF", fg2: "#CFC8EE", mute: "#8F88B3", warm: V2.coral, pop: V2.lime, sun: V2.orange, cool: V2.cyan, vio: V2.violet, core: "#FFFFFF" },
+  light: { fg: V2.ink, fg2: "#4A4466", mute: "#7A7496", warm: "#F0433F", pop: V2.violetDeep, sun: "#F56A12", cool: V2.cyanDeep, vio: V2.violetDeep, core: V2.ink },
+};
+/** Liquid-chrome vertical gradient for type between y0 (cap top) and y1 (baseline). */
+export function chrome(id, y0, y1, tone = "dark") {
+  const s = tone === "dark"
+    ? [[0, "#FFFFFF"], [0.3, "#E4E1F5"], [0.47, "#9A95BC"], [0.5, "#3C3760"], [0.55, "#C9BDFF"], [0.72, "#F4FBFF"], [0.9, "#A9EEFF"], [1, "#E9E4FF"]]
+    : [[0, "#1A1828"], [0.32, "#47425E"], [0.47, "#A7A2C0"], [0.5, "#FFFFFF"], [0.56, "#3B2FA8"], [0.76, "#15132A"], [1, "#4B3FD0"]];
+  return `<linearGradient id="${id}" x1="0" y1="${r2(y0)}" x2="0" y2="${r2(y1)}" gradientUnits="userSpaceOnUse">${s.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join("")}</linearGradient>`;
+}
+/** Holographic (violet → cyan → lime → coral → orange) gradient along a line. */
+export function holo(id, x0, y0, x1, y1, { soft = false, stops } = {}) {
+  const s = stops ?? (soft ? ["#B9A8FF", "#8FEAFF", "#E2FF8A", "#FFB2A6", "#FFC98F"] : [V2.violet, V2.cyan, V2.lime, V2.coral, V2.orange]);
+  return `<linearGradient id="${id}" x1="${r2(x0)}" y1="${r2(y0)}" x2="${r2(x1)}" y2="${r2(y1)}" gradientUnits="userSpaceOnUse">${s.map((c, i) => `<stop offset="${r2(i / (s.length - 1))}" stop-color="${c}"/>`).join("")}</linearGradient>`;
+}
+/** Soft film grain as a mask: mask="url(#id)" speckles whatever it's applied to. */
+export function grain(id, [x, y, w, h], { freq = 0.55, seed = 7, amount = 0.45 } = {}) {
+  const k = r2(2.4 * amount + 0.6), b = r2(1 - 0.5 * k - amount * 0.2);
+  return `<filter id="${id}f" x="0" y="0" width="100%" height="100%" filterUnits="objectBoundingBox"><feTurbulence type="fractalNoise" baseFrequency="${freq}" numOctaves="2" seed="${seed}" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 ${k} ${b}"/></filter>` +
+    `<mask id="${id}" maskUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" filter="url(#${id}f)"/></mask>`;
+}
+export const blur = (id, sd) => `<filter id="${id}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${sd}"/></filter>`;
+/** Faux-italic (skewX) around a baseline point, so oversized type leans forward. */
+export const lean = (body, x, y, deg = -11) => `<g transform="translate(${r2(x)} ${r2(y)}) skewX(${deg}) translate(${r2(-x)} ${r2(-y)})">${body}</g>`;
+/** Rounded pill with centred label. */
+export function pill(x, y, w, h, label, { fill, color, size, w8 = 700, tracking = 0.04, stroke = "", fam } = {}) {
+  return `<rect x="${r2(x)}" y="${r2(y)}" width="${r2(w)}" height="${r2(h)}" rx="${r2(h / 2)}" fill="${fill}" ${stroke}/>` + text(label, { w: w8, size: size ?? h * 0.42, x: x + w / 2, y: y + h / 2 + (size ?? h * 0.42) * 0.35, tracking, fill: color, fam });
+}
 
 export const svgDoc = (w, h, body, { title = "", desc = "" } = {}) =>
   `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">\n<title>${title}</title>\n<desc>${desc} — Original artwork © Quasaria. Text is outlined; no fonts required.</desc>\n${body}\n</svg>\n`;

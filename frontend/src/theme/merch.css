@@ -81,6 +81,9 @@
 .m-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 2px; }
 .m-thumbs button { flex: 0 0 64px; height: 64px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer; background: #151827; box-shadow: inset 0 0 0 1px var(--line-2); opacity: 0.7; transition: opacity 0.15s ease; }
 .m-thumbs button.art { background: repeating-conic-gradient(#1b1e30 0 25%, #121422 0 50%) 0 0 / 12px 12px; }
+/* dark-ink artwork (for bone / lavender / lime garments) on a light backdrop */
+.m-main.art.light { background: repeating-conic-gradient(#ECE6DA 0 25%, #E3DCCD 0 50%) 0 0 / 28px 28px; }
+.m-thumbs button.art.light { background: repeating-conic-gradient(#ECE6DA 0 25%, #E3DCCD 0 50%) 0 0 / 12px 12px; }
 .m-thumbs button.on, .m-thumbs button:hover { opacity: 1; box-shadow: inset 0 0 0 2px var(--violet-hi); }
 .m-thumbs img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .m-info { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-right: 6px; }

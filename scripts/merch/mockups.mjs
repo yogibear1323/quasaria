@@ -1,14 +1,18 @@
 // Programmatic product mockups: SVG garment/product silhouettes with shading,
 // the real print file composited on top. All in a 1000×1000 scene.
 const uri = (svg) => `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
-export const GARMENT = { black: "#121318", navy: "#1c2544", charcoal: "#3a3d46", purple: "#2c2152" };
+// v2 garment palette: black plus lighter/brighter colours.
+export const GARMENT = { black: "#141418", bone: "#ECE6DA", lavender: "#C9BEF2", lime: "#D4F75A", white: "#F7F6F2" };
+/** Studio backdrop for v2: soft, bright, slightly holographic. */
+export const STUDIO_BG = "#DCD7E8";
 
-const studio = (id) => `<defs><radialGradient id="${id}bg" cx="500" cy="420" r="720" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#454a68"/><stop offset=".55" stop-color="#262a3e"/><stop offset="1" stop-color="#12141f"/></radialGradient>
+const studio = (id) => `<defs><radialGradient id="${id}bg" cx="500" cy="420" r="720" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F6F4FA"/><stop offset=".6" stop-color="#E4DFEE"/><stop offset="1" stop-color="#C9C2DC"/></radialGradient>
+<radialGradient id="${id}holo" cx="820" cy="170" r="420" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFD2C4" stop-opacity=".55"/><stop offset=".5" stop-color="#CFF6FF" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
 <filter id="${id}soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
 <filter id="${id}b8" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
 <filter id="${id}b20" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
 <filter id="${id}noise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .5 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
-<rect width="1000" height="1000" fill="url(#${id}bg)"/>`;
+<rect width="1000" height="1000" fill="url(#${id}bg)"/><rect width="1000" height="1000" fill="url(#${id}holo)"/>`;
 const scene = (body) => `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000" viewBox="0 0 1000 1000">${body}</svg>`;
 const cylinder = (id, x0, x1, a = 0.42) => `<linearGradient id="${id}" x1="${x0}" y1="0" x2="${x1}" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000" stop-opacity="${a}"/><stop offset=".18" stop-color="#000" stop-opacity=".08"/><stop offset=".45" stop-color="#fff" stop-opacity=".05"/><stop offset=".82" stop-color="#000" stop-opacity=".1"/><stop offset="1" stop-color="#000" stop-opacity="${a}"/></linearGradient>`;
 
@@ -36,7 +40,7 @@ export function tee({ color, art, placement = "front", aspect = 5400 / 4500 }) {
     : `<path d="M410 112C450 96 550 96 590 112C575 140 425 140 410 112Z" fill="#000" fill-opacity=".55"/><path d="M392 118C425 172 575 172 608 118L592 112C562 154 438 154 408 112Z" fill="${color}"/><path d="M392 118C425 172 575 172 608 118L592 112C562 154 438 154 408 112Z" fill="#fff" fill-opacity=".06"/><path d="M398 122C430 168 570 168 602 122" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>`;
   return scene(`${studio("t")}<defs><clipPath id="tclip"><path d="${path}"/></clipPath>${cylinder("tcyl", 120, 880)}
   <linearGradient id="tvert" x1="0" y1="110" x2="0" y2="900" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".07"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient></defs>
-  <ellipse cx="500" cy="915" rx="320" ry="24" fill="#000" opacity=".45" filter="url(#tb20)"/>
+  <ellipse cx="500" cy="915" rx="320" ry="24" fill="#2a2440" opacity=".28" filter="url(#tb20)"/>
   <path d="${path}" fill="${color}"/>
   <g clip-path="url(#tclip)">
     <image href="${uri(art)}" x="${px}" y="${py}" width="${pw}" height="${ph}" preserveAspectRatio="xMidYMin meet" opacity=".96"/>
@@ -58,7 +62,7 @@ export function hoodie({ color, art }) {
   const ribs = (x0, x1, y0, y1, n) => [...Array(n)].map((_, i) => { const t = (i + 0.5) / n; return `M${x0 + (x1 - x0) * t} ${y0}V${y1}`; }).join("");
   return scene(`${studio("h")}<defs><clipPath id="hclip"><path d="${body}"/></clipPath>${cylinder("hcyl", 250, 750, 0.5)}${cylinder("hcylS", 110, 890, 0.4)}
   <radialGradient id="hhood" cx="500" cy="60" r="200" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><linearGradient id="hin" x1="0" y1="58" x2="0" y2="205" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a1c24"/><stop offset="1" stop-color="#040406"/></linearGradient><linearGradient id="hvert" x1="0" y1="120" x2="0" y2="920" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".07"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></linearGradient></defs>
-  <ellipse cx="500" cy="925" rx="340" ry="24" fill="#000" opacity=".45" filter="url(#hb20)"/>
+  <ellipse cx="500" cy="925" rx="340" ry="24" fill="#2a2440" opacity=".28" filter="url(#hb20)"/>
   <path d="M330 172C318 70 408 22 500 22C592 22 682 70 670 172Z" fill="${color}"/><path d="M330 172C318 70 408 22 500 22C592 22 682 70 670 172Z" fill="url(#hhood)"/>
   <path d="M382 172C378 98 436 58 500 58C564 58 622 98 618 172C584 212 416 212 382 172Z" fill="url(#hin)"/><path d="M382 172C378 98 436 58 500 58C564 58 622 98 618 172" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="3"/>
   <path d="${sleeveL}" fill="${color}"/><path d="${sleeveR}" fill="${color}"/><path d="${sleeveL}" fill="url(#hcylS)"/><path d="${sleeveR}" fill="url(#hcylS)"/>
@@ -106,7 +110,7 @@ export function cap({ color, art, aspect = 1050 / 2400, width = 400 }) {
     <feFlood flood-color="#000" flood-opacity=".7"/><feComposite in2="sh" operator="in" result="shc"/>
     <feMerge><feMergeNode in="shc"/><feMergeNode in="thr2"/></feMerge>
   </filter></defs>
-  <ellipse cx="500" cy="745" rx="300" ry="26" fill="#000" opacity=".5" filter="url(#cb20)"/>
+  <ellipse cx="500" cy="745" rx="300" ry="26" fill="#2a2440" opacity=".3" filter="url(#cb20)"/>
   <path d="${crown}" fill="${color}"/>
   <g clip-path="url(#cclip)">
     <path d="M500 283C442 345 412 470 405 592M500 283C558 345 588 470 595 592M500 283C366 325 304 450 292 592M500 283C634 325 696 450 708 592" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="3"/>
@@ -132,24 +136,25 @@ export function mug({ wrap, center = 700, body = "#101118", wrapW = 2700, wrapH 
     const u0 = center + (t0 * R) / s, u1 = center + (t1 * R) / s, dy = ry * Math.cos(tm);
     strips += `<svg x="${x0.toFixed(2)}" y="${(top + 22 + dy).toFixed(2)}" width="${(x1 - x0 + 0.7).toFixed(2)}" height="${ph.toFixed(2)}" viewBox="${u0.toFixed(2)} 0 ${(u1 - u0).toFixed(2)} ${wrapH}" preserveAspectRatio="none"><use href="#mw"/><use href="#mw" x="${-wrapW}"/><use href="#mw" x="${wrapW}"/></svg>`;
   }
+  const light = parseInt(body.slice(1, 3), 16) > 0x99, inner = light ? "#CFCAD8" : "#050508";
   const bodyPath = `M${cx - R} ${top}V${bot}A${R} ${ry} 0 0 0 ${cx + R} ${bot}V${top}Z`;
   return scene(`${studio("g")}<defs><image id="mw" href="${uri(wrap)}" width="${wrapW}" height="${wrapH}"/><clipPath id="gclip"><path d="${bodyPath}"/></clipPath>
   <linearGradient id="gcyl" x1="${cx - R}" y1="0" x2="${cx + R}" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000" stop-opacity=".7"/><stop offset=".22" stop-color="#000" stop-opacity=".12"/><stop offset=".3" stop-color="#fff" stop-opacity=".22"/><stop offset=".36" stop-color="#fff" stop-opacity=".05"/><stop offset=".7" stop-color="#000" stop-opacity=".1"/><stop offset="1" stop-color="#000" stop-opacity=".75"/></linearGradient>
   <linearGradient id="ghandle" x1="690" y1="0" x2="840" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000" stop-opacity=".6"/><stop offset=".55" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient></defs>
-  <ellipse cx="530" cy="${bot + 30}" rx="300" ry="30" fill="#000" opacity=".55" filter="url(#gb20)"/>
+  <ellipse cx="530" cy="${bot + 30}" rx="300" ry="30" fill="#2a2440" opacity=".3" filter="url(#gb20)"/>
   <path d="M${cx + R - 4} 350C800 335 842 410 836 528C830 650 788 712 ${cx + R - 4} 700V652C764 652 788 604 790 528C792 440 770 395 ${cx + R - 4} 398Z" fill="${body}"/>
   <path d="M${cx + R - 4} 350C800 335 842 410 836 528C830 650 788 712 ${cx + R - 4} 700V652C764 652 788 604 790 528C792 440 770 395 ${cx + R - 4} 398Z" fill="url(#ghandle)"/>
   <path d="${bodyPath}" fill="${body}"/>
   <g clip-path="url(#gclip)">${strips}<rect width="1000" height="1000" fill="url(#gcyl)"/>
     <rect x="${cx - R * 0.46}" y="${top}" width="14" height="${bot - top + 40}" fill="#fff" opacity=".22" filter="url(#gb8)"/></g>
-  <ellipse cx="${cx}" cy="${top}" rx="${R}" ry="${ry}" fill="${body}"/><ellipse cx="${cx}" cy="${top + 3}" rx="${R - 12}" ry="${ry - 7}" fill="#050508"/>
+  <ellipse cx="${cx}" cy="${top}" rx="${R}" ry="${ry}" fill="${body}"/><ellipse cx="${cx}" cy="${top + 3}" rx="${R - 12}" ry="${ry - 7}" fill="${inner}"/>
   <ellipse cx="${cx}" cy="${top}" rx="${R - 1}" ry="${ry - 1}" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2.5"/>
   <path d="M${cx - R + 14} ${top + 6}A${R - 14} ${ry - 8} 0 0 0 ${cx + R - 14} ${top + 6}" fill="none" stroke="#000" stroke-opacity=".6" stroke-width="3"/>`);
 }
 
 // ------------------------------------------------------------------ stickers on a laptop / sticker sheet on a desk
-const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="1000" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2b2f45"/><stop offset="1" stop-color="#11131d"/></linearGradient>
-<radialGradient id="${id}vig" cx="500" cy="480" r="700" gradientUnits="userSpaceOnUse"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient>
+const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="1000" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#EEEAF4"/><stop offset="1" stop-color="#C4BDD6"/></linearGradient>
+<radialGradient id="${id}vig" cx="500" cy="480" r="700" gradientUnits="userSpaceOnUse"><stop offset=".6" stop-color="#2a2440" stop-opacity="0"/><stop offset="1" stop-color="#2a2440" stop-opacity=".22"/></radialGradient>
 <filter id="${id}sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#000" flood-opacity=".45"/></filter>
 <filter id="${id}b20" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
 <filter id="${id}noise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .6 0"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>

@@ -12,7 +12,7 @@ export default function Merch() {
         <div className="m-hero-copy">
           <div className="l-kicker">Quasaria Supply · coming soon</div>
           <h1 id="m-hero-title">Wear the <span className="grad-text">Singularity</span>.</h1>
-          <p>An original merch line built around the Singularity Q: tees, a hoodie, an embroidered cap, stickers and a mug. It's a preview for now. Nothing is for sale and every price is an example.</p>
+          <p>An original merch line built around the Singularity Q: tees in black, bone, lavender and electric lime, a hoodie, embroidered caps, stickers and two mugs, with liquid-chrome type and holographic gradients. It's a preview for now. Nothing is for sale and every price is an example.</p>
           <div className="m-hero-pills">
             <span className="pill cyan">Preview · not for sale yet</span>
             <span className="pill">Example prices</span>
@@ -25,8 +25,8 @@ export default function Merch() {
         </div>
         <div className="m-hero-art" aria-hidden>
           <img className="m-h1" src={merchImg("mockups/tee-02-black-back.webp")} alt="" />
-          <img className="m-h2" src={merchImg("mockups/hoodie-navy.webp")} alt="" />
-          <img className="m-h3" src={merchImg("mockups/cap-black.webp")} alt="" />
+          <img className="m-h2" src={merchImg("mockups/hoodie-lavender.webp")} alt="" />
+          <img className="m-h3" src={merchImg("mockups/cap-bone.webp")} alt="" />
           <img className="m-h4" src={merchImg("mockups/stickers-laptop.webp")} alt="" />
         </div>
       </section>
@@ -115,7 +115,7 @@ function ProductCard({ p, onOpen }: { p: Product; onOpen: () => void }) {
 function ProductModal({ p, onClose }: { p: Product; onClose: () => void }) {
   const colorIds = Object.keys(p.mockups);
   const [color, setColor] = useState(colorIds[0]);
-  const gallery = useMemo(() => [...colorIds.map((c) => ({ src: p.mockups[c], alt: `${p.name} — ${p.colors.find((x) => x.id === c)?.name ?? "mockup"}`, color: c, art: false })), ...p.extras.map((x) => ({ ...x, color: "", art: !!x.art }))], [p]); // eslint-disable-line react-hooks/exhaustive-deps
+  const gallery = useMemo(() => [...colorIds.map((c) => ({ src: p.mockups[c], alt: `${p.name} — ${p.colors.find((x) => x.id === c)?.name ?? "mockup"}`, color: c, art: false, light: false })), ...p.extras.map((x) => ({ ...x, color: "", art: !!x.art, light: !!x.light }))], [p]); // eslint-disable-line react-hooks/exhaustive-deps
   const [idx, setIdx] = useState(0);
   const [size, setSize] = useState(p.sizes.length === 1 ? p.sizes[0] : "");
   const [email, setEmail] = useState("");
@@ -154,7 +154,7 @@ function ProductModal({ p, onClose }: { p: Product; onClose: () => void }) {
       <div className="m-modal card" role="dialog" aria-modal="true" aria-labelledby="m-modal-title" ref={dialogRef} data-testid="merch-modal">
         <button className="m-close" onClick={onClose} ref={closeRef} aria-label="Close">×</button>
         <div className="m-gallery">
-          <div className={`m-main ${cur.art ? "art" : ""}`}>
+          <div className={`m-main ${cur.art ? "art" : ""} ${cur.light ? "light" : ""}`}>
             <img key={cur.src} src={cur.src} alt={cur.alt} />
             {gallery.length > 1 && <>
               <button className="m-nav prev" onClick={() => setIdx((idx - 1 + gallery.length) % gallery.length)} aria-label="Previous image">‹</button>
@@ -163,7 +163,7 @@ function ProductModal({ p, onClose }: { p: Product; onClose: () => void }) {
           </div>
           <div className="m-thumbs" role="list">
             {gallery.map((g, i) => (
-              <button key={g.src} role="listitem" className={`${i === idx ? "on" : ""} ${g.art ? "art" : ""}`} onClick={() => { setIdx(i); if (g.color) setColor(g.color); }} aria-label={`Show ${g.alt}`} aria-current={i === idx}>
+              <button key={g.src} role="listitem" className={`${i === idx ? "on" : ""} ${g.art ? "art" : ""} ${g.light ? "light" : ""}`} onClick={() => { setIdx(i); if (g.color) setColor(g.color); }} aria-label={`Show ${g.alt}`} aria-current={i === idx}>
                 <img src={g.src} alt="" loading="lazy" />
               </button>
             ))}

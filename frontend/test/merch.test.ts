@@ -64,3 +64,11 @@ describe("merch catalogue (preview storefront)", () => {
     });
   });
 });
+
+describe("merch v2 colourways", () => {
+  it("offers lighter garments alongside black, and dark-ink art is flagged for a light backdrop", () => {
+    const tees = PRODUCTS.filter((p) => p.category === "tees");
+    expect(tees.every((p) => p.colors.some((c) => c.id === "black") && p.colors.some((c) => c.id !== "black"))).toBe(true);
+    for (const p of PRODUCTS) for (const x of p.extras) if (/-on-light\.webp$/.test(x.src)) expect(x.light, x.src).toBe(true);
+  });
+});

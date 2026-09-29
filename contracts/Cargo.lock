@@ -1258,7 +1258,15 @@ dependencies = [
 name = "quasaria-amm-pool"
 version = "0.1.0"
 dependencies = [
+ "quasaria-gov",
  "quasaria-referral",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "quasaria-gov"
+version = "0.1.0"
+dependencies = [
  "soroban-sdk",
 ]
 
@@ -1266,6 +1274,7 @@ dependencies = [
 name = "quasaria-leverage-vault"
 version = "0.1.0"
 dependencies = [
+ "quasaria-gov",
  "quasaria-mock-oracle",
  "quasaria-referral",
  "soroban-sdk",
@@ -1275,6 +1284,7 @@ dependencies = [
 name = "quasaria-mock-oracle"
 version = "0.1.0"
 dependencies = [
+ "quasaria-gov",
  "soroban-sdk",
 ]
 
@@ -1282,6 +1292,7 @@ dependencies = [
 name = "quasaria-referral"
 version = "0.1.0"
 dependencies = [
+ "quasaria-gov",
  "soroban-sdk",
 ]
 
@@ -1289,6 +1300,7 @@ dependencies = [
 name = "quasaria-reward-token"
 version = "0.1.0"
 dependencies = [
+ "quasaria-gov",
  "soroban-sdk",
 ]
 
@@ -1305,6 +1317,7 @@ dependencies = [
 name = "quasaria-staking"
 version = "0.1.0"
 dependencies = [
+ "quasaria-gov",
  "quasaria-reward-token",
  "soroban-sdk",
 ]

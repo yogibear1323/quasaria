@@ -196,14 +196,14 @@ export function ProjectionChart({ series, markers = [], height = 220, xFmt = (x)
         </defs>
         {yt.map((v) => (
           <g key={`y${v}`}>
-            <line x1={padL} x2={W - padR} y1={Y(v)} y2={Y(v)} stroke="#2a2160" strokeDasharray="3 6" />
+            <line x1={padL} x2={W - padR} y1={Y(v)} y2={Y(v)} stroke="rgba(255,255,255,0.07)" strokeDasharray="3 6" />
             <text x={padL - 6} y={Y(v) + 4} textAnchor="end" className="calc-axis">{yFmt(v)}</text>
           </g>
         ))}
         {xt.map((v) => (
           <text key={`x${v}`} x={X(v)} y={H - 8} textAnchor="middle" className="calc-axis">{xFmt(v)}</text>
         ))}
-        {zeroLine && y0 < 0 && y1 > 0 && <line x1={padL} x2={W - padR} y1={Y(0)} y2={Y(0)} stroke="#a9a6d8" strokeOpacity={0.5} />}
+        {zeroLine && y0 < 0 && y1 > 0 && <line x1={padL} x2={W - padR} y1={Y(0)} y2={Y(0)} stroke="#a3a9c6" strokeOpacity={0.5} />}
         {series.map((s, i) => s.fill && (
           <path key={`f${i}`} d={`${path(s)} L${X(s.points[s.points.length - 1].x)},${Y(Math.max(y0, 0))} L${X(s.points[0].x)},${Y(Math.max(y0, 0))} Z`} fill={`url(#${gid}-${i})`} />
         ))}

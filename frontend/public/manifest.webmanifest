@@ -3,8 +3,8 @@
   "short_name": "Quasaria",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#05030f",
-  "theme_color": "#05030f",
+  "background_color": "#06070d",
+  "theme_color": "#06070d",
   "icons": [
     { "src": "favicon-32.png", "sizes": "32x32", "type": "image/png" },
     { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },

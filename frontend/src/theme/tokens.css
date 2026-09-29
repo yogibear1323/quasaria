@@ -1,37 +1,95 @@
 /* =====================================================================
-   Quasaria design tokens — "deep space + quasar plasma"
+   Quasaria design tokens — v2 "event horizon"
+   Deep near-black navy, one signature accent (cosmic violet → cyan),
+   glass surfaces with hairline borders. Text/background pairs meet WCAG AA.
    ===================================================================== */
 :root {
-  /* Deep-space base */
-  --void: #05030f;        /* page background, the dark between galaxies */
-  --deep: #0b0726;        /* raised surfaces */
-  --indigo: #1a1147;      /* borders / hover */
-  --dust: #2a2160;        /* subtle lines */
-  --star: #eef1ff;        /* primary text */
-  --haze: #a9a6d8;        /* secondary text */
+  color-scheme: dark;
 
-  /* Neon / nebula accents */
-  --quasar: #38f3ff;      /* primary accent: quasar-core cyan */
-  --plasma: #ff3dcb;      /* secondary accent: plasma magenta */
-  --nebula: #9b5cff;      /* tertiary: nebula violet */
-  --solar: #ffd166;       /* rewards / highlights: solar gold */
-  --flare: #ff9a3d;       /* accretion-disk orange */
-  --aurora: #3dffa8;      /* positive / bids */
-  --redshift: #ff4d6d;    /* negative / asks / danger */
+  /* ---- base surfaces */
+  --bg: #06070d;             /* page */
+  --bg-elev: #0b0d18;        /* raised solid */
+  --bg-sunken: rgba(4, 5, 10, 0.55); /* inputs, wells */
+  --surface: rgba(16, 19, 35, 0.72);   /* glass card */
+  --surface-2: rgba(24, 28, 52, 0.66); /* nested / hover */
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+  --line-accent: rgba(139, 124, 255, 0.45);
 
-  --grad-brand: linear-gradient(90deg, var(--quasar), #c9b6ff 45%, var(--plasma));
-  --grad-disk: linear-gradient(120deg, #ffe9a3, var(--flare) 30%, var(--plasma) 65%, var(--nebula));
-  --glass: rgba(16, 10, 48, 0.62);
-  --glass-border: rgba(155, 92, 255, 0.35);
-  --glow-cyan: 0 0 18px rgba(56, 243, 255, 0.45), 0 0 42px rgba(56, 243, 255, 0.18);
-  --glow-pink: 0 0 18px rgba(255, 61, 203, 0.45), 0 0 42px rgba(255, 61, 203, 0.18);
-  --glow-violet: 0 0 22px rgba(155, 92, 255, 0.4);
+  /* ---- text (contrast on --bg-elev: 15.1 / 8.3 / 5.3) */
+  --text: #eef0fa;
+  --text-2: #a3a9c6;
+  --text-3: #7d84a6;
 
-  /* Typography */
-  --font-display: "Orbitron", "Space Grotesk", system-ui, sans-serif;
-  --font-body: "Space Grotesk", system-ui, -apple-system, Segoe UI, sans-serif;
+  /* ---- signature accent: cosmic violet → cyan */
+  --violet: #8b7cff;
+  --violet-hi: #c4b5fd;
+  --violet-strong: #6d4aff;
+  --indigo: #4f46e5;
+  --cyan: #22d3ee;
+  --cyan-hi: #a5f3fc;
+  --grad-accent: linear-gradient(135deg, #a78bfa 0%, #7c5cff 40%, #22d3ee 100%);
+  --grad-accent-soft: linear-gradient(135deg, rgba(124, 92, 255, 0.22), rgba(34, 211, 238, 0.14));
+  --grad-button: linear-gradient(135deg, #6d4aff 0%, #4f46e5 100%); /* white text ≥ 5.1:1 */
+  --grad-text: linear-gradient(95deg, #ffffff 0%, #e4e0ff 38%, #a78bfa 68%, #22d3ee 100%);
+
+  /* ---- semantic */
+  --green: #34d399;
+  --red: #fb7185;
+  --amber: #fbbf24;
+  --orange: #fb923c;
+
+  /* ---- legacy aliases (used by components / inline styles) */
+  --void: var(--bg);
+  --deep: var(--bg-elev);
+  --dust: var(--line-2);
+  --star: var(--text);
+  --haze: var(--text-2);
+  --quasar: var(--cyan);
+  --plasma: #f472b6;
+  --nebula: var(--violet);
+  --solar: var(--amber);
+  --flare: var(--orange);
+  --aurora: var(--green);
+  --redshift: var(--red);
+  --grad-brand: var(--grad-accent);
+  --grad-disk: linear-gradient(90deg, #a78bfa, #7c5cff 45%, #22d3ee);
+  --glass: var(--surface);
+  --glass-border: var(--line-2);
+  --glow-cyan: 0 0 0 1px rgba(34, 211, 238, 0.35), 0 8px 28px -10px rgba(34, 211, 238, 0.55);
+  --glow-pink: 0 8px 28px -10px rgba(244, 114, 182, 0.55);
+  --glow-violet: 0 0 0 1px rgba(139, 124, 255, 0.35), 0 10px 30px -12px rgba(124, 92, 255, 0.7);
+
+  /* ---- elevation */
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 32px -18px rgba(0, 0, 0, 0.8);
+  --shadow-pop: 0 24px 60px -24px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--line-2);
+  --ring: 0 0 0 2px var(--bg), 0 0 0 4px rgba(167, 139, 250, 0.9);
+
+  /* ---- typography */
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --radius: 18px;
+  /* ---- spacing scale (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-24: 96px;
+
+  /* ---- shape & motion */
+  --radius: 16px;
   --radius-sm: 10px;
+  --radius-xs: 8px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 140ms;
+  --t-med: 240ms;
+
+  --topbar-h: 64px;
 }

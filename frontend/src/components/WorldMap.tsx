@@ -14,12 +14,12 @@ export default function WorldMap({ pins }: { pins: MapPin[] }) {
   return (
     <svg className="world-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="World map highlighting the countries of verified local-currency stablecoins">
       {WORLD_ROWS.map((r, y) =>
-        Array.from(r).map((c, x) => (c === "1" ? <circle key={`${x}-${y}`} cx={x * cell + cell / 2} cy={y * cell + cell / 2} r={2.1} fill="rgba(169,166,216,.28)" /> : null)),
+        Array.from(r).map((c, x) => (c === "1" ? <circle key={`${x}-${y}`} cx={x * cell + cell / 2} cy={y * cell + cell / 2} r={2.1} fill="rgba(163,169,198,.24)" /> : null)),
       )}
       {pins.map((p) => (
         <g key={p.label} transform={`translate(${px(p.lon)},${py(p.lat)})`}>
-          <circle r={16} fill={p.local ? "rgba(255,61,203,.18)" : "rgba(56,243,255,.16)"} className="pin-pulse" />
-          <circle r={5.5} fill={p.local ? "#ff3dcb" : "#38f3ff"} stroke="#05030f" strokeWidth={1.5} />
+          <circle r={16} fill={p.local ? "rgba(167,139,250,.2)" : "rgba(34,211,238,.16)"} className="pin-pulse" />
+          <circle r={5.5} fill={p.local ? "#a78bfa" : "#22d3ee"} stroke="#06070d" strokeWidth={1.5} />
           <title>{p.title}</title>
           <text y={p.below ? 26 : -12} textAnchor="middle" className="pin-label">{p.label}</text>
         </g>

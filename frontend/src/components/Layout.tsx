@@ -8,6 +8,7 @@ import { short } from "../lib/format";
 import { CONTRACTS_CONFIGURED } from "../lib/config";
 import { useXlmUsd } from "../lib/markets";
 import { asOf, snapshotLabel } from "../lib/stellarchain";
+import { LevelBadge } from "../game/widgets";
 
 function XlmTicker() {
   const x = useXlmUsd();
@@ -31,6 +32,7 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/rewards", label: "QFX Mint & Rewards", scene: "supernova" },
   { to: "/referrals", label: "Referrals", scene: "constellation" },
   { to: "/bots", label: "Bots & Leverage", scene: "warp" },
+  { to: "/quests", label: "Quests", scene: "constellation" },
 ];
 
 export function sceneFor(path: string): Scene {
@@ -84,7 +86,7 @@ export default function Layout() {
         <header className="topbar">
           <NavLink to="/" className="brand" aria-label="Quasaria home">
             <img src={logo} alt="" />
-            <span className="word grad-text">QUASARIA</span>
+            <span className="word">Quasaria</span>
           </NavLink>
           <nav className="nav">
             {NAV.map((n) => (
@@ -95,6 +97,7 @@ export default function Layout() {
           </nav>
           <XlmTicker />
           <span className="net-badge">Testnet</span>
+          <LevelBadge />
           <WalletButton />
         </header>
         {w.error && !w.modalOpen && <div className="demo-banner">{w.error}</div>}
@@ -103,8 +106,13 @@ export default function Layout() {
           <Outlet />
         </main>
         <footer>
-          Quasaria is an <b>unaudited, testnet-only</b> scaffold. Nothing here is financial advice. Leverage and yield features
-          carry substantial risk of loss and may be regulated in your jurisdiction.
+          <div className="foot-inner">
+            <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
+            <span>
+              Quasaria is an <b>unaudited, testnet-only</b> scaffold. Nothing here is financial advice. Leverage and yield features
+              carry substantial risk of loss and may be regulated in your jurisdiction.
+            </span>
+          </div>
         </footer>
       </div>
     </>

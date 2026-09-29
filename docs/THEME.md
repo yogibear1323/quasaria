@@ -1,92 +1,77 @@
-# Quasaria theme & brand guide
+# Quasaria theme & brand guide (v2 · "event horizon")
 
-**Concept — "trade at the speed of light."** A quasar is the brightest object in
-the universe: a supermassive black hole whose glowing accretion disk launches
-relativistic jets across the cosmos. Quasaria borrows that image: liquidity
-spirals in (the disk), trades shoot out (the jet). Every page is a different
-cosmic scene; UI surfaces are dark glass lit by neon plasma.
+**Concept: "trade at the speed of light."** A quasar is the brightest object in
+the universe: a black hole whose accretion ring launches relativistic jets.
+v2 keeps that story but presents it as a premium, quiet, dark exchange UI:
+near-black navy, glass surfaces with hairline borders, and **one** signature
+accent, cosmic violet → cyan. Color is used to mean something (accent, up/down,
+warnings), not as decoration.
 
-## Logo (illustrative)
+## Logo
 
-| Asset | Path | Use |
+Three concepts live in `frontend/public/brand/` (all font-independent SVG; the
+wordmark is outlined Space Grotesk):
+
+| Concept | Idea | Files |
 |---|---|---|
-| Master mark (512 viewBox, layered gradients, nebula, starfield, planet, lens flare) | `frontend/public/brand/logo.svg` (copy in `frontend/src/assets/logo.svg`) | App header, splash screen, README, OG image |
-| Small-size variant (64 viewBox, simplified but still illustrative) | `frontend/public/brand/favicon.svg` | Browser favicon |
-| PNG favicon 32×32 | `frontend/public/favicon-32.png` | Legacy favicon |
-| Apple touch icon 180×180 | `frontend/public/apple-touch-icon.png` | iOS home screen |
-| App icon 512×512 | `frontend/public/icon-512.png` | PWA manifest |
-| Social / OG image 1200×630 | `frontend/public/og-image.png` | `og:image`, `twitter:image` |
-| README banner 1280×400 | `docs/brand/banner.png` | README header |
-| Logo PNG preview | `docs/brand/logo-512.png`, `docs/brand/favicon-preview-128.png` | Docs / reviews |
+| **A · Singularity Q** (default) | The accretion ring is the bowl of a Q; the jet from the bright core is its tail. A faint counter-jet and a glint finish the quasar. | `concept-a-mark.svg`, `concept-a-icon.svg`, `concept-a-lockup-dark.svg`, `concept-a-lockup-light.svg` |
+| B · Beacon | Star-bright core inside a tilted accretion disk, bipolar jets. The most "cosmic". | `concept-b-*.svg` |
+| C · Orbit Badge | Bold white geometric Q with a sparkle core on a violet→cyan squircle. Best on light backgrounds / app stores. | `concept-c-*.svg` |
 
-The mark is a **Q made from a quasar**: the tilted accretion disk is the bowl of
-the Q (back half drawn behind the white-hot core, front half in front for
-depth), and the relativistic jet that punches out of the disk to the lower right
-is the Q's tail. A ringed violet planet, sparkles, nebula clouds and a dust lane
-fill the deep-space disc; a cyan→violet→magenta bezel frames it.
-
-Regenerate all PNGs after editing the SVGs:
+The active concept is copied to `logo.svg` (mark), `favicon.svg` (app icon),
+`logo-lockup-dark.svg` / `logo-lockup-light.svg` and `frontend/src/assets/logo.svg`.
+`brand/ACTIVE` records which one. **To swap:**
 
 ```bash
-node scripts/render-brand.mjs      # uses Playwright + @fontsource fonts from frontend/
+node scripts/render-brand.mjs b   # or a / c — copies the SVGs and re-renders favicon-32,
+                                  # apple-touch-icon, icon-512, og-image, docs/brand/*
 ```
 
-## Palette (`frontend/src/theme/tokens.css`)
+To edit the concepts themselves, change `scripts/brand/gen-concepts.mjs` and run it
+(`npm i --no-save opentype.js@1` inside `frontend/` first). The v1 illustrative
+logo is kept in `brand/legacy/`.
 
-| Token | Hex | Role |
+Clear space: at least the core's diameter around the mark. Minimum size: 16 px
+(icon), 20 px (mark). Don't recolor the ring, add outlines, or place the dark-bg
+lockup on light backgrounds (use `logo-lockup-light.svg`).
+
+## Color (see `frontend/src/theme/tokens.css`)
+
+| Token | Value | Use |
 |---|---|---|
-| `--void` | `#05030f` | Page background — the dark between galaxies |
-| `--deep` | `#0b0726` | Raised surfaces |
-| `--indigo` | `#1a1147` | Borders, hovers, active tabs |
-| `--dust` | `#2a2160` | Hairlines, input borders |
-| `--star` | `#eef1ff` | Primary text |
-| `--haze` | `#a9a6d8` | Secondary text |
-| `--quasar` | `#38f3ff` | Primary accent — quasar-core cyan |
-| `--plasma` | `#ff3dcb` | Secondary accent — plasma magenta |
-| `--nebula` | `#9b5cff` | Tertiary — nebula violet |
-| `--solar` | `#ffd166` | Rewards, highlights |
-| `--flare` | `#ff9a3d` | Accretion-disk orange |
-| `--aurora` | `#3dffa8` | Positive / bids / buy |
-| `--redshift` | `#ff4d6d` | Negative / asks / sell / danger |
+| `--bg` / `--bg-elev` | `#06070d` / `#0b0d18` | page / raised solid |
+| `--surface` | `rgba(16,19,35,.72)` | glass cards (blur 14px) |
+| `--line` / `--line-2` | white 7% / 12% | hairline borders |
+| `--text` / `--text-2` / `--text-3` | `#eef0fa` / `#a3a9c6` / `#7d84a6` | 15.1 / 8.3 / 5.3 : 1 on `--bg-elev` |
+| `--grad-accent` | `#a78bfa → #7c5cff → #22d3ee` | signature: logo, active nav, progress, hero |
+| `--grad-button` | `#6d4aff → #4f46e5` | primary buttons (white text ≥ 5.1 : 1) |
+| `--green` / `--red` | `#34d399` / `#fb7185` | up, bids, buy / down, asks, danger |
+| `--amber` | `#fbbf24` | rewards, estimates, TESTNET badge |
 
-Gradients: `--grad-brand` (cyan → lilac → magenta) for primary buttons, active
-nav and the wordmark; `--grad-disk` (gold → orange → magenta → violet) for
-reward counters and progress bars. Glows: `--glow-cyan`, `--glow-pink`,
-`--glow-violet` box-shadows on buttons, cards and focus rings.
+Legacy token names (`--quasar`, `--haze`, `--star`, `--solar`, …) are aliased to v2 values.
 
-## Typography
+## Type & spacing
 
-Self-hosted via `@fontsource` (no external font CDN):
+- **Space Grotesk** 500–700 for display (tight tracking, −0.02 to −0.045em).
+- **Inter** (self-hosted variable woff2, OFL) for UI text.
+- **JetBrains Mono** with tabular numerals for prices and amounts.
+- 4 px spacing scale `--s-1 … --s-24`; radii 16 / 10 / 8 px.
 
-* **Orbitron** 700/900 — display: wordmark, headings, buttons.
-* **Space Grotesk** 400/600/700 — body copy and UI labels.
-* **JetBrains Mono** 400/700 — prices, balances, addresses (tabular numerals).
+## Motion & accessibility
 
-## Animated backgrounds (per-page cosmic scenes)
+- Micro-interactions 140–240 ms (`--ease`). Buttons lift 1 px and gain a cyan glow on hover.
+- One focus ring everywhere (`:focus-visible` violet outline or `--ring`).
+- The landing hero quasar is pure CSS; every animation (hero, canvas scenes,
+  toasts, confetti, counters) stops under `prefers-reduced-motion`.
+- Risk disclaimers, "testnet-only" and "unaudited" labels stay visible on every page.
 
-Implemented in `frontend/src/components/CosmicBackground.tsx` (one `<canvas>`,
-shared parallax starfield) plus a CSS nebula layer per scene
-(`.scene-*` in `frontend/src/theme/global.css`). All scenes respect
-`prefers-reduced-motion` (single static frame).
+## Game layer ("Mission control")
 
-| Page | Scene | What moves | Why |
-|---|---|---|---|
-| Trade | **Quasar Core** | Spinning particle accretion disk, pulsing twin jets | The brand's namesake — the engine of the exchange |
-| Pools | **Nebula Drift** | Breathing, drifting magenta/violet/cyan gas clouds | Liquidity as a nebula that pools matter |
-| Stake | **Orbital Rings** | Planets orbiting a golden star on tilted ellipses | Staked tokens "in orbit" |
-| QFX Mint & Rewards | **Supernova** | Expanding shock rings + sparks spiralling outwards | Fully backed value (1 QFX = 1 XLM) radiating from a core |
-| Referrals | **Constellations** | Drifting stars that link up when near | Your referral network as a constellation |
-| Bots & Leverage | **Warp Speed** | Hyperspace streaks accelerating from the centre | Leverage = warp speed (and the danger that comes with it) |
-
-## UI styling
-
-* **Cards**: translucent "glass" (`--glass`) with blur, a gradient hairline
-  border (cyan → magenta mask) and soft violet glow on featured cards.
-* **Buttons**: brand gradient with cyan glow; buy = aurora gradient, sell =
-  plasma→redshift gradient; ghost buttons glow cyan on hover.
-* **Charts**: SVG with glowing cyan close line over an indigo area fill; green/red
-  candles; rewards growth curve uses the disk gradient.
-* **Risk UI**: red hazard-stripe banner (`.risk`) on the leverage page, gated
-  acknowledgement checkbox before any bot/leverage action.
-* **Splash**: `index.html` shows the pulsing logo on a deep-space radial gradient
-  until React mounts.
+Purely cosmetic and frontend-only (`frontend/src/game/`): XP, levels and ranks
+(Stardust → Comet → Nova → Pulsar → Quasar), quests, badges, a daily visit
+streak, toasts with a light particle burst and an optional chime (off by
+default). Progress is stored per wallet address in localStorage. XP has no
+monetary value and is not a token. By design it rewards learning and safe,
+one-time actions only; nothing rewards leverage, trade volume, trade count or
+deposit size, and there are no leaderboards (enforced in `game/engine.ts` and
+`test/game.test.ts`).

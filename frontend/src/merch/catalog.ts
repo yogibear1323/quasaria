@@ -11,15 +11,14 @@ export const MERCH_CONTACT_EMAIL = "";
 export const NOTIFY_KEY = "quasaria.merch.notify.v1";
 
 export type Swatch = { id: string; name: string; hex: string };
+/** v4 palette: logo violet/cyan glow on black, navy and pearl. */
 export const SWATCH: Record<string, Swatch> = {
-  black: { id: "black", name: "Black", hex: "#141418" },
-  bone: { id: "bone", name: "Bone", hex: "#ECE6DA" },
-  lavender: { id: "lavender", name: "Lavender", hex: "#C9BEF2" },
-  lime: { id: "lime", name: "Electric lime", hex: "#D4F75A" },
-  white: { id: "white", name: "White", hex: "#F7F6F2" },
+  black: { id: "black", name: "Black", hex: "#141417" },
+  navy: { id: "navy", name: "Navy", hex: "#1B2446" },
+  pearl: { id: "pearl", name: "Pearl", hex: "#E6E8EE" },
 };
 
-export type Category = "tees" | "hoodies" | "caps" | "accessories";
+export type Category = "tees" | "hoodies" | "jackets" | "caps" | "accessories";
 export type Product = {
   id: string;
   name: string;
@@ -37,92 +36,93 @@ export type Product = {
   badge?: string;
 };
 
-const TEE_SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
-const tee = (n: string, colors: string[]) => Object.fromEntries(colors.map((c) => [c, merchImg(`mockups/tee-${n}-${c}.webp`)]));
-/** Print artwork; dark-ink files ("-on-light", the white mug wrap) are shown on a bone backdrop. */
-const art = (file: string, alt: string) => ({ src: merchImg(`designs/${file}.webp`), alt, art: true, light: /-on-light$|-white$|-light-/.test(file) });
+const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
+const mk = (name: string) => merchImg(`mockups/${name}.webp`);
+const per = (base: string, colors: string[]) => Object.fromEntries(colors.map((c) => [c, mk(`${base}-${c}`)]));
+/** Print artwork (all v4 art is light/glow ink, shown on a dark backdrop). */
+const art = (file: string, alt: string) => ({ src: merchImg(`designs/${file}.webp`), alt, art: true });
 
 export const PRODUCTS: Product[] = [
   {
-    id: "singularity-tee", name: "Singularity Chest Tee", tagline: "The Singularity Q, a tight wordmark and a little coral spark. Clean enough for every day.", category: "tees", examplePrice: 28,
-    colors: [SWATCH.black, SWATCH.bone, SWATCH.lavender], sizes: TEE_SIZES, mockups: tee("01", ["black", "bone", "lavender"]),
-    extras: [art("tee-01-singularity-chest-5x5in-on-dark", "Chest artwork, light ink (for black)"), art("tee-01-singularity-chest-5x5in-on-light", "Chest artwork, dark ink (for bone and lavender)")],
-    details: ["5 × 5 in left-chest print", "Two inks, matched to the shirt colour", "Soft ring-spun cotton (example blank)"], badge: "Essential",
+    id: "glow-hoodie", name: "Glow Hoodie", tagline: "The glowing Singularity Q over a clean white wordmark. Nothing else.", category: "hoodies", examplePrice: 64,
+    colors: [SWATCH.black, SWATCH.navy], sizes: SIZES, mockups: per("hoodie", ["black", "navy"]),
+    extras: [art("glow-lockup-center-chest-12x14in", "Centre-chest artwork: glowing Q + wordmark")],
+    details: ["Centre-chest print, about 12 in wide", "Heavyweight fleece (example blank)", "White underbase so the glow stays bright on black"], badge: "Headline",
   },
   {
-    id: "quasar-core-tee", name: "Quasar Core Back-Print Tee", tagline: "A holographic accretion disk over an oversized liquid-chrome QUASAR. The brightest thing in the universe.", category: "tees", examplePrice: 34,
-    colors: [SWATCH.black, SWATCH.bone], sizes: TEE_SIZES, mockups: { black: merchImg("mockups/tee-02-black-back.webp"), bone: merchImg("mockups/tee-02-bone-back.webp") },
+    id: "pearl-tee", name: "Pearl Iridescent Tee", tagline: "An oversized pearl tee with a shifting sheen, a small full-colour Q on the chest and a cyan wordmark on the sleeve.", category: "tees", examplePrice: 42,
+    colors: [SWATCH.pearl], sizes: SIZES, mockups: { pearl: mk("pearl-tee") },
     extras: [
-      { src: merchImg("mockups/tee-02-black-front.webp"), alt: "Front: chest mark" },
-      art("tee-02-quasar-core-back-on-dark", "Back artwork with glow (for black)"),
-      art("tee-02-quasar-core-back-on-light", "Back artwork with a dark 'singularity' core (for bone)"),
+      art("chest-q-left-4x4in", "Left-chest Singularity Q"),
+      art("sleeve-wordmark-cyan-4x1.2in", "Sleeve wordmark, cyan"),
+      art("neck-label-2x0.75in", "Inside neck label"),
     ],
-    details: ["15 × 18 in full-back print + small chest mark", "Black gets the glow edition; bone gets a crisp dark-core edition", "Nods to 3C 273, the first quasar identified (1963)"], badge: "Flagship",
+    details: ["Left-chest Q, about 3.5 in", "Cyan wordmark on the left sleeve", "Iridescent specialty blank (example); a white tee is the fallback"], badge: "Headline",
   },
   {
-    id: "speed-of-light-tee", name: "Speed of Light Tee", tagline: "Trade at the speed of light: leaning chrome type, a grainy sunset orb and coral speed streaks.", category: "tees", examplePrice: 30,
-    colors: [SWATCH.black, SWATCH.bone, SWATCH.lime], sizes: TEE_SIZES, mockups: tee("03", ["black", "bone", "lime"]),
-    extras: [art("tee-03-speed-of-light-on-dark", "Front artwork, light ink"), art("tee-03-speed-of-light-on-light", "Front artwork, dark ink")],
-    details: ["15 × 18 in front print", "Liquid-chrome type with soft grain", "Stellar settles in about 5 seconds, which is close enough"], badge: "New",
-  },
-  {
-    id: "level-up-tee", name: "Level Up Tee", tagline: "The Singularity Q inside a holographic XP ring, with +XP chips. Learn it, try it once, level up.", category: "tees", examplePrice: 30,
-    colors: [SWATCH.black, SWATCH.lavender, SWATCH.lime], sizes: TEE_SIZES, mockups: tee("04", ["black", "lavender", "lime"]),
-    extras: [art("tee-04-level-up-on-dark", "Front artwork, light ink"), art("tee-04-level-up-on-light", "Front artwork, dark ink")],
-    details: ["15 × 18 in front print", "A modern take on the old arcade design: XP ring and halftone dots, no pixel art", "Inspired by the in-app quests (XP itself has no monetary value)"], badge: "Game layer",
-  },
-  {
-    id: "stardust-quasar-tee", name: "Stardust to Quasar Tee", tagline: "Oversized stacked type with a holographic QUASAR, and the five ranks climbing up the side.", category: "tees", examplePrice: 30,
-    colors: [SWATCH.black, SWATCH.bone, SWATCH.lavender], sizes: TEE_SIZES, mockups: tee("05", ["black", "bone", "lavender"]),
-    extras: [art("tee-05-stardust-to-quasar-on-dark", "Front artwork, light ink"), art("tee-05-stardust-to-quasar-on-light", "Front artwork, dark ink")],
-    details: ["15 × 18 in front print", "Stardust · Comet · Nova · Pulsar · Quasar"],
-  },
-  {
-    id: "singularity-hoodie", name: "Singularity Orbit Hoodie", tagline: "The Q in a holographic orbit over an oversized chrome wordmark, with a gradient sleeve print.", category: "hoodies", examplePrice: 58,
-    colors: [SWATCH.black, SWATCH.bone, SWATCH.lavender], sizes: TEE_SIZES, mockups: { black: merchImg("mockups/hoodie-black.webp"), bone: merchImg("mockups/hoodie-bone.webp"), lavender: merchImg("mockups/hoodie-lavender.webp") },
+    id: "glow-bomber", name: "Singularity Bomber", tagline: "A navy bomber with the Q and wordmark on a chest patch and a vertical Quasaria beside the zip.", category: "jackets", examplePrice: 98,
+    colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("bomber", ["navy", "black"]),
     extras: [
-      art("hoodie-singularity-front-on-dark", "Front artwork, light ink"),
-      art("hoodie-singularity-front-on-light", "Front artwork, dark ink"),
-      art("hoodie-singularity-sleeve-4x16in-on-dark", "Sleeve artwork: From Stardust to Quasar"),
+      art("bomber-chest-patch-3x3.5in", "Chest patch: Q + wordmark"),
+      art("bomber-chest-embroidery-4x4in-600dpi", "Chest embroidery, 3 threads"),
+      art("bomber-placket-wordmark-vertical-1x4in-600dpi", "Vertical wordmark embroidery"),
     ],
-    details: ["Front print + optional 4 × 16 in sleeve print", "Mid-weight fleece (example blank)"], badge: "Cosy",
+    details: ["Embroidered chest (max 4 × 4 in) or a sewn-on patch", "Vertical wordmark in 1 white thread", "Sleeve utility pocket (example blank)"], badge: "New",
   },
   {
-    id: "singularity-cap", name: "Embroidered Singularity Cap", tagline: "The Singularity Q embroidered in 2–3 threads on a low-profile dad cap. Wordmark version included.", category: "caps", examplePrice: 26,
-    colors: [SWATCH.black, SWATCH.bone], sizes: ["One size"], mockups: { black: merchImg("mockups/cap-black.webp"), bone: merchImg("mockups/cap-bone.webp") },
+    id: "back-glow-tee", name: "Back Glow Tee", tagline: "A small Q on the chest and a large glowing Q across the back.", category: "tees", examplePrice: 34,
+    colors: [SWATCH.black], sizes: SIZES, mockups: { black: mk("backglow-tee-black-back") },
     extras: [
-      { src: merchImg("mockups/cap-black-lockup.webp"), alt: "Alternative: mark + wordmark on black" },
-      { src: merchImg("mockups/cap-bone-lockup.webp"), alt: "Alternative: mark + wordmark on bone" },
-      art("cap-embroidery-mark-3color-600dpi", "Embroidery artwork, 3 threads"),
+      { src: mk("backglow-tee-black-front"), alt: "Front: left-chest Q" },
+      art("back-glow-q-15x18in", "Back artwork: large glowing Q"),
+      art("chest-q-left-4x4in", "Left-chest Q"),
     ],
-    details: ["Black: violet, cyan and white threads", "Bone: violet with a coral glint", "Adjustable strap"],
+    details: ["Full-back print + left-chest Q", "Black only, so the glow can do the work"], badge: "Essential",
   },
   {
-    id: "sticker-sheet", name: "Die-cut Sticker Sheet", tagline: "A holo logo, rank chips, quest badges, a chrome LEVEL UP and a few in-jokes.", category: "accessories", examplePrice: 8,
-    colors: [], sizes: ["8.5 × 11 in sheet"], mockups: { default: merchImg("mockups/stickers-laptop.webp") },
-    extras: [
-      { src: merchImg("mockups/stickers-sheet.webp"), alt: "The full sheet" },
-      art("sticker-sheet-letter-preview", "Sticker artwork"),
-    ],
-    details: ["18 die-cut vinyl stickers", "Includes the 5 rank chips and 5 quest badges"], badge: "Laptop-ready",
+    id: "sleeve-tee", name: "Sleeve Wordmark Tee", tagline: "A small Q on the chest and the Quasaria wordmark down the sleeve.", category: "tees", examplePrice: 30,
+    colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("sleeve-tee", ["navy", "black"]),
+    extras: [art("sleeve-wordmark-white-4x1.2in", "Sleeve wordmark, white (navy)"), art("sleeve-wordmark-cyan-4x1.2in", "Sleeve wordmark, cyan (black)")],
+    details: ["Left-chest Q + sleeve wordmark", "White wordmark on navy, cyan on black"],
   },
   {
-    id: "quasar-mug", name: "gm, stardust Mug", tagline: "White 11 oz ceramic: a big gm with a grainy sunrise on one side, the Q and rank chips on the other.", category: "accessories", examplePrice: 16,
-    colors: [SWATCH.white], sizes: ["11 oz"], mockups: { white: merchImg("mockups/mug-gm-front.webp") },
-    extras: [
-      { src: merchImg("mockups/mug-gm-back.webp"), alt: "Other side: Singularity Q + rank chips" },
-      art("mug-11oz-wrap-gm-stardust-white", "Full mug wrap artwork"),
-    ],
-    details: ["Full wrap on white ceramic", "Dishwasher & microwave safe (example blank)"],
+    id: "speed-of-light-tee", name: "Speed of Light Tee", tagline: "The glowing Q, a single light streak and one quiet line of type.", category: "tees", examplePrice: 32,
+    colors: [SWATCH.black, SWATCH.navy], sizes: SIZES, mockups: per("speed-of-light", ["black", "navy"]),
+    extras: [art("speed-of-light-minimal-15x18in", "Front artwork")],
+    details: ["Front print, art kept to about 11 in", "Stellar settles in about 5 seconds, which is close enough"],
   },
   {
-    id: "singularity-mug", name: "Singularity Mug", tagline: "Black 11 oz ceramic: a glowing Q and chrome wordmark, with LEVEL UP on the back.", category: "accessories", examplePrice: 16,
-    colors: [SWATCH.black], sizes: ["11 oz"], mockups: { black: merchImg("mockups/mug-singularity-front.webp") },
+    id: "level-up-tee", name: "Level Up Tee", tagline: "The glowing Q inside a single XP ring. Learn it, try it once, level up.", category: "tees", examplePrice: 32,
+    colors: [SWATCH.black, SWATCH.pearl], sizes: SIZES, mockups: per("level-up", ["black", "pearl"]),
+    extras: [art("level-up-minimal-15x18in", "Front artwork")],
+    details: ["Front print, art kept to about 11 in", "Inspired by the in-app quests (XP itself has no monetary value)"], badge: "Game layer",
+  },
+  {
+    id: "stardust-quasar-tee", name: "Stardust to Quasar Tee", tagline: "Four specks of stardust growing into the glowing Q, with one line of type.", category: "tees", examplePrice: 32,
+    colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("stardust", ["navy", "black"]),
+    extras: [art("stardust-to-quasar-minimal-15x18in", "Front artwork")],
+    details: ["Front print, art kept to about 11 in", "From stardust to quasar, the five in-app ranks in one line"],
+  },
+  {
+    id: "singularity-cap", name: "Embroidered Q Cap", tagline: "The Singularity Q in three threads on a low-profile cap. Wordmark version included.", category: "caps", examplePrice: 28,
+    colors: [SWATCH.black, SWATCH.navy], sizes: ["One size"], mockups: per("cap", ["black", "navy"]),
     extras: [
-      { src: merchImg("mockups/mug-singularity-back.webp"), alt: "Other side: LEVEL UP + rank chips" },
-      art("mug-11oz-wrap-singularity-black", "Full mug wrap artwork"),
+      { src: mk("cap-black-lockup"), alt: "Alternative: Q + wordmark" },
+      art("cap-embroidery-q-3color-600dpi", "Embroidery artwork, 3 threads"),
     ],
-    details: ["Full-bleed dark wrap with soft grain", "Dishwasher & microwave safe (example blank)"], badge: "New",
+    details: ["Violet, cyan and white threads (3 max)", "Adjustable strap"],
+  },
+  {
+    id: "glow-mug", name: "Glow Mug", tagline: "Black 11 oz ceramic with the glowing Q on one side and the wordmark on the other.", category: "accessories", examplePrice: 18,
+    colors: [SWATCH.black], sizes: ["11 oz"], mockups: { black: mk("mug-glow-front") },
+    extras: [{ src: mk("mug-glow-back"), alt: "Other side: wordmark" }, art("mug-11oz-wrap-glow-black", "Full mug wrap artwork")],
+    details: ["Full wrap on black ceramic", "Dishwasher & microwave safe (example blank)"],
+  },
+  {
+    id: "sticker-sheet", name: "Logo Sticker Sheet", tagline: "Eight logo stickers: the glowing Q, lockups and wordmarks.", category: "accessories", examplePrice: 8,
+    colors: [], sizes: ["5.5 × 8.5 in sheet"], mockups: { default: mk("stickers-laptop") },
+    extras: [{ src: mk("stickers-sheet"), alt: "The full sheet" }, art("sticker-sheet-5.5x8.5in-preview", "Sticker artwork")],
+    details: ["8 kiss-cut vinyl stickers", "Logo and wordmark only"], badge: "Laptop-ready",
   },
 ];
 
@@ -130,9 +130,13 @@ export const CATEGORIES: { id: "all" | Category; label: string }[] = [
   { id: "all", label: "All" },
   { id: "tees", label: "Tees" },
   { id: "hoodies", label: "Hoodies" },
+  { id: "jackets", label: "Jackets" },
   { id: "caps", label: "Caps" },
   { id: "accessories", label: "Stickers & mugs" },
 ];
+
+/** The 3-up store banner: Glow hoodie, pearl tee, bomber. */
+export const HERO_IMG = merchImg("hero/merch-hero-v4.webp");
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export type NotifyEntry = { email: string; product: string; at: number };

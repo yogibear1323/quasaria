@@ -76,7 +76,7 @@ export async function poolVolumes(pools: PoolInfo[], ledgers = 17_280): Promise<
 }
 
 // ---------------------------------------------------------------- staking
-export type StakePool = { id: number; stakeToken: string; rewardToken: string; ratePerSec: number; lockDays: number; totalStaked: number; reserve: number; active: boolean };
+export type StakePool = { id: number; stakeToken: string; rewardToken: string; ratePerSec: number; lockDays: number; totalStaked: number; reserve: number; active: boolean; minStake: number };
 export type StakePos = { amount: number; pending: number; unlockAt: number };
 
 export async function readStaking(viewer: string) {
@@ -84,8 +84,8 @@ export async function readStaking(viewer: string) {
   const pools: StakePool[] = [];
   const positions: Record<number, StakePos> = {};
   for (let i = 0; i < n; i++) {
-    const p = await readContract<{ stake_token: string; reward_token: string; reward_rate: bigint; lock_seconds: bigint; total_staked: bigint; reward_reserve: bigint; active: boolean }>(CONTRACTS.staking, "pool", [u32(i)]);
-    pools.push({ id: i, stakeToken: p.stake_token, rewardToken: p.reward_token, ratePerSec: fromUnits(p.reward_rate), lockDays: Number(p.lock_seconds) / 86_400, totalStaked: fromUnits(p.total_staked), reserve: fromUnits(p.reward_reserve), active: p.active });
+    const p = await readContract<{ stake_token: string; reward_token: string; reward_rate: bigint; lock_seconds: bigint; total_staked: bigint; reward_reserve: bigint; active: boolean; min_stake?: bigint }>(CONTRACTS.staking, "pool", [u32(i)]);
+    pools.push({ id: i, stakeToken: p.stake_token, rewardToken: p.reward_token, ratePerSec: fromUnits(p.reward_rate), lockDays: Number(p.lock_seconds) / 86_400, totalStaked: fromUnits(p.total_staked), reserve: fromUnits(p.reward_reserve), active: p.active, minStake: p.min_stake !== undefined ? fromUnits(p.min_stake) : 0 });
     if (viewer) {
       const pos = await readContract<{ amount: bigint; unlock_at: bigint }>(CONTRACTS.staking, "position", [u32(i), addr(viewer)]);
       const pending = await readContract<bigint>(CONTRACTS.staking, "pending_rewards", [u32(i), addr(viewer)]);
@@ -135,6 +135,10 @@ export type QfxInfo = QfxReserves & {
   maxAprBps: number;
   genesis: number;
   nextAccrualAt: number;
+  /** Eligible supply earning the full APR; above it holders share the capped emission pro rata. */
+  maxEligible: number;
+  /** APR actually earned after pro-rata dilution above `maxEligible`. */
+  effectiveAprBps: number;
   /** Unallocated holder-yield reserve (QFX). */
   rewardPool: number;
   eligibleSupply: number;
@@ -145,7 +149,7 @@ export type QfxInfo = QfxReserves & {
 
 export async function readQfx(viewer: string): Promise<QfxInfo> {
   const [y, res] = await Promise.all([
-    readContract<{ apr_bps: number; apy_bps: number; max_apr_bps: number; genesis: bigint; next_accrual_at: bigint; reward_pool: bigint; eligible_supply: bigint; daily_emission: bigint }>(CONTRACTS.qfx, "yield_info"),
+    readContract<{ apr_bps: number; apy_bps: number; max_apr_bps: number; genesis: bigint; next_accrual_at: bigint; reward_pool: bigint; eligible_supply: bigint; daily_emission: bigint; max_eligible?: bigint; effective_apr_bps?: number }>(CONTRACTS.qfx, "yield_info"),
     readQfxReserves(),
   ]);
   const balance = viewer ? await tokenBalance(CONTRACTS.qfx, viewer) : 0;
@@ -157,6 +161,8 @@ export async function readQfx(viewer: string): Promise<QfxInfo> {
     maxAprBps: y.max_apr_bps,
     genesis: Number(y.genesis),
     nextAccrualAt: Number(y.next_accrual_at),
+    maxEligible: y.max_eligible !== undefined ? fromUnits(y.max_eligible) : Infinity,
+    effectiveAprBps: y.effective_apr_bps ?? y.apr_bps,
     rewardPool: fromUnits(y.reward_pool),
     eligibleSupply: fromUnits(y.eligible_supply),
     dailyEmission: fromUnits(y.daily_emission),
@@ -196,11 +202,12 @@ export async function readReferrerOf(user: string) {
 export type VaultPosition = { id: number; asset: string; isLong: boolean; margin: number; size: number; entry: number; sl: number; tp: number; openedAt: number };
 
 export async function readVault(owner: string) {
-  const [cfg, liquidity, openIds, decimals] = await Promise.all([
-    readContract<{ max_leverage_bps: number; maintenance_margin_bps: number; open_fee_bps: number; max_price_age: bigint }>(CONTRACTS.vault, "config"),
+  const [cfg, liquidity, openCount, decimals, paused] = await Promise.all([
+    readContract<{ max_leverage_bps: number; maintenance_margin_bps: number; open_fee_bps: number; max_price_age: bigint; min_margin: bigint; max_positions_per_user: number; max_open_positions: number }>(CONTRACTS.vault, "config"),
     readContract<bigint>(CONTRACTS.vault, "liquidity"),
-    readContract<bigint[]>(CONTRACTS.vault, "open_position_ids"),
+    readContract<number>(CONTRACTS.vault, "open_position_count"),
     readContract<number>(CONTRACTS.oracle, "decimals"),
+    readContract<boolean>(CONTRACTS.vault, "paused"),
   ]);
   const pd = await readContract<{ price: bigint; timestamp: bigint } | null>(CONTRACTS.oracle, "lastprice", [assetOther("XLM")]);
   const scale = 10 ** decimals;
@@ -217,7 +224,11 @@ export async function readVault(owner: string) {
     openFeeBps: cfg.open_fee_bps,
     maxPriceAge: Number(cfg.max_price_age),
     liquidity: fromUnits(liquidity),
-    openCount: openIds.length,
+    openCount: Number(openCount),
+    minMargin: fromUnits(cfg.min_margin),
+    maxPositionsPerUser: cfg.max_positions_per_user,
+    maxOpenPositions: cfg.max_open_positions,
+    paused,
     mark: pd ? Number(pd.price) / scale : null,
     priceTimestamp: pd ? Number(pd.timestamp) : null,
     positions,

@@ -42,9 +42,9 @@ export const DEMO_POOLS = [
 ];
 
 export const DEMO_STAKING = [
-  { id: 0, stake: "QFX", reward: "QFX", ratePerSec: 0.0075, lockDays: 7, totalStaked: 1_240_000, reserve: 380_000, active: true },
-  { id: 1, stake: "QLP XLM/QUSD", reward: "QFX", ratePerSec: 0.0068, lockDays: 0, totalStaked: 612_000, reserve: 910_000, active: true },
-  { id: 2, stake: "XLM", reward: "QFX", ratePerSec: 0.0093, lockDays: 30, totalStaked: 3_900_000, reserve: 150_000, active: true },
+  { id: 0, stake: "QFX", reward: "QFX", ratePerSec: 0.0075, lockDays: 7, totalStaked: 1_240_000, reserve: 380_000, active: true, minStake: 1 },
+  { id: 1, stake: "QLP XLM/QUSD", reward: "QFX", ratePerSec: 0.0068, lockDays: 0, totalStaked: 612_000, reserve: 910_000, active: true, minStake: 1 },
+  { id: 2, stake: "XLM", reward: "QFX", ratePerSec: 0.0093, lockDays: 30, totalStaked: 3_900_000, reserve: 150_000, active: true, minStake: 1 },
 ];
 
 /** Offline demo numbers for the QFX page (1 QFX = 1 XLM; reserve == supply). */
@@ -54,6 +54,8 @@ export const DEMO_QFX = {
   maxAprBps: 2500,
   genesis: Date.UTC(2026, 8, 1) / 1000,
   nextAccrualAt: Date.UTC(2026, 8, 2) / 1000,
+  maxEligible: 1_000_000,
+  effectiveAprBps: 1200,
   xlmReserve: 8_500,
   totalSupply: 8_500,
   surplus: 0,

@@ -63,7 +63,7 @@ export default function HolderYieldCalculator({ embedded }: { embedded?: boolean
               <div className="field">
                 <label>APR: <b className="mono">{pct(aprBps)}</b> {aprOverride === null ? <span className="pill green">live</span> : <button type="button" className="chip" onClick={() => setAprOverride(null)}>reset to live {pct(liveApr)}</button>}</label>
                 <input type="range" min={0} max={maxApr} step={25} value={aprBps} onChange={(e) => setAprOverride(Number(e.target.value))} aria-label="What-if APR" />
-                <div className="calc-hint">What-if slider; the admin can change the APR at any time, up to the {pct(maxApr)} hard cap in the contract.</div>
+                <div className="calc-hint">What-if slider; the admin can change the APR (via an on-chain timelocked action), up to the {pct(maxApr)} hard cap in the contract.</div>
               </div>
             </div>
             <div className="calc-results">

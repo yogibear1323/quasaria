@@ -17,7 +17,7 @@ export default function Stake() {
 
   const chain = useChain(async () => {
     const { pools, positions } = await readStaking(viewer.address);
-    return { rows: pools.map<Row>((p) => ({ id: p.id, stake: symbolOf(p.stakeToken), reward: symbolOf(p.rewardToken), ratePerSec: p.ratePerSec, lockDays: p.lockDays, totalStaked: p.totalStaked, reserve: p.reserve, active: p.active })), positions };
+    return { rows: pools.map<Row>((p) => ({ id: p.id, stake: symbolOf(p.stakeToken), reward: symbolOf(p.rewardToken), ratePerSec: p.ratePerSec, lockDays: p.lockDays, totalStaked: p.totalStaked, reserve: p.reserve, active: p.active, minStake: p.minStake })), positions };
   }, [viewer.address, nonce]);
   const pools: Row[] = chain.data?.rows ?? DEMO_STAKING;
   const positions: Record<number, StakePos> = chain.data?.positions ?? {};
@@ -60,7 +60,7 @@ export default function Stake() {
                   <Stat label="Pending rewards" value={fmt(pos.pending, 4)} sub={p.reward} className="pos" />
                 </div>
               )}
-              <div className="field"><label>Amount</label><input className="input" placeholder="0.0" value={amount[p.id] ?? ""} onChange={(e) => setAmount({ ...amount, [p.id]: e.target.value })} /></div>
+              <div className="field"><label>Amount{p.minStake > 0 ? <span className="muted"> (min position {fmt(p.minStake, 2)} {p.stake})</span> : null}</label><input className="input" placeholder="0.0" value={amount[p.id] ?? ""} onChange={(e) => setAmount({ ...amount, [p.id]: e.target.value })} /></div>
               <div className="row">
                 <button className="btn" style={{ flex: 1 }} disabled={tx.busy} onClick={() => call("stake", "stake", p.id, Number(amount[p.id] || 0))}>Stake</button>
                 <button className="btn ghost" disabled={tx.busy} onClick={() => call("unstake", "unstake", p.id, Number(amount[p.id] || 0))}>Unstake</button>
@@ -79,6 +79,7 @@ export default function Stake() {
           <li>Rewards accrue per second, pro-rata to your stake (accumulated reward-per-share, O(1) per user).</li>
           <li>Only <b>funded</b> rewards are distributed: when a pool's reserve hits zero the stream pauses until topped up.</li>
           <li>Lock pools: each stake resets your unlock time to <span className="mono">now + lock</span>. Claiming is always allowed; unstaking waits for unlock.</li>
+          <li>Each pool has a minimum position size; a partial unstake can't leave less than the minimum (unstake everything instead). If the contract is paused, new stakes are blocked, but unstaking and claiming keep working.</li>
         </ul>
         <p className="muted" style={{ fontSize: "0.78rem" }}>*APR assumes 1 reward token ≈ 1 stake token in value; illustrative only.</p>
       </div>

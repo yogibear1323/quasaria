@@ -41,6 +41,9 @@ export default function Bots() {
     return h;
   };
   const size = Number(margin) * lev;
+  const minMargin = v?.minMargin ?? 0;
+  const belowMin = chain.live && Number(margin) < minMargin;
+  const vaultPaused = chain.live && !!v?.paused;
   const liq = liquidationPrice(side === "long", Number(margin), size, mark, MM_BPS);
 
   const config = useMemo(() => {
@@ -107,7 +110,7 @@ export default function Bots() {
             </label>
             <div className="row">
               <button className="btn" disabled={!ack} onClick={download}>Export bot config</button>
-              <button className="btn ghost" disabled={!ack || tx.busy} onClick={() => tx.run("open position", async () => {
+              <button className="btn ghost" disabled={!ack || tx.busy || belowMin || vaultPaused} onClick={() => tx.run("open position", async () => {
                 const me = tx.wallet.address!;
                 return refresh((await invokeContract(me, tx.wallet.sign, CONTRACTS.vault, "open_position", [addr(me), addr(me), assetOther("XLM"), bool(side === "long"), i128(toUnits(Number(margin))), u32(lev * 10_000)])).hash.slice(0, 10));
               })}>Open manually</button>
@@ -116,6 +119,7 @@ export default function Bots() {
                 if (op) tx.run("set operator", async () => (await invokeContract(tx.wallet.address!, tx.wallet.sign, CONTRACTS.vault, "set_operator", [addr(tx.wallet.address!), addr(op)])).hash.slice(0, 10));
               }}>Delegate bot key</button>
             </div>
+            {chain.live && <p className="muted" style={{ fontSize: "0.78rem" }}>Vault limits: min margin {fmt(minMargin, 2)} QUSD, max {v!.maxPositionsPerUser} open positions per wallet ({v!.openCount}/{v!.maxOpenPositions} open overall).{belowMin ? " Margin is below the minimum." : ""}{vaultPaused ? " The vault is PAUSED: new positions are blocked, closing and withdrawing still work." : ""}</p>}
             <TxStatus status={tx.status} />
           </div>
           <div className="card">
@@ -160,7 +164,7 @@ export default function Bots() {
           <div className="card">
             <h2>Keeper status</h2>
             <div className="grid g-2">
-              <Stat label="Liquidation keeper" value={<span className="pos">{chain.live ? `${v!.openCount} open` : "● demo"}</span>} sub="scans open_position_ids()" />
+              <Stat label="Liquidation keeper" value={<span className="pos">{chain.live ? `${v!.openCount} open` : "● demo"}</span>} sub="pages open_position_ids_page()" />
               <Stat label="SL/TP executor" value={<span className="pos">{chain.live ? "bot/ --keeper-only" : "● demo"}</span>} sub="execute_trigger(id)" />
               {chain.live && <Stat label="Vault liquidity" value={fmt(v!.liquidity, 0)} sub="QUSD profit reserve" />}
               {chain.live && <Stat label="Oracle mark" value={fmt(mark, 4)} sub={stale ? "stale" : "fresh"} className={stale ? "neg" : "pos"} />}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHead, SourceTag, Stat, TxStatus, ViewerNote, useTx } from "../components/ui";
 import MintRedeem from "../components/MintRedeem";
@@ -17,16 +17,9 @@ export default function Rewards() {
   const chain = useChain(() => readQfx(viewer.address), [viewer.address, refresh]);
   const info = chain.data ?? DEMO_QFX;
   const balance = chain.data ? chain.data.balance : DEMO_QFX.demoBalance;
-  const [now, setNow] = useState(() => Date.now() / 1000);
-
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now() / 1000), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const toNext = Math.max(0, info.nextAccrualAt - now);
-  const hh = String(Math.floor(toNext / 3600)).padStart(2, "0"), mm = String(Math.floor((toNext % 3600) / 60)).padStart(2, "0"), ss = String(Math.floor(toNext % 60)).padStart(2, "0");
-  const myDaily = (balance * info.aprBps) / 10_000 / 365;
+  // Yield accrues every second (time-weighted); show the live per-second rate.
+  const perSecond = (balance * info.effectiveAprBps) / 10_000 / (365 * 86_400);
+  const myDaily = (balance * info.effectiveAprBps) / 10_000 / 365;
   const apy = apyFromApr(info.aprBps);
   const runwayDays = info.dailyEmission > 0 ? info.rewardPool / info.dailyEmission : Infinity;
 
@@ -46,7 +39,7 @@ export default function Rewards() {
             {chain.live && <ViewerNote {...viewer} role="demo trader" />}
           </div>
           <div className="grid g-2" style={{ marginTop: 16 }}>
-            <Stat label="Next reward day in" value={`${hh}:${mm}:${ss}`} className="mono" />
+            <Stat label="Yield accrues" value="every second" sub={`≈ +${fmt(perSecond, 7)} QFX/s, time-weighted`} className="mono" />
             <Stat label="≈ per day at this rate" value={`+${fmt(myDaily, 4)}`} sub="QFX from the reserve" className="pos" />
             <Stat label="Accrued, not yet credited" value={fmt(info.pending, 7)} sub="shown in your balance" />
             <Stat label="Nominal APR" value={pct(info.aprBps)} sub={`${fmt(apy * 100, 2)}% APY if compounded daily`} className="gold" />
@@ -66,10 +59,15 @@ export default function Rewards() {
           <Stat label="Runway at current rate" value={Number.isFinite(runwayDays) ? (runwayDays > 36_500 ? "> 100 years" : `${fmtCompact(runwayDays)} days`) : "—"} sub="then yield stops" />
           <Stat label="Hard APR cap" value={pct(info.maxAprBps)} sub="enforced in contract" />
         </div>
+        <div className="grid g-4" style={{ marginTop: 10 }}>
+          <Stat label="Eligible-supply cap" value={Number.isFinite(info.maxEligible) ? `${fmtCompact(info.maxEligible)} QFX` : "—"} sub="bounds the reserve commitment" />
+          <Stat label="Effective APR now" value={pct(info.effectiveAprBps)} sub={info.effectiveAprBps < info.aprBps ? "diluted: earning supply is above the cap" : "earning supply is under the cap"} />
+        </div>
         <ul className="muted" style={{ fontSize: "0.85rem", paddingLeft: 18 }}>
           <li>Yield is <b>paid from the reserve</b> (QFX that was itself minted against deposited XLM). Paying it never changes total supply, so reserve = supply always holds.</li>
           <li>Anyone can top the reserve up with XLM (<span className="mono">fund_yield</span>) or with QFX from fees (<span className="mono">fund_yield_qfx</span>). When it runs dry, yield stops; it is never minted.</li>
-          <li>Yield accrues once per UTC day and shows in your balance right away; it is credited (and starts compounding) whenever your balance moves or you press “Credit my yield”.</li>
+          <li>Yield accrues <b>per second on the balance you actually held</b> (time-weighted), so a deposit held for two minutes earns two minutes of yield. It shows in your balance right away and is credited (and starts compounding) whenever your balance moves or you press “Credit my yield”.</li>
+          <li>Only up to the eligible-supply cap earns the full APR; above it, holders share the capped emission pro rata, so the reserve commitment stays bounded. APR and cap changes go through an on-chain timelock.</li>
           <li>Contracts that cannot absorb yield (the staking contract and the QFX/QUSD pool) are excluded; staking rewards come from their own pre-funded QFX reserves.</li>
         </ul>
       </div>

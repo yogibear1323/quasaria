@@ -103,8 +103,19 @@ export class SorobanVault implements TradingVenue, KeeperVault {
     return Promise.all(ids.map((i) => this.position(Number(i))));
   }
 
+  /** All open position ids, paged (the vault keeps a bounded, paginated index). */
   async openPositionIds() {
-    return (await this.read<bigint[]>(this.o.vaultId, "open_position_ids")).map(Number);
+    const PAGE = 100; // vault MAX_PAGE
+    const count = Number(await this.read<number>(this.o.vaultId, "open_position_count"));
+    const ids: number[] = [];
+    for (let start = 0; start < count; start += PAGE) {
+      const page = await this.read<bigint[]>(this.o.vaultId, "open_position_ids_page", [
+        nativeToScVal(start, { type: "u32" }), nativeToScVal(PAGE, { type: "u32" }),
+      ]);
+      ids.push(...page.map(Number));
+      if (page.length < PAGE) break;
+    }
+    return ids;
   }
 
   async position(id: number): Promise<Position> {

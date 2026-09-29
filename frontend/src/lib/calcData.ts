@@ -121,7 +121,7 @@ export async function loadCalcStaking(): Promise<{ pools: CalcStakePool[]; demo:
 export function demoCalcStaking(): { pools: CalcStakePool[]; demo: boolean } {
   return {
     demo: true,
-    pools: DEMO_STAKING.map((p) => ({ id: p.id, stakeToken: p.stake, rewardToken: p.reward, ratePerSec: p.ratePerSec, lockDays: p.lockDays, totalStaked: p.totalStaked, reserve: p.reserve, active: p.active, stakeSym: p.stake, rewardSym: p.reward, stakeValueXlm: p.stake.startsWith("QLP") ? 2 : 1, rewardValueXlm: 1, demo: true })),
+    pools: DEMO_STAKING.map((p) => ({ id: p.id, stakeToken: p.stake, rewardToken: p.reward, ratePerSec: p.ratePerSec, lockDays: p.lockDays, totalStaked: p.totalStaked, reserve: p.reserve, active: p.active, minStake: p.minStake, stakeSym: p.stake, rewardSym: p.reward, stakeValueXlm: p.stake.startsWith("QLP") ? 2 : 1, rewardValueXlm: 1, demo: true })),
   };
 }
 

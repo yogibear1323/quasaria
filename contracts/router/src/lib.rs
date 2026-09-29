@@ -108,8 +108,10 @@ impl Router {
         for i in 0..n {
             let pool = pools.get_unchecked(i);
             let next_tok = other_token(&env, &pool, &tok);
-            let recipient = if i + 1 < n {
-                pools.get_unchecked(i + 1)
+            // `i < n <= MAX_HOPS`, so `i + 1` cannot overflow.
+            let next = i.saturating_add(1);
+            let recipient = if next < n {
+                pools.get_unchecked(next)
             } else {
                 user.clone()
             };

@@ -23,10 +23,10 @@ fn two_hop_swap_via_router_with_referral() {
     let xlm = sac(&env, &admin);
     let usdc = sac(&env, &admin);
     let qfx = sac(&env, &admin);
-    let reg_id = env.register(ReferralRegistry, (&admin, 2_000u32));
+    let reg_id = env.register(ReferralRegistry, (&admin, 2_000u32, 600u64));
     let reg = ReferralRegistryClient::new(&env, &reg_id);
-    let p1 = env.register(AmmPool, (&admin, &xlm, &usdc, 30u32, Some(reg_id.clone())));
-    let p2 = env.register(AmmPool, (&admin, &usdc, &qfx, 30u32, Some(reg_id.clone())));
+    let p1 = env.register(AmmPool, (&admin, &xlm, &usdc, 30u32, Some(reg_id.clone()), 600u64));
+    let p2 = env.register(AmmPool, (&admin, &usdc, &qfx, 30u32, Some(reg_id.clone()), 600u64));
     reg.set_fee_source(&p1, &true);
     reg.set_fee_source(&p2, &true);
 
@@ -67,7 +67,7 @@ fn deadline_and_slippage_enforced() {
     let admin = Address::generate(&env);
     let a = sac(&env, &admin);
     let b = sac(&env, &admin);
-    let p = env.register(AmmPool, (&admin, &a, &b, 30u32, None::<Address>));
+    let p = env.register(AmmPool, (&admin, &a, &b, 30u32, None::<Address>, 600u64));
     let lp = Address::generate(&env);
     StellarAssetClient::new(&env, &a).mint(&lp, &10_000_000_000);
     StellarAssetClient::new(&env, &b).mint(&lp, &10_000_000_000);

@@ -418,6 +418,30 @@ Data from stellarchain.io is attributed on the page.
   - The XLM/USD ticker falls back to the Horizon testnet XLM/USDC mid when the feed is more than 2 h old.
 - **Mainnet is reference only.** The Mainnet tab is read-only. Its Trade buttons open testnet pairs only.
 
+### Markets page: live Stellar mainnet feed (Horizon)
+
+The Markets page's default **Mainnet · live data** tab reads Stellar **mainnet** straight
+from public Horizon (`https://horizon.stellar.org`, which sends CORS headers for github.io),
+read-only, in the browser: `frontend/src/lib/liveMarkets.ts`. It covers the same 25 assets as
+the snapshot's mainnet top 25, in the same order.
+
+- **Every ~30 s** while the tab is visible (paused when hidden): one network-wide `/trades`
+  poll (cursor-paged) gives the latest trade price of each asset vs XLM, and XLM/USD from
+  the Circle USDC (`GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`) / XLM trades.
+- **`/trade_aggregations`** (hourly candles over 7 days, asset vs XLM) gives the 1h / 24h / 7d
+  change, 24h volume and trades, and the 24h sparkline. Horizon caps this endpoint at
+  100 requests per 5 min per IP, and its 429s carry no CORS headers, so candles are
+  refreshed per asset every 10 min, staggered, cached in localStorage, and paused on failure.
+  **`/assets`** gives holders and supply (every 30 min). **`/order_book`** gives a mid price for
+  assets with no trade in 24h.
+- The page shows **Live · Stellar mainnet** and **Updated HH:MM:SS**. When Horizon fails or
+  times out (8 s), the whole table falls back to the saved snapshot, labelled
+  **Snapshot from &lt;time&gt;**, with a *Live feed unavailable, showing saved copy* note. It
+  retries in the background (30 s, 60 s, then every 120 s) and switches back to live data
+  by itself. A single asset with no live data falls back to its snapshot row, marked
+  *snapshot*. Trading on Quasaria stays testnet-only. The testnet tab and the snapshot
+  script are unchanged.
+
 ## Non-custodial by design
 
 Create or import a Stellar account in the browser. Click **Create account** in the header.

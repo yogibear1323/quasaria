@@ -5,13 +5,24 @@ import logo from "../assets/logo.svg";
 import CosmicBackground, { type Scene } from "./CosmicBackground";
 import { useWallet } from "../lib/wallet";
 import { short } from "../lib/format";
-import { CONTRACTS_CONFIGURED } from "../lib/config";
+import { CONTRACTS_CONFIGURED, OFFLINE_DEMO } from "../lib/config";
+import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
 import { useXlmUsd } from "../lib/markets";
 import { asOf, snapshotLabel } from "../lib/stellarchain";
 import { LevelBadge } from "../game/widgets";
 
 function XlmTicker() {
   const x = useXlmUsd();
+  // Live XLM/USD from Stellar mainnet Horizon (XLM/USDC), shared with the Markets page feed; old source is the fallback.
+  const live = useLiveXlmUsd(5 * 60_000, OFFLINE_DEMO);
+  if (live?.price) {
+    return (
+      <span className="pill" title={`XLM/USD live from Stellar mainnet Horizon (XLM/USDC, Circle issuer) · updated ${hms(live.at)}`} data-testid="xlm-ticker">
+        XLM <b className="mono" style={{ color: "var(--star, #fff)" }}>${live.price.toFixed(4)}</b>
+        <span className="muted" style={{ fontSize: "0.62rem" }}>live</span>
+      </span>
+    );
+  }
   if (!x?.price) return null;
   const snap = x.source === "stellarchain" && x.feed === "snapshot";
   const src = x.source === "stellarchain" ? `stellarchain.io${snap ? ` (${snapshotLabel(x.snapshotAt)})` : ""}` : "Horizon testnet";

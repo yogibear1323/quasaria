@@ -20,26 +20,45 @@
 //! Decimals are copied from the XLM SAC (7) and enforced at construction.
 //!
 //! ## Holder yield — paid from a pre-funded reserve, never minted
-//! Holders earn a nominal APR (admin-set, hard-capped at [`MAX_APR_BPS`]),
-//! accounted once per elapsed UTC day (counted from `genesis`). The yield is
-//! **transferred out of the reward reserve** (QFX that was itself minted
-//! against deposited XLM), so paying it never changes total supply or the
-//! backing. When the reserve is empty, yield stops; it never goes negative.
+//! Holders earn a nominal APR (hard-capped at [`MAX_APR_BPS`]) that accrues
+//! **per second held** (time-weighted). The yield is **transferred out of the
+//! reward reserve** (QFX that was itself minted against deposited XLM), so
+//! paying it never changes total supply or the backing. When the reserve is
+//! empty, yield stops; it never goes negative.
 //!
 //! MasterChef-style accounting: a global `acc` (1e18 fixed point, QFX earned
-//! per QFX held) grows by `min(eligible * ((1+apr/365)^days - 1), reserve) /
-//! eligible` on each accrual. A holder's pending yield is
-//! `balance * (acc - checkpoint)`, shown in `balance()` immediately and
-//! credited (compounded) whenever the holder's balance is touched (transfer,
-//! deposit, redeem) or anyone calls the permissionless `settle`.
+//! per QFX held) grows continuously by
+//! `apr * min(eligible, max_eligible) / eligible * seconds / year` (capped by
+//! the reserve). Every balance change first accrues and credits the account's
+//! pending yield `balance * (acc - checkpoint)`, so an account earns exactly
+//! for the seconds it held its balance — a deposit held for 120 s earns 120 s
+//! of yield (F-03 fix; the previous version paid a full day to whoever held
+//! at the UTC-day boundary).
+//!
+//! **Bounded liability (F-13):** only `max_eligible` QFX (configurable, e.g.
+//! 1,000,000 QFX) earns the full APR. Above that, the same total emission is
+//! shared pro rata, so the reserve drain rate is at most
+//! `max_eligible * apr / year` no matter how much QFX exists, and the
+//! effective APR (`yield_info().effective_apr_bps`) falls accordingly.
+//! Changing the APR or the cap is timelocked.
+//!
 //! Admin-marked contracts (e.g. the staking contract, whose internal
 //! accounting cannot absorb yield) are `yield_exempt`. Rounding favours the
 //! reserve.
+//!
+//! ## Governance
+//! Two-step admin transfer; guardian pause blocks `deposit` (minting) only —
+//! `redeem`, `burn`, transfers and yield settlement always work; timelocked
+//! `SetAprBps`, `SetMaxEligible`, `Upgrade`, `SetDelay`.
 #![no_std]
+// The Soroban constructor takes 7 config args + env; the SDK generates free
+// wrapper fns for it, so the lint can only be silenced crate-wide.
+#![allow(clippy::too_many_arguments)]
 
+use quasaria_gov as gov;
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, panic_with_error, token,
-    Address, Env, MuxedAddress, String,
+    Address, BytesN, Env, MuxedAddress, String,
 };
 
 soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
@@ -51,17 +70,15 @@ soroban_sdk::contractmeta!(key = "network", val = "testnet-only scaffold, unaudi
 
 pub const SCALE: i128 = 1_000_000_000_000_000_000; // 1e18
 pub const DAY_SECONDS: u64 = 86_400;
+pub const YEAR_SECONDS: i128 = 365 * 86_400;
 /// Hard cap on the admin-configurable nominal holder APR (basis points).
 pub const MAX_APR_BPS: u32 = 2_500;
 /// XLM (and therefore QFX) decimals.
 pub const XLM_DECIMALS: u32 = 7;
 const BPS: i128 = 10_000;
 
-const DAY_LEDGERS: u32 = 17_280;
-const INSTANCE_BUMP_THRESHOLD: u32 = 7 * DAY_LEDGERS;
-const INSTANCE_BUMP_TO: u32 = 30 * DAY_LEDGERS;
-const BAL_BUMP_THRESHOLD: u32 = 30 * DAY_LEDGERS;
-const BAL_BUMP_TO: u32 = 120 * DAY_LEDGERS;
+const BAL_BUMP_THRESHOLD: u32 = gov::PERSISTENT_BUMP_THRESHOLD;
+const BAL_BUMP_TO: u32 = gov::PERSISTENT_BUMP_TO;
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -77,19 +94,31 @@ pub enum TokenError {
     NotBacked = 9,
     /// The collateral SAC does not use 7 decimals (not native XLM).
     InvalidDecimals = 10,
+    /// `max_eligible` must be positive.
+    InvalidCap = 11,
+}
+
+/// Timelocked admin actions.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum QfxAction {
+    SetAprBps(u32),
+    SetMaxEligible(i128),
+    Upgrade(BytesN<32>),
+    SetDelay(u64),
 }
 
 #[contracttype]
 #[derive(Clone)]
 enum DataKey {
-    Admin,
     Xlm,
     Name,
     Symbol,
     Decimals,
     AprBps,
+    MaxEligible,
     Genesis,
-    LastDay,
+    LastUpdate,
     Acc,
     TotalSupply,
     Eligible,
@@ -139,7 +168,9 @@ pub struct YieldInfo {
     pub max_apr_bps: u32,
     pub acc: i128,
     pub genesis: u64,
-    pub last_day: u64,
+    /// Ledger timestamp the accumulator was last advanced to.
+    pub last_update: u64,
+    /// Yield accrues continuously; kept for UI compatibility (= now).
     pub next_accrual_at: u64,
     /// Unallocated reward reserve (QFX).
     pub reward_pool: i128,
@@ -147,8 +178,15 @@ pub struct YieldInfo {
     pub accrued_unsettled: i128,
     /// Balances earning yield (non-exempt holders).
     pub eligible_supply: i128,
-    /// Yield paid per day at the current APR and eligible supply.
+    /// Eligible supply that earns the full APR (liability cap).
+    pub max_eligible: i128,
+    /// APR actually earned per QFX after the cap dilution (bps).
+    pub effective_apr_bps: u32,
+    /// Yield paid per day at the current APR and (capped) eligible supply.
     pub daily_emission: i128,
+    /// Seconds until the unallocated reserve is exhausted at the current
+    /// emission rate (u64::MAX if nothing is being emitted).
+    pub runway_seconds: u64,
 }
 
 #[contractevent(topics = ["transfer"], data_format = "single-value")]
@@ -215,9 +253,14 @@ pub struct YieldPaid {
 
 #[contractevent(topics = ["accrued"])]
 pub struct Accrued {
-    pub day: u64,
+    pub timestamp: u64,
     pub acc: i128,
     pub emission: i128,
+}
+
+#[contractevent(topics = ["cap_set"], data_format = "single-value")]
+pub struct CapSet {
+    pub max_eligible: i128,
 }
 
 #[contractevent(topics = ["rate_set"], data_format = "single-value")]
@@ -234,33 +277,40 @@ pub struct ExemptSet {
 
 // ---------------------------------------------------------------- math
 
-/// floor(a * b / c) without intermediate overflow for our value ranges.
-pub fn mul_div_floor(a: i128, b: i128, c: i128) -> i128 {
-    match a.checked_mul(b) {
-        Some(p) => p / c,
-        None => (a / c) * b + (a % c) * b / c,
-    }
+/// floor(a * b / c) with a 256-bit intermediate (panics only if the result
+/// itself overflows i128).
+pub fn mul_div_floor(env: &Env, a: i128, b: i128, c: i128) -> i128 {
+    gov::mul_div_floor(env, a, b, c)
+}
+
+/// ceil(a * b / c) with a 256-bit intermediate.
+fn mul_div_ceil(env: &Env, a: i128, b: i128, c: i128) -> i128 {
+    gov::mul_div_ceil(env, a, b, c)
 }
 
 /// (base / SCALE) ^ exp in SCALE fixed point, exponentiation by squaring.
-pub fn pow_fixed(base: i128, mut exp: u64) -> i128 {
+pub fn pow_fixed(env: &Env, base: i128, mut exp: u64) -> i128 {
     let mut result = SCALE;
     let mut b = base;
     while exp > 0 {
         if exp & 1 == 1 {
-            result = mul_div_floor(result, b, SCALE);
+            result = mul_div_floor(env, result, b, SCALE);
         }
         exp >>= 1;
         if exp > 0 {
-            b = mul_div_floor(b, b, SCALE);
+            b = mul_div_floor(env, b, b, SCALE);
         }
     }
     result
 }
 
 /// Daily growth factor (SCALE fixed point) for a nominal APR.
-pub fn daily_factor(apr_bps: u32) -> i128 {
-    SCALE + (apr_bps as i128) * SCALE / (BPS * 365)
+pub fn daily_factor(env: &Env, apr_bps: u32) -> i128 {
+    gov::add(
+        env,
+        SCALE,
+        mul_div_floor(env, i128::from(apr_bps), SCALE, BPS * 365),
+    )
 }
 
 // ---------------------------------------------------------------- storage helpers
@@ -270,14 +320,12 @@ fn inst_i128(env: &Env, key: &DataKey) -> i128 {
 }
 
 fn add_i128(env: &Env, key: &DataKey, delta: i128) {
-    let v = inst_i128(env, key) + delta;
+    let v = gov::add(env, inst_i128(env, key), delta);
     env.storage().instance().set(key, &v);
 }
 
 fn bump_instance(env: &Env) {
-    env.storage()
-        .instance()
-        .extend_ttl(INSTANCE_BUMP_THRESHOLD, INSTANCE_BUMP_TO);
+    gov::bump_instance(env);
 }
 
 fn load_holder(env: &Env, id: &Address) -> Holder {
@@ -302,15 +350,21 @@ fn save_holder(env: &Env, id: &Address, h: &Holder) {
 }
 
 fn is_exempt(env: &Env, id: &Address) -> bool {
+    let key = DataKey::Exempt(id.clone());
+    let v = env.storage().persistent().get(&key).unwrap_or(false);
+    gov::bump_persistent(env, &key);
+    v
+}
+
+fn xlm_addr(env: &Env) -> Address {
     env.storage()
-        .persistent()
-        .get(&DataKey::Exempt(id.clone()))
-        .unwrap_or(false)
+        .instance()
+        .get(&DataKey::Xlm)
+        .unwrap_or_else(|| panic_with_error!(env, TokenError::InvalidDecimals))
 }
 
 fn xlm(env: &Env) -> token::Client<'_> {
-    let a: Address = env.storage().instance().get(&DataKey::Xlm).unwrap();
-    token::Client::new(env, &a)
+    token::Client::new(env, &xlm_addr(env))
 }
 
 fn check_nonneg(env: &Env, amount: i128) {
@@ -335,53 +389,85 @@ fn assert_backed(env: &Env) {
 
 // ---------------------------------------------------------------- yield accounting
 
-/// (acc, day, emission) including all pending days, without writing.
+fn apr(env: &Env) -> u32 {
+    env.storage().instance().get(&DataKey::AprBps).unwrap_or(0)
+}
+
+fn max_eligible(env: &Env) -> i128 {
+    inst_i128(env, &DataKey::MaxEligible)
+}
+
+/// Per-second emission (SCALE fixed point, QFX-stroops * 1e18 per second)
+/// at the current APR and capped eligible supply.
+fn emission_rate_scaled(env: &Env, eligible: i128) -> i128 {
+    let base = eligible.min(max_eligible(env)).max(0);
+    mul_div_floor(env, gov::mul(env, base, i128::from(apr(env))), SCALE, BPS * YEAR_SECONDS)
+}
+
+/// (acc, timestamp, emission) including all elapsed seconds, without writing.
+///
+/// Time-weighted: `acc` grows by `apr * min(eligible, cap) / eligible` per
+/// second (scaled by 1e18). `emission` (rounded **up**, so allocations always
+/// cover what holders can claim) moves from the unallocated pool to the
+/// allocated bucket; if it would exceed the pool, only the pool is
+/// distributed.
 fn projected(env: &Env) -> (i128, u64, i128) {
     let st = env.storage().instance();
     let acc: i128 = st.get(&DataKey::Acc).unwrap_or(0);
-    let last_day: u64 = st.get(&DataKey::LastDay).unwrap_or(0);
-    let genesis: u64 = st.get(&DataKey::Genesis).unwrap_or(0);
-    let today = env.ledger().timestamp().saturating_sub(genesis) / DAY_SECONDS;
-    if today <= last_day {
-        return (acc, last_day, 0);
+    let last: u64 = st.get(&DataKey::LastUpdate).unwrap_or(0);
+    let now = env.ledger().timestamp();
+    if now <= last {
+        return (acc, last, 0);
     }
     let eligible = inst_i128(env, &DataKey::Eligible);
     let pool = inst_i128(env, &DataKey::YieldPool);
-    let apr: u32 = st.get(&DataKey::AprBps).unwrap_or(0);
-    if eligible <= 0 || pool <= 0 || apr == 0 {
-        return (acc, today, 0);
+    if eligible <= 0 || pool <= 0 || apr(env) == 0 {
+        return (acc, now, 0);
     }
-    let growth = pow_fixed(daily_factor(apr), today - last_day) - SCALE;
-    let mut emission = mul_div_floor(eligible, growth, SCALE);
+    let dt = i128::from(now.saturating_sub(last));
+    // acc increment per QFX-stroop held, 1e18 fixed point
+    let rate = emission_rate_scaled(env, eligible);
+    let mut inc = mul_div_floor(env, rate, dt, eligible);
+    let mut emission = mul_div_ceil(env, inc, eligible, SCALE);
     if emission > pool {
-        emission = pool; // the reserve is the hard limit: never mint yield
+        emission = pool;
+        inc = mul_div_floor(env, pool, SCALE, eligible);
     }
-    let inc = mul_div_floor(emission, SCALE, eligible);
-    (acc + inc, today, emission)
+    if inc <= 0 {
+        // Too little time for a representable increment: do not advance the
+        // clock, so frequent pokes cannot erase yield by rounding.
+        return (acc, last, 0);
+    }
+    (gov::add(env, acc, inc), now, emission)
 }
 
 /// Persist the projected accumulator. Must run before any balance change.
 fn accrue(env: &Env) -> i128 {
-    let (acc, day, emission) = projected(env);
+    let (acc, ts, emission) = projected(env);
     let st = env.storage().instance();
-    let last_day: u64 = st.get(&DataKey::LastDay).unwrap_or(0);
-    if day != last_day {
+    let last: u64 = st.get(&DataKey::LastUpdate).unwrap_or(0);
+    if ts != last {
         st.set(&DataKey::Acc, &acc);
-        st.set(&DataKey::LastDay, &day);
+        st.set(&DataKey::LastUpdate, &ts);
         if emission > 0 {
-            add_i128(env, &DataKey::YieldPool, -emission);
+            add_i128(env, &DataKey::YieldPool, gov::sub(env, 0, emission));
             add_i128(env, &DataKey::YieldAllocated, emission);
+            Accrued {
+                timestamp: ts,
+                acc,
+                emission,
+            }
+            .publish(env);
         }
-        Accrued { day, acc, emission }.publish(env);
     }
     acc
 }
 
-fn pending_of(h: &Holder, acc: i128, exempt: bool) -> i128 {
+fn pending_of(env: &Env, h: &Holder, acc: i128, exempt: bool) -> i128 {
     if exempt || h.balance <= 0 || acc <= h.checkpoint {
         0
     } else {
-        mul_div_floor(h.balance, acc - h.checkpoint, SCALE)
+        mul_div_floor(env, h.balance, gov::sub(env, acc, h.checkpoint), SCALE)
     }
 }
 
@@ -390,11 +476,11 @@ fn pending_of(h: &Holder, acc: i128, exempt: bool) -> i128 {
 fn touch(env: &Env, id: &Address, acc: i128) -> (Holder, bool) {
     let mut h = load_holder(env, id);
     let exempt = is_exempt(env, id);
-    let p = pending_of(&h, acc, exempt);
+    let p = pending_of(env, &h, acc, exempt);
     if p > 0 {
-        h.balance += p;
+        h.balance = gov::add(env, h.balance, p);
         add_i128(env, &DataKey::Eligible, p);
-        add_i128(env, &DataKey::YieldAllocated, -p);
+        add_i128(env, &DataKey::YieldAllocated, gov::sub(env, 0, p));
         YieldPaid {
             to: id.clone(),
             amount: p,
@@ -407,7 +493,7 @@ fn touch(env: &Env, id: &Address, acc: i128) -> (Holder, bool) {
 
 fn credit(env: &Env, id: &Address, acc: i128, amount: i128) {
     let (mut h, exempt) = touch(env, id, acc);
-    h.balance += amount;
+    h.balance = gov::add(env, h.balance, amount);
     if !exempt {
         add_i128(env, &DataKey::Eligible, amount);
     }
@@ -419,9 +505,9 @@ fn debit(env: &Env, id: &Address, acc: i128, amount: i128) {
     if h.balance < amount {
         panic_with_error!(env, TokenError::InsufficientBalance);
     }
-    h.balance -= amount;
+    h.balance = gov::sub(env, h.balance, amount);
     if !exempt {
-        add_i128(env, &DataKey::Eligible, -amount);
+        add_i128(env, &DataKey::Eligible, gov::sub(env, 0, amount));
     }
     save_holder(env, id, &h);
 }
@@ -438,7 +524,7 @@ fn redeem_inner(env: &Env, from: &Address, amount: i128) {
     check_positive(env, amount);
     let acc = accrue(env);
     debit(env, from, acc, amount);
-    add_i128(env, &DataKey::TotalSupply, -amount);
+    add_i128(env, &DataKey::TotalSupply, gov::sub(env, 0, amount));
     xlm(env).transfer(&env.current_contract_address(), from, &amount);
     assert_backed(env);
     bump_instance(env);
@@ -479,7 +565,7 @@ fn spend_allowance(env: &Env, from: &Address, spender: &Address, amount: i128) {
         env.storage().temporary().set(
             &key,
             &AllowanceValue {
-                amount: a.amount - amount,
+                amount: gov::sub(env, a.amount, amount),
                 live_until_ledger: a.live_until_ledger,
             },
         );
@@ -488,12 +574,28 @@ fn spend_allowance(env: &Env, from: &Address, spender: &Address, amount: i128) {
 
 // ---------------------------------------------------------------- contract
 
+fn check_apr(env: &Env, apr_bps: u32) {
+    if apr_bps > MAX_APR_BPS {
+        panic_with_error!(env, TokenError::AprTooHigh);
+    }
+}
+
+fn check_cap(env: &Env, cap: i128) {
+    if cap <= 0 {
+        panic_with_error!(env, TokenError::InvalidCap);
+    }
+}
+
 #[contract]
 pub struct QuasariaFlux;
+
+quasaria_gov::governance_entrypoints!(QuasariaFlux, QfxAction);
+quasaria_gov::pause_entrypoints!(QuasariaFlux);
 
 #[contractimpl]
 impl QuasariaFlux {
     /// `xlm` must be the native XLM Stellar Asset Contract (7 decimals).
+    /// `max_eligible`: QFX (stroops) that earns the full APR (liability cap).
     pub fn __constructor(
         env: Env,
         admin: Address,
@@ -501,23 +603,25 @@ impl QuasariaFlux {
         name: String,
         symbol: String,
         apr_bps: u32,
+        max_eligible: i128,
+        timelock_delay: u64,
     ) {
-        if apr_bps > MAX_APR_BPS {
-            panic_with_error!(&env, TokenError::AprTooHigh);
-        }
+        check_apr(&env, apr_bps);
+        check_cap(&env, max_eligible);
         let decimals = token::Client::new(&env, &xlm).decimals();
         if decimals != XLM_DECIMALS {
             panic_with_error!(&env, TokenError::InvalidDecimals);
         }
+        gov::init(&env, &admin, timelock_delay);
         let st = env.storage().instance();
-        st.set(&DataKey::Admin, &admin);
         st.set(&DataKey::Xlm, &xlm);
         st.set(&DataKey::Decimals, &decimals);
         st.set(&DataKey::Name, &name);
         st.set(&DataKey::Symbol, &symbol);
         st.set(&DataKey::AprBps, &apr_bps);
+        st.set(&DataKey::MaxEligible, &max_eligible);
         st.set(&DataKey::Genesis, &env.ledger().timestamp());
-        st.set(&DataKey::LastDay, &0u64);
+        st.set(&DataKey::LastUpdate, &env.ledger().timestamp());
         st.set(&DataKey::Acc, &0i128);
         st.set(&DataKey::TotalSupply, &0i128);
         st.set(&DataKey::Eligible, &0i128);
@@ -529,12 +633,14 @@ impl QuasariaFlux {
     // ----- peg: the only ways QFX supply changes
 
     /// Pull `amount` native XLM from `from` (via the XLM SAC) and mint the
-    /// same amount of QFX to `from`. Returns the QFX minted.
+    /// same amount of QFX to `from`. Returns the QFX minted. Paused by the
+    /// guardian (redeem never is).
     pub fn deposit(env: Env, from: Address, amount: i128) -> i128 {
         from.require_auth();
+        gov::when_not_paused(&env);
         check_positive(&env, amount);
         let acc = accrue(&env);
-        xlm(&env).transfer(&from, &env.current_contract_address(), &amount);
+        xlm(&env).transfer(&from, env.current_contract_address(), &amount);
         credit(&env, &from, acc, amount);
         add_i128(&env, &DataKey::TotalSupply, amount);
         assert_backed(&env);
@@ -562,7 +668,7 @@ impl QuasariaFlux {
         from.require_auth();
         check_positive(&env, amount);
         accrue(&env);
-        xlm(&env).transfer(&from, &env.current_contract_address(), &amount);
+        xlm(&env).transfer(&from, env.current_contract_address(), &amount);
         add_i128(&env, &DataKey::TotalSupply, amount);
         add_i128(&env, &DataKey::YieldPool, amount);
         assert_backed(&env);
@@ -603,7 +709,7 @@ impl QuasariaFlux {
     pub fn sweep_surplus(env: Env) -> i128 {
         accrue(&env);
         let reserve = xlm(&env).balance(&env.current_contract_address());
-        let surplus = reserve - inst_i128(&env, &DataKey::TotalSupply);
+        let surplus = gov::sub(&env, reserve, inst_i128(&env, &DataKey::TotalSupply));
         if surplus > 0 {
             add_i128(&env, &DataKey::TotalSupply, surplus);
             add_i128(&env, &DataKey::YieldPool, surplus);
@@ -623,44 +729,47 @@ impl QuasariaFlux {
 
     // ----- admin (cannot create QFX)
 
-    pub fn admin(env: Env) -> Address {
-        env.storage().instance().get(&DataKey::Admin).unwrap()
-    }
-
-    pub fn set_admin(env: Env, new_admin: Address) {
-        Self::admin(env.clone()).require_auth();
-        env.storage().instance().set(&DataKey::Admin, &new_admin);
-        bump_instance(&env);
-    }
-
-    /// Set the nominal holder APR (bps). Accrues first so the old rate applies
-    /// to all fully elapsed days. Paid only while the reserve lasts.
-    pub fn set_apr_bps(env: Env, apr_bps: u32) {
-        Self::admin(env.clone()).require_auth();
-        if apr_bps > MAX_APR_BPS {
-            panic_with_error!(&env, TokenError::AprTooHigh);
+    /// Apply a queued timelocked action after its delay. APR / cap changes
+    /// accrue first so the old parameters apply to all elapsed time.
+    pub fn execute_action(env: Env, action: QfxAction) {
+        gov::consume(&env, &action);
+        match action {
+            QfxAction::SetAprBps(apr_bps) => {
+                check_apr(&env, apr_bps);
+                accrue(&env);
+                env.storage().instance().set(&DataKey::AprBps, &apr_bps);
+                RateSet { apr_bps }.publish(&env);
+            }
+            QfxAction::SetMaxEligible(cap) => {
+                check_cap(&env, cap);
+                accrue(&env);
+                env.storage().instance().set(&DataKey::MaxEligible, &cap);
+                CapSet { max_eligible: cap }.publish(&env);
+            }
+            QfxAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
+            QfxAction::SetDelay(d) => gov::set_delay_now(&env, d),
         }
-        accrue(&env);
-        env.storage().instance().set(&DataKey::AprBps, &apr_bps);
-        bump_instance(&env);
-        RateSet { apr_bps }.publish(&env);
     }
 
     /// Exclude (or re-include) an address from holder yield — for contracts
     /// such as staking whose internal accounting cannot absorb it.
     pub fn set_yield_exempt(env: Env, id: Address, exempt: bool) {
-        Self::admin(env.clone()).require_auth();
+        gov::require_admin(&env);
         let acc = accrue(&env);
         let (h, was) = touch(&env, &id, acc);
         if was != exempt {
             add_i128(
                 &env,
                 &DataKey::Eligible,
-                if exempt { -h.balance } else { h.balance },
+                if exempt {
+                    gov::sub(&env, 0, h.balance)
+                } else {
+                    h.balance
+                },
             );
-            env.storage()
-                .persistent()
-                .set(&DataKey::Exempt(id.clone()), &exempt);
+            let key = DataKey::Exempt(id.clone());
+            env.storage().persistent().set(&key, &exempt);
+            gov::bump_persistent(&env, &key);
         }
         save_holder(&env, &id, &h);
         bump_instance(&env);
@@ -682,13 +791,13 @@ impl QuasariaFlux {
         let (h, _) = touch(&env, &id, acc);
         save_holder(&env, &id, &h);
         bump_instance(&env);
-        h.balance - before
+        gov::sub(&env, h.balance, before)
     }
 
     // ----- views
 
     pub fn xlm(env: Env) -> Address {
-        env.storage().instance().get(&DataKey::Xlm).unwrap()
+        xlm_addr(&env)
     }
 
     pub fn total_supply(env: Env) -> i128 {
@@ -699,52 +808,73 @@ impl QuasariaFlux {
     pub fn reserves(env: Env) -> Reserves {
         let xlm_reserve = xlm(&env).balance(&env.current_contract_address());
         let total_supply = inst_i128(&env, &DataKey::TotalSupply);
-        let reward_reserve =
-            inst_i128(&env, &DataKey::YieldPool) + inst_i128(&env, &DataKey::YieldAllocated);
+        let reward_reserve = gov::add(
+            &env,
+            inst_i128(&env, &DataKey::YieldPool),
+            inst_i128(&env, &DataKey::YieldAllocated),
+        );
         Reserves {
             xlm_reserve,
             total_supply,
-            surplus: xlm_reserve - total_supply,
+            surplus: gov::sub(&env, xlm_reserve, total_supply),
             fully_backed: xlm_reserve >= total_supply,
             reward_reserve,
-            circulating: total_supply - reward_reserve,
+            circulating: gov::sub(&env, total_supply, reward_reserve),
         }
     }
 
     pub fn pending_yield(env: Env, id: Address) -> i128 {
         let (acc, _, _) = projected(&env);
-        pending_of(&load_holder(&env, &id), acc, is_exempt(&env, &id))
+        pending_of(&env, &load_holder(&env, &id), acc, is_exempt(&env, &id))
     }
 
     pub fn is_yield_exempt(env: Env, id: Address) -> bool {
         is_exempt(&env, &id)
     }
 
-    /// Effective APY in bps from daily compounding of the nominal APR.
+    /// APY in bps if yield is settled (compounded) daily.
     pub fn current_apy_bps(env: Env) -> u32 {
-        let apr: u32 = env.storage().instance().get(&DataKey::AprBps).unwrap_or(0);
-        let f = pow_fixed(daily_factor(apr), 365);
-        ((f - SCALE) * BPS / SCALE) as u32
+        let f = pow_fixed(&env, daily_factor(&env, apr(&env)), 365);
+        let bps = mul_div_floor(&env, gov::sub(&env, f, SCALE), BPS, SCALE);
+        u32::try_from(bps).unwrap_or(u32::MAX)
     }
 
     pub fn yield_info(env: Env) -> YieldInfo {
         let st = env.storage().instance();
-        let (acc, last_day, emission) = projected(&env);
-        let apr: u32 = st.get(&DataKey::AprBps).unwrap_or(0);
+        let (acc, last_update, emission) = projected(&env);
+        let apr_bps = apr(&env);
         let genesis: u64 = st.get(&DataKey::Genesis).unwrap_or(0);
         let eligible = inst_i128(&env, &DataKey::Eligible);
+        let cap = max_eligible(&env);
+        let effective = if eligible > cap && eligible > 0 {
+            mul_div_floor(&env, i128::from(apr_bps), cap, eligible)
+        } else {
+            i128::from(apr_bps)
+        };
+        let per_sec_scaled = emission_rate_scaled(&env, eligible);
+        let reward_pool = gov::sub(&env, inst_i128(&env, &DataKey::YieldPool), emission);
+        let daily = mul_div_floor(&env, per_sec_scaled, i128::from(DAY_SECONDS), SCALE);
+        let runway = if per_sec_scaled > 0 {
+            let secs = mul_div_floor(&env, reward_pool, SCALE, per_sec_scaled);
+            u64::try_from(secs).unwrap_or(u64::MAX)
+        } else {
+            u64::MAX
+        };
         YieldInfo {
-            apr_bps: apr,
+            apr_bps,
             apy_bps: Self::current_apy_bps(env.clone()),
             max_apr_bps: MAX_APR_BPS,
             acc,
             genesis,
-            last_day,
-            next_accrual_at: genesis + (last_day + 1) * DAY_SECONDS,
-            reward_pool: inst_i128(&env, &DataKey::YieldPool) - emission,
-            accrued_unsettled: inst_i128(&env, &DataKey::YieldAllocated) + emission,
+            last_update,
+            next_accrual_at: env.ledger().timestamp(),
+            reward_pool,
+            accrued_unsettled: gov::add(&env, inst_i128(&env, &DataKey::YieldAllocated), emission),
             eligible_supply: eligible,
-            daily_emission: eligible * (apr as i128) / (BPS * 365),
+            max_eligible: cap,
+            effective_apr_bps: u32::try_from(effective).unwrap_or(u32::MAX),
+            daily_emission: daily,
+            runway_seconds: runway,
         }
     }
 }
@@ -770,7 +900,7 @@ impl token::TokenInterface for QuasariaFlux {
             },
         );
         if amount > 0 {
-            let live_for = live_until_ledger - env.ledger().sequence();
+            let live_for = live_until_ledger.saturating_sub(env.ledger().sequence());
             env.storage()
                 .temporary()
                 .extend_ttl(&key, live_for, live_for);
@@ -789,7 +919,7 @@ impl token::TokenInterface for QuasariaFlux {
     fn balance(env: Env, id: Address) -> i128 {
         let (acc, _, _) = projected(&env);
         let h = load_holder(&env, &id);
-        h.balance + pending_of(&h, acc, is_exempt(&env, &id))
+        gov::add(&env, h.balance, pending_of(&env, &h, acc, is_exempt(&env, &id)))
     }
 
     fn transfer(env: Env, from: Address, to: MuxedAddress, amount: i128) {
@@ -824,15 +954,24 @@ impl token::TokenInterface for QuasariaFlux {
     }
 
     fn decimals(env: Env) -> u32 {
-        env.storage().instance().get(&DataKey::Decimals).unwrap()
+        env.storage()
+            .instance()
+            .get(&DataKey::Decimals)
+            .unwrap_or(XLM_DECIMALS)
     }
 
     fn name(env: Env) -> String {
-        env.storage().instance().get(&DataKey::Name).unwrap()
+        env.storage()
+            .instance()
+            .get(&DataKey::Name)
+            .unwrap_or_else(|| String::from_str(&env, "Quasaria Flux"))
     }
 
     fn symbol(env: Env) -> String {
-        env.storage().instance().get(&DataKey::Symbol).unwrap()
+        env.storage()
+            .instance()
+            .get(&DataKey::Symbol)
+            .unwrap_or_else(|| String::from_str(&env, "QFX"))
     }
 }
 

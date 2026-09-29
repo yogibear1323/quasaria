@@ -2,13 +2,20 @@
 extern crate std;
 
 use super::*;
+use quasaria_gov::GovError;
 use soroban_sdk::{
-    testutils::{Address as _, Ledger},
+    testutils::{
+        storage::{Instance as _, Persistent as _},
+        Address as _, Ledger,
+    },
     token::{StellarAssetClient, TokenClient},
     Address, Env, IntoVal, String, Symbol, Val, Vec,
 };
 
 const UNIT: i128 = 10_000_000; // 7 decimals, same as XLM
+const DELAY: u64 = 600;
+/// Default liability cap in tests: 1,000,000 QFX.
+const CAP: i128 = 1_000_000 * UNIT;
 
 struct T {
     env: Env,
@@ -19,6 +26,10 @@ struct T {
 }
 
 fn setup(apr_bps: u32) -> T {
+    setup_cap(apr_bps, CAP)
+}
+
+fn setup_cap(apr_bps: u32, cap: i128) -> T {
     let env = Env::default();
     env.mock_all_auths();
     env.ledger().set_timestamp(1_700_000_000);
@@ -33,6 +44,8 @@ fn setup(apr_bps: u32) -> T {
             String::from_str(&env, "Quasaria Flux"),
             String::from_str(&env, "QFX"),
             apr_bps,
+            cap,
+            DELAY,
         ),
     );
     T {
@@ -56,6 +69,18 @@ fn user(t: &T, xlm: i128) -> Address {
 fn advance_days(env: &Env, days: u64) {
     let t = env.ledger().timestamp();
     env.ledger().set_timestamp(t + days * DAY_SECONDS);
+}
+
+fn advance_secs(env: &Env, secs: u64) {
+    let t = env.ledger().timestamp();
+    env.ledger().set_timestamp(t + secs);
+}
+
+/// Queue a timelocked action, wait the delay, execute it.
+fn timelocked(t: &T, a: &QfxAction) {
+    t.c.propose_action(a);
+    advance_secs(&t.env, DELAY);
+    t.c.execute_action(a);
 }
 
 /// The peg invariant: XLM held by the contract == QFX total supply, and it
@@ -179,7 +204,7 @@ fn no_unbacked_mint() {
     // Admin knobs never change supply.
     let a = user(&t, 100 * UNIT);
     t.c.deposit(&a, &(100 * UNIT));
-    t.c.set_apr_bps(&MAX_APR_BPS);
+    timelocked(&t, &QfxAction::SetAprBps(MAX_APR_BPS));
     t.c.set_yield_exempt(&a, &true);
     t.c.set_yield_exempt(&a, &false);
     advance_days(&t.env, 365);
@@ -204,13 +229,13 @@ fn holder_yield_is_paid_from_the_reserve_not_minted() {
     assert_eq!(supply, 1_100 * UNIT);
     assert_peg(&t, &[&a]);
 
-    // Less than a day: nothing.
-    t.env
-        .ledger()
-        .set_timestamp(t.env.ledger().timestamp() + DAY_SECONDS - 1);
-    assert_eq!(t.c.balance(&a), 1_000 * UNIT);
+    // Half a day: half a day's yield (time-weighted, per second).
+    advance_secs(&t.env, DAY_SECONDS / 2);
+    let half = 1_000 * UNIT * 1_000 / (10_000 * 365 * 2);
+    let got_half = t.c.balance(&a) - 1_000 * UNIT;
+    assert!((got_half - half).abs() <= 1, "{got_half} vs {half}");
     // One day: 1000 * 0.10 / 365 paid out of the reserve.
-    advance_days(&t.env, 1);
+    advance_secs(&t.env, DAY_SECONDS / 2);
     let expected = 1_000 * UNIT * 1_000 / (10_000 * 365);
     let got = t.c.balance(&a) - 1_000 * UNIT;
     assert!((got - expected).abs() <= 1, "{got} vs {expected}");
@@ -250,7 +275,7 @@ fn yield_stops_when_reserve_runs_dry() {
     assert_eq!(y.reward_pool, 0, "reserve exhausted");
     let total = t.c.balance(&a) + t.c.balance(&b);
     assert!(
-        total <= 2_005 * UNIT && total >= 2_005 * UNIT - 2,
+        (2_005 * UNIT - 2..=2_005 * UNIT).contains(&total),
         "total {total}"
     );
     // everyone can still exit at 1:1
@@ -361,10 +386,13 @@ fn burn_is_redeem_and_allowances_work() {
 }
 
 #[test]
-fn apr_is_capped() {
+fn apr_is_capped_and_timelocked() {
     let t = setup(1_000);
+    let too_high = QfxAction::SetAprBps(MAX_APR_BPS + 1);
+    t.c.propose_action(&too_high);
+    advance_secs(&t.env, DELAY);
     assert_eq!(
-        t.c.try_set_apr_bps(&(MAX_APR_BPS + 1)),
+        t.c.try_execute_action(&too_high),
         Err(Ok(TokenError::AprTooHigh.into()))
     );
     let funder = user(&t, 100 * UNIT);
@@ -372,8 +400,14 @@ fn apr_is_capped() {
     let a = user(&t, 1_000 * UNIT);
     t.c.deposit(&a, &(1_000 * UNIT));
     advance_days(&t.env, 5);
+    let zero = QfxAction::SetAprBps(0);
+    t.c.propose_action(&zero);
+    // early execution rejected; APR unchanged
+    assert_eq!(t.c.try_execute_action(&zero), Err(Ok(GovError::TimelockNotReady.into())));
+    assert_eq!(t.c.yield_info().apr_bps, 1_000);
+    advance_secs(&t.env, DELAY);
+    t.c.execute_action(&zero);
     let before = t.c.balance(&a);
-    t.c.set_apr_bps(&0);
     advance_days(&t.env, 100);
     assert_eq!(t.c.balance(&a), before, "zero APR stops yield");
 }
@@ -430,5 +464,183 @@ fn peg_holds_through_mixed_activity() {
     // Only the unpaid reserve plus a few stroops of rounding dust (in the reserve's favour) remain.
     assert_eq!(t.c.reserves().circulating, 0);
     let dust = t.c.total_supply() - y.reward_pool;
-    assert!(dust >= 0 && dust <= 100, "dust {dust}");
+    assert!((0..=100).contains(&dust), "dust {dust}");
+}
+
+// ------------------------------------------------------------------ F-03
+
+/// Regression F-03 (PoC scenario): a whale deposits 60 s before the UTC-day
+/// boundary and redeems 60 s after. It used to extract a full day of yield
+/// (328.77 XLM on 1,000,000 XLM); now it earns only its 120 seconds.
+#[test]
+fn regression_f03_boundary_sniping_earns_only_seconds_held() {
+    let t = setup(1_200);
+    let funder = user(&t, 100_000 * UNIT);
+    t.c.fund_yield(&funder, &(100_000 * UNIT));
+    let holder = user(&t, 1_000 * UNIT);
+    t.c.deposit(&holder, &(1_000 * UNIT));
+    let g = t.env.ledger().timestamp();
+    t.env.ledger().set_timestamp(g + DAY_SECONDS - 60);
+    let whale = user(&t, 1_000_000 * UNIT);
+    t.c.deposit(&whale, &(1_000_000 * UNIT));
+    t.env.ledger().set_timestamp(g + DAY_SECONDS + 60);
+    let bal = t.c.balance(&whale);
+    t.c.redeem(&whale, &bal);
+    let profit = t.xlm.balance(&whale) - 1_000_000 * UNIT;
+    // 120 s of 12% APR on (at most) 1,000,000 QFX
+    let max_fair = 1_000_000 * UNIT * 1_200 * 120 / (10_000 * 365 * 86_400);
+    std::println!(
+        "F-03 regression: whale held 120 s across the boundary, profit = {} stroops ({} XLM); fair 120 s share <= {}",
+        profit, profit as f64 / 1e7, max_fair
+    );
+    assert!(profit <= max_fair + 1, "profit {profit} > fair {max_fair}");
+    assert!(profit < UNIT, "less than 1 XLM (was 328.77 XLM)");
+    assert_peg(&t, &[&holder, &whale]);
+}
+
+/// Regression F-03: yield is proportional to seconds held.
+#[test]
+fn regression_f03_yield_is_time_weighted() {
+    let t = setup(1_000);
+    let funder = user(&t, 1_000 * UNIT);
+    t.c.fund_yield(&funder, &(1_000 * UNIT));
+    let a = user(&t, 1_000 * UNIT);
+    let b = user(&t, 1_000 * UNIT);
+    t.c.deposit(&a, &(1_000 * UNIT));
+    advance_secs(&t.env, 43_200);
+    t.c.deposit(&b, &(1_000 * UNIT));
+    advance_secs(&t.env, 43_200);
+    let ya = t.c.balance(&a) - 1_000 * UNIT;
+    let yb = t.c.balance(&b) - 1_000 * UNIT;
+    assert!(ya > 0 && yb > 0);
+    assert!((ya - 2 * yb).abs() <= 2, "a held twice as long: {ya} vs {yb}");
+}
+
+/// Poking `accrue` every ledger cannot erase yield through rounding.
+#[test]
+fn frequent_accrual_does_not_lose_yield() {
+    let t1 = setup(1_200);
+    let t2 = setup(1_200);
+    for t in [&t1, &t2] {
+        let f = user(t, 100 * UNIT);
+        t.c.fund_yield(&f, &(100 * UNIT));
+    }
+    // tiny eligible supply: per-ledger emission is < 1 stroop
+    let a1 = user(&t1, 3 * UNIT);
+    let a2 = user(&t2, 3 * UNIT);
+    t1.c.deposit(&a1, &(3 * UNIT));
+    t2.c.deposit(&a2, &(3 * UNIT));
+    for _ in 0..720 {
+        advance_secs(&t1.env, 5);
+        t1.c.accrue();
+    }
+    advance_secs(&t2.env, 3_600);
+    let y1 = t1.c.balance(&a1) - 3 * UNIT;
+    let y2 = t2.c.balance(&a2) - 3 * UNIT;
+    assert!(y2 > 0);
+    assert!((y1 - y2).abs() <= 1, "poked {y1} vs untouched {y2}");
+}
+
+// ------------------------------------------------------------------ F-13
+
+/// Regression F-13: the reserve commitment is bounded by `max_eligible`.
+/// Above the cap, holders share the capped emission pro rata.
+#[test]
+fn regression_f13_eligible_supply_cap_bounds_emission() {
+    let cap = 1_000 * UNIT;
+    let t = setup_cap(1_000, cap); // 10% APR on at most 1,000 QFX
+    let funder = user(&t, 1_000 * UNIT);
+    t.c.fund_yield(&funder, &(1_000 * UNIT));
+    let a = user(&t, 4_000 * UNIT);
+    t.c.deposit(&a, &(4_000 * UNIT));
+    let y = t.c.yield_info();
+    assert_eq!(y.max_eligible, cap);
+    assert_eq!(y.eligible_supply, 4_000 * UNIT);
+    assert_eq!(y.effective_apr_bps, 250, "10% APR diluted 4x");
+    assert_eq!(y.daily_emission, cap * 1_000 / (10_000 * 365));
+    advance_days(&t.env, 1);
+    let got = t.c.balance(&a) - 4_000 * UNIT;
+    let capped = cap * 1_000 / (10_000 * 365); // what 1,000 QFX earn per day
+    assert!((got - capped).abs() <= 2, "{got} vs {capped}");
+    // the cap is only changed through the timelock
+    let raise = QfxAction::SetMaxEligible(8_000 * UNIT);
+    t.c.propose_action(&raise);
+    assert_eq!(t.c.try_execute_action(&raise), Err(Ok(GovError::TimelockNotReady.into())));
+    advance_secs(&t.env, DELAY);
+    t.c.execute_action(&raise);
+    assert_eq!(t.c.yield_info().effective_apr_bps, 1_000);
+    let bad = QfxAction::SetMaxEligible(0);
+    t.c.propose_action(&bad);
+    advance_secs(&t.env, DELAY);
+    assert_eq!(t.c.try_execute_action(&bad), Err(Ok(TokenError::InvalidCap.into())));
+    assert_peg(&t, &[&a]);
+}
+
+#[test]
+fn runway_is_reported() {
+    let t = setup(1_000);
+    let funder = user(&t, 10 * UNIT);
+    t.c.fund_yield(&funder, &(10 * UNIT));
+    let a = user(&t, 365 * UNIT);
+    t.c.deposit(&a, &(365 * UNIT));
+    // 365 QFX at 10% = 0.1 QFX/day -> 10 QFX lasts 100 days
+    let y = t.c.yield_info();
+    let days = y.runway_seconds / DAY_SECONDS;
+    assert!((99..=100).contains(&days), "runway {days} days");
+}
+
+// ------------------------------------------------------------------ governance / F-08
+
+#[test]
+fn pause_blocks_minting_but_not_exits() {
+    let t = setup(1_000);
+    let guardian = user(&t, 0);
+    t.c.set_guardian(&guardian);
+    let a = user(&t, 100 * UNIT);
+    let b = user(&t, 0);
+    t.c.deposit(&a, &(50 * UNIT));
+    t.c.pause(&guardian);
+    assert!(t.c.paused());
+    assert_eq!(t.c.try_deposit(&a, &UNIT), Err(Ok(GovError::Paused.into())));
+    t.c.transfer(&a, &b, &UNIT);
+    t.c.redeem(&a, &(10 * UNIT));
+    t.c.burn(&b, &UNIT);
+    t.c.settle(&a);
+    t.env.set_auths(&[]);
+    assert!(t.c.try_unpause().is_err(), "unpause needs the admin");
+    t.env.mock_all_auths();
+    t.c.unpause();
+    t.c.deposit(&a, &UNIT);
+    assert_peg(&t, &[&a, &b]);
+}
+
+#[test]
+fn two_step_admin_replaces_set_admin() {
+    let t = setup(1_000);
+    let ms = user(&t, 0);
+    t.c.propose_admin(&ms);
+    assert_eq!(t.c.admin(), t.admin);
+    t.c.accept_admin();
+    assert_eq!(t.env.auths()[0].0, ms, "nominee must sign acceptance");
+    assert_eq!(t.c.admin(), ms);
+}
+
+/// Regression F-08: the yield-exempt flag is re-bumped when read.
+#[test]
+fn regression_f08_exempt_entry_ttl_extended() {
+    let t = setup(1_000);
+    let staking = user(&t, 10 * UNIT);
+    t.c.set_yield_exempt(&staking, &true);
+    let seq = t.env.ledger().sequence();
+    t.env.ledger().set_sequence_number(
+        seq + quasaria_gov::PERSISTENT_BUMP_TO - quasaria_gov::PERSISTENT_BUMP_THRESHOLD + 10,
+    );
+    t.c.deposit(&staking, &UNIT); // reads the exempt flag
+    t.env.as_contract(&t.c.address, || {
+        assert!(
+            t.env.storage().persistent().get_ttl(&DataKey::Exempt(staking.clone()))
+                >= quasaria_gov::PERSISTENT_BUMP_TO - 1
+        );
+        assert!(t.env.storage().instance().get_ttl() >= quasaria_gov::INSTANCE_BUMP_TO - 1);
+    });
 }

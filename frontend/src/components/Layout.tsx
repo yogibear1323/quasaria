@@ -33,6 +33,7 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/referrals", label: "Referrals", scene: "constellation" },
   { to: "/bots", label: "Bots & Leverage", scene: "warp" },
   { to: "/quests", label: "Quests", scene: "constellation" },
+  { to: "/merch", label: "Merch", scene: "nebula" },
 ];
 
 export function sceneFor(path: string): Scene {

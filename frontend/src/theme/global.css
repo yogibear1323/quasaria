@@ -1,6 +1,7 @@
 @import "./fonts.css";
 @import "./tokens.css";
 @import "./game.css";
+@import "./merch.css";
 
 /* =====================================================================
    Base
@@ -529,8 +530,9 @@ select.input option, select.input optgroup { background: var(--bg-elev); color: 
 
 @media (max-width: 1520px) {
   .topbar .pill[data-testid="xlm-ticker"] .muted { display: none; }
+  .nav a { padding: 7px 7px; font-size: 0.84rem; }
 }
-@media (max-width: 1400px) and (min-width: 721px) {
+@media (max-width: 1439px) and (min-width: 721px) {
   .topbar { padding-left: var(--s-4); padding-right: var(--s-4); }
   .nav { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); padding-right: 24px; }
 }

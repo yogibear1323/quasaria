@@ -57,6 +57,7 @@ export const QUESTS: Quest[] = [
   { id: "calc-lp", kind: "learn", xp: 40, title: "Try the liquidity calculator", desc: "Move the price slider and watch impermanent loss.", to: "/calculators?c=lp", cta: "Open" },
   { id: "slippage", kind: "learn", xp: 40, title: "Set your slippage guard", desc: "Adjust max slippage on the Trade swap panel before you swap.", to: "/trade", cta: "Trade" },
   { id: "explore", kind: "learn", xp: 60, title: "Tour the galaxy", desc: "Visit Markets, Trade, Pools, Earn and Stake.", steps: EXPLORE_PATHS.length },
+  { id: "merch-visit", kind: "learn", xp: 20, title: "Visit the merch store", desc: "Take a look at the (coming soon) merch line. Just browsing: nothing is for sale and buying would never earn XP.", to: "/merch", cta: "Merch" },
   { id: "connect", kind: "try", xp: 50, title: "Connect a testnet wallet", desc: "Create an in-app account or connect Freighter on TESTNET." },
   { id: "first-swap", kind: "try", xp: 75, title: "Make your first swap", desc: "One-time: any amount of free testnet tokens counts. Extra swaps earn nothing.", to: "/trade", cta: "Trade" },
   { id: "first-mint", kind: "try", xp: 75, title: "Mint QFX once", desc: "One-time: mint any amount of QFX (1 QFX = 1 XLM, fully backed) on testnet.", to: "/rewards", cta: "Mint" },
@@ -127,8 +128,9 @@ export function complete(state: GameState, id: string, now = Date.now()) {
   return settle(state, s, [{ type: "quest", quest: q }, { type: "xp", amount: q.xp, reason: q.title }], now);
 }
 
-/** Record a page visit (for the "Tour the galaxy" quest). */
+/** Record a page visit (for the "Tour the galaxy" and "Visit the merch store" quests). */
 export function visit(state: GameState, path: string, now = Date.now()) {
+  if ((path === "/merch" || path.startsWith("/merch/")) && !state.done["merch-visit"]) return complete(state, "merch-visit", now);
   const p = EXPLORE_PATHS.find((x) => path === x || path.startsWith(`${x}/`));
   if (!p || state.visited.includes(p)) return { state, events: [] as GameEvent[] };
   const s = { ...state, visited: [...state.visited, p] };

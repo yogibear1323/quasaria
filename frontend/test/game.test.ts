@@ -59,6 +59,14 @@ describe("game engine (cosmetic XP layer)", () => {
     expect(s.badges.navigator).toBeTruthy();
   });
 
+  it("gives a small one-time XP reward for visiting the merch store (never for buying)", () => {
+    const a = visit(emptyState(), "/merch");
+    expect(a.state.done["merch-visit"]).toBeTruthy();
+    expect(a.state.xp).toBe(20);
+    expect(visit(a.state, "/merch").state.xp).toBe(20);
+    expect(QUESTS.some((q) => /buy|purchase|order/i.test(q.id) || /^(buy|purchase|order)/i.test(q.title))).toBe(false);
+  });
+
   it("parses stored state defensively", () => {
     expect(parseState(null)).toEqual(emptyState());
     expect(parseState("{bad json")).toEqual(emptyState());

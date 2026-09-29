@@ -27,7 +27,7 @@ DELAY="$(j "['governance']['timelockDelaySeconds']")"
 PASS=0; FAIL=0
 ok()   { echo "  PASS  $*"; PASS=$((PASS + 1)); }
 bad()  { echo "  FAIL  $*"; FAIL=$((FAIL + 1)); }
-inv()  { local src="$1" id="$2"; shift 2; stellar contract invoke --id "$id" --source "$src" --network testnet -- "$@" 2>/tmp/smoke.err; }
+inv()  { local src="$1" id="$2"; shift 2; stellar contract invoke --id "$id" --source "$src" --network testnet --instruction-leeway 1000000 -- "$@" 2>/tmp/smoke.err; }
 view() { local id="$1"; shift; stellar contract invoke --id "$id" --source "$IDENTITY" --network testnet --send=no -- "$@" 2>/dev/null; }
 expect_err() { # expect_err <code> <label> <src> <id> fn args...
   local code="$1" label="$2"; shift 2
@@ -54,7 +54,9 @@ q1="$(bal "$(C qusdSac)" "$T")"
 (( q1 > q0 )) && ok "swap paid $(( q1 - q0 )) stroops QUSD" || bad "swap ($q0 -> $q1)"
 
 echo "==> 3. Stake"
-expect_err 7 "1-stroop stake rejected (BelowMinStake)" "$TRADER" "$(C staking)" stake --user "$T" --pool_id 0 --amount 1
+# pool 1 (QLP): the trader has no position there, so a 1-stroop first stake is below min_stake.
+# (Top-ups of an existing position may be any size: the position stays >= min_stake.)
+expect_err 7 "1-stroop first stake rejected (BelowMinStake)" "$TRADER" "$(C staking)" stake --user "$T" --pool_id 1 --amount 1
 inv "$TRADER" "$(C staking)" stake --user "$T" --pool_id 0 --amount $((2 * U)) >/dev/null && ok "stake 2 QFX in pool 0" || bad "stake"
 
 echo "==> 4. Vault: open + close a small position"

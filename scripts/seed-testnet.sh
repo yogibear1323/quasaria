@@ -25,7 +25,7 @@ C() { j "['contracts']['$1']"; }
 inv() { # inv <source-identity> <contract-id> <fn> args...
   local src="$1" id="$2"; shift 2
   if [[ "${DRY_RUN:-0}" == "1" ]]; then echo "+ [$src] invoke $id -- $*" >&2; echo 0; return; fi
-  stellar contract invoke --id "$id" --source "$src" --network testnet -- "$@"
+  stellar contract invoke --id "$id" --source "$src" --network testnet --instruction-leeway 1000000 -- "$@"
 }
 U=10000000 # 7 decimals
 now_price() { inv "$IDENTITY" "$(C oracle)" set_price --asset '{"Other":"XLM"}' --price "${1:-12000000000000}" --timestamp 0 >/dev/null; }

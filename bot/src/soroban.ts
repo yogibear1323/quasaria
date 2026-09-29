@@ -51,7 +51,10 @@ export class SorobanVault implements TradingVenue, KeeperVault {
       .addOperation(new Contract(this.o.vaultId).call(method, ...args))
       .setTimeout(120)
       .build();
-    const prepared = await this.server.prepareTransaction(tx);
+    // Instruction leeway: time-dependent contract math can cost slightly more on-chain than simulated.
+    const sim = await this.server.simulateTransaction(tx, { cpuInstructions: 1_000_000 });
+    if (!rpc.Api.isSimulationSuccess(sim)) throw new Error(`${method}: simulation failed${"error" in sim ? ` (${sim.error})` : ""}`);
+    const prepared = rpc.assembleTransaction(tx, sim).build();
     prepared.sign(this.kp);
     const sent = await this.server.sendTransaction(prepared);
     if (sent.status === "ERROR") throw new Error(`${method}: rejected by RPC`);

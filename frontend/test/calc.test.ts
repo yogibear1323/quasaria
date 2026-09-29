@@ -52,8 +52,8 @@ describe("QFX holder yield: simple vs compound", () => {
   it("simple interest = P·APR·d/365 (the contract default)", () => {
     close(1000 * yieldGrowth(1200, 365, "simple"), 120);
     close(1000 * yieldGrowth(1200, 30, "simple"), (1000 * 0.12 * 30) / 365);
-    // Only whole days accrue
-    close(yieldGrowth(1200, 30.9, "simple"), yieldGrowth(1200, 30, "simple"));
+    // Accrues per second: fractional days count proportionally (time-weighted)
+    close(yieldGrowth(1200, 30.5, "simple"), (0.12 * 30.5) / 365);
   });
 
   it("daily settle = (1 + APR/365)^d − 1, i.e. 12% APR → 12.7475% APY", () => {

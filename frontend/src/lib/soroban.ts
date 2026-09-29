@@ -30,6 +30,9 @@ export async function readContract<T = unknown>(contractId: string, method: stri
   return scValToNative(sim.result.retval) as T;
 }
 
+/** Extra CPU instructions budgeted on top of the simulation. */
+export const INSTRUCTION_LEEWAY = 1_000_000;
+
 /** Build, simulate/prepare, sign (wallet) and submit a contract call. */
 export async function invokeContract(
   pubkey: string,
@@ -43,7 +46,12 @@ export async function invokeContract(
     .addOperation(new Contract(contractId).call(method, ...args))
     .setTimeout(180)
     .build();
-  const prepared = await soroban.prepareTransaction(tx);
+  // Simulate with an instruction leeway: time-dependent contract math (e.g. QFX's
+  // per-second yield accrual) can cost a few more instructions on-chain than in
+  // the simulation a few seconds earlier.
+  const sim = await soroban.simulateTransaction(tx, { cpuInstructions: INSTRUCTION_LEEWAY });
+  if (!rpc.Api.isSimulationSuccess(sim)) throw new Error(`simulation failed: ${method}${"error" in sim ? ` (${sim.error})` : ""}`);
+  const prepared = rpc.assembleTransaction(tx, sim).build();
   const signed = await sign(prepared.toXDR());
   const sent = await soroban.sendTransaction(TransactionBuilder.fromXDR(signed, NETWORK_PASSPHRASE));
   if (sent.status === "ERROR") throw new Error("transaction rejected by RPC");

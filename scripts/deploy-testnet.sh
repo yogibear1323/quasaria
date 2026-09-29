@@ -109,7 +109,8 @@ VAULT="$(deploy quasaria_leverage_vault.wasm "quasaria-vault-$V" -- --admin "$AD
   --collateral "$QUSD_SAC" --oracle "$ORACLE" --referral "\"$REFERRAL\"" \
   --config "$VAULT_CONFIG" --timelock_delay "$TIMELOCK_DELAY")"
 
-invoke() { run stellar contract invoke --id "$1" --source "$IDENTITY" --network "$NETWORK" -- "${@:2}"; }
+# Leeway: time-dependent accrual can use slightly more instructions than simulated.
+invoke() { run stellar contract invoke --id "$1" --source "$IDENTITY" --network "$NETWORK" --instruction-leeway 1000000 -- "${@:2}"; }
 
 echo "==> Wiring: fee sources, markets, staking pools, oracle prices"
 invoke "$REFERRAL" set_fee_source --source "$POOL_XLM_QUSD" --allowed true >/dev/null

@@ -22,7 +22,8 @@ export default function HolderYieldCalculator({ embedded }: { embedded?: boolean
   const [mode, setMode] = useState<CompoundMode>("simple");
   const [aprOverride, setAprOverride] = useState<number | null>(null);
 
-  const liveApr = info?.aprBps ?? 0;
+  // Effective APR: the nominal APR diluted pro rata when earning supply exceeds the contract's eligible cap.
+  const liveApr = info?.effectiveAprBps ?? info?.aprBps ?? 0;
   const maxApr = info?.maxAprBps ?? 2500;
   const aprBps = Math.min(maxApr, aprOverride ?? liveApr);
   const amt = num(amount);
@@ -56,7 +57,7 @@ export default function HolderYieldCalculator({ embedded }: { embedded?: boolean
                 <Tabs value={mode} onChange={setMode} options={MODES.map((m) => ({ v: m.v, label: m.label }))} />
                 <div className="calc-hint">
                   {mode === "simple"
-                    ? "Matches the contract: yield accrues per whole UTC day on your stored balance and only compounds when your balance changes or someone calls settle."
+                    ? "Matches the contract: yield accrues every second on the balance you actually hold and only compounds when your balance changes or someone calls settle."
                     : `Assumes you (or anyone) call settle every ${mode === "daily" ? "day" : "7 days"}, which credits the accrued yield so it starts earning too. Each settle is a transaction.`}
                 </div>
               </div>
@@ -83,7 +84,7 @@ export default function HolderYieldCalculator({ embedded }: { embedded?: boolean
           </div>
           <ProjectionChart testId="holder-chart" series={series} markers={res.runwayDays <= days ? [{ x: res.runwayDays, label: "reserve empty" }] : []} />
           <ul className="calc-notes">
-            <li>Simple: yield = QFX × APR × whole days / 365. Settled daily: QFX × ((1 + APR/365)^days − 1). Settled weekly: 7-day simple periods, compounded.</li>
+            <li>Simple: yield = QFX × APR × days / 365 (accrues per second). Settled daily: QFX × ((1 + APR/365)^days − 1). Settled weekly: 7-day simple periods, compounded.</li>
             <li>Assumes the APR, the earning supply and your balance stay constant. The staking contract and the QFX/QUSD pool do not earn holder yield, so QFX you stake or pool earns nothing here.</li>
             <li>USD uses {usd.label}.</li>
           </ul>

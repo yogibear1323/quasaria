@@ -97,21 +97,26 @@ export function projectStaking(i: StakingInput): StakingResult {
 
 // ============================================================ QFX holder yield (contracts/reward-token)
 /**
- * Yield accrues once per whole UTC day at apr/365 on the stored balance. It is
- * only credited to the balance (and so only compounds) when the balance
- * changes or someone calls `settle`. Without that it is simple interest.
+ * Yield accrues continuously (per second, time-weighted) at apr/365 per day on
+ * the balance actually held. It is only credited to the balance (and so only
+ * compounds) when the balance changes or someone calls `settle`. Without that
+ * it is simple interest.
  */
 export type CompoundMode = "simple" | "daily" | "weekly";
 
 export const dailyRate = (aprBps: number) => pos(aprBps) / BPS / 365;
 
-/** Growth per 1 unit of principal after `days` whole days (e.g. 0.12 = +12%). */
+/**
+ * Growth per 1 unit of principal after `days` (e.g. 0.12 = +12%). Simple mode
+ * accrues fractional days (the contract accrues per second); compounding modes
+ * credit whole settle periods and accrue the remainder simply.
+ */
 export function yieldGrowth(aprBps: number, days: number, mode: CompoundMode = "simple") {
   const r = dailyRate(aprBps);
-  const d = Math.floor(pos(days));
-  if (mode === "daily") return (1 + r) ** d - 1;
-  if (mode === "weekly") return (1 + 7 * r) ** Math.floor(d / 7) * (1 + r * (d % 7)) - 1;
-  return r * d;
+  const t = pos(days);
+  if (mode === "daily") { const d = Math.floor(t); return (1 + r) ** d * (1 + r * (t - d)) - 1; }
+  if (mode === "weekly") { const w = Math.floor(t / 7); return (1 + 7 * r) ** w * (1 + r * (t - 7 * w)) - 1; }
+  return r * t;
 }
 
 /** Effective annual yield (fraction) for a mode over 365 days. */

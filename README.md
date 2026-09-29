@@ -242,18 +242,33 @@ and copied to `frontend/src/config/testnet.json`. Any `VITE_*` env var overrides
 |---|---|---|
 | `xlmSac` | Native XLM Stellar Asset Contract | [`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`](https://stellar.expert/explorer/testnet/contract/CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC) |
 | `qusdSac` | QUSD demo stablecoin SAC | [`CD4BXA4OL37HBNWDLTBYQK32HEHUZPMVV4F272F7YKOZM2MIB5HDNLUZ`](https://stellar.expert/explorer/testnet/contract/CD4BXA4OL37HBNWDLTBYQK32HEHUZPMVV4F272F7YKOZM2MIB5HDNLUZ) |
-| `referral` | Referral registry | [`CBUKO4MSYOFSDKEDK6WZRXCFXLS3Q4OM5ZMF4PURQCHUNF3AAH76OUJ3`](https://stellar.expert/explorer/testnet/contract/CBUKO4MSYOFSDKEDK6WZRXCFXLS3Q4OM5ZMF4PURQCHUNF3AAH76OUJ3) |
-| `qfx` | QFX: 1 QFX = 1 XLM, fully backed | [`CBHUO4V3P5U4FAF6LZCG3UFNP2VACTRYBU7MDQJOQJBZFBZVZJWFBX66`](https://stellar.expert/explorer/testnet/contract/CBHUO4V3P5U4FAF6LZCG3UFNP2VACTRYBU7MDQJOQJBZFBZVZJWFBX66) |
-| `poolXlmQusd` | AMM pool XLM/QUSD | [`CB4HOL3DI3C2YE5M3HERSGKHOIOMFPZXT27TDHHMQJZRPTIHEP7QOV7F`](https://stellar.expert/explorer/testnet/contract/CB4HOL3DI3C2YE5M3HERSGKHOIOMFPZXT27TDHHMQJZRPTIHEP7QOV7F) |
-| `poolQfxQusd` | AMM pool QFX/QUSD | [`CCT64AIVO7LT7YGU4NNMPKIGBGMZOVMIOAHNLHL7AESY5534BZPBEVIV`](https://stellar.expert/explorer/testnet/contract/CCT64AIVO7LT7YGU4NNMPKIGBGMZOVMIOAHNLHL7AESY5534BZPBEVIV) |
-| `router` | Router | [`CDVMF4C3MH7VQSHDKWOPEYTH7TRNZCDHREWO2JJ2C4OD57AAIRGXRCIK`](https://stellar.expert/explorer/testnet/contract/CDVMF4C3MH7VQSHDKWOPEYTH7TRNZCDHREWO2JJ2C4OD57AAIRGXRCIK) |
-| `staking` | Staking | [`CCYPZCFRGTJULJ7NKWT36PXGHITINJENIEJLPNRIZVAYZ33KGQAQF4OO`](https://stellar.expert/explorer/testnet/contract/CCYPZCFRGTJULJ7NKWT36PXGHITINJENIEJLPNRIZVAYZ33KGQAQF4OO) |
-| `oracle` | Mock oracle | [`CBE3RO7HTU766G3RHQYBBUNQY3WJLY7C5JRKYGTELIHHVI26HSEVJMPK`](https://stellar.expert/explorer/testnet/contract/CBE3RO7HTU766G3RHQYBBUNQY3WJLY7C5JRKYGTELIHHVI26HSEVJMPK) |
-| `vault` | Leverage vault | [`CDBGDS5KB6QJ3E5GQH7T66C6CED576ZCIQAJXEYDWRV27OJLTICNKZNF`](https://stellar.expert/explorer/testnet/contract/CDBGDS5KB6QJ3E5GQH7T66C6CED576ZCIQAJXEYDWRV27OJLTICNKZNF) |
+| `referral` | Referral registry | [`CCLJVQ3MOWHELK4NGKDAQSKOLPXIECADTGIVQVSSSKLRJ7JOSXOZ2WCB`](https://stellar.expert/explorer/testnet/contract/CCLJVQ3MOWHELK4NGKDAQSKOLPXIECADTGIVQVSSSKLRJ7JOSXOZ2WCB) |
+| `qfx` | QFX: 1 QFX = 1 XLM, fully backed | [`CDL5JSVI4O4HGUCITMOBBKAMHNAUY6OE4K54A5DJY2PTXSHFJG5XKJ4D`](https://stellar.expert/explorer/testnet/contract/CDL5JSVI4O4HGUCITMOBBKAMHNAUY6OE4K54A5DJY2PTXSHFJG5XKJ4D) |
+| `poolXlmQusd` | AMM pool XLM/QUSD | [`CBBUQW2VGV5ZH2NPLSVZF5BQM7PPKAWTKDZVK2AVO4DV4KYIS7FSXHB5`](https://stellar.expert/explorer/testnet/contract/CBBUQW2VGV5ZH2NPLSVZF5BQM7PPKAWTKDZVK2AVO4DV4KYIS7FSXHB5) |
+| `poolQfxQusd` | AMM pool QFX/QUSD | [`CBPJ5AXOBTN37PALD62OVPHIJ3BLCFX6XLSCMS3ICX6F6GUVNNM4WFLK`](https://stellar.expert/explorer/testnet/contract/CBPJ5AXOBTN37PALD62OVPHIJ3BLCFX6XLSCMS3ICX6F6GUVNNM4WFLK) |
+| `router` | Router | [`CDSGPKLVVSCZDXPI2NNZRYY23UCQS3TXQWBCFIKINFIBJDCD57TQRWFB`](https://stellar.expert/explorer/testnet/contract/CDSGPKLVVSCZDXPI2NNZRYY23UCQS3TXQWBCFIKINFIBJDCD57TQRWFB) |
+| `staking` | Staking | [`CBB6WT3KRJDNKKJPDKLPEPVCZC63DYPVBRXCR72HPTL6PQL54P7VB63K`](https://stellar.expert/explorer/testnet/contract/CBB6WT3KRJDNKKJPDKLPEPVCZC63DYPVBRXCR72HPTL6PQL54P7VB63K) |
+| `oracle` | Mock oracle | [`CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY`](https://stellar.expert/explorer/testnet/contract/CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY) |
+| `vault` | Leverage vault | [`CAKUVSFDQXQGGBO2ZYQEQH6HMRMMDV6DDF4HMGRKK4Y3O2TGFWDAM55V`](https://stellar.expert/explorer/testnet/contract/CAKUVSFDQXQGGBO2ZYQEQH6HMRMMDV6DDF4HMGRKK4Y3O2TGFWDAM55V) |
 
 - Admin / LP: [`GDAEZGA66NUQZKMHFMIUI42S6FKGFERY3UHANE43ZM3RGL3FB3VBNKCY`](https://stellar.expert/explorer/testnet/account/GDAEZGA66NUQZKMHFMIUI42S6FKGFERY3UHANE43ZM3RGL3FB3VBNKCY)
 - Demo trader: [`GBSMEW3XCI3YNPD4U5VYEHLALFWKOX634XZIHQXAXAWLBXTG36OLOP56`](https://stellar.expert/explorer/testnet/account/GBSMEW3XCI3YNPD4U5VYEHLALFWKOX634XZIHQXAXAWLBXTG36OLOP56)
 - Keys live only in the local Stellar CLI keystore (`~/.config/stellar/identity`). They are never in the repo.
+
+**Hardened redeploy, generation v3 (2026-09-28).** All contracts except the SACs were
+redeployed with the fixes from the internal review (`docs/mainnet-readiness-checklist.md`
+§0.7: F-01…F-05, F-07, F-08, F-13, F-18, F-21). Status: **fixed on testnet, still
+unaudited.** They were re-seeded exactly like the previous deploy (`seed-testnet.sh`) and
+checked with `scripts/smoke-testnet.sh`. The previous generation is listed under
+`legacy.v2` in `deployments/testnet.json`. The 21 XLM/stablecoin pools still run the
+older pool wasm.
+- **Governance on every contract with an admin** (shared crate `contracts/gov`):
+  - two-step admin (`propose_admin`, then `accept_admin` signed by the nominee), so the admin can move to a multisig;
+  - guardian `pause(caller)` / admin `unpause()`. Pausing blocks new risk (deposits, swaps, stakes, opens) but **never exits**: redeem, withdraw, unstake, claim and close keep working;
+  - a timelock for dangerous admin actions: `propose_action(action)`, wait `timelock_delay()` (300 s on testnet; the contracts refuse < 48 h on mainnet), then `execute_action(action)` within 14 days. `cancel_action` is open to the admin or guardian;
+  - timelocked WASM upgrades (`{"Upgrade":"<wasm hash>"}`).
+- Timelocked actions: vault `SetConfig` / `SetOracle` / `WithdrawLiquidity`; pool `SetFeeBps` / `SetReferral`; QFX `SetAprBps` / `SetMaxEligible`; referral `SetShareBps`; plus `Upgrade` / `SetDelay` everywhere.
+- Limits: vault min margin 10 QUSD, ≤ 10 open positions per wallet, ≤ 1,000 open overall, oracle prices ≤ 15 min old and never more than 60 s in the future; staking min stake 1 token; QFX yield accrues per second (time-weighted) on up to 1,000,000 eligible QFX (above that it is shared pro rata); referral payouts are capped at 50% of a fee.
 
 **QFX peg migration (2026-09-26, `scripts/migrate-qfx-peg-testnet.sh`).** `qfx`,
 `staking` and `poolQfxQusd` were redeployed because the staking pools and the QFX/QUSD
@@ -346,7 +361,8 @@ still has the unbacked QFX: `./scripts/migrate-qfx-peg-testnet.sh` (`DRY_RUN=1` 
 shapes as Reflector (`Asset::Stellar(Address) | Asset::Other(Symbol)`,
 `PriceData { price: i128, timestamp: u64 }`). Look up the current Reflector
 testnet contract for the feed you want at reflector.network, then
-`stellar contract invoke --id <vault> ... -- set_oracle --oracle <reflector_id>`
+`stellar contract invoke --id <vault> ... -- propose_action --action '{"SetOracle":"<reflector_id>"}'`,
+wait out the timelock, then run the same with `execute_action`,
 and enable markets whose `Asset` key matches that feed. Verify the asset symbols
 and decimals of the feed before trusting it.
 
@@ -546,8 +562,9 @@ contract calls. Freighter signs.
   - `redeem(from, amount)` burns QFX and sends the same amount of XLM back. It fails with
     `InsufficientBalance` if `from` holds less. SEP-41 `burn` / `burn_from` behave like
     `redeem` (XLM goes to the owner), so burning can't strand collateral.
-  - **There is no admin mint.** The admin can only set the holder APR (capped), mark
-    contracts `yield_exempt`, and transfer admin; none of these change supply.
+  - **There is no admin mint.** The admin can only set the holder APR (capped) and the eligible
+    cap (both timelocked), mark contracts `yield_exempt`, pause deposits, and hand over admin
+    in two steps; none of these change supply.
   - `reserves()` returns `xlm_reserve` (the contract's live SAC balance), `total_supply`,
     `surplus`, `fully_backed`, `reward_reserve` and `circulating`. `deposit`, `redeem` and
     `fund_yield` also assert `xlm_reserve ≥ total_supply` on-chain. XLM sent straight to the
@@ -557,8 +574,11 @@ contract calls. Freighter signs.
   - `fund_yield(from, amount)` pulls XLM and mints the same amount of QFX *into the
     reserve*, just like a deposit. `fund_yield_qfx(from, amount)` moves existing QFX
     (e.g. protocol fees) into it.
-  - Once per elapsed UTC day, `min(eligible × ((1 + APR/365)^days − 1), reserve)` moves
-    from the reserve to holders through a MasterChef-style accumulator (O(1) per holder).
+  - Yield accrues **per second, time-weighted**: `min(eligible × APR × seconds / 365 d, reserve)`
+    moves from the reserve to holders through a MasterChef-style accumulator (O(1) per holder),
+    updated on every balance change, so a deposit earns only for the time it is held. Only
+    `max_eligible` QFX (1,000,000 on testnet) earns the full APR; above it the capped emission
+    is shared pro rata, which bounds the reserve commitment.
     Paying yield moves existing QFX, so **total supply and backing are unchanged**. When
     the reserve is empty, yield stops.
   - `balance()` includes accrued yield right away. It is credited to the stored balance
@@ -573,7 +593,7 @@ contract calls. Freighter signs.
 
 *Off-chain.* The QFX page (`/rewards`) has the **Mint / Redeem** panel (XLM in, QFX out
 and back, labelled "1 QFX = 1 XLM, fully backed", live XLM reserve and QFX supply from
-`reserves()`), holder-yield stats (balance, accrued, next reward day, reserve runway) and
+`reserves()`), holder-yield stats (balance, accrued, per-second rate, eligible cap and effective APR, reserve runway) and
 a yield calculator.
 
 ### 3. Liquidity providing
@@ -647,7 +667,7 @@ invitee to confirm it on-chain. It also shows referral count, earnings and activ
 - **Venues:** `PaperVault` mirrors the vault math exactly and is used for paper
   trading and tests. `SorobanVault` runs live on testnet with the operator key and
   refuses to start unless the RPC passphrase is TESTNET.
-- **Keeper:** `runKeeperOnce` scans `open_position_ids()`, liquidates HF < 1
+- **Keeper:** `runKeeperOnce` pages through `open_position_ids_page()` (count from `open_position_count()`), liquidates HF < 1
   positions and executes crossed triggers. Races with other keepers are
   tolerated because the contract re-checks everything.
 - **UI:** the Bots page has a prominent risk banner, a required risk
@@ -687,7 +707,7 @@ other tokens valued through pool spot prices). All math is in pure functions
 
 | Suite | Command | Count |
 |---|---|---|
-| Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 41 tests across 7 crates, incl. 14 QFX peg tests (reserve == supply after deposits, redeems, yield and mixed activity; over-redeem fails; no `mint` entry point; yield stops when the reserve is empty) and a staking ↔ QFX test (rewards from an XLM-funded reserve, peg holds) |
+| Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 85 tests across 8 crates, including regression tests for F-02/F-03/F-04/F-05/F-07/F-08/F-13 plus pause, timelock, two-step admin and hostile-registry tests (Sep 28); originally 41 tests, incl. 14 QFX peg tests (reserve == supply after deposits, redeems, yield and mixed activity; over-redeem fails; no `mint` entry point; yield stops when the reserve is empty) and a staking ↔ QFX test (rewards from an XLM-funded reserve, peg holds) |
 | Wasm build | `cd contracts && stellar contract build` | 7 `.wasm` (wasm32v1-none) |
 | Bot | `cd bot && npm run typecheck && npm test` | 20 vitest tests |
 | Frontend unit | `cd frontend && npm test` | 79 vitest tests: calculator math (staking stream + reserve cap, simple vs daily/weekly compounding, reserve runway, LP fees, impermanent loss, swap-event summaries, pool-price valuation) plus stellarchain client + build-time snapshot fallback (live first, snapshot, newer-of cache/snapshot, search/paging) and the snapshot script (trimming; keeps the old file and exits 0 when the API is down), exact Mint/Redeem amount parsing, keys/signer, stablecoin filter + verification, landing copy |
@@ -726,14 +746,14 @@ page without a wallet, and reads the live SDEX order book from Horizon testnet.
   search across AMM pools and SDEX.
 - Vault: single collateral token, no funding rates, no borrow interest, no
   open-interest caps, no partial closes. The reserve is the only counterparty.
-  `open_position_ids` is an unbounded on-chain list (fine for a scaffold, but an
-  indexer is needed at scale).
+  Open positions use a bounded, paginated index (`open_position_count`,
+  `open_position_ids_page`) with per-wallet and global caps.
 - QFX holder yield is simple interest between credits; it compounds only when a holder's balance is touched or `settle` is called. The exempt list is admin-managed.
 - The legacy (pre-peg) QFX contract can't be upgraded or removed. It is retired (APR 0) and unused, but its old admin `mint` still exists on that old contract.
 - The referral cycle check is bounded to 32 hops (deeper chains are rejected conservatively).
 - The mock oracle is admin-pushed. Real deployments need Reflector (or similar)
   and careful asset-key and decimals configuration.
-- No governance/timelock or multisig: admin keys are single accounts.
+- Pause, timelock, two-step admin and timelocked upgrades exist on testnet (v3), but the admin is still a single account (no multisig yet), and the guardian = admin.
 - Not audited. There is no formal verification or fuzzing.
 
 ## Disclaimer

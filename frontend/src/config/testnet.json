@@ -14,7 +14,8 @@
     "router": "CDSGPKLVVSCZDXPI2NNZRYY23UCQS3TXQWBCFIKINFIBJDCD57TQRWFB",
     "staking": "CBB6WT3KRJDNKKJPDKLPEPVCZC63DYPVBRXCR72HPTL6PQL54P7VB63K",
     "oracle": "CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY",
-    "vault": "CAKUVSFDQXQGGBO2ZYQEQH6HMRMMDV6DDF4HMGRKK4Y3O2TGFWDAM55V"
+    "vault": "CAKUVSFDQXQGGBO2ZYQEQH6HMRMMDV6DDF4HMGRKK4Y3O2TGFWDAM55V",
+    "lending": "CDCT3D7CMUB72CB7P7U2GNPP32UZCNXWO663GTA6EEUP552LMZAARE46"
   },
   "assets": {
     "QUSD": "QUSD:GDAEZGA66NUQZKMHFMIUI42S6FKGFERY3UHANE43ZM3RGL3FB3VBNKCY"
@@ -102,5 +103,14 @@
     "file": "deployments/testnet-assets.json",
     "generation": "v3",
     "note": "Curated stablecoins + popular assets (testnet mirrors of mainnet assets where no real testnet issuer is obtainable) and 52 v3 AMM pools. Written by scripts/deploy-asset-pools-v3.ts."
+  },
+  "lending": {
+    "pool": "CDCT3D7CMUB72CB7P7U2GNPP32UZCNXWO663GTA6EEUP552LMZAARE46",
+    "reserves": 42,
+    "source": "deployments/testnet-lending.json",
+    "oracle": "CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY",
+    "oracleNote": "Mock oracle (SEP-40 interface: lastprice/price/prices/decimals/resolution/assets/last_timestamp). Mainnet needs Reflector.",
+    "timelockDelaySeconds": 300,
+    "note": "Supply/borrow pool, testnet-only, unaudited."
   }
 }

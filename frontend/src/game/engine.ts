@@ -62,6 +62,7 @@ export const QUESTS: Quest[] = [
   { id: "first-swap", kind: "try", xp: 75, title: "Make your first swap", desc: "One-time: any amount of free testnet tokens counts. Extra swaps earn nothing.", to: "/trade", cta: "Trade" },
   { id: "first-mint", kind: "try", xp: 75, title: "Mint QFX once", desc: "One-time: mint any amount of QFX (1 QFX = 1 XLM, fully backed) on testnet.", to: "/rewards", cta: "Mint" },
   { id: "first-lp", kind: "try", xp: 75, title: "Add liquidity once", desc: "One-time: deposit any amount into a pool. Read about impermanent loss first.", to: "/pools", cta: "Pools" },
+  { id: "first-lend", kind: "try", xp: 75, title: "Try lending once", desc: "One-time: supply any amount of a testnet asset on the Lend page. Read its risk box first. Amounts never matter.", to: "/lending", cta: "Lend" },
   { id: "first-stake", kind: "try", xp: 75, title: "Stake once", desc: "One-time: stake any amount in an Orbit pool on testnet.", to: "/stake", cta: "Stake" },
   { id: "streak-3", kind: "habit", xp: 100, title: "3-day visit streak", desc: "Check in on three days in a row.", steps: 3 },
   { id: "streak-7", kind: "habit", xp: 150, title: "7-day visit streak", desc: "Keep the streak alive for a week.", steps: 7 },
@@ -163,6 +164,7 @@ export function questForTx(label: string): string | null {
   if (l === "mint qfx") return "first-mint";
   if (l === "deposit" || l === "native lp deposit") return "first-lp";
   if (l === "stake") return "first-stake";
+  if (l === "lend supply") return "first-lend";
   return null;
 }
 

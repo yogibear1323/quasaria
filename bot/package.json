@@ -12,7 +12,9 @@
     "paper": "tsx src/index.ts --mode paper --ticks 500",
     "keeper": "tsx src/index.ts --keeper-only",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lending-keeper": "tsx src/lending/cli.ts lending-keeper",
+    "oracle-feed": "tsx src/lending/cli.ts oracle-feed"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^17.1.0"

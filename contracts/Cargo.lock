@@ -1271,6 +1271,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "quasaria-lending"
+version = "0.1.0"
+dependencies = [
+ "quasaria-gov",
+ "quasaria-mock-oracle",
+ "soroban-sdk",
+]
+
+[[package]]
 name = "quasaria-leverage-vault"
 version = "0.1.0"
 dependencies = [

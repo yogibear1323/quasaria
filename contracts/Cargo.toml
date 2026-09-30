@@ -9,6 +9,7 @@ members = [
   "leverage-vault",
   "mock-oracle",
   "gov",
+  "lending",
 ]
 
 [workspace.package]

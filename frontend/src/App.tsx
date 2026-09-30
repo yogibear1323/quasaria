@@ -14,6 +14,7 @@ import Calculators from "./pages/Calculators";
 import Quests from "./pages/Quests";
 import Merch from "./pages/Merch";
 import News from "./pages/News";
+import Lending from "./pages/Lending";
 import { GameProvider } from "./game/GameProvider";
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/markets" element={<Markets />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/pools" element={<Pools />} />
+          <Route path="/lending" element={<Lending />} />
           <Route path="/earn" element={<Earn />} />
           <Route path="/calculators" element={<Calculators />} />
           <Route path="/stake" element={<Stake />} />

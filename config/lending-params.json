@@ -1,0 +1,36 @@
+{
+  "_comment": "Quasaria lending risk parameters (TESTNET ONLY, unaudited). Tiers are applied per asset by scripts/deploy-lending.ts. USD-denominated caps/minimums are converted to raw 7-decimal units at the oracle price at deploy time. bps: 10000 = 100%. Documented in docs/lending.md.",
+  "pool": {
+    "maxPriceAgeSec": 900,
+    "closeFactorBps": 5000,
+    "closeDustUsd": 10,
+    "maxUserReserves": 8,
+    "maxBorrowers": 10000,
+    "timelockDelaySec": 300
+  },
+  "tiers": {
+    "major-stable":   { "label": "Major fiat-backed stablecoin", "ltv": 8000, "threshold": 8500, "bonus": 500, "reserveFactor": 1000, "collateral": true,  "borrowable": true, "supplyCapUsd": 2000000, "borrowCapUsd": 1600000, "rate": { "base": 0,   "slope1": 400,  "optimal": 9000, "slope2": 6000 } },
+    "mid-stable":     { "label": "Smaller stablecoin",           "ltv": 7000, "threshold": 7700, "bonus": 600, "reserveFactor": 1500, "collateral": true,  "borrowable": true, "supplyCapUsd": 250000,  "borrowCapUsd": 150000,  "rate": { "base": 0,   "slope1": 500,  "optimal": 8500, "slope2": 8000 } },
+    "small-stable":   { "label": "Less liquid stablecoin",       "ltv": 5000, "threshold": 6500, "bonus": 700, "reserveFactor": 2000, "collateral": true,  "borrowable": true, "supplyCapUsd": 50000,   "borrowCapUsd": 25000,   "rate": { "base": 100, "slope1": 700,  "optimal": 8000, "slope2": 10000 } },
+    "borrow-only-stable": { "label": "Illiquid stablecoin (borrow-only)", "ltv": 0, "threshold": 0, "bonus": 700, "reserveFactor": 2000, "collateral": false, "borrowable": true, "supplyCapUsd": 25000, "borrowCapUsd": 10000, "rate": { "base": 100, "slope1": 700, "optimal": 8000, "slope2": 10000 } },
+    "off-peg":        { "label": "Flagged off-peg (no collateral)", "ltv": 0, "threshold": 0, "bonus": 800, "reserveFactor": 2500, "collateral": false, "borrowable": true, "supplyCapUsd": 10000, "borrowCapUsd": 5000, "rate": { "base": 200, "slope1": 1000, "optimal": 7000, "slope2": 20000 } },
+    "xlm":            { "label": "XLM / liquid XLM",              "ltv": 6500, "threshold": 7500, "bonus": 600, "reserveFactor": 2000, "collateral": true,  "borrowable": true, "supplyCapUsd": 1000000, "borrowCapUsd": 600000,  "rate": { "base": 0,   "slope1": 700,  "optimal": 7500, "slope2": 30000 } },
+    "major-volatile": { "label": "Anchored major (BTC/ETH/yield USDC)", "ltv": 6000, "threshold": 7000, "bonus": 700, "reserveFactor": 2000, "collateral": true, "borrowable": true, "supplyCapUsd": 250000, "borrowCapUsd": 100000, "rate": { "base": 0, "slope1": 500, "optimal": 8000, "slope2": 30000 } },
+    "small-cap":      { "label": "Small cap",                     "ltv": 3500, "threshold": 4500, "bonus": 800, "reserveFactor": 2500, "collateral": true,  "borrowable": true, "supplyCapUsd": 20000,   "borrowCapUsd": 5000,    "rate": { "base": 200, "slope1": 1000, "optimal": 6000, "slope2": 30000 } },
+    "micro-cap":      { "label": "Micro cap (no collateral)",     "ltv": 0,    "threshold": 0,    "bonus": 800, "reserveFactor": 2500, "collateral": false, "borrowable": true, "supplyCapUsd": 10000,   "borrowCapUsd": 2500,    "rate": { "base": 200, "slope1": 1000, "optimal": 6000, "slope2": 30000 } }
+  },
+  "minSupplyUsd": 1,
+  "minBorrowUsd": 2,
+  "assets": {
+    "XLM": "xlm",
+    "USDC": "major-stable", "EURC": "major-stable", "PYUSD": "major-stable", "USDGLO": "major-stable", "EURCV": "major-stable", "USDT0": "major-stable",
+    "ZUSD": "mid-stable", "AUDD": "mid-stable", "VCHF": "mid-stable", "USDx": "mid-stable", "USDZ": "mid-stable", "USDM": "mid-stable", "EURMTL": "mid-stable",
+    "GYEN": "small-stable", "ARST": "small-stable", "BRL": "small-stable", "ZARZ": "small-stable", "IDRT": "small-stable",
+    "ARS": "borrow-only-stable", "NGNC": "borrow-only-stable",
+    "USD": "off-peg", "NGNT": "off-peg", "PEN": "off-peg", "CLPX": "off-peg", "XCHF": "off-peg",
+    "yXLM": "xlm",
+    "yUSDC": "major-volatile", "BTC": "major-volatile", "yBTC": "major-volatile", "ETH": "major-volatile",
+    "SHX": "small-cap", "AQUA": "small-cap", "VELO": "small-cap", "BLND": "small-cap", "XRP": "small-cap", "GOLD": "small-cap", "SLVR": "small-cap",
+    "SCOP": "micro-cap", "AFR": "micro-cap", "TFT": "micro-cap", "LSP": "micro-cap"
+  }
+}

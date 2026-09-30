@@ -1056,3 +1056,17 @@ These are **publicly published typical ranges**, not quotes for Quasaria. **Get 
 - Mainnet was not touched. All live data is from Stellar testnet (read-only).
 - No legal conclusions are drawn; §9 lists questions for counsel.
 - Funding figures are planning estimates using the XLM price from the repo snapshot and the stated assumptions.
+
+## 13. Lending market (`contracts/lending`, added 2026-09-30)
+
+The lending pool is a **new, unaudited contract** (about 1,400 lines, 33 tests, about 95% line coverage). It is **not covered by the review in §§1–12** and is **testnet-only**. Design and parameters are in `docs/lending.md`. Before any mainnet use:
+
+- [ ] **Separate external audit** of `contracts/lending` together with its oracle integration. This adds roughly 1,400 nSLOC to the §12.5 scope, and a lending market is typically priced at the higher end. Include the keeper and oracle-feed bot in a light review.
+- [ ] **Oracle:** replace the admin-set mock with **Reflector** (or another multi-source SEP-40 feed) through the timelocked `SetOracle` action. Every listed asset needs a feed. Enforce max price age ≤ the feed heartbeat plus a margin, and add deviation alerts and a circuit breaker (pause on large jumps). **Never** price collateral from SEP-38 anchor quotes. Delist, or set to borrow-only, any asset without a robust feed.
+- [ ] **Listings:** start with a small set (for example USDC, EURC and XLM) and use conservative caps. Mainnet `add_reserve` cannot enable collateral directly (enforced); enable it through the timelock after review. Re-derive LTV, thresholds and bonuses from mainnet liquidity (slippage of the seized amount at the close factor) and volatility.
+- [ ] **Governance:** admin must be a multisig. Set the timelock to ≥ 24–48 h. Assign pause guardian roles, and document the treasury withdrawal and bad-debt coverage policy.
+- [ ] **Keepers:** run at least two independent liquidation keepers with alerting. Use an event indexer for borrowers instead of paged chain reads. Pre-fund the keepers, and plan for liquidations during network congestion (fees).
+- [ ] **Bad debt:** agree on a treasury backstop, publish the `bad_debt` metrics, and add a runbook for `resolve_bad_debt` and `cover_bad_debt`.
+- [ ] **Economic review:** interest-rate curves, reserve factors, liquidation incentive vs. slippage, close factor and dust threshold, and caps vs. on-chain liquidity. Run fuzz and invariant tests (solvency: Σ supply ≤ cash + Σ debt + treasury).
+- [ ] **Legal:** lending and borrowing features may be regulated (see §9). Get counsel sign-off per jurisdiction.
+- [ ] **SEP-1:** publish `stellar.toml` on the owner's domain (draft in `docs/stellar.toml.draft`). **SEP-24 anchor integration:** switch from the SDF test anchor to production anchors only after a due-diligence review.

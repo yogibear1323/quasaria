@@ -225,6 +225,8 @@ npm run paper                        # simulated vault + deterministic random wa
 npm start -- --config quasaria-bot.config.example.json --mode paper --ticks 1000
 cp .env.example .env                 # then fill in testnet IDs + operator key
 npm run keeper                       # live liquidation / SL-TP keeper (testnet)
+npm run oracle-feed -- --identity quasaria-admin --interval 300      # mock SEP-40 oracle ← live mainnet prices (testnet tx only)
+npm run lending-keeper -- --identity <liquidator> --interval 60     # lending liquidations (add --dry-run to simulate)
 npm start -- --config my-bot.json --mode live
 ```
 
@@ -816,14 +818,18 @@ other tokens valued through pool spot prices). All math is in pure functions
 
 ---
 
+### 8. Lending market (testnet only, unaudited)
+
+`/lending`: supply 42 testnet assets (XLM, Circle testnet USDC and Quasaria mirrors) to earn a variable rate, or borrow against collateral. Liquidation uses a 50% close factor with a 5–8% per-asset bonus. Prices come from the SEP-40 mock oracle fed with live mainnet prices. The page also has a Txrep-style (SEP-11) signing preview and an optional SEP-10/SEP-24 deposit panel for the SDF test anchor. Design, parameters and the **Standards used** section are in [`docs/lending.md`](docs/lending.md). Contract: `contracts/lending`. Deploy and smoke scripts: `scripts/deploy-lending.ts` and `scripts/smoke-lending.ts`.
+
 ## Tests
 
 | Suite | Command | Count |
 |---|---|---|
-| Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 85 tests across 8 crates, including regression tests for F-02/F-03/F-04/F-05/F-07/F-08/F-13 plus pause, timelock, two-step admin and hostile-registry tests (Sep 28); originally 41 tests, incl. 14 QFX peg tests (reserve == supply after deposits, redeems, yield and mixed activity; over-redeem fails; no `mint` entry point; yield stops when the reserve is empty) and a staking ↔ QFX test (rewards from an XLM-funded reserve, peg holds) |
+| Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 119 tests across 9 crates (Sep 30: +33 lending, +6 mock-oracle SEP-40); previously 85 tests across 8 crates, including regression tests for F-02/F-03/F-04/F-05/F-07/F-08/F-13 plus pause, timelock, two-step admin and hostile-registry tests (Sep 28); originally 41 tests, incl. 14 QFX peg tests (reserve == supply after deposits, redeems, yield and mixed activity; over-redeem fails; no `mint` entry point; yield stops when the reserve is empty) and a staking ↔ QFX test (rewards from an XLM-funded reserve, peg holds) |
 | Wasm build | `cd contracts && stellar contract build` | 7 `.wasm` (wasm32v1-none) |
-| Bot | `cd bot && npm run typecheck && npm test` | 20 vitest tests |
-| Frontend unit | `cd frontend && npm test` | 79 vitest tests: calculator math (staking stream + reserve cap, simple vs daily/weekly compounding, reserve runway, LP fees, impermanent loss, swap-event summaries, pool-price valuation) plus stellarchain client + build-time snapshot fallback (live first, snapshot, newer-of cache/snapshot, search/paging) and the snapshot script (trimming; keeps the old file and exits 0 when the API is down), exact Mint/Redeem amount parsing, keys/signer, stablecoin filter + verification, landing copy |
+| Bot | `cd bot && npm run typecheck && npm test` | 32 vitest tests (incl. 12 lending keeper / price-feed tests) |
+| Frontend unit | `cd frontend && npm test` | 155 vitest tests (Sep 30: incl. 16 lending, Txrep, SEP-1/10/38 anchor tests): calculator math (staking stream + reserve cap, simple vs daily/weekly compounding, reserve runway, LP fees, impermanent loss, swap-event summaries, pool-price valuation) plus stellarchain client + build-time snapshot fallback (live first, snapshot, newer-of cache/snapshot, search/paging) and the snapshot script (trimming; keeps the old file and exits 0 when the API is down), exact Mint/Redeem amount parsing, keys/signer, stablecoin filter + verification, landing copy |
 | Frontend | `cd frontend && npm run build` | tsc + vite build |
 | Screenshots | `cd frontend && npx vite preview & node ../scripts/screenshots.mjs` | landing (desktop + mobile), 7 app pages, account flow (secrets blurred); `ONLY=landing` for just the landing |
 | Live site check | `ROUNDTRIP=1 node scripts/verify-live.mjs` | headless Chromium on the Pages site: Markets rows, Mint/Redeem reserve + supply, optional real testnet mint → redeem with a throwaway friendbot key; writes `screenshots/live-markets.png`, `screenshots/live-mint-redeem.png` |

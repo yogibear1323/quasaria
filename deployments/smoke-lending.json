@@ -1,0 +1,93 @@
+{
+  "pool": "CDCT3D7CMUB72CB7P7U2GNPP32UZCNXWO663GTA6EEUP552LMZAARE46",
+  "at": "2026-09-30T13:47:43.031Z",
+  "steps": [
+    {
+      "name": "supply 30 USDC + collateral on",
+      "ok": true,
+      "detail": {
+        "supplied": "300000000",
+        "collateral": true
+      }
+    },
+    {
+      "name": "borrow ≈$12 of XLM",
+      "ok": true,
+      "detail": {
+        "borrowed": "528414847",
+        "hf": 2.125
+      }
+    },
+    {
+      "name": "interest accrued after ~45 s",
+      "ok": true,
+      "detail": {
+        "before": "528414847",
+        "after": "528414849",
+        "interestStroops": "2"
+      }
+    },
+    {
+      "name": "repay all",
+      "ok": true,
+      "detail": {
+        "paid": "528414849"
+      }
+    },
+    {
+      "name": "withdraw all",
+      "ok": true,
+      "detail": {
+        "withdrawn": "300000000"
+      }
+    },
+    {
+      "name": "price move makes HF < 1",
+      "ok": true,
+      "detail": {
+        "hfBefore": 1.0851063,
+        "hfAfter": 0.9435707,
+        "xlmPriceBefore": 0.2270943,
+        "xlmPriceAfter": 0.26115844499999996
+      }
+    },
+    {
+      "name": "keeper liquidated (≤ 50% close factor, 5% USDC bonus)",
+      "ok": true,
+      "detail": {
+        "debtBefore": "1034812411",
+        "debtAfter": "517406207",
+        "repaid": "517406204",
+        "seizedUsdc": "141881250",
+        "impliedBonusPct": 5,
+        "hfAfter": 0.9946415
+      }
+    },
+    {
+      "name": "repay works while paused",
+      "ok": true,
+      "detail": {
+        "debtBefore": "517406207",
+        "debtAfter": "0"
+      }
+    },
+    {
+      "name": "safe withdraw works while paused",
+      "ok": true,
+      "detail": {
+        "withdrawn": "158118750"
+      }
+    },
+    {
+      "name": "supply/borrow rejected while paused (GovError::Paused #900)",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "unpaused + price restored",
+      "ok": true,
+      "detail": {}
+    }
+  ],
+  "ok": true
+}

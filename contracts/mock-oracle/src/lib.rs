@@ -13,7 +13,23 @@
 #![no_std]
 
 use quasaria_gov as gov;
-use soroban_sdk::{contract, contractimpl, contracttype, Address, BytesN, Env, Symbol};
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, panic_with_error, Address, BytesN, Env, Symbol, Vec,
+};
+
+/// Max distinct assets the mock tracks (bounded `assets()` list).
+pub const MAX_ASSETS: u32 = 128;
+/// Max prices per `set_prices` batch.
+pub const MAX_BATCH: u32 = 50;
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum OracleError {
+    TooManyAssets = 1,
+    BatchTooLarge = 2,
+    InvalidPrice = 3,
+}
 
 soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
 soroban_sdk::contractmeta!(key = "desc", val = "Quasaria mock oracle (Reflector-compatible)");
@@ -48,6 +64,8 @@ pub enum OracleAction {
 enum DataKey {
     Decimals,
     Price(Asset),
+    Assets,
+    LastTs,
 }
 
 #[contract]
@@ -73,12 +91,43 @@ impl MockOracle {
     /// Admin-only price push. `timestamp = 0` means "now".
     pub fn set_price(env: Env, asset: Asset, price: i128, timestamp: u64) {
         gov::require_admin(&env);
+        Self::put(&env, asset, price, timestamp);
+    }
+
+    /// Admin-only batch push (≤ `MAX_BATCH` prices, all stamped `timestamp`,
+    /// 0 = now). Used by the testnet keeper to refresh every reserve at once.
+    pub fn set_prices(env: Env, updates: Vec<(Asset, i128)>, timestamp: u64) {
+        gov::require_admin(&env);
+        if updates.len() > MAX_BATCH {
+            panic_with_error!(&env, OracleError::BatchTooLarge);
+        }
+        for (asset, price) in updates.iter() {
+            Self::put(&env, asset, price, timestamp);
+        }
+    }
+
+    fn put(env: &Env, asset: Asset, price: i128, timestamp: u64) {
+        if price < 0 {
+            panic_with_error!(env, OracleError::InvalidPrice);
+        }
         let ts = if timestamp == 0 {
             env.ledger().timestamp()
         } else {
             timestamp
         };
-        let k = DataKey::Price(asset);
+        let k = DataKey::Price(asset.clone());
+        if !env.storage().persistent().has(&k) {
+            let mut list: Vec<Asset> = env
+                .storage()
+                .instance()
+                .get(&DataKey::Assets)
+                .unwrap_or_else(|| Vec::new(env));
+            if list.len() >= MAX_ASSETS {
+                panic_with_error!(env, OracleError::TooManyAssets);
+            }
+            list.push_back(asset);
+            env.storage().instance().set(&DataKey::Assets, &list);
+        }
         env.storage().persistent().set(
             &k,
             &PriceData {
@@ -86,7 +135,30 @@ impl MockOracle {
                 timestamp: ts,
             },
         );
-        gov::bump_persistent(&env, &k);
+        gov::bump_persistent(env, &k);
+        env.storage().instance().set(&DataKey::LastTs, &ts);
+        gov::bump_instance(env);
+    }
+
+    /// SEP-40: assets with a price (bounded by `MAX_ASSETS`).
+    pub fn assets(env: Env) -> Vec<Asset> {
+        env.storage()
+            .instance()
+            .get(&DataKey::Assets)
+            .unwrap_or_else(|| Vec::new(&env))
+    }
+
+    /// SEP-40: timestamp of the most recent update.
+    pub fn last_timestamp(env: Env) -> u64 {
+        env.storage().instance().get(&DataKey::LastTs).unwrap_or(0)
+    }
+
+    /// SEP-40: last `records` prices. The mock keeps only the latest one.
+    pub fn prices(env: Env, asset: Asset, records: u32) -> Option<Vec<PriceData>> {
+        if records == 0 {
+            return None;
+        }
+        Self::lastprice(env.clone(), asset).map(|p| Vec::from_array(&env, [p]))
     }
 
     pub fn base(env: Env) -> Asset {
@@ -146,6 +218,40 @@ mod test {
         assert_eq!(c.decimals(), 14);
         assert_eq!(c.resolution(), 300);
         assert_eq!(c.base(), Asset::Other(Symbol::new(&env, "USD")));
+    }
+
+    #[test]
+    fn batch_prices_and_sep40_views() {
+        let env = Env::default();
+        env.mock_all_auths();
+        env.ledger().set_timestamp(5_000);
+        let admin = Address::generate(&env);
+        let c = MockOracleClient::new(&env, &env.register(MockOracle, (&admin, 14u32, 300u64)));
+        let a = Asset::Stellar(Address::generate(&env));
+        let b = Asset::Other(Symbol::new(&env, "XLM"));
+        c.set_prices(&Vec::from_array(&env, [(a.clone(), 7i128), (b.clone(), 9i128)]), &0);
+        assert_eq!(c.lastprice(&a).unwrap(), PriceData { price: 7, timestamp: 5_000 });
+        assert_eq!(c.assets().len(), 2);
+        c.set_price(&a, &8, &0);
+        assert_eq!(c.assets().len(), 2, "no duplicates");
+        assert_eq!(c.last_timestamp(), 5_000);
+        assert_eq!(c.prices(&a, &3).unwrap().len(), 1);
+        assert_eq!(c.prices(&a, &0), None);
+        assert_eq!(c.try_set_price(&a, &-1, &0), Err(Ok(OracleError::InvalidPrice.into())));
+        let mut big = Vec::new(&env);
+        for i in 0..51i128 {
+            big.push_back((Asset::Stellar(Address::generate(&env)), i));
+        }
+        assert_eq!(c.try_set_prices(&big, &0), Err(Ok(OracleError::BatchTooLarge.into())));
+        let mut n = 2u32;
+        while n < MAX_ASSETS {
+            c.set_price(&Asset::Stellar(Address::generate(&env)), &1, &0);
+            n += 1;
+        }
+        assert_eq!(
+            c.try_set_price(&Asset::Stellar(Address::generate(&env)), &1, &0),
+            Err(Ok(OracleError::TooManyAssets.into()))
+        );
     }
 
     /// Regression F-08: instance and price entries get their TTL extended.

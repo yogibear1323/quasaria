@@ -69,3 +69,8 @@ Visual: an accordion list of questions.
 Headline: Your first trade is a few clicks away.
 Pitch: Create a wallet in seconds and start trading on Stellar with full control of your funds.
 Visual: repeat "Launch app" and "Create a wallet" buttons over the starfield. Footer carries the risk disclosure: Quasaria is experimental software, nothing on the site is financial advice, and leverage and yield carry real risk of loss and may be regulated where you live.
+
+15. Stellar news
+Headline: Latest from Stellar.
+Pitch: Fresh headlines about Stellar, XLM and Soroban from the Stellar Development Foundation, the Stellar community and crypto news outlets, refreshed through the day.
+Visual: six news cards (headline, source, relative time, a short excerpt and an optional thumbnail) that open the original article in a new tab, an "Updated" time, the source list, a note that news comes from third-party sources and isn't endorsement or financial advice, and a "See all news" link to the /news page.

@@ -4,6 +4,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Rebuild + redeploy every 30 minutes so the build-time news snapshot (and the
+  # market snapshot) stay current without commits. Scheduled runs always use the
+  # default branch (main), which the github-pages environment allows, and share
+  # the "pages" concurrency group below, so they queue behind (never cancel) a
+  # push deploy. Off-the-hour minutes avoid GitHub's top-of-hour cron backlog.
+  # Note: GitHub pauses schedules after 60 days without repository activity.
+  schedule:
+    - cron: "7,37 * * * *"
 
 permissions:
   contents: read
@@ -35,6 +43,15 @@ jobs:
       # any failure; continue-on-error is a second safety net.
       - name: Market data snapshot (stellarchain.io -> public/data)
         run: node scripts/fetch-market-snapshot.mjs
+        continue-on-error: true
+        timeout-minutes: 3
+      # Stellar news: public RSS feeds (SDF blog, Stellar Community on Medium,
+      # Cointelegraph's Stellar tag, CoinDesk + Decrypt filtered to Stellar/XLM/Soroban)
+      # -> public/data/news-snapshot.json. None of the feeds allow CORS from github.io,
+      # so the browser reads this bundled file. Keeps each failed source's previous
+      # items and always exits 0; continue-on-error is a second safety net.
+      - name: Stellar news snapshot (RSS -> public/data)
+        run: node scripts/fetch-news-snapshot.mjs
         continue-on-error: true
         timeout-minutes: 3
       - name: Build (served under /<repo>/)

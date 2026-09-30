@@ -13,6 +13,7 @@ import Earn from "./pages/Earn";
 import Calculators from "./pages/Calculators";
 import Quests from "./pages/Quests";
 import Merch from "./pages/Merch";
+import News from "./pages/News";
 import { GameProvider } from "./game/GameProvider";
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/bots" element={<Bots />} />
           <Route path="/quests" element={<Quests />} />
           <Route path="/merch" element={<Merch />} />
+          <Route path="/news" element={<News />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

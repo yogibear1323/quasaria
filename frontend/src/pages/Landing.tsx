@@ -16,6 +16,9 @@ import OrderBook from "../components/OrderBook";
 import WorldMap, { type MapPin } from "../components/WorldMap";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
 import { FeedBadge, RiskWarning } from "../components/ui";
+import { NewsDisclaimer, NewsGrid, NewsHeader, NewsSources } from "../components/News";
+import { useNews } from "../lib/news";
+import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
 import { parseOutline } from "../lib/landingCopy";
 import { useWallet } from "../lib/wallet";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
@@ -38,7 +41,7 @@ type TStable = { code: string; mainnetCode: string; mock: boolean; pool?: string
 const TESTNET_POOLS = ((testnetStables as { pools?: TStable[] }).pools ?? []).filter((p) => p.pool);
 
 // ---------------------------------------------------------------- shell bits
-function Section({ id, n, scene, onScene, children, kicker, wide }: { id: string; n: number; scene: Scene; onScene: (s: Scene) => void; children: ReactNode; kicker?: string; wide?: boolean }) {
+function Section({ id, n, scene, onScene, children, kicker, wide, unnumbered }: { id: string; n: number; scene: Scene; onScene: (s: Scene) => void; children: ReactNode; kicker?: string; wide?: boolean; unnumbered?: boolean }) {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -50,7 +53,7 @@ function Section({ id, n, scene, onScene, children, kicker, wide }: { id: string
   const c = S(n);
   return (
     <section id={id} ref={ref} className={`l-section ${wide ? "wide" : ""}`} aria-labelledby={`${id}-h`}>
-      <div className="l-kicker">{String(n).padStart(2, "0")} · {kicker ?? c.title}</div>
+      <div className="l-kicker">{unnumbered ? kicker ?? c.title : <>{String(n).padStart(2, "0")} · {kicker ?? c.title}</>}</div>
       <h2 id={`${id}-h`} className="l-h2">{c.headline}</h2>
       <p className="l-pitch">{c.pitch}</p>
       <div className="l-visual">{children}</div>
@@ -67,9 +70,19 @@ const Label = ({ kind, children }: { kind: "live" | "example" | "estimate" | "si
 
 function Ticker() {
   const x = useXlmUsd();
+  // Live XLM/USD from Stellar mainnet Horizon (XLM/USDC, Circle issuer), shared with the app header ticker
+  // and the Markets feed (liveMarkets); the stellarchain.io / snapshot value below is the fallback.
+  const live = useLiveXlmUsd(5 * 60_000, OFFLINE_DEMO);
+  if (live?.price)
+    return (
+      <span className="pill cyan l-ticker" title={`XLM/USD live from Stellar mainnet Horizon (XLM/USDC order book, Circle USDC) · updated ${hms(live.at)}`} data-testid="hero-xlm-ticker" data-feed="live">
+        XLM/USD <b className="mono">${live.price.toFixed(4)}</b>
+        <span className="muted">live · Stellar mainnet</span>
+      </span>
+    );
   if (!x?.price) return <span className="pill">XLM · loading…</span>;
   return (
-    <span className="pill cyan l-ticker" title={`source: ${x.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet (fallback)"}${x.updatedAt ? ` · as of ${x.updatedAt}` : ""}`}>
+    <span className="pill cyan l-ticker" data-testid="hero-xlm-ticker" data-feed={x.feed === "snapshot" ? "snapshot" : "fallback"} title={`source: ${x.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet (fallback)"}${x.updatedAt ? ` · as of ${x.updatedAt}` : ""}`}>
       XLM/USD <b className="mono">${x.price.toFixed(4)}</b>
       <span className="muted">{x.source === "stellarchain" ? (x.feed === "snapshot" ? `stellarchain.io · ${snapshotLabel(x.snapshotAt)}` : "stellarchain.io") : "Horizon"}{x.updatedAt && x.feed !== "snapshot" ? ` · ${asOf(x.updatedAt)}` : ""}{x.stale ? " · stale" : ""}</span>
     </span>
@@ -144,6 +157,29 @@ function MarketsPreview() {
       </div>
       <p className="muted l-tiny" style={{ marginTop: 8 }}>
         Display data from the stellarchain.io public API, cached 5 minutes; if the API can't be reached from this site, a snapshot fetched at build time is shown and labelled with its time. Stale rows are flagged. Mainnet rows are for reference; Quasaria trades on Stellar testnet during the beta. <Link to="/markets">All markets →</Link>
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- news (15 in the outline)
+function NewsPreview() {
+  const news = useNews();
+  return (
+    <div>
+      <div className="row between l-wrap" style={{ marginBottom: 14 }}>
+        <NewsHeader state={news} />
+        <Link to="/news" className="btn ghost small">See all news →</Link>
+      </div>
+      {news.status === "loading" ? (
+        <p className="muted">Loading Stellar news…</p>
+      ) : news.status === "error" ? (
+        <p className="muted">Stellar news is unavailable right now. <Link to="/news">Try the news page →</Link></p>
+      ) : (
+        <NewsGrid items={news.items.slice(0, 6)} now={news.now} empty="No Stellar stories right now." />
+      )}
+      <p className="muted l-tiny news-foot">
+        <NewsSources sources={news.sources} /> <NewsDisclaimer /> <Link to="/news">See all news →</Link>
       </p>
     </div>
   );
@@ -585,7 +621,7 @@ function FaqVisual() {
 
 // ---------------------------------------------------------------- page
 const NAV = [
-  ["markets", "Markets"], ["stablecoins", "Stablecoins"], ["earn", "Earn"], ["bots", "Bots"], ["security", "Security"], ["faq", "FAQ"],
+  ["markets", "Markets"], ["news", "News"], ["stablecoins", "Stablecoins"], ["earn", "Earn"], ["bots", "Bots"], ["security", "Security"], ["faq", "FAQ"],
 ] as const;
 
 export default function Landing() {
@@ -638,6 +674,7 @@ export default function Landing() {
           </section>
 
           <Section id="markets" n={2} scene="constellation" onScene={onScene}><MarketsPreview /></Section>
+          <Section id="news" n={15} scene="constellation" onScene={onScene} kicker="News" unnumbered><NewsPreview /></Section>
           <Section id="trade" n={3} scene="quasar" onScene={onScene}><TradePreview /></Section>
           <Section id="keys" n={4} scene="constellation" onScene={onScene} kicker="Your keys, your coins"><KeysVisual /></Section>
           <Section id="stablecoins" n={5} scene="nebula" onScene={onScene}><StablecoinVisual /></Section>

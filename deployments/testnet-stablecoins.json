@@ -1,4 +1,7 @@
 {
+  "status": "retired",
+  "retiredAt": "2026-09-29",
+  "retiredNote": "v2-era pools (pre-hardening wasm). Superseded by deployments/testnet-assets.json (v3). Kept for reference only; not used by the UI or router paths.",
   "network": "testnet",
   "generatedFrom": "docs/stablecoin-pairs.json",
   "pairsAsOf": "2026-09-11T02:50:01+00:00",

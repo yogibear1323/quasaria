@@ -89,11 +89,11 @@ export default function LpCalculator({ initialPool, embedded }: { initialPool?: 
               <div className="field">
                 <label>Pool</label>
                 <select className="input" value={p.id} onChange={(e) => setPoolId(e.target.value)} data-testid="lp-pool" aria-label="Pool">
-                  {(["core", "stable"] as const).map((g) => {
+                  {(["core", "stable", "popular"] as const).map((g) => {
                     const list = pools.filter((x) => x.group === g);
                     return list.length ? (
-                      <optgroup key={g} label={g === "core" ? "Quasaria core pools" : "XLM / stablecoin pools (testnet)"}>
-                        {list.map((x) => <option key={x.id} value={x.id}>{x.symA}/{x.symB}{x.mock ? " (mock)" : ""} · TVL ≈ {fmtAmt(2 * x.reserveA * (values[x.tokenA] ?? NaN))} XLM · fee {fmt(x.feeBps / 100, 2)}%</option>)}
+                      <optgroup key={g} label={g === "core" ? "Quasaria core pools" : g === "stable" ? "Stablecoin pools (v3, testnet)" : "Popular asset pools (v3, testnet)"}>
+                        {list.map((x) => <option key={x.id} value={x.id}>{x.symA}/{x.symB}{x.mock ? " (testnet mirror)" : ""} · TVL ≈ {fmtAmt(2 * x.reserveA * (values[x.tokenA] ?? NaN))} XLM · fee {fmt(x.feeBps / 100, 2)}%</option>)}
                       </optgroup>
                     ) : null;
                   })}

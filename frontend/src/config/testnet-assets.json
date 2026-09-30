@@ -1,0 +1,2419 @@
+{
+  "network": "testnet",
+  "generation": "v3",
+  "_comment": "Curated asset list on TESTNET + v3 (hardened: pause, timelock, two-step admin) AMM pools. Mainnet codes/issuers are reference data from config/assets.mainnet.json (verified read-only). 'mirror' assets are Quasaria testnet mocks (code mk<CODE>, issuer home_domain *.quasaria.invalid): not redeemable, no value. Written by scripts/deploy-asset-pools-v3.ts.",
+  "updatedAt": "2026-09-30T01:52:21.357Z",
+  "wasmPool": "quasaria_amm_pool.wasm (v3)",
+  "router": "CDSGPKLVVSCZDXPI2NNZRYY23UCQS3TXQWBCFIKINFIBJDCD57TQRWFB",
+  "referral": "CCLJVQ3MOWHELK4NGKDAQSKOLPXIECADTGIVQVSSSKLRJ7JOSXOZ2WCB",
+  "timelockDelaySeconds": 300,
+  "mainnetSource": {
+    "file": "config/assets.mainnet.json",
+    "generatedAt": "2026-09-30T01:42:30.508Z",
+    "usdPerXlm": 0.22169260000000002
+  },
+  "mirrorIssuers": {
+    "stablecoin": {
+      "address": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+      "homeDomain": "mock-stables.quasaria.invalid"
+    },
+    "popular": {
+      "address": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+      "homeDomain": "mock-assets.quasaria.invalid"
+    }
+  },
+  "assets": [
+    {
+      "id": "XLM",
+      "code": "XLM",
+      "category": "base",
+      "peg": null,
+      "name": "Stellar Lumens",
+      "org": "Stellar Development Foundation",
+      "logo": null,
+      "mainnet": null,
+      "pricePerXlm": 1,
+      "priceSource": "native",
+      "offPeg": false,
+      "testnet": {
+        "kind": "native",
+        "code": "XLM",
+        "issuer": null,
+        "sac": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "label": "Native XLM (testnet, no value)"
+      }
+    },
+    {
+      "id": "QUSD",
+      "code": "QUSD",
+      "category": "base",
+      "peg": "USD",
+      "name": "Quasaria demo USD",
+      "org": "Quasaria (testnet demo)",
+      "logo": null,
+      "mainnet": null,
+      "pricePerXlm": 0.22169260000000002,
+      "priceSource": "demo 1 QUSD ≈ 1 USD",
+      "offPeg": false,
+      "testnet": {
+        "kind": "demo",
+        "code": "QUSD",
+        "issuer": "GDAEZGA66NUQZKMHFMIUI42S6FKGFERY3UHANE43ZM3RGL3FB3VBNKCY",
+        "sac": "CD4BXA4OL37HBNWDLTBYQK32HEHUZPMVV4F272F7YKOZM2MIB5HDNLUZ",
+        "label": "QUSD — Quasaria testnet demo dollar (no mainnet equivalent, no value)"
+      }
+    },
+    {
+      "id": "USDC",
+      "code": "USDC",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "USD Coin (Circle)",
+      "org": null,
+      "logo": "https://www.circle.com/usdc-icon",
+      "mainnet": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "homeDomain": "circle.com",
+        "verification": "issuer-doc-verified",
+        "verifiedVia": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+        "note": "circle.com/.well-known/stellar.toml returns 404; issuer published in Circle's official USDC contract-address docs (testnet: USDC-GBBD47IF…LFLA5).",
+        "holders": 2450173,
+        "expert": "https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+      },
+      "pricePerXlm": 0.22169260000000002,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "real",
+        "code": "USDC",
+        "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+        "sac": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+        "label": "Real testnet USDC (official testnet issuer, no value)",
+        "note": "Testnet issuer published at https://developers.circle.com/stablecoins/usdc-contract-addresses"
+      }
+    },
+    {
+      "id": "EURC",
+      "code": "EURC",
+      "category": "stablecoin",
+      "peg": "EUR",
+      "name": "Euro Coin (Circle)",
+      "org": null,
+      "logo": "https://www.circle.com/eurc-icon",
+      "mainnet": {
+        "code": "EURC",
+        "issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+        "homeDomain": "circle.com",
+        "verification": "issuer-doc-verified",
+        "verifiedVia": "https://developers.circle.com/stablecoins/eurc-contract-addresses",
+        "note": "circle.com/.well-known/stellar.toml returns 404; issuer published in Circle's official EURC contract-address docs (testnet: EURC-GB3Q6QDZ…M2ZTVO).",
+        "holders": 41646,
+        "expert": "https://stellar.expert/explorer/public/asset/EURC-GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2"
+      },
+      "pricePerXlm": 0.1964784,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkEURC",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CABYRSHVCLKKGYAEJEPEX47CC47RA54YNANJV4LGRCL7C6DUPW63TNRX",
+        "label": "Testnet mirror of EURC — Quasaria mock, not redeemable, no value",
+        "note": "A real testnet EURC exists (GB3Q6Q…, https://developers.circle.com/stablecoins/eurc-contract-addresses) but none is obtainable: Circle's faucet is a manual web form and the testnet SDEX has no sell-side liquidity."
+      }
+    },
+    {
+      "id": "PYUSD",
+      "code": "PYUSD",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": null,
+      "org": "Paxos Trust Company",
+      "logo": "https://424565.fs1.hubspotusercontent-na1.net/hubfs/424565/PYUSDLOGO.png",
+      "mainnet": {
+        "code": "PYUSD",
+        "issuer": "GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5",
+        "homeDomain": "token-metadata.paxos.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://token-metadata.paxos.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 10084,
+        "expert": "https://stellar.expert/explorer/public/asset/PYUSD-GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5"
+      },
+      "pricePerXlm": 0.22165005,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkPYUSD",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CDBU2AQQNNQGAR4KGMSNABEKMSJV6Y2DM5PPEGB3RR3VBEJXBCEVNZLJ",
+        "label": "Testnet mirror of PYUSD — Quasaria mock, not redeemable, no value",
+        "note": "No PYUSD issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "USDGLO",
+      "code": "USDGLO",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "Glo Dollar",
+      "org": "Glo Development Foundation, Inc",
+      "logo": "https://app.glodollar.org/glo-logo.png",
+      "mainnet": {
+        "code": "USDGLO",
+        "issuer": "GBBS25EGYQPGEZCGCFBKG4OAGFXU6DSOQBGTHELLJT3HZXZJ34HWS6XV",
+        "homeDomain": "app.glodollar.org",
+        "verification": "toml-verified",
+        "verifiedVia": "https://app.glodollar.org/.well-known/stellar.toml",
+        "note": null,
+        "holders": 637,
+        "expert": "https://stellar.expert/explorer/public/asset/USDGLO-GBBS25EGYQPGEZCGCFBKG4OAGFXU6DSOQBGTHELLJT3HZXZJ34HWS6XV"
+      },
+      "pricePerXlm": 0.2215998,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkUSDGLO",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CARQD2SZV34W5NQDBT454SVDMTL4HPBCZY4MMWDE5Q3RHNQYDPUTEAWC",
+        "label": "Testnet mirror of USDGLO — Quasaria mock, not redeemable, no value",
+        "note": "No USDGLO issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "EURCV",
+      "code": "EURCV",
+      "category": "stablecoin",
+      "peg": "EUR",
+      "name": "EUR CoinVertible (SG-FORGE)",
+      "org": null,
+      "logo": null,
+      "mainnet": {
+        "code": "EURCV",
+        "issuer": "GCEYGIVOLAVBF2TG2RUSGTUJCIN75KEX3NGLMY4VPL4GFE5L355AXW3G",
+        "homeDomain": null,
+        "verification": "issuer-doc-verified",
+        "verifiedVia": "https://www.sgforge.com/wp-content/uploads/2025/10/EURCV-White-Paper_iXBRL_202510.html",
+        "note": "Issuer address published in SG-FORGE's MiCA white paper (Oct 2025). Beware: the most-held 'EURCV' on Stellar (GAUQKYP3…) is NOT SG-FORGE's.",
+        "holders": 11,
+        "expert": "https://stellar.expert/explorer/public/asset/EURCV-GCEYGIVOLAVBF2TG2RUSGTUJCIN75KEX3NGLMY4VPL4GFE5L355AXW3G"
+      },
+      "pricePerXlm": 0.19542646,
+      "priceSource": "fx-reference:EUR",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkEURCV",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CC3R5F6RTRFZB5OZJLV6DO6NZGHVFM2PJDNO36V3AW26TO22BENQAJFR",
+        "label": "Testnet mirror of EURCV — Quasaria mock, not redeemable, no value",
+        "note": "No EURCV issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "USDT0",
+      "code": "USDT0",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "USDT0",
+      "org": "Everdawn Labs Limited",
+      "logo": "https://ipfs.io/ipfs/bafkreifaalohkkikosp27qp6qczwaffwseejvoaafkgv7ahyrqvejmpqou",
+      "mainnet": {
+        "code": "USDT0",
+        "issuer": "GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q",
+        "homeDomain": null,
+        "verification": "toml-verified(domain)",
+        "verifiedVia": "https://usdt0.to/.well-known/stellar.toml",
+        "note": null,
+        "holders": 23737,
+        "expert": "https://stellar.expert/explorer/public/asset/USDT0-GATISXX6BZ6NC7IKQBY37CJD4SOZL3CYZJWXEDG6JVIY4WBS6KXJHN6Q"
+      },
+      "pricePerXlm": 0.2223655,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkUSDT0",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CCQLHWJ2UK4K3IQFQKLEDGSK3372L6W7IUUMFTILXTFA7SG6ZH7CF4TX",
+        "label": "Testnet mirror of USDT0 — Quasaria mock, not redeemable, no value",
+        "note": "No USDT0 issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "GYEN",
+      "code": "GYEN",
+      "category": "stablecoin",
+      "peg": "JPY",
+      "name": "GYEN",
+      "org": "GMO-Z.com Trust Company, Inc.",
+      "logo": "https://stablecoin.z.com/assets/images/token/icon_gyen_300_300.png",
+      "mainnet": {
+        "code": "GYEN",
+        "issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "homeDomain": "stablecoin.z.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://stablecoin.z.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 2312,
+        "expert": "https://stellar.expert/explorer/public/asset/GYEN-GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB"
+      },
+      "pricePerXlm": 29.760467901888855,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkGYEN",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CDDJVZBNTZHKDD3QQAEVUMT6PF5KBSARDAW42WQC54ON77JW6VGYEVZ6",
+        "label": "Testnet mirror of GYEN — Quasaria mock, not redeemable, no value",
+        "note": "No GYEN issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "ZUSD",
+      "code": "ZUSD",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "ZUSD",
+      "org": "GMO-Z.com Trust Company, Inc.",
+      "logo": "https://stablecoin.z.com/assets/images/token/icon_zusd_300_300.png",
+      "mainnet": {
+        "code": "ZUSD",
+        "issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "homeDomain": "stablecoin.z.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://stablecoin.z.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 2005,
+        "expert": "https://stellar.expert/explorer/public/asset/ZUSD-GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB"
+      },
+      "pricePerXlm": 0.2214484,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkZUSD",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CAQ22H6GFEKG2YQH73QJXJGASJR4YIZHE4G7BUEBJXGR2Q4UH4XHUNGF",
+        "label": "Testnet mirror of ZUSD — Quasaria mock, not redeemable, no value",
+        "note": "No ZUSD issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "AUDD",
+      "code": "AUDD",
+      "category": "stablecoin",
+      "peg": "AUD",
+      "name": "AUDD",
+      "org": "AUDC PTY LTD",
+      "logo": "https://cdn.audd.digital/AUDD-Logo-Blue-512x512px.png",
+      "mainnet": {
+        "code": "AUDD",
+        "issuer": "GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU",
+        "homeDomain": "audd.digital",
+        "verification": "toml-verified",
+        "verifiedVia": "https://audd.digital/.well-known/stellar.toml",
+        "note": null,
+        "holders": 1504,
+        "expert": "https://stellar.expert/explorer/public/asset/AUDD-GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU"
+      },
+      "pricePerXlm": 0.3411103,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkAUDD",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CBMNT2CNEVUPKTXLRXKNTXNAA2674M5C5WYH4VYLDCVJM5TLPVMPY6BQ",
+        "label": "Testnet mirror of AUDD — Quasaria mock, not redeemable, no value",
+        "note": "No AUDD issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "VCHF",
+      "code": "VCHF",
+      "category": "stablecoin",
+      "peg": "CHF",
+      "name": null,
+      "org": "VNX Global Ltd.",
+      "logo": "https://vnx.io/vchf-128x128.png",
+      "mainnet": {
+        "code": "VCHF",
+        "issuer": "GDXLSLCOPPHTWOQXLLKSVN4VN3G67WD2ENU7UMVAROEYVJLSPSEWXIZN",
+        "homeDomain": "vnx.io",
+        "verification": "toml-verified",
+        "verifiedVia": "https://vnx.io/.well-known/stellar.toml",
+        "note": null,
+        "holders": 138,
+        "expert": "https://stellar.expert/explorer/public/asset/VCHF-GDXLSLCOPPHTWOQXLLKSVN4VN3G67WD2ENU7UMVAROEYVJLSPSEWXIZN"
+      },
+      "pricePerXlm": 0.18494705,
+      "priceSource": "fx-reference:CHF",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkVCHF",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CA5IAMPXTIH23OWOJWZAF6ZV6YMEFJASITOWNKSGNZPY6CFKIWXKICUU",
+        "label": "Testnet mirror of VCHF — Quasaria mock, not redeemable, no value",
+        "note": "No VCHF issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "USDx",
+      "code": "USDx",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "Decentralized USD Coin",
+      "org": "FxDAO LLC",
+      "logo": "https://assets.fxdao.io/stablecoins/USDx-logo.png",
+      "mainnet": {
+        "code": "USDx",
+        "issuer": "GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN",
+        "homeDomain": "assets.fxdao.io",
+        "verification": "toml-verified",
+        "verifiedVia": "https://assets.fxdao.io/.well-known/stellar.toml",
+        "note": null,
+        "holders": 570,
+        "expert": "https://stellar.expert/explorer/public/asset/USDx-GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN"
+      },
+      "pricePerXlm": 0.22874965,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkUSDx",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CC2Z7JO6WQU47MKSFAM5BHSZL5RHH2SB4UDFWGW2MCTBLL3IHDLKXR4I",
+        "label": "Testnet mirror of USDx — Quasaria mock, not redeemable, no value",
+        "note": "No USDx issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "USD",
+      "code": "USD",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "US Dollar",
+      "org": "AnchorCoin LLC",
+      "logo": "https://stablecoin.anchorusd.com/img/usdx.png",
+      "mainnet": {
+        "code": "USD",
+        "issuer": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+        "homeDomain": "stablecoin.anchorusd.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://stablecoin.anchorusd.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 38114,
+        "expert": "https://stellar.expert/explorer/public/asset/USD-GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX"
+      },
+      "pricePerXlm": 0.7866511,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": true,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkUSD",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CC22PPH4DPUZZMONNPETGTCBGQZ52M63MVWSUUQ7M4CD6SVFRF47TILH",
+        "label": "Testnet mirror of USD — Quasaria mock, not redeemable, no value",
+        "note": "No USD issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "ARST",
+      "code": "ARST",
+      "category": "stablecoin",
+      "peg": "ARS",
+      "name": "ARST",
+      "org": "Relay Tech Services Ltd",
+      "logo": "https://sep.latamex.com/arst-logo.png",
+      "mainnet": {
+        "code": "ARST",
+        "issuer": "GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG",
+        "homeDomain": "pubnet-sep.latamex.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://pubnet-sep.latamex.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 328638,
+        "expert": "https://stellar.expert/explorer/public/asset/ARST-GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG"
+      },
+      "pricePerXlm": 381.2398801,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkARST",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CBL4UOALXYKSU6EYB7AUCOC763EPFFPEJDNYQPRM4I45547WWDXDT74H",
+        "label": "Testnet mirror of ARST — Quasaria mock, not redeemable, no value",
+        "note": "No ARST issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "ARS",
+      "code": "ARS",
+      "category": "stablecoin",
+      "peg": "ARS",
+      "name": "Peso Digital",
+      "org": "Grupo Anchor S.A.",
+      "logo": "https://static.anclap.com/coin/ars.png",
+      "mainnet": {
+        "code": "ARS",
+        "issuer": "GCYE7C77EB5AWAA25R5XMWNI2EDOKTTFTTPZKM2SR5DI4B4WFD52DARS",
+        "homeDomain": "api.anclap.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://api.anclap.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 38419,
+        "expert": "https://stellar.expert/explorer/public/asset/ARS-GCYE7C77EB5AWAA25R5XMWNI2EDOKTTFTTPZKM2SR5DI4B4WFD52DARS"
+      },
+      "pricePerXlm": 358.9075159,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkARS",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CD7H23GTDKSRTAEAJZNPTSBXQQWK6JQAGXVFXHTDLP5DQWXXOHTZGXCA",
+        "label": "Testnet mirror of ARS — Quasaria mock, not redeemable, no value",
+        "note": "No ARS issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "BRL",
+      "code": "BRL",
+      "category": "stablecoin",
+      "peg": "BRL",
+      "name": "Brazilian Real",
+      "org": "nTokens Serviços Digitais Ltda",
+      "logo": "https://ntokens.com/img/brl-icon.png",
+      "mainnet": {
+        "code": "BRL",
+        "issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP",
+        "homeDomain": "ntokens.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://ntokens.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 6975,
+        "expert": "https://stellar.expert/explorer/public/asset/BRL-GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP"
+      },
+      "pricePerXlm": 1.354320624211287,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkBRL",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CAISCQN23ITIK5SDH4JP7DORQ6INZRWWVRGU4VN3S2RFGPXYA4K7F5WC",
+        "label": "Testnet mirror of BRL — Quasaria mock, not redeemable, no value",
+        "note": "No BRL issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "NGNC",
+      "code": "NGNC",
+      "category": "stablecoin",
+      "peg": "NGN",
+      "name": "NGN Coin",
+      "org": "LINK.IO LTD.",
+      "logo": "https://uploads-ssl.webflow.com/60a70a1080cf2974d4b1595e/61961ce43c530394bcb05349_NGRC.png",
+      "mainnet": {
+        "code": "NGNC",
+        "issuer": "GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6",
+        "homeDomain": "ngnc.online",
+        "verification": "toml-verified",
+        "verifiedVia": "https://ngnc.online/.well-known/stellar.toml",
+        "note": null,
+        "holders": 6321,
+        "expert": "https://stellar.expert/explorer/public/asset/NGNC-GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6"
+      },
+      "pricePerXlm": 253.9216173,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkNGNC",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CBKNH6KROUSQMAMES333XZ4RNNV6MMQTD7NOV2IRFD6OPX3DSIYC62FP",
+        "label": "Testnet mirror of NGNC — Quasaria mock, not redeemable, no value",
+        "note": "No NGNC issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "NGNT",
+      "code": "NGNT",
+      "category": "stablecoin",
+      "peg": "NGN",
+      "name": "Naira Token",
+      "org": "Cowrie Integrated Systems",
+      "logo": "https://cowrie.exchange/ngnt-logo.png",
+      "mainnet": {
+        "code": "NGNT",
+        "issuer": "GAWODAROMJ33V5YDFY3NPYTHVYQG7MJXVJ2ND3AOGIHYRWINES6ACCPD",
+        "homeDomain": "cowrie.exchange",
+        "verification": "toml-verified",
+        "verifiedVia": "https://cowrie.exchange/.well-known/stellar.toml",
+        "note": null,
+        "holders": 8620,
+        "expert": "https://stellar.expert/explorer/public/asset/NGNT-GAWODAROMJ33V5YDFY3NPYTHVYQG7MJXVJ2ND3AOGIHYRWINES6ACCPD"
+      },
+      "pricePerXlm": 1765.753906,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": true,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkNGNT",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CAM6PTKPXYP72TEFANEEKCQFV3HTH3COMPDP6KBX5SXR2NBZC74B63T2",
+        "label": "Testnet mirror of NGNT — Quasaria mock, not redeemable, no value",
+        "note": "No NGNT issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "PEN",
+      "code": "PEN",
+      "category": "stablecoin",
+      "peg": "PEN",
+      "name": "Sol Digital",
+      "org": "Grupo Anchor S.A.",
+      "logo": "https://static.anclap.com/coin/pen.png",
+      "mainnet": {
+        "code": "PEN",
+        "issuer": "GA4TDPNUCZPTOHB3TKUYMDCRVATXKEADH7ZEYEBWJKQKE2UBFCYNBPEN",
+        "homeDomain": "api.anclap.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://api.anclap.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 41408,
+        "expert": "https://stellar.expert/explorer/public/asset/PEN-GA4TDPNUCZPTOHB3TKUYMDCRVATXKEADH7ZEYEBWJKQKE2UBFCYNBPEN"
+      },
+      "pricePerXlm": 0.4251298,
+      "priceSource": "last-1h-candle(7d)",
+      "offPeg": true,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkPEN",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CDOZLOK454NGH27KR2ZSGWXNO5MD6IGVKGWQXX6RFM6PZXA6CSU2PPVM",
+        "label": "Testnet mirror of PEN — Quasaria mock, not redeemable, no value",
+        "note": "No PEN issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "CLPX",
+      "code": "CLPX",
+      "category": "stablecoin",
+      "peg": "CLP",
+      "name": "Chilean PESO",
+      "org": "CLPX S.A.",
+      "logo": "https://kbtrading.org/static/CLPX.200x200.png",
+      "mainnet": {
+        "code": "CLPX",
+        "issuer": "GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G",
+        "homeDomain": "clpx.finance",
+        "verification": "toml-verified",
+        "verifiedVia": "https://clpx.finance/.well-known/stellar.toml",
+        "note": null,
+        "holders": 5786,
+        "expert": "https://stellar.expert/explorer/public/asset/CLPX-GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G"
+      },
+      "pricePerXlm": 97.61583645,
+      "priceSource": "sdex-mid",
+      "offPeg": true,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkCLPX",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CDQONPSYMCVJ3OUS246ORMCKEBRR26JOMSVMYEE4DJA7KPBUI3H4HIBB",
+        "label": "Testnet mirror of CLPX — Quasaria mock, not redeemable, no value",
+        "note": "No CLPX issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "USDZ",
+      "code": "USDZ",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "zeam USD",
+      "org": "ZEAM LIMITED",
+      "logo": "https://imagedelivery.net/oLenz0kq92Vui1vUax_Fhg/f2dcbefd-6e1a-4f64-5366-7dd29d429100/public",
+      "mainnet": {
+        "code": "USDZ",
+        "issuer": "GAKTLPC4ZV37SSCITQ5IS5AQ4WPF4CF4VZJQPPAROSGXMYOATF5U6XPR",
+        "homeDomain": "zeam.money",
+        "verification": "toml-verified",
+        "verifiedVia": "https://zeam.money/.well-known/stellar.toml",
+        "note": null,
+        "holders": 181078,
+        "expert": "https://stellar.expert/explorer/public/asset/USDZ-GAKTLPC4ZV37SSCITQ5IS5AQ4WPF4CF4VZJQPPAROSGXMYOATF5U6XPR"
+      },
+      "pricePerXlm": 0.2219678057080395,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkUSDZ",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CB3WT4FHEGTEW4CFH4KFFL4KSCMF3IOELVI5357C3LS3YY6KMTBZH2Y7",
+        "label": "Testnet mirror of USDZ — Quasaria mock, not redeemable, no value",
+        "note": "No USDZ issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "ZARZ",
+      "code": "ZARZ",
+      "category": "stablecoin",
+      "peg": "ZAR",
+      "name": "zeam ZAR",
+      "org": "ZEAM LIMITED",
+      "logo": "https://imagedelivery.net/oLenz0kq92Vui1vUax_Fhg/f2dcbefd-6e1a-4f64-5366-7dd29d429100/public",
+      "mainnet": {
+        "code": "ZARZ",
+        "issuer": "GAROH4EV3WVVTRQKEY43GZK3XSRBEYETRVZ7SVG5LHWOAANSMCTJBB3U",
+        "homeDomain": "zeam.money",
+        "verification": "toml-verified",
+        "verifiedVia": "https://zeam.money/.well-known/stellar.toml",
+        "note": null,
+        "holders": 181448,
+        "expert": "https://stellar.expert/explorer/public/asset/ZARZ-GAROH4EV3WVVTRQKEY43GZK3XSRBEYETRVZ7SVG5LHWOAANSMCTJBB3U"
+      },
+      "pricePerXlm": 3.651189350096114,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkZARZ",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CABBQINICYAPLZUGIW56OGZ7NRSHSALOTU3FRUF7ADP4X4XWAQN7RHNW",
+        "label": "Testnet mirror of ZARZ — Quasaria mock, not redeemable, no value",
+        "note": "No ZARZ issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "IDRT",
+      "code": "IDRT",
+      "category": "stablecoin",
+      "peg": "IDR",
+      "name": "Indonesian IDRT",
+      "org": "KB Trading",
+      "logo": "https://kbtrading.org/static/idrt.200x200.png",
+      "mainnet": {
+        "code": "IDRT",
+        "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+        "homeDomain": "kbtrading.org",
+        "verification": "toml-verified",
+        "verifiedVia": "https://kbtrading.org/.well-known/stellar.toml",
+        "note": null,
+        "holders": 8837,
+        "expert": "https://stellar.expert/explorer/public/asset/IDRT-GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT"
+      },
+      "pricePerXlm": 4485.184259953023,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkIDRT",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CA3DBIU3UVZQT5737UVPEVZ2OS4DLQG53RYFH7Z2XVNDLZDZ4H5EVBW2",
+        "label": "Testnet mirror of IDRT — Quasaria mock, not redeemable, no value",
+        "note": "No IDRT issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "XCHF",
+      "code": "XCHF",
+      "category": "stablecoin",
+      "peg": "CHF",
+      "name": "Swiss Franc",
+      "org": "KB Trading",
+      "logo": "https://kbtrading.org/static/xchf.png",
+      "mainnet": {
+        "code": "XCHF",
+        "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+        "homeDomain": "kbtrading.org",
+        "verification": "toml-verified",
+        "verifiedVia": "https://kbtrading.org/.well-known/stellar.toml",
+        "note": null,
+        "holders": 5335,
+        "expert": "https://stellar.expert/explorer/public/asset/XCHF-GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT"
+      },
+      "pricePerXlm": 0.23056562839034214,
+      "priceSource": "native-lp",
+      "offPeg": true,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkXCHF",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CCA2EGCFYA3MFQXGMEPS6UWPB4P223PAVXNEXV5PMTWKYCILTARL5BVQ",
+        "label": "Testnet mirror of XCHF — Quasaria mock, not redeemable, no value",
+        "note": "No XCHF issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "EURMTL",
+      "code": "EURMTL",
+      "category": "stablecoin",
+      "peg": "EUR",
+      "name": "EURMTL",
+      "org": "Montelibero",
+      "logo": "https://mtl.montelibero.org/images/eurmtl-small-logo.png",
+      "mainnet": {
+        "code": "EURMTL",
+        "issuer": "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+        "homeDomain": "mtl.montelibero.org",
+        "verification": "toml-verified",
+        "verifiedVia": "https://mtl.montelibero.org/.well-known/stellar.toml",
+        "note": null,
+        "holders": 4684,
+        "expert": "https://stellar.expert/explorer/public/asset/EURMTL-GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V"
+      },
+      "pricePerXlm": 0.19358314999999998,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkEURMTL",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CCAWPUCEXULVVG3DRKBJSYAPDXAS62XFU45J2SCDA6ITT4F7H4UCTTYN",
+        "label": "Testnet mirror of EURMTL — Quasaria mock, not redeemable, no value",
+        "note": "No EURMTL issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "USDM",
+      "code": "USDM",
+      "category": "stablecoin",
+      "peg": "USD",
+      "name": "USD Montelibero",
+      "org": "Montelibero",
+      "logo": "https://mtl.montelibero.org/images/USDM100.png",
+      "mainnet": {
+        "code": "USDM",
+        "issuer": "GDHDC4GBNPMENZAOBB4NCQ25TGZPDRK6ZGWUGSI22TVFATOLRPSUUSDM",
+        "homeDomain": "mtl.montelibero.org",
+        "verification": "toml-verified",
+        "verifiedVia": "https://mtl.montelibero.org/.well-known/stellar.toml",
+        "note": null,
+        "holders": 2572,
+        "expert": "https://stellar.expert/explorer/public/asset/USDM-GDHDC4GBNPMENZAOBB4NCQ25TGZPDRK6ZGWUGSI22TVFATOLRPSUUSDM"
+      },
+      "pricePerXlm": 0.23078401789470301,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkUSDM",
+        "issuer": "GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO",
+        "sac": "CCLPZWH6RTWH7H25PMY6ZNWDMSOEGPC7PJT5II6P7JNAVBT77QTPSHG5",
+        "label": "Testnet mirror of USDM — Quasaria mock, not redeemable, no value",
+        "note": "No USDM issuer exists on testnet; mirror issued by GCHXGE… (home_domain mock-stables.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "SHX",
+      "code": "SHX",
+      "category": "popular",
+      "peg": null,
+      "name": "Stronghold SHx",
+      "org": "Stronghold",
+      "logo": "https://stronghold.co/.well-known/logo.png",
+      "mainnet": {
+        "code": "SHX",
+        "issuer": "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH",
+        "homeDomain": "stronghold.co",
+        "verification": "toml-verified",
+        "verifiedVia": "https://stronghold.co/.well-known/stellar.toml",
+        "note": null,
+        "holders": 92621,
+        "expert": "https://stellar.expert/explorer/public/asset/SHX-GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH"
+      },
+      "pricePerXlm": 42.29256775,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkSHX",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CD4WDMAGZSBAA6KLJN22X65TQG25WK5FFQP6NALN2IYWYBX34VME7W47",
+        "label": "Testnet mirror of SHX — Quasaria mock, not redeemable, no value",
+        "note": "No SHX issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "AQUA",
+      "code": "AQUA",
+      "category": "popular",
+      "peg": null,
+      "name": "AQUA",
+      "org": "Aquarius",
+      "logo": "https://aqua.network/assets/img/aqua-logo.png",
+      "mainnet": {
+        "code": "AQUA",
+        "issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "homeDomain": "aqua.network",
+        "verification": "toml-verified",
+        "verifiedVia": "https://aqua.network/.well-known/stellar.toml",
+        "note": null,
+        "holders": 192003,
+        "expert": "https://stellar.expert/explorer/public/asset/AQUA-GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+      },
+      "pricePerXlm": 598.1977417,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkAQUA",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CDT2S2NZRNOKX5WNU7BX6IQAF3W4TSTPMT7NM3AIIFTTXH4N6NKDDMRL",
+        "label": "Testnet mirror of AQUA — Quasaria mock, not redeemable, no value",
+        "note": "No AQUA issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "yXLM",
+      "code": "yXLM",
+      "category": "popular",
+      "peg": null,
+      "name": null,
+      "org": "Ultra Capital LLC",
+      "logo": "https://ultracapital.xyz/static/images/icons/yXLM.png",
+      "mainnet": {
+        "code": "yXLM",
+        "issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "homeDomain": "ultracapital.xyz",
+        "verification": "toml-verified",
+        "verifiedVia": "https://ultracapital.xyz/.well-known/stellar.toml",
+        "note": null,
+        "holders": 53982,
+        "expert": "https://stellar.expert/explorer/public/asset/yXLM-GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      },
+      "pricePerXlm": 1.003333,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkyXLM",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CDUAOPX27VN4B2L3B75QTCPNXW2PAIBUSW7V44SPLKTO3OKAIP5Q2JJF",
+        "label": "Testnet mirror of yXLM — Quasaria mock, not redeemable, no value",
+        "note": "No yXLM issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "yUSDC",
+      "code": "yUSDC",
+      "category": "popular",
+      "peg": null,
+      "name": null,
+      "org": "Ultra Capital LLC",
+      "logo": "https://ultracapital.xyz/static/images/icons/yUSDC.png",
+      "mainnet": {
+        "code": "yUSDC",
+        "issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF",
+        "homeDomain": "ultracapital.xyz",
+        "verification": "toml-verified",
+        "verifiedVia": "https://ultracapital.xyz/.well-known/stellar.toml",
+        "note": null,
+        "holders": 34868,
+        "expert": "https://stellar.expert/explorer/public/asset/yUSDC-GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF"
+      },
+      "pricePerXlm": 0.22220325,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkyUSDC",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CB27FV3DDMN67ROGX7TOW7NBFWO7XE3O6Y7ZNCUNX63OVAOTVLWJI7EZ",
+        "label": "Testnet mirror of yUSDC — Quasaria mock, not redeemable, no value",
+        "note": "No yUSDC issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "yBTC",
+      "code": "yBTC",
+      "category": "popular",
+      "peg": null,
+      "name": null,
+      "org": "Ultra Capital LLC",
+      "logo": "https://ultracapital.xyz/static/images/icons/yBTC.png",
+      "mainnet": {
+        "code": "yBTC",
+        "issuer": "GBUVRNH4RW4VLHP4C5MOF46RRIRZLAVHYGX45MVSTKA2F6TMR7E7L6NW",
+        "homeDomain": "ultracapital.xyz",
+        "verification": "toml-verified",
+        "verifiedVia": "https://ultracapital.xyz/.well-known/stellar.toml",
+        "note": null,
+        "holders": 4648,
+        "expert": "https://stellar.expert/explorer/public/asset/yBTC-GBUVRNH4RW4VLHP4C5MOF46RRIRZLAVHYGX45MVSTKA2F6TMR7E7L6NW"
+      },
+      "pricePerXlm": 0.0000026644583861235072,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkyBTC",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CCYMO2JZXWFRRDGOADAP66JDZKQKORH4CFMOEVLHLY6PE5FLV37YSUDB",
+        "label": "Testnet mirror of yBTC — Quasaria mock, not redeemable, no value",
+        "note": "No yBTC issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "BTC",
+      "code": "BTC",
+      "category": "popular",
+      "peg": null,
+      "name": null,
+      "org": "Ultra Capital LLC",
+      "logo": "https://ultracapital.xyz/static/images/icons/BTC.png",
+      "mainnet": {
+        "code": "BTC",
+        "issuer": "GDPJALI4AZKUU2W426U5WKMAT6CN3AJRPIIRYR2YM54TL2GDWO5O2MZM",
+        "homeDomain": "ultracapital.xyz",
+        "verification": "toml-verified",
+        "verifiedVia": "https://ultracapital.xyz/.well-known/stellar.toml",
+        "note": null,
+        "holders": 19722,
+        "expert": "https://stellar.expert/explorer/public/asset/BTC-GDPJALI4AZKUU2W426U5WKMAT6CN3AJRPIIRYR2YM54TL2GDWO5O2MZM"
+      },
+      "pricePerXlm": 0.0000027,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkBTC",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CDZYSWHCDVFRHH2VMGT7TXS3I6V7QYFQDE3JQKVRYUQJVLBUILLMH47L",
+        "label": "Testnet mirror of BTC — Quasaria mock, not redeemable, no value",
+        "note": "No BTC issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "ETH",
+      "code": "ETH",
+      "category": "popular",
+      "peg": null,
+      "name": null,
+      "org": "Ultra Capital LLC",
+      "logo": "https://ultracapital.xyz/static/images/icons/ETH.png",
+      "mainnet": {
+        "code": "ETH",
+        "issuer": "GBFXOHVAS43OIWNIO7XLRJAHT3BICFEIKOJLZVXNT572MISM4CMGSOCC",
+        "homeDomain": "ultracapital.xyz",
+        "verification": "toml-verified",
+        "verifiedVia": "https://ultracapital.xyz/.well-known/stellar.toml",
+        "note": null,
+        "holders": 16186,
+        "expert": "https://stellar.expert/explorer/public/asset/ETH-GBFXOHVAS43OIWNIO7XLRJAHT3BICFEIKOJLZVXNT572MISM4CMGSOCC"
+      },
+      "pricePerXlm": 0.00008295639395538155,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkETH",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CCROVETFBLX6VFNOMT2FO7XUT732NZBDQ5OXQB4VTV3JV44TNXDJVNWZ",
+        "label": "Testnet mirror of ETH — Quasaria mock, not redeemable, no value",
+        "note": "No ETH issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "VELO",
+      "code": "VELO",
+      "category": "popular",
+      "peg": null,
+      "name": "VELO",
+      "org": "Velo Labs",
+      "logo": "https://velo.org/images/favicon.png",
+      "mainnet": {
+        "code": "VELO",
+        "issuer": "GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M",
+        "homeDomain": null,
+        "verification": "toml-verified(domain)",
+        "verifiedVia": "https://velo.org/.well-known/stellar.toml",
+        "note": null,
+        "holders": 42110,
+        "expert": "https://stellar.expert/explorer/public/asset/VELO-GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M"
+      },
+      "pricePerXlm": 43.9171286,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkVELO",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CACSLEMIYPYNMJYE5DR6NOTCSTKTHGDRAYZ3TBODTJU3Q4PRMJJEURFU",
+        "label": "Testnet mirror of VELO — Quasaria mock, not redeemable, no value",
+        "note": "No VELO issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "BLND",
+      "code": "BLND",
+      "category": "popular",
+      "peg": null,
+      "name": "Blend (BLND)",
+      "org": null,
+      "logo": null,
+      "mainnet": {
+        "code": "BLND",
+        "issuer": "GDJEHTBE6ZHUXSWFI642DCGLUOECLHPF3KSXHPXTSTJ7E3JF6MQ5EZYY",
+        "homeDomain": null,
+        "verification": "issuer-doc-verified",
+        "verifiedVia": "https://docs.blend.capital/mainnet-deployments.md",
+        "note": "Issuer has no home_domain; classic asset published in Blend's official mainnet deployment docs.",
+        "holders": 140532,
+        "expert": "https://stellar.expert/explorer/public/asset/BLND-GDJEHTBE6ZHUXSWFI642DCGLUOECLHPF3KSXHPXTSTJ7E3JF6MQ5EZYY"
+      },
+      "pricePerXlm": 47.05804418183429,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkBLND",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CBWNP73744VJFM525RPMJ4QZ757T7YSC6TTANYQURGI3CBRULGTUUXD2",
+        "label": "Testnet mirror of BLND — Quasaria mock, not redeemable, no value",
+        "note": "No BLND issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "XRP",
+      "code": "XRP",
+      "category": "popular",
+      "peg": null,
+      "name": null,
+      "org": "Muyu Network",
+      "logo": "https://files.fchain.io/token-icons/xrp-logo.png",
+      "mainnet": {
+        "code": "XRP",
+        "issuer": "GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5",
+        "homeDomain": "fchain.io",
+        "verification": "toml-verified",
+        "verifiedVia": "https://fchain.io/.well-known/stellar.toml",
+        "note": null,
+        "holders": 57137,
+        "expert": "https://stellar.expert/explorer/public/asset/XRP-GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5"
+      },
+      "pricePerXlm": 0.14858745,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkXRP",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CDRO3DJ7RZTC6GS5CM3S4C6M24CZRY4TIMS6F7IODHZ64VUM6PDCLHAD",
+        "label": "Testnet mirror of XRP — Quasaria mock, not redeemable, no value",
+        "note": "No XRP issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "SCOP",
+      "code": "SCOP",
+      "category": "popular",
+      "peg": null,
+      "name": "Scopuly",
+      "org": "Scopuly",
+      "logo": "https://scopuly.com/img/logo/icon.png",
+      "mainnet": {
+        "code": "SCOP",
+        "issuer": "GC6OYQJIZF3HFXCYPFCBXYXNGIBQ4TNSFUBUXQJOZWIP6F3YZK4QH3VQ",
+        "homeDomain": "scopuly.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://scopuly.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 35442,
+        "expert": "https://stellar.expert/explorer/public/asset/SCOP-GC6OYQJIZF3HFXCYPFCBXYXNGIBQ4TNSFUBUXQJOZWIP6F3YZK4QH3VQ"
+      },
+      "pricePerXlm": 63.0825294,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkSCOP",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CBVCOYDNTPHMMHAE3SO3RUQ7I55DWLJJ7XHSHKXWV42FHYGPVBWQPV6W",
+        "label": "Testnet mirror of SCOP — Quasaria mock, not redeemable, no value",
+        "note": "No SCOP issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "AFR",
+      "code": "AFR",
+      "category": "popular",
+      "peg": null,
+      "name": "AFREUM",
+      "org": "Afreum DAO",
+      "logo": "https://afreum.com/stellar/ST_Afreum.png",
+      "mainnet": {
+        "code": "AFR",
+        "issuer": "GBX6YI45VU7WNAAKA3RBFDR3I3UKNFHTJPQ5F6KOOKSGYIAM4TRQN54W",
+        "homeDomain": "afreum.com",
+        "verification": "toml-verified",
+        "verifiedVia": "https://afreum.com/.well-known/stellar.toml",
+        "note": null,
+        "holders": 38256,
+        "expert": "https://stellar.expert/explorer/public/asset/AFR-GBX6YI45VU7WNAAKA3RBFDR3I3UKNFHTJPQ5F6KOOKSGYIAM4TRQN54W"
+      },
+      "pricePerXlm": 380.15035439999997,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkAFR",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CBUPACOH73PF4UFJ7BNYFPK345EAPTUP3SQVMPEUUBY4UBHKME6R6NWC",
+        "label": "Testnet mirror of AFR — Quasaria mock, not redeemable, no value",
+        "note": "No AFR issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "TFT",
+      "code": "TFT",
+      "category": "popular",
+      "peg": null,
+      "name": "Threefold Token",
+      "org": "Threefold foundation",
+      "logo": "https://threefoldfoundation.github.io/tft/tft_icon.png",
+      "mainnet": {
+        "code": "TFT",
+        "issuer": "GBOVQKJYHXRR3DX6NOX2RRYFRCUMSADGDESTDNBDS6CDVLGVESRTAC47",
+        "homeDomain": "threefold.io",
+        "verification": "toml-verified",
+        "verifiedVia": "https://threefold.io/.well-known/stellar.toml",
+        "note": null,
+        "holders": 20146,
+        "expert": "https://stellar.expert/explorer/public/asset/TFT-GBOVQKJYHXRR3DX6NOX2RRYFRCUMSADGDESTDNBDS6CDVLGVESRTAC47"
+      },
+      "pricePerXlm": 33.11286123435713,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkTFT",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CBVFALCN2AWBM4UFWF4WPRNXGF3S2HG5EQN23J4N5HM54QZUXECFFYIO",
+        "label": "Testnet mirror of TFT — Quasaria mock, not redeemable, no value",
+        "note": "No TFT issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "GOLD",
+      "code": "GOLD",
+      "category": "popular",
+      "peg": null,
+      "name": "Gold Gram",
+      "org": "SecureLC Limited",
+      "logo": "https://www.mintx.co/images/logo100.png",
+      "mainnet": {
+        "code": "GOLD",
+        "issuer": "GBC5ZGK6MQU3XG5Y72SXPA7P5R5NHYT2475SNEJB2U3EQ6J56QLVGOLD",
+        "homeDomain": "mintx.co",
+        "verification": "toml-verified",
+        "verifiedVia": "https://mintx.co/.well-known/stellar.toml",
+        "note": null,
+        "holders": 13731,
+        "expert": "https://stellar.expert/explorer/public/asset/GOLD-GBC5ZGK6MQU3XG5Y72SXPA7P5R5NHYT2475SNEJB2U3EQ6J56QLVGOLD"
+      },
+      "pricePerXlm": 0.0019184474472314192,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkGOLD",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CBTABFH4M2MTNXTI6A7ER57TNOOJ6SAXS2VQBS7URQXIBO7DOYRZOKGV",
+        "label": "Testnet mirror of GOLD — Quasaria mock, not redeemable, no value",
+        "note": "No GOLD issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "SLVR",
+      "code": "SLVR",
+      "category": "popular",
+      "peg": null,
+      "name": "Silver Gram",
+      "org": "SecureLC Limited",
+      "logo": "https://www.mintx.co/images/logo-silver100.png",
+      "mainnet": {
+        "code": "SLVR",
+        "issuer": "GBZVELEQD3WBN3R3VAG64HVBDOZ76ZL6QPLSFGKWPFED33Q3234NSLVR",
+        "homeDomain": "mintx.co",
+        "verification": "toml-verified",
+        "verifiedVia": "https://mintx.co/.well-known/stellar.toml",
+        "note": null,
+        "holders": 13513,
+        "expert": "https://stellar.expert/explorer/public/asset/SLVR-GBZVELEQD3WBN3R3VAG64HVBDOZ76ZL6QPLSFGKWPFED33Q3234NSLVR"
+      },
+      "pricePerXlm": 0.13748405,
+      "priceSource": "sdex-mid",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkSLVR",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CCBKQJOYKICAR6DHUX265DJ3VBLSMNOMHGN6MWXE2ZGBHIXRHZ3BO26F",
+        "label": "Testnet mirror of SLVR — Quasaria mock, not redeemable, no value",
+        "note": "No SLVR issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    },
+    {
+      "id": "LSP",
+      "code": "LSP",
+      "category": "popular",
+      "peg": null,
+      "name": "Lumenswap asset",
+      "org": "Lumenswap LLC",
+      "logo": "https://lumenswap.io/t/Lumenswap144.png",
+      "mainnet": {
+        "code": "LSP",
+        "issuer": "GAB7STHVD5BDH3EEYXPI3OM7PCS4V443PYB5FNT6CFGJVPDLMKDM24WK",
+        "homeDomain": "lumenswap.io",
+        "verification": "toml-verified",
+        "verifiedVia": "https://lumenswap.io/.well-known/stellar.toml",
+        "note": null,
+        "holders": 19566,
+        "expert": "https://stellar.expert/explorer/public/asset/LSP-GAB7STHVD5BDH3EEYXPI3OM7PCS4V443PYB5FNT6CFGJVPDLMKDM24WK"
+      },
+      "pricePerXlm": 1077.70613743534,
+      "priceSource": "native-lp",
+      "offPeg": false,
+      "testnet": {
+        "kind": "mirror",
+        "code": "mkLSP",
+        "issuer": "GCOLXYFNACOB3INECMZSTSBZCV7WVPW6KM7VP6DYAYPTXWCSKJKAHNIV",
+        "sac": "CBDBE42GBRNTE5D2CQSCPDVYCSWUNL7NBAZXTBFIE5KDVOKTPZ3PF6IU",
+        "label": "Testnet mirror of LSP — Quasaria mock, not redeemable, no value",
+        "note": "No LSP issuer exists on testnet; mirror issued by GCOLXY… (home_domain mock-assets.quasaria.invalid)."
+      }
+    }
+  ],
+  "pools": [
+    {
+      "id": "USDC-XLM",
+      "pair": "USDC/XLM",
+      "base": "USDC",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CC5Q2CNNXQLHGOP3NFM4GR4TNAIC3NOPK4ZE32HX2SEIUDPVHY37PUC5",
+      "seeded": {
+        "a": 400,
+        "b": 88.7702
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "EURC-XLM",
+      "pair": "EURC/XLM",
+      "base": "EURC",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "EURC",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CABYRSHVCLKKGYAEJEPEX47CC47RA54YNANJV4LGRCL7C6DUPW63TNRX",
+      "pool": "CC5FEQQHZRJBZHN5HVQR6YDQAY6OGJTXDFLS3ZHXJMM32JQJG4AMDM3N",
+      "seeded": {
+        "a": 150,
+        "b": 29.5109024
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "PYUSD-XLM",
+      "pair": "PYUSD/XLM",
+      "base": "PYUSD",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "PYUSD",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDBU2AQQNNQGAR4KGMSNABEKMSJV6Y2DM5PPEGB3RR3VBEJXBCEVNZLJ",
+      "pool": "CD72G55H6N3GZHATD7HQCDBO4JQZSDY6DGRJN43VIRUQQ3S56YJL3JPY",
+      "seeded": {
+        "a": 150,
+        "b": 33.2925075
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDGLO-XLM",
+      "pair": "USDGLO/XLM",
+      "base": "USDGLO",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "USDGLO",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CARQD2SZV34W5NQDBT454SVDMTL4HPBCZY4MMWDE5Q3RHNQYDPUTEAWC",
+      "pool": "CD4HOKDQ4HOTZGCAQQEMTFFLAEPWB4UAPAMFZRIU7TOQPOP4HQ5GQQHL",
+      "seeded": {
+        "a": 150,
+        "b": 33.23997
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "EURCV-XLM",
+      "pair": "EURCV/XLM",
+      "base": "EURCV",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "EURCV",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CC3R5F6RTRFZB5OZJLV6DO6NZGHVFM2PJDNO36V3AW26TO22BENQAJFR",
+      "pool": "CDYH4S5LSLZZTGGSUK42RSH2C5P2E46FCNQRLKUYYA5D7LK7B7AE2IMJ",
+      "seeded": {
+        "a": 150,
+        "b": 29.3447655
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDT0-XLM",
+      "pair": "USDT0/XLM",
+      "base": "USDT0",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "USDT0",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CCQLHWJ2UK4K3IQFQKLEDGSK3372L6W7IUUMFTILXTFA7SG6ZH7CF4TX",
+      "pool": "CDKMRTU2WPANBLMEWNHTREDQSAKBXJJ5CKLMJG6UCCNZGMVRTJSZK5CZ",
+      "seeded": {
+        "a": 150,
+        "b": 33.354825
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "GYEN-XLM",
+      "pair": "GYEN/XLM",
+      "base": "GYEN",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "GYEN",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDDJVZBNTZHKDD3QQAEVUMT6PF5KBSARDAW42WQC54ON77JW6VGYEVZ6",
+      "pool": "CCZIFD4AJZ32V6WULBTMJVT77O5YQAJQWQKYGZ4L4FP3INFE64CZWIJL",
+      "seeded": {
+        "a": 150,
+        "b": 4464.0701852
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "ZUSD-XLM",
+      "pair": "ZUSD/XLM",
+      "base": "ZUSD",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "ZUSD",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CAQ22H6GFEKG2YQH73QJXJGASJR4YIZHE4G7BUEBJXGR2Q4UH4XHUNGF",
+      "pool": "CDTMGBHRINO5T7Y7Z5FJ2F5LWRXR7ADPZWPTEGNAG4E2JZGTAPY5OLNR",
+      "seeded": {
+        "a": 150,
+        "b": 33.2172599
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "AUDD-XLM",
+      "pair": "AUDD/XLM",
+      "base": "AUDD",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "AUDD",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBMNT2CNEVUPKTXLRXKNTXNAA2674M5C5WYH4VYLDCVJM5TLPVMPY6BQ",
+      "pool": "CCH44R6P66YQKRVXXRMXV5ZN4REWSEJQABEWVOFA3BU5F7TAVUTSXEFY",
+      "seeded": {
+        "a": 150,
+        "b": 51.166545
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "VCHF-XLM",
+      "pair": "VCHF/XLM",
+      "base": "VCHF",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "VCHF",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CA5IAMPXTIH23OWOJWZAF6ZV6YMEFJASITOWNKSGNZPY6CFKIWXKICUU",
+      "pool": "CCP4PIYUSR4VP52UGN2CQWIKSTMGOYFDTAALHFOTJN4PPA4INQ6SEXTF",
+      "seeded": {
+        "a": 150,
+        "b": 27.7712025
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDx-XLM",
+      "pair": "USDx/XLM",
+      "base": "USDx",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "USDx",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CC2Z7JO6WQU47MKSFAM5BHSZL5RHH2SB4UDFWGW2MCTBLL3IHDLKXR4I",
+      "pool": "CC2SVCV2IZEAGPCHYBPEQ2PGCEBYGLY35N46WQ2AIIQ2QHJAVLMVCWRY",
+      "seeded": {
+        "a": 150,
+        "b": 34.3124475
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USD-XLM",
+      "pair": "USD/XLM",
+      "base": "USD",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "USD",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CC22PPH4DPUZZMONNPETGTCBGQZ52M63MVWSUUQ7M4CD6SVFRF47TILH",
+      "pool": "CBIRTWIOMRBWECH7DNMTMWYIAJXISYOGNNT75UYV4VUPRVRS7TMNBO4B",
+      "seeded": {
+        "a": 150,
+        "b": 117.997665
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "ARST-XLM",
+      "pair": "ARST/XLM",
+      "base": "ARST",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "ARST",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBL4UOALXYKSU6EYB7AUCOC763EPFFPEJDNYQPRM4I45547WWDXDT74H",
+      "pool": "CABHK2OY5CODV7QTYR6R6MYDA3M3QGYNYM7S7YS4Q5K5MSLB63YAQFY6",
+      "seeded": {
+        "a": 150,
+        "b": 57185.982015
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "ARS-XLM",
+      "pair": "ARS/XLM",
+      "base": "ARS",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "ARS",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CD7H23GTDKSRTAEAJZNPTSBXQQWK6JQAGXVFXHTDLP5DQWXXOHTZGXCA",
+      "pool": "CA276LCPTNF5VUZU3RJRNVSB5DUMS4ZOKRDUOKBB3D4XH3EYW3RLA7BI",
+      "seeded": {
+        "a": 150,
+        "b": 53836.127385
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "BRL-XLM",
+      "pair": "BRL/XLM",
+      "base": "BRL",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "BRL",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CAISCQN23ITIK5SDH4JP7DORQ6INZRWWVRGU4VN3S2RFGPXYA4K7F5WC",
+      "pool": "CAWRO6URNEEPBSVMNYERDE62Z2GGOKGNSZB6IS7F5JJNPMDF54PJGJIT",
+      "seeded": {
+        "a": 150,
+        "b": 203.1480936
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "NGNC-XLM",
+      "pair": "NGNC/XLM",
+      "base": "NGNC",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "NGNC",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBKNH6KROUSQMAMES333XZ4RNNV6MMQTD7NOV2IRFD6OPX3DSIYC62FP",
+      "pool": "CAK7CYBBQEUEDMRIXTEFWI3LCK7BWKAGUX7QFYDKL5PSMT7ZRC6KGB6A",
+      "seeded": {
+        "a": 150,
+        "b": 38088.242595
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "NGNT-XLM",
+      "pair": "NGNT/XLM",
+      "base": "NGNT",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "NGNT",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CAM6PTKPXYP72TEFANEEKCQFV3HTH3COMPDP6KBX5SXR2NBZC74B63T2",
+      "pool": "CCXAAJWL2UAUQLWRWEGA4GSREA56Q47A7QG77SMPTMM3F5SFAI2YOIQO",
+      "seeded": {
+        "a": 150,
+        "b": 264863.0859
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "PEN-XLM",
+      "pair": "PEN/XLM",
+      "base": "PEN",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "PEN",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDOZLOK454NGH27KR2ZSGWXNO5MD6IGVKGWQXX6RFM6PZXA6CSU2PPVM",
+      "pool": "CCOGHU2EMMXE4XI6YZTRYNXNYFTVQZWMXDZBBRZMYPA42WC5HRFWOEVE",
+      "seeded": {
+        "a": 150,
+        "b": 63.76947
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "CLPX-XLM",
+      "pair": "CLPX/XLM",
+      "base": "CLPX",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "CLPX",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDQONPSYMCVJ3OUS246ORMCKEBRR26JOMSVMYEE4DJA7KPBUI3H4HIBB",
+      "pool": "CA4UJA7QW6SFHTPHPQ2SJP4JW7OBEDWWCLLHXWIN7MFRSHVC6KH2Y76U",
+      "seeded": {
+        "a": 150,
+        "b": 14642.3754675
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDZ-XLM",
+      "pair": "USDZ/XLM",
+      "base": "USDZ",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "USDZ",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CB3WT4FHEGTEW4CFH4KFFL4KSCMF3IOELVI5357C3LS3YY6KMTBZH2Y7",
+      "pool": "CC2FLHLNURGCC5AVAFEUW63ZDNMYY5YMPOY23VSUO5V3QV7NAMGROUKK",
+      "seeded": {
+        "a": 150,
+        "b": 33.2951708
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "ZARZ-XLM",
+      "pair": "ZARZ/XLM",
+      "base": "ZARZ",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "ZARZ",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CABBQINICYAPLZUGIW56OGZ7NRSHSALOTU3FRUF7ADP4X4XWAQN7RHNW",
+      "pool": "CBJMCEDBTBJHNQSOK6ZMVT3JWNR44EGWVL7LJONGG2ATTBNNQCWQZMRB",
+      "seeded": {
+        "a": 150,
+        "b": 547.6784025
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "IDRT-XLM",
+      "pair": "IDRT/XLM",
+      "base": "IDRT",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "IDRT",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CA3DBIU3UVZQT5737UVPEVZ2OS4DLQG53RYFH7Z2XVNDLZDZ4H5EVBW2",
+      "pool": "CDFUQDX5MDCCOOBFYYRMLK3BNPVEUSH2NS34NUP3R7SVNRO27A7QDU3H",
+      "seeded": {
+        "a": 150,
+        "b": 672777.6389929
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "XCHF-XLM",
+      "pair": "XCHF/XLM",
+      "base": "XCHF",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "XCHF",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CCA2EGCFYA3MFQXGMEPS6UWPB4P223PAVXNEXV5PMTWKYCILTARL5BVQ",
+      "pool": "CDD4LJUZH7DWGVJFPETEHCEJNAKL2ASM64WTBFO6RC6AGU43XSG47RCN",
+      "seeded": {
+        "a": 150,
+        "b": 34.5848442
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "EURMTL-XLM",
+      "pair": "EURMTL/XLM",
+      "base": "EURMTL",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "EURMTL",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CCAWPUCEXULVVG3DRKBJSYAPDXAS62XFU45J2SCDA6ITT4F7H4UCTTYN",
+      "pool": "CB3YZ5GM3HWDUEZG6TJW4QUGTCH24AHDLT67INFLJQECHNYVN4Y2KW3O",
+      "seeded": {
+        "a": 150,
+        "b": 29.1141225
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDM-XLM",
+      "pair": "USDM/XLM",
+      "base": "USDM",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "USDM",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CCLPZWH6RTWH7H25PMY6ZNWDMSOEGPC7PJT5II6P7JNAVBT77QTPSHG5",
+      "pool": "CDV5OPCO4Q2CO37NGOSEJWGXIO5OX5KZH65DM6SYA6OQYK4UFG3ZZ3G4",
+      "seeded": {
+        "a": 150,
+        "b": 34.6229036
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "EURC-USDC",
+      "pair": "EURC/USDC",
+      "base": "EURC",
+      "quote": "USDC",
+      "assetA": "EURC",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "stable-stable",
+      "tokenA": "CABYRSHVCLKKGYAEJEPEX47CC47RA54YNANJV4LGRCL7C6DUPW63TNRX",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CAD4Q5FLFVI4N2P7DOINZE6IOM4SB7O6WNS54U43PGI6HYCA5S73D7VV",
+      "seeded": {
+        "a": 22.1627697,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "SHX-XLM",
+      "pair": "SHX/XLM",
+      "base": "SHX",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "SHX",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CD4WDMAGZSBAA6KLJN22X65TQG25WK5FFQP6NALN2IYWYBX34VME7W47",
+      "pool": "CC6HFLEUCX6HHM7KPI4HUEEX4CKXZJ5TFVV2OBACZDM2Q3TSIJWPVRT5",
+      "seeded": {
+        "a": 400,
+        "b": 16902.16454
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "AQUA-XLM",
+      "pair": "AQUA/XLM",
+      "base": "AQUA",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "AQUA",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDT2S2NZRNOKX5WNU7BX6IQAF3W4TSTPMT7NM3AIIFTTXH4N6NKDDMRL",
+      "pool": "CA3L6GXCRST7QJDUMSS3GBV3CHY563XM2C2MJAHD2CVPCMGZMFOT7YSS",
+      "seeded": {
+        "a": 150,
+        "b": 89729.661255
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "yXLM-XLM",
+      "pair": "yXLM/XLM",
+      "base": "yXLM",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "yXLM",
+      "feeBps": 30,
+      "tier": 1,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDUAOPX27VN4B2L3B75QTCPNXW2PAIBUSW7V44SPLKTO3OKAIP5Q2JJF",
+      "pool": "CDW6PVH6PDMNVYV3NZX4NT2BR7M5MHHIGS4MEYS27Z74AOQKXWWWC3ZP",
+      "seeded": {
+        "a": 150,
+        "b": 150.4997775
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "yUSDC-XLM",
+      "pair": "yUSDC/XLM",
+      "base": "yUSDC",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "yUSDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CB27FV3DDMN67ROGX7TOW7NBFWO7XE3O6Y7ZNCUNX63OVAOTVLWJI7EZ",
+      "pool": "CADTOPYUNLAP7JKEFWQUL4QOZKXRJ7QLNBGGUB6LCDU3DQAI5GAEBMNH",
+      "seeded": {
+        "a": 150,
+        "b": 33.3304874
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "yBTC-XLM",
+      "pair": "yBTC/XLM",
+      "base": "yBTC",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "yBTC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CCYMO2JZXWFRRDGOADAP66JDZKQKORH4CFMOEVLHLY6PE5FLV37YSUDB",
+      "pool": "CA2R4VLVZREUTBYDON57XNP4TAUSFXQNMNKK7VYTNUCM4IEBIFK2NGRC",
+      "seeded": {
+        "a": 150,
+        "b": 0.0003996
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "BTC-XLM",
+      "pair": "BTC/XLM",
+      "base": "BTC",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "BTC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDZYSWHCDVFRHH2VMGT7TXS3I6V7QYFQDE3JQKVRYUQJVLBUILLMH47L",
+      "pool": "CD7KXENXPBGRCDLY33SWEEH6CD32QK6MD2BGHH6EHDPIZHMRL2NJUTZA",
+      "seeded": {
+        "a": 150,
+        "b": 0.000405
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "ETH-XLM",
+      "pair": "ETH/XLM",
+      "base": "ETH",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "ETH",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CCROVETFBLX6VFNOMT2FO7XUT732NZBDQ5OXQB4VTV3JV44TNXDJVNWZ",
+      "pool": "CDRMONDZ3PQ767IGO3HPBEAEMFSIV5NHNZAMYQXFTWVVLTRFGJXU2K6C",
+      "seeded": {
+        "a": 150,
+        "b": 0.0124434
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "VELO-XLM",
+      "pair": "VELO/XLM",
+      "base": "VELO",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "VELO",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CACSLEMIYPYNMJYE5DR6NOTCSTKTHGDRAYZ3TBODTJU3Q4PRMJJEURFU",
+      "pool": "CBLXCEMGORJYAH3GA4GBBGXHCJVO7VSGA2JOVTFZMJ7AGKQG7MU37JPB",
+      "seeded": {
+        "a": 150,
+        "b": 6587.760255
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "BLND-XLM",
+      "pair": "BLND/XLM",
+      "base": "BLND",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "BLND",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBWNP73744VJFM525RPMJ4QZ757T7YSC6TTANYQURGI3CBRULGTUUXD2",
+      "pool": "CB373AHPUSZSRSTXUZQTZ6VY3QFQQ6B2URZVNNYTMT7RWAG3FE5LNK73",
+      "seeded": {
+        "a": 150,
+        "b": 7059.6455865
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "XRP-XLM",
+      "pair": "XRP/XLM",
+      "base": "XRP",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "XRP",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CDRO3DJ7RZTC6GS5CM3S4C6M24CZRY4TIMS6F7IODHZ64VUM6PDCLHAD",
+      "pool": "CBCMMW74L4SI73TARYWY2XYZ2EEQFF23GG5QTCEVPFYKFTL3AXQ57ZPB",
+      "seeded": {
+        "a": 150,
+        "b": 22.2857025
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "SCOP-XLM",
+      "pair": "SCOP/XLM",
+      "base": "SCOP",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "SCOP",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBVCOYDNTPHMMHAE3SO3RUQ7I55DWLJJ7XHSHKXWV42FHYGPVBWQPV6W",
+      "pool": "CA2L3PBMU3AUL7JKUMNEISXCKCTQCH3YC7P2XNF7KUGFMSVRUZY3EB44",
+      "seeded": {
+        "a": 150,
+        "b": 9463.29414
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "AFR-XLM",
+      "pair": "AFR/XLM",
+      "base": "AFR",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "AFR",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBUPACOH73PF4UFJ7BNYFPK345EAPTUP3SQVMPEUUBY4UBHKME6R6NWC",
+      "pool": "CAS6IQS5J4Z2RWO5EX5COGQEB4U7R3B6H3OW7EY2XHHJAQJ5NLOYOD4C",
+      "seeded": {
+        "a": 150,
+        "b": 56522.3828625
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "TFT-XLM",
+      "pair": "TFT/XLM",
+      "base": "TFT",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "TFT",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBVFALCN2AWBM4UFWF4WPRNXGF3S2HG5EQN23J4N5HM54QZUXECFFYIO",
+      "pool": "CDLS7ZZD427EVMXZIHG7WGWI2G5NV7SYKSKFA46EGIESFIPFQWIPUKJ7",
+      "seeded": {
+        "a": 150,
+        "b": 4966.9291851
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "GOLD-XLM",
+      "pair": "GOLD/XLM",
+      "base": "GOLD",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "GOLD",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBTABFH4M2MTNXTI6A7ER57TNOOJ6SAXS2VQBS7URQXIBO7DOYRZOKGV",
+      "pool": "CATNYFT7AKFLTUYZYXP6GMGPGASFYBWQWBZQEJ7NKM2CNNNWBX42K2NQ",
+      "seeded": {
+        "a": 150,
+        "b": 0.2877671
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "SLVR-XLM",
+      "pair": "SLVR/XLM",
+      "base": "SLVR",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "SLVR",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CCBKQJOYKICAR6DHUX265DJ3VBLSMNOMHGN6MWXE2ZGBHIXRHZ3BO26F",
+      "pool": "CBKYSFQPSRGSEUQG6QXVRM4B2OI5GP7J56ONYQY5A2THJKNZHCCZDM4D",
+      "seeded": {
+        "a": 150,
+        "b": 20.6226075
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "LSP-XLM",
+      "pair": "LSP/XLM",
+      "base": "LSP",
+      "quote": "XLM",
+      "assetA": "XLM",
+      "assetB": "LSP",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "xlm",
+      "tokenA": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "tokenB": "CBDBE42GBRNTE5D2CQSCPDVYCSWUNL7NBAZXTBFIE5KDVOKTPZ3PF6IU",
+      "pool": "CCXDQ27HV4BB5C6DIEY2NXJV765CXPKJHBHKSZC74ZOVNKLIBIW4E3J3",
+      "seeded": {
+        "a": 150,
+        "b": 161655.9206153
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "PYUSD-USDC",
+      "pair": "PYUSD/USDC",
+      "base": "PYUSD",
+      "quote": "USDC",
+      "assetA": "PYUSD",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CDBU2AQQNNQGAR4KGMSNABEKMSJV6Y2DM5PPEGB3RR3VBEJXBCEVNZLJ",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CDGHQHRPLGYJ5UC2O6JY4I4PBEWO44Z5PNK4FOYQ7JM72AUWC7QBDGBB",
+      "seeded": {
+        "a": 25.0027655,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDGLO-USDC",
+      "pair": "USDGLO/USDC",
+      "base": "USDGLO",
+      "quote": "USDC",
+      "assetA": "USDGLO",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CARQD2SZV34W5NQDBT454SVDMTL4HPBCZY4MMWDE5Q3RHNQYDPUTEAWC",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CALU6XLHS3WHD4DWGC3U4EO2XMFFEDP5UB7J3VBPB23CZOVEO4MU3URO",
+      "seeded": {
+        "a": 24.9633097,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDT0-USDC",
+      "pair": "USDT0/USDC",
+      "base": "USDT0",
+      "quote": "USDC",
+      "assetA": "USDT0",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CCQLHWJ2UK4K3IQFQKLEDGSK3372L6W7IUUMFTILXTFA7SG6ZH7CF4TX",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CCB6IKM57CGRXNVIQLRSIHV3XVQTU7SOBTTKXGY3YTAQ4FCZUKCB65PQ",
+      "seeded": {
+        "a": 25.0495661,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "ZUSD-USDC",
+      "pair": "ZUSD/USDC",
+      "base": "ZUSD",
+      "quote": "USDC",
+      "assetA": "ZUSD",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CAQ22H6GFEKG2YQH73QJXJGASJR4YIZHE4G7BUEBJXGR2Q4UH4XHUNGF",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CDUSG6TNPNKWRW5DWTLBL4MM66M53UWUHETNNF6APHZANXBQ6KOIIWQ6",
+      "seeded": {
+        "a": 24.9462544,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDx-USDC",
+      "pair": "USDx/USDC",
+      "base": "USDx",
+      "quote": "USDC",
+      "assetA": "USDx",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CC2Z7JO6WQU47MKSFAM5BHSZL5RHH2SB4UDFWGW2MCTBLL3IHDLKXR4I",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CCEP4C4SWR3DHJQ2GHFWHQOXYMAC6RMCZI4G26KV2GDY55S6SDSL2B5U",
+      "seeded": {
+        "a": 25.7687433,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDZ-USDC",
+      "pair": "USDZ/USDC",
+      "base": "USDZ",
+      "quote": "USDC",
+      "assetA": "USDZ",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CB3WT4FHEGTEW4CFH4KFFL4KSCMF3IOELVI5357C3LS3YY6KMTBZH2Y7",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CC4TPRY2X22SNXK6VN7X4IASOUBEZEAU2FLUZPNQIDVK62T5LTQT2LYQ",
+      "seeded": {
+        "a": 25.0047657,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "USDM-USDC",
+      "pair": "USDM/USDC",
+      "base": "USDM",
+      "quote": "USDC",
+      "assetA": "USDM",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CCLPZWH6RTWH7H25PMY6ZNWDMSOEGPC7PJT5II6P7JNAVBT77QTPSHG5",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CAKSWJLAZWRYFGK3WK3SVGOJ72TC6J346KOHMWN4YF7OR5LFB23GLW5L",
+      "seeded": {
+        "a": 26.0018968,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "EURCV-EURC",
+      "pair": "EURCV/EURC",
+      "base": "EURCV",
+      "quote": "EURC",
+      "assetA": "EURCV",
+      "assetB": "EURC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CC3R5F6RTRFZB5OZJLV6DO6NZGHVFM2PJDNO36V3AW26TO22BENQAJFR",
+      "tokenB": "CABYRSHVCLKKGYAEJEPEX47CC47RA54YNANJV4LGRCL7C6DUPW63TNRX",
+      "pool": "CAWTDSCRCYOWIQIYYQJ4A6LK72FMDMF5H65IW4CGSBBPZECYI36BIVMT",
+      "seeded": {
+        "a": 22.0380003,
+        "b": 22.1627697
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "yUSDC-USDC",
+      "pair": "yUSDC/USDC",
+      "base": "yUSDC",
+      "quote": "USDC",
+      "assetA": "yUSDC",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "stable-stable",
+      "tokenA": "CB27FV3DDMN67ROGX7TOW7NBFWO7XE3O6Y7ZNCUNX63OVAOTVLWJI7EZ",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CAFVB6NSCVOF6H74Y4J4X4SO6RXNYELZOPWPG3NVBU45X6RKOWYD7G5Q",
+      "seeded": {
+        "a": 25.0312886,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    },
+    {
+      "id": "QUSD-USDC",
+      "pair": "QUSD/USDC",
+      "base": "QUSD",
+      "quote": "USDC",
+      "assetA": "QUSD",
+      "assetB": "USDC",
+      "feeBps": 30,
+      "tier": 2,
+      "kind": "demo",
+      "tokenA": "CD4BXA4OL37HBNWDLTBYQK32HEHUZPMVV4F272F7YKOZM2MIB5HDNLUZ",
+      "tokenB": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+      "pool": "CAN3AD2CS5ZVL6XJ6A7N6AJVOCFWSJSJ3GHGGTI6EYD54Q7PHGKA7VNF",
+      "seeded": {
+        "a": 25,
+        "b": 25
+      },
+      "routerCheck": "ok"
+    }
+  ],
+  "retired": {
+    "note": "v2-era XLM/stablecoin pools (pre-hardening wasm: no pause/timelock/two-step admin). Retired from the UI and routing; IDs kept for reference. Existing LPs can still withdraw (withdraw is never paused).",
+    "source": "deployments/testnet-stablecoins.json",
+    "pools": [
+      {
+        "pair": "USDC/XLM",
+        "testnetCode": "USDC",
+        "pool": "CCM32LPLLJTJZG2NRC4B34Y4EQTABG4EFGMUWCZ2E5LU4O6G5ZAJGUT2",
+        "sac": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+      },
+      {
+        "pair": "ARST/XLM",
+        "testnetCode": "mkARST",
+        "pool": "CDQFJBOBXBZUOUY4I7U36HHNGC7UHLQN7M5IWVO3YN3M4JDCTC6FX6X3",
+        "sac": "CBL4UOALXYKSU6EYB7AUCOC763EPFFPEJDNYQPRM4I45547WWDXDT74H"
+      },
+      {
+        "pair": "ZARZ/XLM",
+        "testnetCode": "mkZARZ",
+        "pool": "CC6IPS3Y2EHRJDDBXJDVVXUZ2QFK3W5HB5KTECFAOQPIETJKVHY7JSMS",
+        "sac": "CABBQINICYAPLZUGIW56OGZ7NRSHSALOTU3FRUF7ADP4X4XWAQN7RHNW"
+      },
+      {
+        "pair": "USDZ/XLM",
+        "testnetCode": "mkUSDZ",
+        "pool": "CDHCMKQJK7FDOQR7HCE2HSJO4ESQGFF3N3BPA5K4K3OXFPTBG4D6TPT3",
+        "sac": "CB3WT4FHEGTEW4CFH4KFFL4KSCMF3IOELVI5357C3LS3YY6KMTBZH2Y7"
+      },
+      {
+        "pair": "PEN/XLM",
+        "testnetCode": "mkPEN",
+        "pool": "CDISZK3CXUHBEWIKHHMOABN73HLBK4PKOKBDGH47GAGQ3NXHTE62FK3G",
+        "sac": "CDOZLOK454NGH27KR2ZSGWXNO5MD6IGVKGWQXX6RFM6PZXA6CSU2PPVM"
+      },
+      {
+        "pair": "USD/XLM",
+        "testnetCode": "mkUSD",
+        "pool": "CBFDNU4FRQAW56XFQZQV7LBL5ZRM4P2P4ACA2TUEGDGVLV47W3GFCB3U",
+        "sac": "CC22PPH4DPUZZMONNPETGTCBGQZ52M63MVWSUUQ7M4CD6SVFRF47TILH"
+      },
+      {
+        "pair": "ARS/XLM",
+        "testnetCode": "mkARS",
+        "pool": "CD3AOG47NMQOMTPA2FC354I3DK5CT2RF3XB2NX6CCJ3JIGXJT566MWCY",
+        "sac": "CD7H23GTDKSRTAEAJZNPTSBXQQWK6JQAGXVFXHTDLP5DQWXXOHTZGXCA"
+      },
+      {
+        "pair": "EURC/XLM",
+        "testnetCode": "mkEURC",
+        "pool": "CACKFTCMSW3FBMHGU3QS6DFVP4JIES7ZZDYHFT6XMXI6ZR22SLXENF6A",
+        "sac": "CABYRSHVCLKKGYAEJEPEX47CC47RA54YNANJV4LGRCL7C6DUPW63TNRX"
+      },
+      {
+        "pair": "USDT0/XLM",
+        "testnetCode": "mkUSDT0",
+        "pool": "CAYG7VZL7YYWBGUYTCKN3UDP5Q4ZQJU3RZE6EJMLEBLRLMV5CJX42DXW",
+        "sac": "CCQLHWJ2UK4K3IQFQKLEDGSK3372L6W7IUUMFTILXTFA7SG6ZH7CF4TX"
+      },
+      {
+        "pair": "PYUSD/XLM",
+        "testnetCode": "mkPYUSD",
+        "pool": "CCKDHOHB6KKJUFZAAAUU3SBRY32IBAJBTNHW4MBYIOB2HYP2XQQJ6FJK",
+        "sac": "CDBU2AQQNNQGAR4KGMSNABEKMSJV6Y2DM5PPEGB3RR3VBEJXBCEVNZLJ"
+      },
+      {
+        "pair": "IDRT/XLM",
+        "testnetCode": "mkIDRT",
+        "pool": "CAE63PELZCITNF2VVCPJCSDFNQR2L2XGYGZSGJ3GJUXFOGBGJFOQOFL3",
+        "sac": "CA3DBIU3UVZQT5737UVPEVZ2OS4DLQG53RYFH7Z2XVNDLZDZ4H5EVBW2"
+      },
+      {
+        "pair": "NGNT/XLM",
+        "testnetCode": "mkNGNT",
+        "pool": "CAXGLGIRGJ5EUM6UCKJEZH7HFCMUPYDKOZBXPYIDP26HVZ5KGDGOWXCF",
+        "sac": "CAM6PTKPXYP72TEFANEEKCQFV3HTH3COMPDP6KBX5SXR2NBZC74B63T2"
+      },
+      {
+        "pair": "BRL/XLM",
+        "testnetCode": "mkBRL",
+        "pool": "CAS6WKHQJAC2NAIRNX33WGT3D7D2CFUUR4ALAC2RJGP435XRGB6QRZDR",
+        "sac": "CAISCQN23ITIK5SDH4JP7DORQ6INZRWWVRGU4VN3S2RFGPXYA4K7F5WC"
+      },
+      {
+        "pair": "NGNC/XLM",
+        "testnetCode": "mkNGNC",
+        "pool": "CB4A4UKLYHJZPHRVK4BEAHQZMUYLNFUHEFC3OHWXSOT36BN3NGJZNPTV",
+        "sac": "CBKNH6KROUSQMAMES333XZ4RNNV6MMQTD7NOV2IRFD6OPX3DSIYC62FP"
+      },
+      {
+        "pair": "CLPX/XLM",
+        "testnetCode": "mkCLPX",
+        "pool": "CBIQW7U5SUYIGMDXEJ56V4QABKR3P32TWBWEDNTCO5WNPSR23UJZBDBM",
+        "sac": "CDQONPSYMCVJ3OUS246ORMCKEBRR26JOMSVMYEE4DJA7KPBUI3H4HIBB"
+      },
+      {
+        "pair": "XCHF/XLM",
+        "testnetCode": "mkXCHF",
+        "pool": "CA7Z6AK7XAYFBFFTPPDSDXUWIFZRIXTLUUJ6PJT4ETMUE5M3USI43LNQ",
+        "sac": "CCA2EGCFYA3MFQXGMEPS6UWPB4P223PAVXNEXV5PMTWKYCILTARL5BVQ"
+      },
+      {
+        "pair": "EURMTL/XLM",
+        "testnetCode": "mkEURMTL",
+        "pool": "CDPWNQWHHL77RM3PO5LIGEESCUE6GPMBXNANPACY5OBCLVFEXI3VHNYZ",
+        "sac": "CCAWPUCEXULVVG3DRKBJSYAPDXAS62XFU45J2SCDA6ITT4F7H4UCTTYN"
+      },
+      {
+        "pair": "USDM/XLM",
+        "testnetCode": "mkUSDM",
+        "pool": "CB36KJ7GDB4XHFM36JEFFIHDZBTWERWGKXYUMUQOJ6FM5VFIYZ7QS3QZ",
+        "sac": "CCLPZWH6RTWH7H25PMY6ZNWDMSOEGPC7PJT5II6P7JNAVBT77QTPSHG5"
+      },
+      {
+        "pair": "GYEN/XLM",
+        "testnetCode": "mkGYEN",
+        "pool": "CBULIIONYC5LW2CBYMNZP36IZIDE6EUU6DUGHBIHUU7ZN4MDUFFEYWJS",
+        "sac": "CDDJVZBNTZHKDD3QQAEVUMT6PF5KBSARDAW42WQC54ON77JW6VGYEVZ6"
+      },
+      {
+        "pair": "ZUSD/XLM",
+        "testnetCode": "mkZUSD",
+        "pool": "CA5UHWWQXXFMZNBLVGHIQCBBEQAVHKWVWCCJP77QLHGQB5BQ43R6FRZD",
+        "sac": "CAQ22H6GFEKG2YQH73QJXJGASJR4YIZHE4G7BUEBJXGR2Q4UH4XHUNGF"
+      },
+      {
+        "pair": "AUDD/XLM",
+        "testnetCode": "mkAUDD",
+        "pool": "CDMBASDQ7TZNQ2EJYYALTZKL6DJUEMY5RAXVMA2GYCF3HU6D4WYVJQOJ",
+        "sac": "CBMNT2CNEVUPKTXLRXKNTXNAA2674M5C5WYH4VYLDCVJM5TLPVMPY6BQ"
+      }
+    ]
+  }
+}

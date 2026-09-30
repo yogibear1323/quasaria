@@ -143,10 +143,11 @@ frontend/             React + Vite + TS dApp (Freighter, stellar-sdk)
   src/pages/          Landing, Trade, Pools, Stake, Rewards, Referrals, Bots, Markets
 bot/                  TypeScript bot + keeper service (vitest tests)
 shared/               stablecoins.ts: stablecoin discovery (frontend + scripts)
-config/               stablecoins.json: allowlist / denylist / thresholds
-deployments/          testnet.json, testnet-stablecoins.json (live IDs)
+config/               stablecoins.json: allowlist / denylist / thresholds; assets.mainnet.json: curated asset list (verified mainnet issuers)
+deployments/          testnet.json, testnet-assets.json (v3 asset pools), testnet-stablecoins.json (retired v2 pools)
 scripts/              build.sh, deploy-testnet.sh, seed-testnet.sh,
-                      gen-stablecoin-pairs.ts, seed-stablecoin-pools.{sh,ts},
+                      gen-stablecoin-pairs.ts, seed-stablecoin-pools.{sh,ts} (retired),
+                      verify-mainnet-assets.ts, deploy-asset-pools-v3.ts, smoke-asset-pools.ts,
                       render-brand.mjs, screenshots.mjs
 docs/                 THEME.md brand guide, brand renders, stablecoin-pairs.json
 screenshots/          headless-Chromium captures of every page
@@ -260,8 +261,9 @@ redeployed with the fixes from the internal review (`docs/mainnet-readiness-chec
 §0.7: F-01…F-05, F-07, F-08, F-13, F-18, F-21). Status: **fixed on testnet, still
 unaudited.** They were re-seeded exactly like the previous deploy (`seed-testnet.sh`) and
 checked with `scripts/smoke-testnet.sh`. The previous generation is listed under
-`legacy.v2` in `deployments/testnet.json`. The 21 XLM/stablecoin pools still run the
-older pool wasm.
+`legacy.v2` in `deployments/testnet.json`. The 21 XLM/stablecoin pools ran the older pool
+wasm and were **retired on 2026-09-29**, replaced by 52 v3 asset pools (see
+[Curated asset list & v3 asset pools](#curated-asset-list--v3-asset-pools-stablecoins--popular-assets)).
 - **Governance on every contract with an admin** (shared crate `contracts/gov`):
   - two-step admin (`propose_admin`, then `accept_admin` signed by the nominee), so the admin can move to a multisig;
   - guardian `pause(caller)` / admin `unpause()`. Pausing blocks new risk (deposits, swaps, stakes, opens) but **never exits**: redeem, withdraw, unstake, claim and close keep working;
@@ -453,7 +455,7 @@ Create or import a Stellar account in the browser. Click **Create account** in t
 - In-app keys and Freighter share one `Signer` interface (`src/lib/signer.ts`), so every transaction path works with either.
 - Losing the secret (and password) means losing the account. Nobody can recover it.
 
-## XLM/stablecoin pairs (auto-discovered)
+## XLM/stablecoin pairs (auto-discovered; pools retired — see the curated asset list below)
 
 Quasaria doesn't hard-code a stablecoin list. `shared/stablecoins.ts` is
 dependency-free TypeScript used by the frontend and by Node scripts. It builds
@@ -555,6 +557,93 @@ Mock issuer: `GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO`. Full ID
 
 
 ---
+
+## Curated asset list & v3 asset pools (stablecoins + popular assets)
+
+The liquidity program lets users pick **either side of a pool from the full list**: every notable
+Stellar stablecoin plus popular assets such as SHX (Stronghold), AQUA, yXLM, BTC/ETH anchor
+tokens and VELO, so they can build a self-banking setup. **Testnet only.**
+
+1. **Mainnet reference list, verified read-only.** `node scripts/verify-mainnet-assets.ts` loads each
+   candidate issuer from public mainnet Horizon (home_domain, holders, supply, live price vs XLM) and
+   checks that the home domain's `stellar.toml` `CURRENCIES` lists exactly that code + issuer. Where no
+   toml is reachable the issuer's official docs are fetched and grepped instead (Circle's USDC/EURC
+   contract-address pages, SG-FORGE's EURCV MiCA white paper, Blend's deployment docs). Output:
+   [`config/assets.mainnet.json`](config/assets.mainnet.json) — codes, issuers, domains, proof URL,
+   price and an off-peg flag for future mainnet use. Candidates that failed (VEUR, MXNe not listed in
+   their toml; BRLT, BRZ, MXN, NGN, KES toml unreachable) are recorded with `verified: false` and not used.
+   Note: the most-held "EURCV" on Stellar (`GAUQKYP3…`) is **not** SG-FORGE's; the real issuer is `GCEYGIVO…XW3G`.
+2. **Testnet assets.** Most real assets don't exist on testnet. Circle's testnet USDC (`GBBD47…FLA5`,
+   published by Circle) is used as the **real** testnet asset. Everything else is a clearly labelled
+   **testnet mirror**: code `mk<CODE>` issued by `quasaria-mock-stables` (home_domain
+   `mock-stables.quasaria.invalid`) or `quasaria-mock-assets` (`mock-assets.quasaria.invalid`), with a
+   Stellar Asset Contract. Circle's testnet EURC exists but can't be obtained (faucet is a manual web
+   form, no testnet SDEX asks), so EURC is a mirror too. The UI badges each asset **REAL testnet** or
+   **testnet mirror of &lt;asset&gt;** and links to the real mainnet asset on stellar.expert.
+3. **v3 pools.** `node scripts/deploy-asset-pools-v3.ts` deploys one hardened v3 `amm-pool` (same wasm
+   hash as the core v3 pools: pause, 300 s timelock, two-step admin; referral fee source) per pair and
+   seeds modest friendbot-funded liquidity at the live mainnet price ratio: **52 pools** — every
+   stablecoin vs XLM (25), EURC/USDC, SHX/XLM, AQUA/XLM, yXLM/XLM, 13 more popular assets vs XLM,
+   7 on-peg USD stables vs USDC, EURCV/EURC, yUSDC/USDC and QUSD/USDC. The v3 router is stateless (no
+   on-chain registry): "registered" means listed in
+   [`deployments/testnet-assets.json`](deployments/testnet-assets.json) (copied to the frontend), which
+   the Pools and Trade pages route over; every pool passed a `router.get_amounts_out` check.
+4. **Retired.** The 21 v2-era XLM/stablecoin pools (pre-hardening wasm) are removed from the UI and
+   routing; their IDs stay in `deployments/testnet-stablecoins.json` (`status: retired`) and
+   `legacy.v2StablecoinPools` in `deployments/testnet.json`. Their LPs can still withdraw.
+5. **Smoke test.** `node scripts/smoke-asset-pools.ts` — a fresh friendbot account adds liquidity,
+   swaps through the router and removes liquidity (all with real minimums) in USDC/XLM, EURC/USDC and
+   SHX/XLM, plus a 2-hop EURC→USDC→XLM route and a rejected impossible `min_out`.
+
+UI: the Pools page has an asset picker for each side (search, logos, **Stablecoins** / **Popular
+assets** categories, real/mirror badge), supplies liquidity to any existing pool with real
+slippage minimums (F-10), and warns that stable-vs-volatile pairs carry more impermanent loss. The
+LP calculator lists all asset pools; the Trade page pickers include the assets and swap through the
+router (direct or via XLM/USDC).
+
+| Asset | Category | Mainnet issuer | Home domain | Verification | Testnet |
+| --- | --- | --- | --- | --- | --- |
+| USDC | Stablecoin (USD) | `GA5ZSE…KZVN` | circle.com | issuer-doc-verified | **real** testnet |
+| EURC | Stablecoin (EUR) | `GDHU6W…NPP2` | circle.com | issuer-doc-verified | mirror `mkEURC` |
+| PYUSD | Stablecoin (USD) | `GDQE7I…U2V5` | token-metadata.paxos.com | toml-verified | mirror `mkPYUSD` |
+| USDGLO | Stablecoin (USD) | `GBBS25…S6XV` | app.glodollar.org | toml-verified | mirror `mkUSDGLO` |
+| EURCV | Stablecoin (EUR) | `GCEYGI…XW3G` | — | issuer-doc-verified | mirror `mkEURCV` |
+| USDT0 | Stablecoin (USD) | `GATISX…HN6Q` | — | toml-verified(domain) | mirror `mkUSDT0` |
+| GYEN | Stablecoin (JPY) | `GDF6VO…5TOB` | stablecoin.z.com | toml-verified | mirror `mkGYEN` |
+| ZUSD | Stablecoin (USD) | `GDF6VO…5TOB` | stablecoin.z.com | toml-verified | mirror `mkZUSD` |
+| AUDD | Stablecoin (AUD) | `GDC7X2…2EEU` | audd.digital | toml-verified | mirror `mkAUDD` |
+| VCHF | Stablecoin (CHF) | `GDXLSL…XIZN` | vnx.io | toml-verified | mirror `mkVCHF` |
+| USDx | Stablecoin (USD) | `GAVH5Z…KDMN` | assets.fxdao.io | toml-verified | mirror `mkUSDx` |
+| USD | Stablecoin (USD) | `GDUKMG…YLEX` | stablecoin.anchorusd.com | toml-verified | mirror `mkUSD` |
+| ARST | Stablecoin (ARS) | `GCSAZV…I3DG` | pubnet-sep.latamex.com | toml-verified | mirror `mkARST` |
+| ARS | Stablecoin (ARS) | `GCYE7C…DARS` | api.anclap.com | toml-verified | mirror `mkARS` |
+| BRL | Stablecoin (BRL) | `GDVKY2…VVSP` | ntokens.com | toml-verified | mirror `mkBRL` |
+| NGNC | Stablecoin (NGN) | `GASBV6…XZY6` | ngnc.online | toml-verified | mirror `mkNGNC` |
+| NGNT | Stablecoin (NGN) | `GAWODA…CCPD` | cowrie.exchange | toml-verified | mirror `mkNGNT` |
+| PEN | Stablecoin (PEN) | `GA4TDP…BPEN` | api.anclap.com | toml-verified | mirror `mkPEN` |
+| CLPX | Stablecoin (CLP) | `GDYSPB…UX5G` | clpx.finance | toml-verified | mirror `mkCLPX` |
+| USDZ | Stablecoin (USD) | `GAKTLP…6XPR` | zeam.money | toml-verified | mirror `mkUSDZ` |
+| ZARZ | Stablecoin (ZAR) | `GAROH4…BB3U` | zeam.money | toml-verified | mirror `mkZARZ` |
+| IDRT | Stablecoin (IDR) | `GDPKQ2…VBVT` | kbtrading.org | toml-verified | mirror `mkIDRT` |
+| XCHF | Stablecoin (CHF) | `GDPKQ2…VBVT` | kbtrading.org | toml-verified | mirror `mkXCHF` |
+| EURMTL | Stablecoin (EUR) | `GACKTN…UK7V` | mtl.montelibero.org | toml-verified | mirror `mkEURMTL` |
+| USDM | Stablecoin (USD) | `GDHDC4…USDM` | mtl.montelibero.org | toml-verified | mirror `mkUSDM` |
+| SHX | Popular | `GDSTRS…J6JH` | stronghold.co | toml-verified | mirror `mkSHX` |
+| AQUA | Popular | `GBNZIL…AQUA` | aqua.network | toml-verified | mirror `mkAQUA` |
+| yXLM | Popular | `GARDNV…5T55` | ultracapital.xyz | toml-verified | mirror `mkyXLM` |
+| yUSDC | Popular | `GDGTVW…TTFF` | ultracapital.xyz | toml-verified | mirror `mkyUSDC` |
+| yBTC | Popular | `GBUVRN…L6NW` | ultracapital.xyz | toml-verified | mirror `mkyBTC` |
+| BTC | Popular | `GDPJAL…2MZM` | ultracapital.xyz | toml-verified | mirror `mkBTC` |
+| ETH | Popular | `GBFXOH…SOCC` | ultracapital.xyz | toml-verified | mirror `mkETH` |
+| VELO | Popular | `GDM4RQ…2M5M` | — | toml-verified(domain) | mirror `mkVELO` |
+| BLND | Popular | `GDJEHT…EZYY` | — | issuer-doc-verified | mirror `mkBLND` |
+| XRP | Popular | `GBXRPL…DTD5` | fchain.io | toml-verified | mirror `mkXRP` |
+| SCOP | Popular | `GC6OYQ…H3VQ` | scopuly.com | toml-verified | mirror `mkSCOP` |
+| AFR | Popular | `GBX6YI…N54W` | afreum.com | toml-verified | mirror `mkAFR` |
+| TFT | Popular | `GBOVQK…AC47` | threefold.io | toml-verified | mirror `mkTFT` |
+| GOLD | Popular | `GBC5ZG…GOLD` | mintx.co | toml-verified | mirror `mkGOLD` |
+| SLVR | Popular | `GBZVEL…SLVR` | mintx.co | toml-verified | mirror `mkSLVR` |
+| LSP | Popular | `GAB7ST…24WK` | lumenswap.io | toml-verified | mirror `mkLSP` |
 
 ## How each feature works
 

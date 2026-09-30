@@ -4,7 +4,6 @@
  * unreachable, so the calculators always produce output.
  */
 import { scValToNative, xdr } from "@stellar/stellar-sdk";
-import testnetStables from "../config/testnet-stablecoins.json";
 import { CONTRACTS, symbolOf } from "./config";
 import { readContract, soroban } from "./soroban";
 import { readPool, readQfx, readStaking, type PoolInfo, type QfxInfo, type StakePool } from "./chain";
@@ -12,16 +11,17 @@ import { fromUnits } from "./format";
 import { inferTokenValues, lpShareValue, summarizeSwaps, type SwapEvent } from "./calc";
 import { DEMO_POOLS, DEMO_QFX, DEMO_STAKING } from "./demo";
 
-type StableEntry = { code: string; sac?: string; pool?: string; mock: boolean; label: string };
-const STABLES: StableEntry[] = (testnetStables as { pools?: StableEntry[] }).pools ?? [];
-const STABLE_SYMBOL: Record<string, string> = Object.fromEntries(STABLES.filter((s) => s.sac).map((s) => [s.sac!, s.code]));
+import { POOL_LIST, assetById, assetBySac } from "./assets";
 
-export const tokenSymbol = (id: string) => STABLE_SYMBOL[id] ?? symbolOf(id);
+/** Symbol for a token: curated asset list first (v3 asset pools), then core contracts. */
+export const tokenSymbol = (id: string) => assetBySac(id)?.code ?? symbolOf(id);
+/** A pool whose tokens include a testnet mirror (Quasaria mock of a mainnet asset). */
+const hasMirror = (p: PoolInfo) => [p.tokenA, p.tokenB].some((t) => assetBySac(t)?.testnet.kind === "mirror");
 
 /** XLM-denominated anchors: native XLM, and QFX by its 1:1 fully backed peg. */
 export const XLM_ANCHORS = (): Record<string, number> => ({ [CONTRACTS.xlmSac]: 1, [CONTRACTS.qfx]: 1 });
 
-export type CalcPool = PoolInfo & { symA: string; symB: string; group: "core" | "stable"; mock?: boolean; demo?: boolean };
+export type CalcPool = PoolInfo & { symA: string; symB: string; group: "core" | "stable" | "popular"; mock?: boolean; demo?: boolean };
 
 export type CalcPools = { pools: CalcPool[]; values: Record<string, number>; demo: boolean };
 
@@ -36,13 +36,14 @@ export function tokenValueXlm(token: string, pools: PoolInfo[], values: Record<s
 // ---------------------------------------------------------------- LP pools
 export async function loadCalcPools(): Promise<CalcPools> {
   const core = await Promise.all(CONTRACTS.pools.map(readPool));
-  const stableIds = STABLES.filter((s) => s.pool).map((s) => s.pool!);
-  const stable = (await Promise.allSettled(stableIds.map(readPool))).flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+  const listed = POOL_LIST.filter((p) => p.pool);
+  const res = await Promise.allSettled(listed.map((p) => readPool(p.pool!)));
+  const asset = res.flatMap((r, i) => (r.status === "fulfilled" ? [{ info: r.value, lp: listed[i] }] : []));
   const pools: CalcPool[] = [
     ...core.map((p) => ({ ...p, symA: tokenSymbol(p.tokenA), symB: tokenSymbol(p.tokenB), group: "core" as const })),
-    ...stable
-      .filter((p) => p.reserveA > 0 && p.reserveB > 0)
-      .map((p) => ({ ...p, symA: tokenSymbol(p.tokenA), symB: tokenSymbol(p.tokenB), group: "stable" as const, mock: STABLES.find((s) => s.pool === p.id)?.mock })),
+    ...asset
+      .filter(({ info }) => info.reserveA > 0 && info.reserveB > 0)
+      .map(({ info, lp }) => ({ ...info, symA: tokenSymbol(info.tokenA), symB: tokenSymbol(info.tokenB), group: (assetById(lp.base)?.category === "popular" ? "popular" : "stable") as CalcPool["group"], mock: hasMirror(info) })),
   ];
   return { pools, values: inferTokenValues(pools, XLM_ANCHORS()), demo: false };
 }

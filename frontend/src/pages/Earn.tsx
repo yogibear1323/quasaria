@@ -37,7 +37,7 @@ export default function Earn() {
           <div className="row between"><h2 style={{ margin: 0 }}>🌌 Provide liquidity</h2><SourceTag {...lp} /></div>
           <p className="muted">Deposit both sides of an x·y=k pool and earn swap fees (minus the referral cut). Watch out for impermanent loss.</p>
           <div className="earn-big gold mono">{core.length ? `${fmt(core[0].feeBps / 100, 2)}%` : "…"} <small className="muted">swap fee</small></div>
-          <div className="muted" style={{ fontSize: "0.8rem" }}>{lp.data ? `${lp.data.pools.length} live pools · ${core.map((p) => `${p.symA}/${p.symB}`).join(", ")} + XLM/stablecoin pools` : "…"}</div>
+          <div className="muted" style={{ fontSize: "0.8rem" }}>{lp.data ? `${lp.data.pools.length} live pools · ${core.map((p) => `${p.symA}/${p.symB}`).join(", ")} + v3 stablecoin & popular-asset pools` : "…"}</div>
           <div className="row earn-actions"><Link className="btn small" to="/calculators?c=lp">LP calculator</Link><Link className="btn ghost small" to="/pools">Open Pools</Link></div>
         </div>
       </div>

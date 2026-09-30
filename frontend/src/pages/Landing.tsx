@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import outlineMd from "../../../docs/landing-outline.md?raw";
 import pairsDoc from "../../../docs/stablecoin-pairs.json";
-import testnetStables from "../config/testnet-stablecoins.json";
+import { POOL_LIST, assetById } from "../lib/assets";
 import logo from "../assets/logo.svg";
 import CosmicBackground, { type Scene } from "../components/CosmicBackground";
 import AccountModal from "../components/AccountModal";
@@ -37,8 +37,8 @@ const S = (n: number) => COPY.find((c) => c.n === n) ?? { n, title: "", headline
 type Pair = (typeof pairsDoc.pairs)[number];
 const PAIRS = pairsDoc.pairs as Pair[];
 const VERIFIED = PAIRS.filter((p) => p.verified && p.primary);
-type TStable = { code: string; mainnetCode: string; mock: boolean; pool?: string; label: string };
-const TESTNET_POOLS = ((testnetStables as { pools?: TStable[] }).pools ?? []).filter((p) => p.pool);
+// v3 asset pools (the v2 XLM/stablecoin pools are retired; see deployments/testnet-assets.json → retired)
+const TESTNET_POOLS = POOL_LIST.map((p) => ({ pool: p.pool, code: p.base, mock: assetById(p.base)?.testnet.kind === "mirror" }));
 
 // ---------------------------------------------------------------- shell bits
 function Section({ id, n, scene, onScene, children, kicker, wide, unnumbered }: { id: string; n: number; scene: Scene; onScene: (s: Scene) => void; children: ReactNode; kicker?: string; wide?: boolean; unnumbered?: boolean }) {
@@ -338,7 +338,7 @@ function LiquidityVisual() {
               const xa = p.info.tokenA === CONTRACTS.xlmSac;
               return (
                 <tr key={p.id} onClick={() => setSel(i)} className={i === sel ? "l-sel" : ""}>
-                  <td><b>{p.label}</b> {p.mock && <span className="pill l-tiny">MOCK</span>}</td>
+                  <td><b>{p.label}</b> {p.mock && <span className="pill l-tiny">testnet mirror of {p.label.split("/")[1]}</span>}</td>
                   <td className="mono l-tiny">{fmtCompact(xa ? p.info.reserveA : p.info.reserveB)} XLM / {fmtCompact(xa ? p.info.reserveB : p.info.reserveA)}</td>
                   <td className="mono">{p.info.feeBps / 100}%</td>
                 </tr>
@@ -591,7 +591,7 @@ function TransparencyVisual() {
           </a>
         ))}
       </div>
-      <p className="muted l-tiny">Deployed on Stellar testnet; links open stellar.expert. Plus {TESTNET_POOLS.length} XLM/stablecoin AMM pools listed on the <Link to="/pools">Pools page</Link>.{!CONTRACTS_CONFIGURED ? " (Contracts not configured in this build.)" : ""}</p>
+      <p className="muted l-tiny">Deployed on Stellar testnet; links open stellar.expert. Plus {TESTNET_POOLS.length} v3 asset pools (stablecoins + popular Stellar assets) listed on the <Link to="/pools">Pools page</Link>.{!CONTRACTS_CONFIGURED ? " (Contracts not configured in this build.)" : ""}</p>
       <div className="l-audit" role="note"><b>Audit status:</b> not yet audited.</div>
     </div>
   );

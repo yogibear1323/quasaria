@@ -3,7 +3,7 @@ import { Asset } from "@stellar/stellar-sdk";
 import { PageHead, Stat, Tabs, TxStatus, useTx } from "../components/ui";
 import OrderBook from "../components/OrderBook";
 import PriceChart from "../components/PriceChart";
-import { ASSETS, assetFromKey, assetKeyOf, buildLimitOrder, buildPathPayment, fetchOrderBook, fetchTradeCandles, findStrictSendPath, submitSignedXdr } from "../lib/stellar";
+import { ASSETS, assetFromKey, assetKeyOf, buildLimitOrder, buildPathPayment, buildTrustline, fetchBalances, fetchOrderBook, fetchTradeCandles, findStrictSendPath, hasTrustline, submitSignedXdr } from "../lib/stellar";
 import { useSearchParams } from "react-router-dom";
 import { AssetPicker, toOption, type PickerOption } from "../components/AssetBits";
 import { loadMarkets, type MarketRow } from "../lib/markets";
@@ -14,6 +14,25 @@ import { CONTRACTS, CONTRACTS_CONFIGURED, NETWORK_PASSPHRASE } from "../lib/conf
 import { addr, i128, invokeContract, u64, vecAddr } from "../lib/soroban";
 import { fmt, fmtCompact, toUnits } from "../lib/format";
 import { readPool, useChain } from "../lib/chain";
+import { ASSET_LIST, assetByTestnetKey, badgeOf, findRoute, testnetKey, type ListedAsset } from "../lib/assets";
+
+/** Curated asset list (stablecoins + popular assets, v3 pools) as picker options. */
+const CURATED_OPTS: PickerOption[] = ASSET_LIST.filter((a) => a.testnet.kind !== "native").map((a) => ({ key: testnetKey(a), code: a.code, sub: `${badgeOf(a).text}${a.org ? ` · ${a.org}` : ""}`, logo: a.logo }));
+/** Chain the AMM quote along a router path (token ids in order). */
+async function quoteRoute(pools: string[], tokenIn: string, amountIn: number) {
+  let tok = tokenIn, amt = amountIn, impact = 0;
+  const hops: { reserveIn: number; reserveOut: number }[] = [];
+  for (const id of pools) {
+    const p = await readPool(id);
+    const aIn = p.tokenA === tok;
+    const rIn = aIn ? p.reserveA : p.reserveB, rOut = aIn ? p.reserveB : p.reserveA;
+    impact = 1 - (1 - impact) * (1 - priceImpact(amt, rIn, rOut, p.feeBps));
+    amt = ammAmountOut(amt, rIn, rOut, p.feeBps);
+    tok = aIn ? p.tokenB : p.tokenA;
+    hops.push({ reserveIn: rIn, reserveOut: rOut });
+  }
+  return { out: amt, impact, hops };
+}
 
 const px = (v: number) => (v >= 0.01 ? fmt(v, 5) : v.toPrecision(4));
 const DEFAULT_BASE = "XLM";
@@ -61,11 +80,20 @@ function LimitPanel({ book, baseKey, quoteKey, BASE, QUOTE }: { book: Book; base
   );
 }
 
-function SwapPanel() {
+function SwapPanel({ baseKey, quoteKey }: { baseKey: string; quoteKey: string }) {
   const [route, setRoute] = useState<"amm" | "sdex">("amm");
   const [amountIn, setAmountIn] = useState("500");
   const [slippage, setSlippage] = useState(0.5);
   const tx = useTx(route === "amm");
+  // Router path for the picked pair over the curated v3 pools (else the XLM→QUSD core pool below).
+  const from: ListedAsset | undefined = assetByTestnetKey(baseKey), to: ListedAsset | undefined = assetByTestnetKey(quoteKey);
+  const path = from && to ? findRoute(from.id, to.id) : null;
+  const rq = useChain(() => (path && from ? quoteRoute(path.pools, from.testnet.sac!, Number(amountIn) || 0) : Promise.reject(new Error("no route"))), [path?.pools.join(","), amountIn]);
+  const [bal, setBal] = useState<Awaited<ReturnType<typeof fetchBalances>> | null>(null);
+  useEffect(() => {
+    if (tx.wallet.address && to && to.testnet.issuer) fetchBalances(tx.wallet.address).then(setBal).catch(() => setBal(null));
+  }, [tx.wallet.address, to?.id]);
+  const needTrust = to && to.testnet.issuer && bal && !hasTrustline(bal, new Asset(to.testnet.code, to.testnet.issuer));
   const live = useChain(() => readPool(CONTRACTS.pools[0]), []);
   const pool = live.data
     ? (() => {
@@ -73,18 +101,23 @@ function SwapPanel() {
         return { reserveA: xlmIsA ? live.data.reserveA : live.data.reserveB, reserveB: xlmIsA ? live.data.reserveB : live.data.reserveA, feeBps: live.data.feeBps };
       })()
     : DEMO_POOLS[0];
-  const out = ammAmountOut(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
-  const impact = priceImpact(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
+  const routed = route === "amm" && path && from && to;
+  const out = routed ? rq.data?.out ?? 0 : ammAmountOut(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
+  const impact = routed ? rq.data?.impact ?? 0 : priceImpact(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
   const minOut = out * (1 - slippage / 100);
+  const payCode = routed ? from!.code : "XLM", getCode = routed ? to!.code : route === "amm" ? "QUSD" : "USDC";
   return (
     <>
       <Tabs value={route} onChange={setRoute} options={[{ v: "amm", label: "Soroban AMM" }, { v: "sdex", label: "SDEX path" }]} />
-      <div className="field"><label>You pay (XLM)</label><input className="input" value={amountIn} onChange={(e) => setAmountIn(e.target.value)} /></div>
+      <div className="field"><label>You pay ({payCode})</label><input className="input" value={amountIn} onChange={(e) => setAmountIn(e.target.value)} /></div>
       <div style={{ textAlign: "center", fontSize: "1.4rem", color: "var(--quasar)", textShadow: "var(--glow-cyan)" }}>⇣</div>
-      <div className="field"><label>You receive (est. {route === "amm" ? "QUSD" : "USDC"})</label><input className="input" readOnly value={fmt(out, 4)} /></div>
+      <div className="field"><label>You receive (est. {getCode})</label><input className="input" readOnly value={out > 0 && out < 0.01 ? out.toPrecision(4) : fmt(out, 4)} /></div>
       <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Price impact</span><span className={impact > 0.01 ? "neg mono" : "mono"}>{fmt(impact * 100, 3)}%</span></div>
-      {route === "amm" && <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Pool reserves</span><span className="mono">{fmtCompact(pool.reserveA)} XLM / {fmtCompact(pool.reserveB)} QUSD {live.live ? "· live" : "· demo"}</span></div>}
-      <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Fee (0.30%, 20% to referrer)</span><span className="mono">{fmt(Number(amountIn) * 0.003, 4)} XLM</span></div>
+      {routed && <div className="row between" style={{ fontSize: "0.82rem" }} data-testid="swap-route"><span className="muted">Router path</span><span className="mono">{[from!.code, ...path!.via, to!.code].join(" → ")} · {path!.pools.length} pool{path!.pools.length > 1 ? "s" : ""} {rq.live ? "· live" : ""}</span></div>}
+      {routed && (from!.testnet.kind === "mirror" || to!.testnet.kind === "mirror") && <div className="muted" style={{ fontSize: "0.72rem" }}>{[from!, to!].filter((x) => x.testnet.kind === "mirror").map((x) => `${x.code} = testnet mirror of ${x.code} (no value)`).join(" · ")}</div>}
+      {routed && needTrust && <div className="notice warn" style={{ fontSize: "0.78rem" }}>Receiving {to!.testnet.code} needs a trustline. <button className="btn small" disabled={tx.busy} onClick={() => tx.run(`trustline ${to!.testnet.code}`, async () => (await submitSignedXdr(await tx.wallet.sign(await buildTrustline(tx.wallet.address!, new Asset(to!.testnet.code, to!.testnet.issuer!))))).hash.slice(0, 10))}>Add trustline</button></div>}
+      {route === "amm" && !routed && <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Pool reserves</span><span className="mono">{fmtCompact(pool.reserveA)} XLM / {fmtCompact(pool.reserveB)} QUSD {live.live ? "· live" : "· demo"}</span></div>}
+      <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Fee (0.30%, 20% to referrer)</span><span className="mono">{fmt(Number(amountIn) * 0.003, 4)} {payCode}</span></div>
       <div className="field" style={{ marginTop: 10 }}>
         <label>Max slippage: {slippage}%</label>
         <input type="range" min={0.1} max={5} step={0.1} value={slippage} onChange={(e) => setSlippage(Number(e.target.value))} />
@@ -103,6 +136,13 @@ function SwapPanel() {
               return (await submitSignedXdr(await tx.wallet.sign(xdr))).hash.slice(0, 10);
             }
             const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
+            if (routed) {
+              if (!(minOut > 0)) throw new Error("no live quote for this route yet");
+              const rr = await invokeContract(me, tx.wallet.sign, CONTRACTS.router, "swap_exact_in", [
+                addr(me), vecAddr(path!.pools), addr(from!.testnet.sac!), i128(toUnits(Number(amountIn))), i128(toUnits(minOut) > 0n ? toUnits(minOut) : 1n), u64(deadline),
+              ]);
+              return rr.hash.slice(0, 10);
+            }
             const r = await invokeContract(me, tx.wallet.sign, CONTRACTS.router, "swap_exact_in", [
               addr(me), vecAddr([CONTRACTS.pools[0]]), addr(CONTRACTS.xlmSac || (await xlmSacId())), i128(toUnits(Number(amountIn))), i128(toUnits(minOut)), u64(deadline),
             ]);
@@ -131,10 +171,11 @@ export default function Trade() {
     loadMarkets("testnet", { itemsPerPage: 30, enrich: 0 }).then((d) => setMarket(d.rows)).catch(() => void 0);
   }, []);
   const options = useMemo(() => {
-    const opts = [XLM_OPT, USDC_OPT, ...market.filter((r) => r.key !== DEFAULT_QUOTE).map(toOption)];
+    const opts = [XLM_OPT, USDC_OPT, ...CURATED_OPTS.filter((o) => o.key !== DEFAULT_QUOTE), ...market.filter((r) => r.key !== DEFAULT_QUOTE).map(toOption)];
     const u = market.find((r) => r.key === DEFAULT_QUOTE);
     if (u) opts[1] = { ...toOption(u), sub: u.orgName ?? USDC_OPT.sub };
-    return opts;
+    const seen = new Set<string>();
+    return opts.filter((o) => (seen.has(o.key) ? false : (seen.add(o.key), true)));
   }, [market]);
   const optFor = (key: string): PickerOption => options.find((o) => o.key === key) ?? { key, code: key.split("-")[0], sub: key.includes("-") ? `${key.split("-")[1].slice(0, 4)}…${key.split("-")[1].slice(-4)}` : null };
   const baseOpt = optFor(baseKey), quoteOpt = optFor(quoteKey);
@@ -215,7 +256,7 @@ export default function Trade() {
         </div>
         <div className="card">
           <Tabs value={tab} onChange={setTab} options={[{ v: "limit", label: "Limit (SDEX)" }, { v: "swap", label: "Swap" }]} />
-          {tab === "limit" ? <LimitPanel key={`${baseKey}/${quoteKey}`} book={book} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} /> : <SwapPanel />}
+          {tab === "limit" ? <LimitPanel key={`${baseKey}/${quoteKey}`} book={book} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} /> : <SwapPanel baseKey={baseKey} quoteKey={quoteKey} />}
         </div>
       </div>
     </>

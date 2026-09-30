@@ -16,6 +16,7 @@ import { Asset, BASE_FEE, getLiquidityPoolId, Horizon, Keypair, LiquidityPoolAss
 import { fetchFeed } from "../shared/stablecoins.ts";
 
 const NETWORK = "testnet";
+if (process.env.FORCE_LEGACY !== "1") { console.error("RETIRED: these v2-era pools were superseded by scripts/deploy-asset-pools-v3.ts (v3 asset pools). Set FORCE_LEGACY=1 to run anyway."); process.exit(1); }
 if (process.env.NETWORK && process.env.NETWORK !== "testnet") throw new Error("TESTNET ONLY");
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const WASM = resolve(root, "contracts/target/wasm32v1-none/release/quasaria_amm_pool.wasm");

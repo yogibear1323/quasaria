@@ -1,0 +1,19 @@
+{
+  "name": "quasaria-multisig-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quasaria admin multisig tooling: build UNSIGNED admin transactions, Txrep decode, independent hash check, set_options builder, testnet rehearsal. Never signs or submits mainnet transactions.",
+  "type": "module",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "17.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "typescript": "~5.9.3"
+  }
+}

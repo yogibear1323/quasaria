@@ -8,17 +8,24 @@
 //! * **Guardian pause**: the guardian (or admin) can `pause`; only the admin
 //!   can `unpause`. Each contract decides which entry points are gated; exits
 //!   (redeem, withdraw, unstake, close) are never gated.
-//! * **Timelock**: dangerous admin actions are `propose`d, wait at least
-//!   `delay` seconds, and are then `execute`d by the admin within a grace
-//!   period. The admin or guardian can cancel a queued action. On the Stellar
-//!   public network (detected on-chain via the network id) the delay can
-//!   never be below 48 h; on testnet the minimum is 60 s.
+//! * **Timelock**: every admin action that is not purely risk-reducing
+//!   (including `SetGuardian`) is `propose`d, waits out its delay, and is
+//!   then `execute`d by the admin within a 14-day grace window. The admin or
+//!   guardian can cancel a queued action. Each action has a [`DelayClass`]:
+//!   on the Stellar public network (detected on-chain via the network id)
+//!   `Standard` (parameter changes) can never be below 48 h and `Critical`
+//!   (upgrade, oracle, treasury withdrawal, delay change) never below 72 h.
+//!   On testnet both use the configured delay (minimum 60 s, 300 s in the
+//!   deploy scripts).
 //! * **Upgrade** (`update_current_contract_wasm`) — only reachable through a
 //!   timelocked action.
 //! * Storage TTL constants/helpers and checked i128 math.
 //!
 //! Testnet-only scaffold, unaudited.
 #![no_std]
+
+#[cfg(test)]
+mod test;
 
 use soroban_sdk::{
     contracterror, contractevent, contracttype, ContractExecutable, panic_with_error,
@@ -33,8 +40,12 @@ pub const PERSISTENT_BUMP_TO: u32 = 120 * DAY_LEDGERS;
 
 /// Minimum timelock delay on test networks (seconds).
 pub const MIN_DELAY: u64 = 60;
-/// Minimum timelock delay when running on the Stellar public network.
+/// Minimum timelock delay when running on the Stellar public network. Also
+/// the floor for [`DelayClass::Standard`] actions (parameter changes).
 pub const MAINNET_MIN_DELAY: u64 = 48 * 3_600;
+/// Floor for [`DelayClass::Critical`] actions on the Stellar public network
+/// (`Upgrade`, `SetOracle`, `WithdrawTreasury`, `SetDelay`, ...).
+pub const MAINNET_CRITICAL_MIN_DELAY: u64 = 72 * 3_600;
 /// Maximum timelock delay (seconds).
 pub const MAX_DELAY: u64 = 30 * 86_400;
 /// A queued action must be executed within this window after its ETA.
@@ -54,8 +65,32 @@ pub enum GovError {
     TimelockExpired = 905,
     AlreadyQueued = 906,
     InvalidDelay = 907,
+    /// The instant path for this change was removed: queue it with
+    /// `propose_action` and `execute_action` after the timelock.
+    UseTimelock = 908,
     MathOverflow = 910,
     DivByZero = 911,
+}
+
+/// How long an action must wait in the timelock.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum DelayClass {
+    /// Parameter changes (fees, rates, listings, guardian, ...):
+    /// `max(configured delay, 48 h)` on mainnet.
+    Standard,
+    /// Code, oracle, treasury and timelock changes:
+    /// `max(configured delay, 72 h)` on mainnet.
+    Critical,
+}
+
+/// Implemented by every contract's timelocked action enum.
+pub trait TimelockAction {
+    /// Delay class of this action (see [`DelayClass`]).
+    fn delay_class(&self) -> DelayClass;
+    /// Cheap static checks run when the action is *queued*, so a malformed
+    /// action fails immediately instead of after the delay. The contract
+    /// must still validate fully in `execute_action` (state can change).
+    fn validate(&self, _env: &Env) {}
 }
 
 #[contracttype]
@@ -216,9 +251,13 @@ pub fn guardian(env: &Env) -> Address {
         .unwrap_or_else(|| admin(env))
 }
 
-pub fn set_guardian(env: &Env, guardian: &Address) {
-    let a = require_admin(env);
+/// Replace the guardian. Call **only** from an executed, timelocked action
+/// (`SetGuardian`): an instant guardian swap would let a compromised admin
+/// cut off the cancellation path before acting.
+pub fn set_guardian_now(env: &Env, guardian: &Address) {
+    let a = admin(env);
     env.storage().instance().set(&GovKey::Guardian, guardian);
+    bump_instance(env);
     GuardianSet {
         admin: a,
         guardian: guardian.clone(),
@@ -288,11 +327,36 @@ pub fn check_delay(env: &Env, delay: u64) {
     }
 }
 
+/// Configured base delay (seconds).
 pub fn delay(env: &Env) -> u64 {
     env.storage()
         .instance()
         .get(&GovKey::TlDelay)
         .unwrap_or(MAINNET_MIN_DELAY)
+}
+
+/// Floor for a delay class on the current network.
+pub fn class_floor(env: &Env, class: DelayClass) -> u64 {
+    if !is_mainnet(env) {
+        return MIN_DELAY;
+    }
+    match class {
+        DelayClass::Standard => MAINNET_MIN_DELAY,
+        DelayClass::Critical => MAINNET_CRITICAL_MIN_DELAY,
+    }
+}
+
+/// Delay applied to an action of `class`: the configured delay, raised to
+/// the class floor on mainnet (48 h standard / 72 h critical). On testnet
+/// this is just the configured delay.
+pub fn effective_delay(env: &Env, class: DelayClass) -> u64 {
+    let d = delay(env);
+    let floor = class_floor(env, class);
+    if d < floor {
+        floor
+    } else {
+        d
+    }
 }
 
 /// Apply a new delay (call only from an executed, timelocked action).
@@ -308,15 +372,21 @@ pub fn op_id<T: IntoVal<Env, Val> + Clone>(env: &Env, action: &T) -> BytesN<32> 
     env.crypto().sha256(&v.to_xdr(env)).to_bytes()
 }
 
-/// Admin queues `action`; returns its ETA (ledger timestamp).
-pub fn queue<T: IntoVal<Env, Val> + Clone>(env: &Env, action: &T) -> u64 {
+/// Admin queues `action`; returns its ETA (ledger timestamp). The wait is
+/// [`effective_delay`] for the action's [`DelayClass`].
+pub fn queue<T: IntoVal<Env, Val> + Clone + TimelockAction>(env: &Env, action: &T) -> u64 {
     require_admin(env);
+    action.validate(env);
     let op = op_id(env, action);
     let key = GovKey::Queued(op.clone());
     if env.storage().persistent().has(&key) {
         panic_with_error!(env, GovError::AlreadyQueued);
     }
-    let eta = checked_add_u64(env, env.ledger().timestamp(), delay(env));
+    let eta = checked_add_u64(
+        env,
+        env.ledger().timestamp(),
+        effective_delay(env, action.delay_class()),
+    );
     env.storage().persistent().set(&key, &eta);
     env.storage()
         .persistent()
@@ -468,8 +538,10 @@ pub fn mul_div_ceil(env: &Env, a: i128, b: i128, c: i128) -> i128 {
 // ------------------------------------------------------------------ entry points
 
 /// Generates the standard governance entry points for a contract type and
-/// its timelocked action enum. The contract must implement `execute_action`
-/// itself (it applies the effect of each action after `gov::consume`).
+/// its timelocked action enum (which must implement [`TimelockAction`] and
+/// have a `SetGuardian(Address)` variant applied with [`set_guardian_now`]).
+/// The contract must implement `execute_action` itself (it applies the
+/// effect of each action after `gov::consume`).
 #[macro_export]
 macro_rules! governance_entrypoints {
     ($contract:ident, $action:ident) => {
@@ -494,11 +566,16 @@ macro_rules! governance_entrypoints {
             pub fn guardian(env: soroban_sdk::Env) -> soroban_sdk::Address {
                 $crate::guardian(&env)
             }
-            pub fn set_guardian(env: soroban_sdk::Env, guardian: soroban_sdk::Address) {
-                $crate::set_guardian(&env, &guardian)
-            }
+            // No instant `set_guardian`: use the timelocked `SetGuardian`
+            // action (`propose_action` -> wait -> `execute_action`).
+            /// Configured base timelock delay (seconds).
             pub fn timelock_delay(env: soroban_sdk::Env) -> u64 {
                 $crate::delay(&env)
+            }
+            /// Delay that `action` would wait if queued now (seconds):
+            /// the base delay raised to its class floor on mainnet.
+            pub fn action_delay(env: soroban_sdk::Env, action: $action) -> u64 {
+                $crate::effective_delay(&env, $crate::TimelockAction::delay_class(&action))
             }
             /// Queue a timelocked admin action. Returns its ETA.
             pub fn propose_action(env: soroban_sdk::Env, action: $action) -> u64 {

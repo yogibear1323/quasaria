@@ -37,7 +37,10 @@ fn setup() -> T {
         (&admin, &ta, &tb, 30u32, Some(reg_id.clone()), DELAY),
     );
     let reg = ReferralRegistryClient::new(&env, &reg_id);
-    reg.set_fee_source(&pool_id, &true);
+    let fs = quasaria_referral::ReferralAction::SetFeeSource(pool_id.clone(), true);
+    let eta = reg.propose_action(&fs);
+    env.ledger().set_timestamp(eta);
+    reg.execute_action(&fs);
     T {
         pool: AmmPoolClient::new(&env, &pool_id),
         a: TokenClient::new(&env, &ta),
@@ -146,10 +149,9 @@ fn rejects_bad_inputs() {
         t.pool.try_get_amount_out(&bogus, &1),
         Err(Ok(PoolError::InvalidToken.into()))
     );
+    // rejected when queued (and again on execution)
     let a = PoolAction::SetFeeBps(101);
-    t.pool.propose_action(&a);
-    advance(&t.env, DELAY);
-    assert_eq!(t.pool.try_execute_action(&a), Err(Ok(PoolError::FeeTooHigh.into())));
+    assert_eq!(t.pool.try_propose_action(&a), Err(Ok(PoolError::FeeTooHigh.into())));
     assert_eq!(t.pool.try_swap(&u, &u, &t.a.address, &0, &0), Err(Ok(PoolError::ZeroAmount.into())));
 }
 
@@ -272,7 +274,10 @@ fn pause_blocks_trading_but_lps_can_exit() {
     let t = setup();
     let (lp, trader) = seeded(&t);
     let guardian = Address::generate(&t.env);
-    t.pool.set_guardian(&guardian);
+    let sg = PoolAction::SetGuardian(guardian.clone());
+    t.pool.propose_action(&sg);
+    advance(&t.env, DELAY);
+    t.pool.execute_action(&sg);
     t.pool.pause(&guardian);
     assert!(t.pool.paused());
     assert_eq!(
@@ -415,4 +420,32 @@ fn regression_f08_ttl_extended() {
         assert!(t.env.storage().persistent().get_ttl(&DataKey::Lp(lp.clone())) >= quasaria_gov::PERSISTENT_BUMP_TO - 1);
         assert!(t.env.storage().instance().get_ttl() >= quasaria_gov::INSTANCE_BUMP_TO - 1);
     });
+}
+
+// ------------------------------------------------------------------ Step 1: timelocked guardian
+
+#[test]
+fn step1_set_guardian_timelocked_and_cancellable() {
+    let t = setup();
+    let g = Address::generate(&t.env);
+    let r = t.env.try_invoke_contract::<soroban_sdk::Val, soroban_sdk::InvokeError>(
+        &t.pool.address,
+        &soroban_sdk::Symbol::new(&t.env, "set_guardian"),
+        soroban_sdk::vec![&t.env, soroban_sdk::IntoVal::into_val(&g, &t.env)],
+    );
+    assert!(r.is_err(), "instant set_guardian must not exist");
+    let a = PoolAction::SetGuardian(g.clone());
+    t.pool.propose_action(&a);
+    assert_eq!(t.pool.try_execute_action(&a), Err(Ok(GovError::TimelockNotReady.into())));
+    advance(&t.env, DELAY);
+    t.pool.execute_action(&a);
+    assert_eq!(t.pool.guardian(), g);
+    let swap = PoolAction::SetGuardian(Address::generate(&t.env));
+    t.pool.propose_action(&swap);
+    t.pool.cancel_action(&g, &swap);
+    advance(&t.env, DELAY);
+    assert_eq!(t.pool.try_execute_action(&swap), Err(Ok(GovError::NotQueued.into())));
+    assert_eq!(t.pool.guardian(), g);
+    assert_eq!(t.pool.action_delay(&PoolAction::SetFeeBps(10)), DELAY);
+    assert_eq!(t.pool.try_propose_action(&PoolAction::SetFeeBps(MAX_FEE_BPS + 1)), Err(Ok(PoolError::FeeTooHigh.into())));
 }

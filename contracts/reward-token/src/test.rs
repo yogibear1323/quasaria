@@ -205,8 +205,8 @@ fn no_unbacked_mint() {
     let a = user(&t, 100 * UNIT);
     t.c.deposit(&a, &(100 * UNIT));
     timelocked(&t, &QfxAction::SetAprBps(MAX_APR_BPS));
-    t.c.set_yield_exempt(&a, &true);
-    t.c.set_yield_exempt(&a, &false);
+    timelocked(&t, &QfxAction::SetYieldExempt(a.clone(), true));
+    timelocked(&t, &QfxAction::SetYieldExempt(a.clone(), false));
     advance_days(&t.env, 365);
     t.c.accrue();
     t.c.settle(&a);
@@ -297,7 +297,7 @@ fn exempt_contracts_do_not_earn() {
     t.c.fund_yield(&funder, &(50 * UNIT));
     let a = user(&t, 1_000 * UNIT);
     let staking = user(&t, 1_000 * UNIT);
-    t.c.set_yield_exempt(&staking, &true);
+    timelocked(&t, &QfxAction::SetYieldExempt(staking.clone(), true));
     assert!(t.c.is_yield_exempt(&staking));
     t.c.deposit(&a, &(1_000 * UNIT));
     t.c.deposit(&staking, &(1_000 * UNIT));
@@ -388,11 +388,10 @@ fn burn_is_redeem_and_allowances_work() {
 #[test]
 fn apr_is_capped_and_timelocked() {
     let t = setup(1_000);
+    // rejected when queued (and again on execution)
     let too_high = QfxAction::SetAprBps(MAX_APR_BPS + 1);
-    t.c.propose_action(&too_high);
-    advance_secs(&t.env, DELAY);
     assert_eq!(
-        t.c.try_execute_action(&too_high),
+        t.c.try_propose_action(&too_high),
         Err(Ok(TokenError::AprTooHigh.into()))
     );
     let funder = user(&t, 100 * UNIT);
@@ -569,10 +568,9 @@ fn regression_f13_eligible_supply_cap_bounds_emission() {
     advance_secs(&t.env, DELAY);
     t.c.execute_action(&raise);
     assert_eq!(t.c.yield_info().effective_apr_bps, 1_000);
+    // rejected when queued (and again on execution)
     let bad = QfxAction::SetMaxEligible(0);
-    t.c.propose_action(&bad);
-    advance_secs(&t.env, DELAY);
-    assert_eq!(t.c.try_execute_action(&bad), Err(Ok(TokenError::InvalidCap.into())));
+    assert_eq!(t.c.try_propose_action(&bad), Err(Ok(TokenError::InvalidCap.into())));
     assert_peg(&t, &[&a]);
 }
 
@@ -595,7 +593,7 @@ fn runway_is_reported() {
 fn pause_blocks_minting_but_not_exits() {
     let t = setup(1_000);
     let guardian = user(&t, 0);
-    t.c.set_guardian(&guardian);
+    timelocked(&t, &QfxAction::SetGuardian(guardian.clone()));
     let a = user(&t, 100 * UNIT);
     let b = user(&t, 0);
     t.c.deposit(&a, &(50 * UNIT));
@@ -630,7 +628,7 @@ fn two_step_admin_replaces_set_admin() {
 fn regression_f08_exempt_entry_ttl_extended() {
     let t = setup(1_000);
     let staking = user(&t, 10 * UNIT);
-    t.c.set_yield_exempt(&staking, &true);
+    timelocked(&t, &QfxAction::SetYieldExempt(staking.clone(), true));
     let seq = t.env.ledger().sequence();
     t.env.ledger().set_sequence_number(
         seq + quasaria_gov::PERSISTENT_BUMP_TO - quasaria_gov::PERSISTENT_BUMP_THRESHOLD + 10,
@@ -643,4 +641,101 @@ fn regression_f08_exempt_entry_ttl_extended() {
         );
         assert!(t.env.storage().instance().get_ttl() >= quasaria_gov::INSTANCE_BUMP_TO - 1);
     });
+}
+
+// ------------------------------------------------------------------ Step 1: timelocked setters
+
+#[test]
+fn step1_instant_setters_rejected() {
+    let t = setup(1_000);
+    let a = user(&t, 0);
+    for (name, args) in [
+        ("set_yield_exempt", (a.clone(), true).into_val(&t.env)),
+        ("set_guardian", (a.clone(),).into_val(&t.env)),
+    ] {
+        let r = t.env.try_invoke_contract::<soroban_sdk::Val, soroban_sdk::InvokeError>(
+            &t.c.address,
+            &Symbol::new(&t.env, name),
+            args,
+        );
+        assert!(r.is_err(), "instant `{name}` must not exist");
+    }
+    assert!(!t.c.is_yield_exempt(&a));
+    assert_ne!(t.c.guardian(), a);
+}
+
+#[test]
+fn step1_yield_exempt_queue_wait_execute() {
+    let t = setup(1_000);
+    let staking = user(&t, 10 * UNIT);
+    t.c.deposit(&staking, &(10 * UNIT));
+    let a = QfxAction::SetYieldExempt(staking.clone(), true);
+    let eta = t.c.propose_action(&a);
+    assert_eq!(eta, t.env.ledger().timestamp() + DELAY);
+    assert_eq!(t.c.try_execute_action(&a), Err(Ok(GovError::TimelockNotReady.into())));
+    assert!(!t.c.is_yield_exempt(&staking));
+    assert_eq!(t.c.yield_info().eligible_supply, 10 * UNIT);
+    advance_secs(&t.env, DELAY);
+    t.c.execute_action(&a);
+    assert!(t.c.is_yield_exempt(&staking));
+    assert_eq!(t.c.yield_info().eligible_supply, 0);
+}
+
+#[test]
+fn step1_guardian_cancels_yield_exempt_and_guardian_swap() {
+    let t = setup(1_000);
+    let g = user(&t, 0);
+    timelocked(&t, &QfxAction::SetGuardian(g.clone()));
+    let victim = user(&t, 0);
+    let ex = QfxAction::SetYieldExempt(victim.clone(), true);
+    let swap = QfxAction::SetGuardian(user(&t, 0));
+    t.c.propose_action(&ex);
+    t.c.propose_action(&swap);
+    let rando = user(&t, 0);
+    assert_eq!(t.c.try_cancel_action(&rando, &ex), Err(Ok(GovError::NotGuardian.into())));
+    t.c.cancel_action(&g, &ex);
+    t.c.cancel_action(&g, &swap);
+    advance_secs(&t.env, DELAY);
+    assert_eq!(t.c.try_execute_action(&ex), Err(Ok(GovError::NotQueued.into())));
+    assert_eq!(t.c.try_execute_action(&swap), Err(Ok(GovError::NotQueued.into())));
+    assert!(!t.c.is_yield_exempt(&victim));
+    assert_eq!(t.c.guardian(), g);
+}
+
+#[test]
+fn step1_mainnet_delay_floors() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let h = env
+        .crypto()
+        .sha256(&soroban_sdk::Bytes::from_slice(&env, quasaria_gov::MAINNET_PASSPHRASE))
+        .to_array();
+    env.ledger().set_network_id(h);
+    let admin = Address::generate(&env);
+    let xlm = env.register_stellar_asset_contract_v2(Address::generate(&env)).address();
+    let mk = |d: u64| {
+        env.register(
+            QuasariaFlux,
+            (
+                &admin,
+                &xlm,
+                soroban_sdk::String::from_str(&env, "Quasaria Flux"),
+                soroban_sdk::String::from_str(&env, "QFX"),
+                1_000u32,
+                10_000_000_000_000i128,
+                d,
+            ),
+        )
+    };
+    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        mk(DELAY);
+    }));
+    assert!(r.is_err(), "short delay rejected on mainnet");
+    let c = QuasariaFluxClient::new(&env, &mk(48 * 3_600));
+    let who = Address::generate(&env);
+    assert_eq!(c.action_delay(&QfxAction::SetYieldExempt(who.clone(), true)), 48 * 3_600);
+    assert_eq!(c.action_delay(&QfxAction::SetGuardian(who)), 48 * 3_600);
+    assert_eq!(c.action_delay(&QfxAction::SetAprBps(100)), 48 * 3_600);
+    assert_eq!(c.action_delay(&QfxAction::Upgrade(BytesN::from_array(&env, &[1; 32]))), 72 * 3_600);
+    assert_eq!(c.action_delay(&QfxAction::SetDelay(60 * 3_600)), 72 * 3_600);
 }

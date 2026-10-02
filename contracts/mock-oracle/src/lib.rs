@@ -29,6 +29,9 @@ pub enum OracleError {
     TooManyAssets = 1,
     BatchTooLarge = 2,
     InvalidPrice = 3,
+    /// The mock refuses to be constructed on the Stellar public network
+    /// (F-12, defence in depth next to the deploy-script wasm blocklist).
+    MainnetForbidden = 4,
 }
 
 soroban_sdk::contractmeta!(key = "project", val = "Quasaria");
@@ -57,7 +60,23 @@ pub struct PriceData {
 pub enum OracleAction {
     Upgrade(BytesN<32>),
     SetDelay(u64),
+    SetGuardian(Address),
 }
+
+impl gov::TimelockAction for OracleAction {
+    fn delay_class(&self) -> gov::DelayClass {
+        match self {
+            OracleAction::Upgrade(_) | OracleAction::SetDelay(_) => gov::DelayClass::Critical,
+            OracleAction::SetGuardian(_) => gov::DelayClass::Standard,
+        }
+    }
+    fn validate(&self, env: &Env) {
+        if let OracleAction::SetDelay(d) = self {
+            gov::check_delay(env, *d);
+        }
+    }
+}
+
 
 #[contracttype]
 #[derive(Clone)]
@@ -76,6 +95,9 @@ quasaria_gov::governance_entrypoints!(MockOracle, OracleAction);
 #[contractimpl]
 impl MockOracle {
     pub fn __constructor(env: Env, admin: Address, decimals: u32, timelock_delay: u64) {
+        if gov::is_mainnet(&env) {
+            panic_with_error!(&env, OracleError::MainnetForbidden);
+        }
         gov::init(&env, &admin, timelock_delay);
         env.storage().instance().set(&DataKey::Decimals, &decimals);
     }
@@ -85,6 +107,7 @@ impl MockOracle {
         match action {
             OracleAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             OracleAction::SetDelay(d) => gov::set_delay_now(&env, d),
+            OracleAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
         }
     }
 
@@ -293,9 +316,10 @@ mod test {
         assert_eq!(c.timelock_delay(), 600);
     }
 
-    /// On mainnet the timelock can never be shorter than 48h (enforced on-chain).
+    /// F-12: the mock oracle can never be constructed on mainnet, whatever
+    /// the delay (the 48 h / 72 h floors are covered in `quasaria-gov`).
     #[test]
-    fn mainnet_enforces_48h_minimum_delay() {
+    fn mainnet_construction_forbidden() {
         let env = Env::default();
         env.mock_all_auths();
         let h = env
@@ -308,12 +332,37 @@ mod test {
             env.register(MockOracle, (&admin, 14u32, 300u64));
         }));
         assert!(r.is_err(), "300 s delay rejected on mainnet");
-        let c = MockOracleClient::new(&env, &env.register(MockOracle, (&admin, 14u32, 48u64 * 3_600)));
-        assert_eq!(c.timelock_delay(), 172_800);
-        let shorten = OracleAction::SetDelay(3_600);
-        c.propose_action(&shorten);
-        env.ledger().set_timestamp(env.ledger().timestamp() + 172_800);
-        assert_eq!(c.try_execute_action(&shorten), Err(Ok(GovError::InvalidDelay.into())));
+        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            env.register(MockOracle, (&admin, 14u32, 48u64 * 3_600));
+        }));
+        assert!(r.is_err(), "mock oracle refused on mainnet even with a 48 h delay");
+    }
+
+    #[test]
+    fn set_guardian_is_timelocked() {
+        let env = Env::default();
+        env.mock_all_auths();
+        env.ledger().set_timestamp(1_000);
+        let admin = Address::generate(&env);
+        let c = MockOracleClient::new(&env, &env.register(MockOracle, (&admin, 14u32, 300u64)));
+        let g = Address::generate(&env);
+        let r = env.try_invoke_contract::<soroban_sdk::Val, soroban_sdk::InvokeError>(
+            &c.address,
+            &Symbol::new(&env, "set_guardian"),
+            soroban_sdk::vec![&env, soroban_sdk::IntoVal::into_val(&g, &env)],
+        );
+        assert!(r.is_err(), "instant set_guardian must not exist");
+        let a = OracleAction::SetGuardian(g.clone());
+        c.propose_action(&a);
+        assert_eq!(c.try_execute_action(&a), Err(Ok(GovError::TimelockNotReady.into())));
+        env.ledger().set_timestamp(1_300);
+        c.execute_action(&a);
+        assert_eq!(c.guardian(), g);
+        let swap = OracleAction::SetGuardian(admin.clone());
+        c.propose_action(&swap);
+        c.cancel_action(&g, &swap);
+        env.ledger().set_timestamp(1_600);
+        assert_eq!(c.try_execute_action(&swap), Err(Ok(GovError::NotQueued.into())));
     }
 
     #[test]
@@ -335,11 +384,9 @@ mod test {
         c.propose_action(&a);
         env.ledger().set_timestamp(1_600 + gov::GRACE_PERIOD + 1);
         assert_eq!(c.try_execute_action(&a), Err(Ok(GovError::TimelockExpired.into())));
-        // out-of-range delay rejected at execution
+        // out-of-range delay rejected when queued
         let bad = OracleAction::SetDelay(1);
-        c.propose_action(&bad);
-        env.ledger().set_timestamp(env.ledger().timestamp() + 300);
-        assert_eq!(c.try_execute_action(&bad), Err(Ok(GovError::InvalidDelay.into())));
+        assert_eq!(c.try_propose_action(&bad), Err(Ok(GovError::InvalidDelay.into())));
         // only the admin can queue
         env.set_auths(&[]);
         assert!(c.try_propose_action(&OracleAction::SetDelay(600)).is_err());

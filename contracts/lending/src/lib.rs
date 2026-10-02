@@ -32,8 +32,14 @@
 //!   rejects non-positive, stale (> `max_price_age`) and future-dated prices.
 //! * **Governance** (`quasaria-gov`): two-step admin, guardian pause (never
 //!   blocks repay, liquidation, or HF-safe withdrawals), timelocked oracle /
-//!   global config / reserve config / treasury withdrawal / upgrade / delay.
-//!   Only strictly risk-reducing reserve changes are immediate.
+//!   global config / reserve config / treasury withdrawal / upgrade / delay /
+//!   guardian / **reserve listing**. A reserve is listed (`AddReserve`) with
+//!   borrowing **and** collateral disabled; enabling either is its own
+//!   timelocked action (`EnableBorrowing`, `EnableCollateral`), and
+//!   `SetReserveConfig` can't switch them on. On mainnet oracle, treasury,
+//!   upgrade and delay changes wait ≥ 72 h and everything else ≥ 48 h.
+//!   Only strictly risk-reducing changes (`tighten_reserve`, `pause`) are
+//!   immediate.
 //! * All token movement goes through each asset's SAC via the SEP-41
 //!   `token::Client` interface.
 #![no_std]
@@ -104,7 +110,17 @@ pub enum LendError {
     NotRiskReducing = 24,
     NotBadDebt = 25,
     DustRemaining = 26,
+    /// Superseded by `ListingNotDisabled` (kept for error-code stability).
     MainnetListing = 27,
+    /// `SetReserveConfig` can't enable borrowing or collateral: use the
+    /// dedicated `EnableBorrowing` / `EnableCollateral` actions.
+    UseDedicatedAction = 28,
+    /// A new reserve must be listed with borrowing and collateral disabled
+    /// (`borrowable = false`, `borrow_cap = 0`, `collateral_enabled = false`,
+    /// `ltv_bps = 0`).
+    ListingNotDisabled = 29,
+    /// The flag is already enabled.
+    AlreadyEnabled = 30,
 }
 
 /// Reflector / SEP-40 asset identifier.
@@ -243,6 +259,70 @@ pub enum LendingAction {
     WithdrawTreasury(Address, Address, i128),
     Upgrade(BytesN<32>),
     SetDelay(u64),
+    SetGuardian(Address),
+    /// List a new reserve. The config must have borrowing and collateral
+    /// disabled (see `LendError::ListingNotDisabled`).
+    AddReserve(Address, ReserveConfig),
+    /// (asset, borrow_cap): make a listed reserve borrowable.
+    EnableBorrowing(Address, i128),
+    /// Make a listed reserve usable as collateral.
+    EnableCollateral(Address, CollateralParams),
+}
+
+/// Risk parameters applied by `LendingAction::EnableCollateral`.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CollateralParams {
+    pub ltv_bps: u32,
+    pub liq_threshold_bps: u32,
+    pub liq_bonus_bps: u32,
+}
+
+impl gov::TimelockAction for LendingAction {
+    fn delay_class(&self) -> gov::DelayClass {
+        match self {
+            LendingAction::SetOracle(_)
+            | LendingAction::WithdrawTreasury(_, _, _)
+            | LendingAction::Upgrade(_)
+            | LendingAction::SetDelay(_) => gov::DelayClass::Critical,
+            LendingAction::SetPoolConfig(_)
+            | LendingAction::SetReserveConfig(_, _)
+            | LendingAction::SetGuardian(_)
+            | LendingAction::AddReserve(_, _)
+            | LendingAction::EnableBorrowing(_, _)
+            | LendingAction::EnableCollateral(_, _) => gov::DelayClass::Standard,
+        }
+    }
+    fn validate(&self, env: &Env) {
+        match self {
+            LendingAction::SetPoolConfig(c) => validate_pool_config(env, c),
+            LendingAction::SetReserveConfig(_, c) => validate_reserve_config(env, c),
+            LendingAction::AddReserve(_, c) => {
+                validate_reserve_config(env, c);
+                check_listing(env, c);
+            }
+            LendingAction::EnableBorrowing(_, cap) => {
+                if *cap <= 0 {
+                    panic_with_error!(env, LendError::InvalidConfig);
+                }
+            }
+            LendingAction::EnableCollateral(_, p) => {
+                if p.liq_threshold_bps == 0 || p.liq_bonus_bps == 0 || p.ltv_bps > p.liq_threshold_bps {
+                    panic_with_error!(env, LendError::InvalidConfig);
+                }
+            }
+            LendingAction::WithdrawTreasury(_, _, amount) => pos_amount(*amount, env),
+            LendingAction::SetDelay(d) => gov::check_delay(env, *d),
+            LendingAction::SetOracle(_) | LendingAction::Upgrade(_) | LendingAction::SetGuardian(_) => {}
+        }
+    }
+}
+
+/// A new listing must have borrowing and collateral disabled.
+pub fn check_listing(env: &Env, c: &ReserveConfig) {
+    if c.borrowable || c.borrow_cap != 0 || c.collateral_enabled || c.ltv_bps != 0 {
+        panic_with_error!(env, LendError::ListingNotDisabled);
+    }
 }
 
 #[contracttype]
@@ -898,7 +978,12 @@ impl LendingPool {
             }
             LendingAction::SetReserveConfig(asset, config) => {
                 validate_reserve_config(&env, &config);
-                let (_old, s) = load(&env, &asset);
+                let (old, s) = load(&env, &asset);
+                if (config.borrowable && !old.borrowable)
+                    || (config.collateral_enabled && !old.collateral_enabled)
+                {
+                    panic_with_error!(&env, LendError::UseDedicatedAction);
+                }
                 put_state(&env, &asset, &s);
                 Self::write_cfg(&env, &asset, &config);
             }
@@ -915,6 +1000,32 @@ impl LendingPool {
             }
             LendingAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             LendingAction::SetDelay(d) => gov::set_delay_now(&env, d),
+            LendingAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
+            LendingAction::AddReserve(asset, config) => Self::add_reserve_now(&env, asset, config),
+            LendingAction::EnableBorrowing(asset, borrow_cap) => {
+                let (mut c, s) = load(&env, &asset);
+                if c.borrowable {
+                    panic_with_error!(&env, LendError::AlreadyEnabled);
+                }
+                c.borrowable = true;
+                c.borrow_cap = borrow_cap;
+                validate_reserve_config(&env, &c);
+                put_state(&env, &asset, &s);
+                Self::write_cfg(&env, &asset, &c);
+            }
+            LendingAction::EnableCollateral(asset, p) => {
+                let (mut c, s) = load(&env, &asset);
+                if c.collateral_enabled {
+                    panic_with_error!(&env, LendError::AlreadyEnabled);
+                }
+                c.collateral_enabled = true;
+                c.ltv_bps = p.ltv_bps;
+                c.liq_threshold_bps = p.liq_threshold_bps;
+                c.liq_bonus_bps = p.liq_bonus_bps;
+                validate_reserve_config(&env, &c);
+                put_state(&env, &asset, &s);
+                Self::write_cfg(&env, &asset, &c);
+            }
         }
     }
 
@@ -929,14 +1040,13 @@ impl LendingPool {
         .publish(env);
     }
 
-    /// List a new reserve (admin). On mainnet a new listing can't be
-    /// collateral: enabling collateral later goes through the timelock.
-    pub fn add_reserve(env: Env, asset: Address, config: ReserveConfig) {
-        gov::require_admin(&env);
+    /// List a new reserve (only from the timelocked `AddReserve`), with
+    /// borrowing and collateral disabled; each is enabled later by its own
+    /// timelocked action.
+    fn add_reserve_now(env: &Env, asset: Address, config: ReserveConfig) {
+        let env = env.clone();
         validate_reserve_config(&env, &config);
-        if gov::is_mainnet(&env) && config.collateral_enabled {
-            panic_with_error!(&env, LendError::MainnetListing);
-        }
+        check_listing(&env, &config);
         let k = DataKey::ResCfg(asset.clone());
         if env.storage().persistent().has(&k) {
             panic_with_error!(&env, LendError::ReserveExists);

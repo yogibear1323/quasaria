@@ -61,6 +61,8 @@ deploy() { # deploy <wasm> <alias> [-- constructor args...]
     existing="$(stellar contract alias show "$alias" --network "$NETWORK" 2>/dev/null || true)"
     if [[ -n "$existing" ]]; then echo "   (reusing $alias = $existing)" >&2; echo "$existing"; return; fi
   fi
+  # F-12 wasm guard (refuses mocks / non-audited wasm on mainnet).
+  node "$ROOT/scripts/lib/wasm-guard.ts" --network "$NETWORK" "$WASM/$wasm" >&2
   run stellar contract deploy --wasm "$WASM/$wasm" --source "$IDENTITY" \
     --network "$NETWORK" --alias "$alias" "$@"
 }
@@ -113,21 +115,37 @@ VAULT="$(deploy quasaria_leverage_vault.wasm "quasaria-vault-$V" -- --admin "$AD
 invoke() { run stellar contract invoke --id "$1" --source "$IDENTITY" --network "$NETWORK" --instruction-leeway 1000000 -- "${@:2}"; }
 
 echo "==> Wiring: fee sources, markets, staking pools, oracle prices"
-invoke "$REFERRAL" set_fee_source --source "$POOL_XLM_QUSD" --allowed true >/dev/null
-invoke "$REFERRAL" set_fee_source --source "$POOL_QFX_QUSD" --allowed true >/dev/null
-invoke "$REFERRAL" set_fee_source --source "$VAULT" --allowed true >/dev/null
-# Contracts whose internal accounting cannot absorb QFX holder yield.
-invoke "$QFX" set_yield_exempt --id "$STAKING" --exempt true >/dev/null
-invoke "$QFX" set_yield_exempt --id "$POOL_QFX_QUSD" --exempt true >/dev/null
-invoke "$VAULT" set_market --asset '{"Other":"XLM"}' --enabled true >/dev/null
-invoke "$ORACLE" set_price --asset '{"Other":"XLM"}' --price 12000000000000 --timestamp 0 >/dev/null
-# Stake QFX -> earn QFX (7-day lock), stake XLM/QUSD LP -> earn QFX (no lock)
+# Mainnet Step 1: fee sources, yield exemptions and staking pools are
+# timelocked admin actions (propose_action -> wait TIMELOCK_DELAY ->
+# execute_action). Queue everything, wait once, then execute.
+TL_QUEUE=()
+queue() { # queue <contract> <action-json>
+  invoke "$1" propose_action --action "$2" >/dev/null
+  TL_QUEUE+=("$1|$2")
+}
 POOLS_N="$(invoke "$STAKING" pool_count 2>/dev/null || echo 0)"
 if [[ "$POOLS_N" == "0" || "${DRY_RUN:-0}" == "1" ]]; then
+queue "$REFERRAL" "{\"SetFeeSource\":[\"$POOL_XLM_QUSD\",true]}"
+queue "$REFERRAL" "{\"SetFeeSource\":[\"$POOL_QFX_QUSD\",true]}"
+queue "$REFERRAL" "{\"SetFeeSource\":[\"$VAULT\",true]}"
+# Contracts whose internal accounting cannot absorb QFX holder yield.
+queue "$QFX" "{\"SetYieldExempt\":[\"$STAKING\",true]}"
+queue "$QFX" "{\"SetYieldExempt\":[\"$POOL_QFX_QUSD\",true]}"
+# Stake QFX -> earn QFX (7-day lock), stake XLM/QUSD LP -> earn QFX (no lock)
 # min_stake = 1 token (7 decimals): no dust stakes (F-04)
-invoke "$STAKING" add_pool --stake_token "$QFX" --reward_token "$QFX" --reward_rate 1000 --lock_seconds 604800 --min_stake 10000000 >/dev/null
-invoke "$STAKING" add_pool --stake_token "$POOL_XLM_QUSD" --reward_token "$QFX" --reward_rate 2000 --lock_seconds 0 --min_stake 10000000 >/dev/null
-else echo "   (staking already has $POOLS_N pools)"; fi
+queue "$STAKING" "{\"AddPool\":{\"stake_token\":\"$QFX\",\"reward_token\":\"$QFX\",\"reward_rate\":\"1000\",\"lock_seconds\":604800,\"min_stake\":\"10000000\"}}"
+queue "$STAKING" "{\"AddPool\":{\"stake_token\":\"$POOL_XLM_QUSD\",\"reward_token\":\"$QFX\",\"reward_rate\":\"2000\",\"lock_seconds\":0,\"min_stake\":\"10000000\"}}"
+else echo "   (staking already has $POOLS_N pools; wiring skipped)"; fi
+# Instant on purpose: vault markets (vault is deferred) and mock prices (testnet only).
+invoke "$VAULT" set_market --asset '{"Other":"XLM"}' --enabled true >/dev/null
+invoke "$ORACLE" set_price --asset '{"Other":"XLM"}' --price 12000000000000 --timestamp 0 >/dev/null
+if [[ ${#TL_QUEUE[@]} -gt 0 ]]; then
+  echo "   queued ${#TL_QUEUE[@]} timelocked actions; waiting $((TIMELOCK_DELAY + 15)) s"
+  [[ "${DRY_RUN:-0}" == "1" ]] || sleep $((TIMELOCK_DELAY + 15))
+  for item in "${TL_QUEUE[@]}"; do
+    invoke "${item%%|*}" execute_action --action "${item#*|}" >/dev/null
+  done
+fi
 
 mkdir -p "$(dirname "$OUT")"
 PREV_JSON=""
@@ -157,7 +175,7 @@ cat > "$OUT" <<JSON
            "yieldExempt": ["$STAKING", "$POOL_QFX_QUSD"] },
   "governance": { "generation": "$V", "timelockDelaySeconds": $TIMELOCK_DELAY, "guardian": "$ADMIN",
                   "mainnetMinTimelockSeconds": 172800,
-                  "note": "Two-step admin (propose_admin/accept_admin), guardian pause, timelocked propose_action/execute_action for fees, referral hook, oracle, reserve withdrawal, APR/cap, upgrades. Testnet-only, unaudited." },
+                  "note": "Two-step admin (propose_admin/accept_admin), guardian pause, timelocked propose_action/execute_action for every non-risk-reducing admin change (fees, referral hook + fee sources, guardian, yield exemptions, staking pools/rates, lending listings, oracle, reserve withdrawal, APR/cap, upgrades). Mainnet floors: 48 h parameters, 72 h upgrade/oracle/treasury/delay. Testnet-only, unaudited." },
   "vault": { "config": $VAULT_CONFIG },
   "staking": { "minStake": "10000000" }
 }

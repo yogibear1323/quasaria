@@ -8,7 +8,7 @@ use soroban_sdk::{
     testutils::{Address as _, Events as _, Ledger},
     Event as _,
     token::{StellarAssetClient, TokenClient},
-    Address, BytesN, Env,
+    Address, BytesN, Env, IntoVal,
 };
 
 const P: i128 = 100_000_000_000_000; // $1.00 at 14 oracle decimals
@@ -86,11 +86,55 @@ fn smallcap_cfg() -> ReserveConfig {
     }
 }
 
+/// The listing form of `cfg` (borrowing and collateral off) plus the
+/// enabling actions needed to reach `cfg`.
+fn listing_actions(asset: &Address, cfg: &ReserveConfig) -> std::vec::Vec<LendingAction> {
+    let listing = ReserveConfig {
+        borrowable: false,
+        borrow_cap: 0,
+        collateral_enabled: false,
+        ltv_bps: 0,
+        ..cfg.clone()
+    };
+    let mut v = std::vec![LendingAction::AddReserve(asset.clone(), listing)];
+    if cfg.collateral_enabled {
+        v.push(LendingAction::EnableCollateral(
+            asset.clone(),
+            CollateralParams {
+                ltv_bps: cfg.ltv_bps,
+                liq_threshold_bps: cfg.liq_threshold_bps,
+                liq_bonus_bps: cfg.liq_bonus_bps,
+            },
+        ));
+    }
+    if cfg.borrowable {
+        v.push(LendingAction::EnableBorrowing(asset.clone(), cfg.borrow_cap));
+    }
+    v
+}
+
+/// List reserves through the timelock: queue every listing / enabling
+/// action, wait out the delay once, execute them in order.
+fn list_reserves(env: &Env, pool: &LendingPoolClient, items: &[(Address, ReserveConfig)]) {
+    let mut all = std::vec::Vec::new();
+    for (a, c) in items {
+        all.extend(listing_actions(a, c));
+    }
+    let mut eta = 0;
+    for a in &all {
+        eta = pool.propose_action(a);
+    }
+    env.ledger().set_timestamp(eta);
+    for a in &all {
+        pool.execute_action(a);
+    }
+}
+
 fn setup() -> T {
     let env = Env::default();
     env.mock_all_auths();
     env.cost_estimate().budget().reset_unlimited();
-    env.ledger().set_timestamp(T0);
+    env.ledger().set_timestamp(T0 - DELAY);
     let admin = Address::generate(&env);
     let oracle_id = env.register(MockOracle, (&admin, 14u32, DELAY));
     let oracle = MockOracleClient::new(&env, &oracle_id);
@@ -99,9 +143,16 @@ fn setup() -> T {
     let usdc = env.register_stellar_asset_contract_v2(admin.clone()).address();
     let xlm = env.register_stellar_asset_contract_v2(admin.clone()).address();
     let shx = env.register_stellar_asset_contract_v2(admin.clone()).address();
-    pool.add_reserve(&usdc, &stable_cfg());
-    pool.add_reserve(&xlm, &xlm_cfg());
-    pool.add_reserve(&shx, &smallcap_cfg());
+    list_reserves(
+        &env,
+        &pool,
+        &[
+            (usdc.clone(), stable_cfg()),
+            (xlm.clone(), xlm_cfg()),
+            (shx.clone(), smallcap_cfg()),
+        ],
+    );
+    assert_eq!(env.ledger().timestamp(), T0);
     let t = T { env, pool, oracle, usdc, xlm, shx, admin };
     t.px(&t.usdc.clone(), P);
     t.px(&t.xlm.clone(), P / 4); // $0.25
@@ -110,6 +161,12 @@ fn setup() -> T {
 }
 
 impl T {
+    /// List reserves through the timelock (time advances by `DELAY`), then
+    /// refresh the existing prices.
+    fn list(&self, items: &[(Address, ReserveConfig)]) {
+        list_reserves(&self.env, &self.pool, items);
+        self.refresh();
+    }
     fn px(&self, a: &Address, price: i128) {
         self.oracle.set_price(&OAsset::Stellar(a.clone()), &price, &0);
     }
@@ -209,7 +266,11 @@ fn unknown_reserve_and_duplicate_listing() {
     let u = t.user();
     let other = Address::generate(&t.env);
     assert_eq!(err(t.pool.try_supply(&u, &other, &U)), le(LendError::ReserveNotFound));
-    assert_eq!(err(t.pool.try_add_reserve(&t.usdc, &stable_cfg())), le(LendError::ReserveExists));
+    let dup = listing_actions(&t.usdc, &stable_cfg()).remove(0);
+    t.pool.propose_action(&dup);
+    t.warp(DELAY);
+    assert_eq!(err(t.pool.try_execute_action(&dup)), le(LendError::ReserveExists));
+    t.refresh();
     assert_eq!(t.pool.reserve_list().len(), 3);
     assert_eq!(t.pool.reserves_page(&1, &500).len(), 2);
     assert_eq!(t.pool.oracle_decimals(), 14);
@@ -369,7 +430,7 @@ fn reserve_flags_respected() {
         collateral_enabled: false,
         ..stable_cfg()
     };
-    t.pool.add_reserve(&flagged, &borrow_only);
+    t.list(&[(flagged.clone(), borrow_only)]);
     let tok = t.env.register_stellar_asset_contract_v2(t.admin.clone()).address();
     let _ = tok;
     let u = t.user();
@@ -377,7 +438,7 @@ fn reserve_flags_respected() {
     // non-collateral asset can't be enabled
     let no_borrow = Address::generate(&t.env);
     let c = ReserveConfig { borrowable: false, borrow_cap: 0, ..stable_cfg() };
-    t.pool.add_reserve(&no_borrow, &c);
+    t.list(&[(no_borrow.clone(), c)]);
     assert_eq!(err(t.pool.try_borrow(&u, &no_borrow, &U)), le(LendError::NotBorrowable));
     assert_eq!(err(t.pool.try_set_collateral(&u, &flagged, &true)), le(LendError::NotCollateral));
     assert_eq!(
@@ -414,9 +475,12 @@ fn per_user_reserve_cap_and_borrower_paging() {
     let mut extra = std::vec::Vec::new();
     for _ in 0..6 {
         let a = t.env.register_stellar_asset_contract_v2(t.admin.clone()).address();
-        t.pool.add_reserve(&a, &stable_cfg());
-        t.px(&a, P);
         extra.push(a);
+    }
+    let items: std::vec::Vec<_> = extra.iter().map(|a| (a.clone(), stable_cfg())).collect();
+    t.list(&items);
+    for a in &extra {
+        t.px(a, P);
     }
     let u = t.user();
     for a in [&t.usdc, &t.xlm, &t.shx] {
@@ -454,13 +518,13 @@ fn max_borrowers_cap() {
     let env = Env::default();
     env.mock_all_auths();
     env.cost_estimate().budget().reset_unlimited();
-    env.ledger().set_timestamp(T0);
+    env.ledger().set_timestamp(T0 - DELAY);
     let admin = Address::generate(&env);
     let oid = env.register(MockOracle, (&admin, 14u32, DELAY));
     let cfg = PoolConfig { max_borrowers: 1, ..pool_config() };
     let pool = LendingPoolClient::new(&env, &env.register(LendingPool, (&admin, &oid, cfg, DELAY)));
     let usdc = env.register_stellar_asset_contract_v2(admin.clone()).address();
-    pool.add_reserve(&usdc, &stable_cfg());
+    list_reserves(&env, &pool, &[(usdc.clone(), stable_cfg())]);
     MockOracleClient::new(&env, &oid).set_price(&OAsset::Stellar(usdc.clone()), &P, &0);
     let mut us = std::vec::Vec::new();
     for _ in 0..2 {
@@ -537,7 +601,7 @@ fn oracle_staleness_future_and_missing() {
     assert_eq!(err(t.pool.try_borrow(&u, &t.xlm, &(10 * U))), le(LendError::NoPrice));
     // unpriced reserve
     let a = t.env.register_stellar_asset_contract_v2(t.admin.clone()).address();
-    t.pool.add_reserve(&a, &stable_cfg());
+    list_reserves(&t.env, &t.pool, &[(a.clone(), stable_cfg())]);
     StellarAssetClient::new(&t.env, &a).mint(&u, &(10 * U));
     t.pool.supply(&u, &a, &(10 * U));
     assert_eq!(err(t.pool.try_account(&u)), le(LendError::NoPrice));
@@ -712,7 +776,11 @@ fn pause_blocks_new_risk_but_not_exits() {
     t.pool.supply(&u, &t.usdc, &(1_000 * U));
     t.pool.borrow(&u, &t.xlm, &(100 * U));
     let guardian = Address::generate(&t.env);
-    t.pool.set_guardian(&guardian);
+    let sg = LendingAction::SetGuardian(guardian.clone());
+    t.pool.propose_action(&sg);
+    t.warp(DELAY);
+    t.pool.execute_action(&sg);
+    t.refresh();
     t.pool.pause(&guardian);
     assert!(t.pool.paused());
     let g: soroban_sdk::Error = GovError::Paused.into();
@@ -774,11 +842,9 @@ fn timelock_for_dangerous_changes() {
     t.pool.execute_action(&so);
     assert_eq!(t.pool.oracle(), o2);
     assert_eq!(t.pool.oracle_decimals(), 8);
-    // pool config via timelock (validated at execution)
+    // pool config via timelock (validated when queued and at execution)
     let bad = LendingAction::SetPoolConfig(PoolConfig { close_factor_bps: 9_000, ..pool_config() });
-    t.pool.propose_action(&bad);
-    t.warp(DELAY);
-    assert_eq!(err(t.pool.try_execute_action(&bad)), le(LendError::InvalidConfig));
+    assert_eq!(err(t.pool.try_propose_action(&bad)), le(LendError::InvalidConfig));
     let good = LendingAction::SetPoolConfig(PoolConfig { max_price_age: 600, ..pool_config() });
     t.pool.propose_action(&good);
     t.warp(DELAY);
@@ -836,7 +902,7 @@ fn admin_only_and_two_step_admin() {
     assert_eq!(t.pool.admin(), next);
     t.env.set_auths(&[]);
     let a = Address::generate(&t.env);
-    assert!(t.pool.try_add_reserve(&a, &stable_cfg()).is_err());
+    assert!(t.pool.try_propose_action(&listing_actions(&a, &stable_cfg()).remove(0)).is_err());
     assert!(t.pool.try_tighten_reserve(&t.usdc, &stable_cfg()).is_err());
     assert!(t.pool.try_propose_action(&LendingAction::SetDelay(600)).is_err());
     assert!(t.pool.try_unpause().is_err());
@@ -890,8 +956,9 @@ fn config_bounds() {
     }
     let t = setup();
     let a = Address::generate(&t.env);
+    let bad_listing = ReserveConfig { liq_threshold_bps: 9_500, ..listing_cfg() };
     assert_eq!(
-        err(t.pool.try_add_reserve(&a, &ReserveConfig { ltv_bps: 9_000, ..stable_cfg() })),
+        err(t.pool.try_propose_action(&LendingAction::AddReserve(a.clone(), bad_listing))),
         le(LendError::InvalidConfig)
     );
 }
@@ -900,26 +967,222 @@ fn config_bounds() {
 fn mainnet_rules() {
     let env = Env::default();
     env.mock_all_auths();
+    env.ledger().set_timestamp(T0);
+    let admin = Address::generate(&env);
+    // the mock oracle refuses mainnet (F-12), so register it first
+    let oid = env.register(MockOracle, (&admin, 14u32, DELAY));
     let h = env
         .crypto()
         .sha256(&soroban_sdk::Bytes::from_slice(&env, gov::MAINNET_PASSPHRASE))
         .to_array();
     env.ledger().set_network_id(h);
-    let admin = Address::generate(&env);
-    let oid = env.register(MockOracle, (&admin, 14u32, 48u64 * 3_600));
     let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         env.register(LendingPool, (&admin, &oid, pool_config(), 300u64));
     }));
     assert!(r.is_err(), "300 s timelock rejected on mainnet");
     let pool = LendingPoolClient::new(&env, &env.register(LendingPool, (&admin, &oid, pool_config(), 48u64 * 3_600)));
     let a = Address::generate(&env);
-    assert_eq!(err(pool.try_add_reserve(&a, &stable_cfg())), le(LendError::MainnetListing));
-    let listing = ReserveConfig {
+    // a collateral / borrowable listing is refused (on every network)
+    assert_eq!(
+        err(pool.try_propose_action(&LendingAction::AddReserve(a.clone(), stable_cfg()))),
+        le(LendError::ListingNotDisabled)
+    );
+    // per-action delay floors: 48 h parameter changes, 72 h critical
+    const H: u64 = 3_600;
+    let std48 = [
+        LendingAction::AddReserve(a.clone(), listing_cfg()),
+        LendingAction::EnableBorrowing(a.clone(), U),
+        LendingAction::EnableCollateral(a.clone(), CollateralParams { ltv_bps: 7_500, liq_threshold_bps: 8_000, liq_bonus_bps: 500 }),
+        LendingAction::SetReserveConfig(a.clone(), listing_cfg()),
+        LendingAction::SetPoolConfig(pool_config()),
+        LendingAction::SetGuardian(a.clone()),
+    ];
+    for x in &std48 {
+        assert_eq!(pool.action_delay(x), 48 * H, "{x:?}");
+    }
+    let crit72 = [
+        LendingAction::SetOracle(a.clone()),
+        LendingAction::WithdrawTreasury(a.clone(), a.clone(), 1),
+        LendingAction::Upgrade(BytesN::from_array(&env, &[0u8; 32])),
+        LendingAction::SetDelay(48 * H),
+    ];
+    for x in &crit72 {
+        assert_eq!(pool.action_delay(x), 72 * H, "{x:?}");
+    }
+    // the listing waits 48 h; the oracle swap 72 h
+    let list = LendingAction::AddReserve(a.clone(), listing_cfg());
+    let so = LendingAction::SetOracle(oid.clone());
+    assert_eq!(pool.propose_action(&list), T0 + 48 * H);
+    assert_eq!(pool.propose_action(&so), T0 + 72 * H);
+    env.ledger().set_timestamp(T0 + 48 * H - 1);
+    assert_eq!(err(pool.try_execute_action(&list)), GovError::TimelockNotReady.into());
+    env.ledger().set_timestamp(T0 + 48 * H);
+    pool.execute_action(&list);
+    assert_eq!(pool.reserve_list().len(), 1);
+    assert!(!pool.reserve_config(&a).borrowable && !pool.reserve_config(&a).collateral_enabled);
+    assert_eq!(err(pool.try_execute_action(&so)), GovError::TimelockNotReady.into());
+    env.ledger().set_timestamp(T0 + 72 * H);
+    pool.execute_action(&so);
+}
+
+fn listing_cfg() -> ReserveConfig {
+    ReserveConfig {
         ltv_bps: 0,
         collateral_enabled: false,
+        borrowable: false,
+        borrow_cap: 0,
         ..stable_cfg()
-    };
-    pool.add_reserve(&a, &listing);
+    }
+}
+
+// ------------------------------------------------------------------ Step 1: timelocked listing
+
+#[test]
+fn step1_instant_setters_rejected() {
+    let t = setup();
+    let a = Address::generate(&t.env);
+    for (name, args) in [
+        ("add_reserve", (a.clone(), listing_cfg()).into_val(&t.env)),
+        ("set_guardian", (a.clone(),).into_val(&t.env)),
+    ] {
+        let r = t.env.try_invoke_contract::<soroban_sdk::Val, soroban_sdk::InvokeError>(
+            &t.pool.address,
+            &soroban_sdk::Symbol::new(&t.env, name),
+            args,
+        );
+        assert!(r.is_err(), "instant `{name}` must not exist");
+    }
+    assert_eq!(t.pool.reserve_list().len(), 3);
+    assert_ne!(t.pool.guardian(), a);
+}
+
+#[test]
+fn step1_listing_must_have_borrow_and_collateral_disabled() {
+    let t = setup();
+    let a = Address::generate(&t.env);
+    for bad in [
+        ReserveConfig { borrowable: true, borrow_cap: U, ..listing_cfg() },
+        ReserveConfig { borrow_cap: U, ..listing_cfg() },
+        ReserveConfig { collateral_enabled: true, ..listing_cfg() },
+        stable_cfg(),
+    ] {
+        assert_eq!(
+            err(t.pool.try_propose_action(&LendingAction::AddReserve(a.clone(), bad))),
+            le(LendError::ListingNotDisabled)
+        );
+    }
+}
+
+#[test]
+fn step1_list_then_enable_collateral_then_borrowing() {
+    let t = setup();
+    let lp = t.lp(100_000);
+    let a = t.env.register_stellar_asset_contract_v2(t.admin.clone()).address();
+    // 1. list (queue, wait, execute)
+    let list = LendingAction::AddReserve(a.clone(), listing_cfg());
+    assert_eq!(t.pool.propose_action(&list), T0 + DELAY);
+    assert_eq!(err(t.pool.try_execute_action(&list)), GovError::TimelockNotReady.into());
+    t.warp(DELAY);
+    t.pool.execute_action(&list);
+    t.refresh();
+    t.px(&a, P);
+    let u = t.user();
+    StellarAssetClient::new(&t.env, &a).mint(&u, &(1_000 * U));
+    StellarAssetClient::new(&t.env, &a).mint(&lp, &(10_000 * U));
+    t.pool.supply(&lp, &a, &(10_000 * U));
+    t.pool.supply(&u, &a, &(1_000 * U));
+    assert_eq!(err(t.pool.try_borrow(&u, &a, &U)), le(LendError::NotBorrowable));
+    assert_eq!(err(t.pool.try_set_collateral(&u, &a, &true)), le(LendError::NotCollateral));
+    // SetReserveConfig can't flip the flags on
+    let sneaky = LendingAction::SetReserveConfig(a.clone(), stable_cfg());
+    t.pool.propose_action(&sneaky);
+    t.warp(DELAY);
+    assert_eq!(err(t.pool.try_execute_action(&sneaky)), le(LendError::UseDedicatedAction));
+    t.pool.cancel_action(&t.admin, &sneaky);
+    // 2. enable collateral (separate timelocked action)
+    let col = LendingAction::EnableCollateral(
+        a.clone(),
+        CollateralParams { ltv_bps: 7_500, liq_threshold_bps: 8_000, liq_bonus_bps: 500 },
+    );
+    t.pool.propose_action(&col);
+    assert_eq!(err(t.pool.try_execute_action(&col)), GovError::TimelockNotReady.into());
+    t.warp(DELAY);
+    t.pool.execute_action(&col);
+    assert!(t.pool.reserve_config(&a).collateral_enabled);
+    assert!(!t.pool.reserve_config(&a).borrowable);
+    t.refresh();
+    t.px(&a, P);
+    t.pool.set_collateral(&u, &a, &true);
+    assert_eq!(err(t.pool.try_borrow(&u, &a, &U)), le(LendError::NotBorrowable));
+    // 3. enable borrowing (separate timelocked action)
+    let bor = LendingAction::EnableBorrowing(a.clone(), 5_000 * U);
+    t.pool.propose_action(&bor);
+    t.warp(DELAY);
+    t.pool.execute_action(&bor);
+    assert_eq!(t.pool.reserve_config(&a).borrow_cap, 5_000 * U);
+    t.refresh();
+    t.px(&a, P);
+    t.pool.borrow(&u, &a, &(10 * U));
+    // enabling twice is refused
+    let again = LendingAction::EnableBorrowing(a.clone(), 6_000 * U);
+    t.pool.propose_action(&again);
+    t.warp(DELAY);
+    assert_eq!(err(t.pool.try_execute_action(&again)), le(LendError::AlreadyEnabled));
+    // invalid enable parameters are refused when queued
+    assert_eq!(
+        err(t.pool.try_propose_action(&LendingAction::EnableBorrowing(a.clone(), 0))),
+        le(LendError::InvalidConfig)
+    );
+    assert_eq!(
+        err(t.pool.try_propose_action(&LendingAction::EnableCollateral(
+            a.clone(),
+            CollateralParams { ltv_bps: 9_000, liq_threshold_bps: 8_000, liq_bonus_bps: 500 }
+        ))),
+        le(LendError::InvalidConfig)
+    );
+}
+
+#[test]
+fn step1_guardian_cancels_listing_enable_oracle_and_guardian_swap() {
+    let t = setup();
+    let g = Address::generate(&t.env);
+    let sg = LendingAction::SetGuardian(g.clone());
+    t.pool.propose_action(&sg);
+    t.warp(DELAY);
+    t.pool.execute_action(&sg);
+    assert_eq!(t.pool.guardian(), g);
+    let a = Address::generate(&t.env);
+    let evil = [
+        LendingAction::AddReserve(a.clone(), listing_cfg()),
+        LendingAction::EnableBorrowing(t.shx.clone(), 1_000 * U),
+        LendingAction::SetOracle(a.clone()),
+        LendingAction::SetGuardian(a.clone()),
+    ];
+    for x in &evil {
+        t.pool.propose_action(x);
+    }
+    let rando = Address::generate(&t.env);
+    assert_eq!(err(t.pool.try_cancel_action(&rando, &evil[0])), GovError::NotGuardian.into());
+    for x in &evil {
+        t.pool.cancel_action(&g, x);
+    }
+    t.warp(DELAY);
+    for x in &evil {
+        assert_eq!(err(t.pool.try_execute_action(x)), GovError::NotQueued.into());
+    }
+    assert_eq!(t.pool.reserve_list().len(), 3);
+    assert_eq!(t.pool.guardian(), g);
+    assert_ne!(t.pool.oracle(), a);
+}
+
+#[test]
+fn step1_tighten_and_pause_stay_instant() {
+    let t = setup();
+    let down = ReserveConfig { ltv_bps: 7_000, supply_cap: 1_000 * U, borrow_cap: 500 * U, ..stable_cfg() };
+    t.pool.tighten_reserve(&t.usdc, &down);
+    assert_eq!(t.pool.reserve_config(&t.usdc).ltv_bps, 7_000);
+    t.pool.pause(&t.admin);
+    assert!(t.pool.paused());
 }
 
 // ------------------------------------------------------------------ rounding exploits

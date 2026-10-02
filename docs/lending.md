@@ -70,7 +70,7 @@ Pool: `max_price_age` 900 s, `close_factor` 50%, `close_dust` $10, `max_user_res
 
 QUSD (Quasaria's demo stablecoin) is **not listed**, because it is protocol-issued and has no independent market.
 
-**Contract-enforced bounds:** LTV ≤ threshold ≤ 94.99%, bonus ≤ 10%, threshold × (1 + bonus) < 100%, reserve factor ≤ 50%, base ≤ 20%, slope1 ≤ 50%, slope2 ≤ 500%, kink 10–95%, close factor 10–50%, max price age ≤ 1 h, and minimums ≥ 1,000 raw units. On mainnet (network id check), `add_reserve` cannot list an asset with collateral enabled directly (`#27`); collateral must be enabled later through the timelock.
+**Contract-enforced bounds:** LTV ≤ threshold ≤ 94.99%, bonus ≤ 10%, threshold × (1 + bonus) < 100%, reserve factor ≤ 50%, base ≤ 20%, slope1 ≤ 50%, slope2 ≤ 500%, kink 10–95%, close factor 10–50%, max price age ≤ 1 h, and minimums ≥ 1,000 raw units. Listing (`AddReserve`, timelocked) requires borrowing and collateral disabled on every network (`ListingNotDisabled`, `#29`); borrowing (`EnableBorrowing(asset, cap)`) and collateral (`EnableCollateral(asset, ltv, threshold, bonus)`) are then enabled by separate timelocked actions, and `SetReserveConfig` cannot switch them on (`#28`).
 
 ## 4. Oracle
 
@@ -85,7 +85,7 @@ QUSD (Quasaria's demo stablecoin) is **not listed**, because it is protocol-issu
 - Two-step admin transfer. There is a **pause** (new supply and new borrows are rejected with `#900`). Repay, safe withdraw, collateral toggles that keep HF ≥ 1, and liquidations keep working, so a pause never traps users or blocks deleveraging.
 - **Timelocked actions** (`LendingAction`): `SetOracle`, `SetPoolConfig`, `SetReserveConfig`, `WithdrawTreasury`, `Upgrade`, `SetDelay`. Each is queued, then executed after the delay (300 s on testnet).
 - `tighten_reserve` is immediate but only accepts **risk-reducing** changes: lower LTV, threshold or caps, or turning collateral or borrowing off. It rejects anything else (`#24`).
-- `add_reserve` is admin-only and immediate (a new listing cannot affect existing users). Its parameters are bounds-checked.
+- Listing is a timelocked `AddReserve` action (mainnet Step 1): queued with `propose_action`, executed after the delay (48 h floor on mainnet), listed with borrowing and collateral off. Its parameters are bounds-checked at queue time. `tighten_reserve` and `pause` stay instant (risk-reducing).
 
 ## 6. Keeper
 

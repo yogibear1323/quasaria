@@ -106,6 +106,30 @@ pub enum QfxAction {
     SetMaxEligible(i128),
     Upgrade(BytesN<32>),
     SetDelay(u64),
+    SetGuardian(Address),
+    /// (holder, exempt): exclude or re-include a holder from holder yield.
+    /// Timelocked because it silently changes a holder's yield.
+    SetYieldExempt(Address, bool),
+}
+
+impl gov::TimelockAction for QfxAction {
+    fn delay_class(&self) -> gov::DelayClass {
+        match self {
+            QfxAction::Upgrade(_) | QfxAction::SetDelay(_) => gov::DelayClass::Critical,
+            QfxAction::SetAprBps(_)
+            | QfxAction::SetMaxEligible(_)
+            | QfxAction::SetGuardian(_)
+            | QfxAction::SetYieldExempt(_, _) => gov::DelayClass::Standard,
+        }
+    }
+    fn validate(&self, env: &Env) {
+        match self {
+            QfxAction::SetAprBps(apr) => check_apr(env, *apr),
+            QfxAction::SetMaxEligible(cap) => check_cap(env, *cap),
+            QfxAction::SetDelay(d) => gov::check_delay(env, *d),
+            _ => {}
+        }
+    }
 }
 
 #[contracttype]
@@ -589,6 +613,31 @@ fn check_cap(env: &Env, cap: i128) {
 #[contract]
 pub struct QuasariaFlux;
 
+/// Exclude (or re-include) an address from holder yield — for contracts such
+/// as staking whose internal accounting cannot absorb it. Applied only from
+/// the timelocked `QfxAction::SetYieldExempt`.
+fn set_yield_exempt_now(env: &Env, id: Address, exempt: bool) {
+    let acc = accrue(env);
+    let (h, was) = touch(env, &id, acc);
+    if was != exempt {
+        add_i128(
+            env,
+            &DataKey::Eligible,
+            if exempt {
+                gov::sub(env, 0, h.balance)
+            } else {
+                h.balance
+            },
+        );
+        let key = DataKey::Exempt(id.clone());
+        env.storage().persistent().set(&key, &exempt);
+        gov::bump_persistent(env, &key);
+    }
+    save_holder(env, &id, &h);
+    bump_instance(env);
+    ExemptSet { id, exempt }.publish(env);
+}
+
 quasaria_gov::governance_entrypoints!(QuasariaFlux, QfxAction);
 quasaria_gov::pause_entrypoints!(QuasariaFlux);
 
@@ -748,33 +797,13 @@ impl QuasariaFlux {
             }
             QfxAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             QfxAction::SetDelay(d) => gov::set_delay_now(&env, d),
+            QfxAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
+            QfxAction::SetYieldExempt(id, exempt) => set_yield_exempt_now(&env, id, exempt),
         }
     }
 
-    /// Exclude (or re-include) an address from holder yield — for contracts
-    /// such as staking whose internal accounting cannot absorb it.
-    pub fn set_yield_exempt(env: Env, id: Address, exempt: bool) {
-        gov::require_admin(&env);
-        let acc = accrue(&env);
-        let (h, was) = touch(&env, &id, acc);
-        if was != exempt {
-            add_i128(
-                &env,
-                &DataKey::Eligible,
-                if exempt {
-                    gov::sub(&env, 0, h.balance)
-                } else {
-                    h.balance
-                },
-            );
-            let key = DataKey::Exempt(id.clone());
-            env.storage().persistent().set(&key, &exempt);
-            gov::bump_persistent(&env, &key);
-        }
-        save_holder(&env, &id, &h);
-        bump_instance(&env);
-        ExemptSet { id, exempt }.publish(&env);
-    }
+    // (No instant `set_yield_exempt`: use `QfxAction::SetYieldExempt`.)
+
 
     // ----- permissionless keepers
 

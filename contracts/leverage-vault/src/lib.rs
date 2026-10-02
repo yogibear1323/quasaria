@@ -163,6 +163,26 @@ pub enum VaultAction {
     WithdrawLiquidity(Address, i128),
     Upgrade(BytesN<32>),
     SetDelay(u64),
+    SetGuardian(Address),
+}
+
+impl gov::TimelockAction for VaultAction {
+    fn delay_class(&self) -> gov::DelayClass {
+        match self {
+            VaultAction::SetOracle(_)
+            | VaultAction::WithdrawLiquidity(_, _)
+            | VaultAction::Upgrade(_)
+            | VaultAction::SetDelay(_) => gov::DelayClass::Critical,
+            VaultAction::SetConfig(_) | VaultAction::SetGuardian(_) => gov::DelayClass::Standard,
+        }
+    }
+    fn validate(&self, env: &Env) {
+        match self {
+            VaultAction::SetConfig(c) => validate_config(env, c),
+            VaultAction::SetDelay(d) => gov::check_delay(env, *d),
+            _ => {}
+        }
+    }
 }
 
 #[contracttype]
@@ -586,6 +606,7 @@ impl LeverageVault {
             }
             VaultAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             VaultAction::SetDelay(d) => gov::set_delay_now(&env, d),
+            VaultAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
         }
     }
 

@@ -18,7 +18,7 @@ fn sac(env: &Env, admin: &Address) -> Address {
 fn two_hop_swap_via_router_with_referral() {
     let env = Env::default();
     env.mock_all_auths();
-    env.ledger().set_timestamp(1_000);
+    env.ledger().set_timestamp(400);
     let admin = Address::generate(&env);
     let xlm = sac(&env, &admin);
     let usdc = sac(&env, &admin);
@@ -27,8 +27,14 @@ fn two_hop_swap_via_router_with_referral() {
     let reg = ReferralRegistryClient::new(&env, &reg_id);
     let p1 = env.register(AmmPool, (&admin, &xlm, &usdc, 30u32, Some(reg_id.clone()), 600u64));
     let p2 = env.register(AmmPool, (&admin, &usdc, &qfx, 30u32, Some(reg_id.clone()), 600u64));
-    reg.set_fee_source(&p1, &true);
-    reg.set_fee_source(&p2, &true);
+    // fee sources are approved through the referral timelock (600 s)
+    let a1 = quasaria_referral::ReferralAction::SetFeeSource(p1.clone(), true);
+    let a2 = quasaria_referral::ReferralAction::SetFeeSource(p2.clone(), true);
+    reg.propose_action(&a1);
+    reg.propose_action(&a2);
+    env.ledger().set_timestamp(1_000);
+    reg.execute_action(&a1);
+    reg.execute_action(&a2);
 
     let lp = Address::generate(&env);
     let user = Address::generate(&env);

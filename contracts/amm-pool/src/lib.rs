@@ -71,6 +71,25 @@ pub enum PoolAction {
     SetReferral(Option<Address>),
     Upgrade(BytesN<32>),
     SetDelay(u64),
+    SetGuardian(Address),
+}
+
+impl gov::TimelockAction for PoolAction {
+    fn delay_class(&self) -> gov::DelayClass {
+        match self {
+            PoolAction::Upgrade(_) | PoolAction::SetDelay(_) => gov::DelayClass::Critical,
+            PoolAction::SetFeeBps(_) | PoolAction::SetReferral(_) | PoolAction::SetGuardian(_) => {
+                gov::DelayClass::Standard
+            }
+        }
+    }
+    fn validate(&self, env: &Env) {
+        match self {
+            PoolAction::SetFeeBps(f) if *f > MAX_FEE_BPS => panic_with_error!(env, PoolError::FeeTooHigh),
+            PoolAction::SetDelay(d) => gov::check_delay(env, *d),
+            _ => {}
+        }
+    }
 }
 
 #[contracttype]
@@ -501,6 +520,7 @@ impl AmmPool {
             }
             PoolAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             PoolAction::SetDelay(d) => gov::set_delay_now(&env, d),
+            PoolAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
         }
     }
 

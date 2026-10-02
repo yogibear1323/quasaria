@@ -38,3 +38,6 @@ quasaria-backup*.json
 quasaria-bot.config.json
 id_rsa*
 id_ed25519*
+
+# multisig tooling outputs (unsigned XDR, rehearsal state)
+scripts/multisig/out/

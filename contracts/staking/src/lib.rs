@@ -25,7 +25,10 @@
 //!
 //! ## Governance
 //! Two-step admin transfer; guardian pause blocks `stake` only (unstake and
-//! claim always work); timelocked `Upgrade` / `SetDelay`. Instance and
+//! claim always work). Timelocked (`propose_action` -> delay ->
+//! `execute_action`): `AddPool`, `SetRewardRate`, `Activate`, `SetGuardian`
+//! (48 h class on mainnet) and `Upgrade` / `SetDelay` (72 h class). Only the
+//! risk-reducing `set_active(pool, false)` is instant. Instance and
 //! persistent TTLs are extended on every read and write.
 #![no_std]
 
@@ -84,12 +87,51 @@ pub struct Position {
     pub unlock_at: u64,
 }
 
+/// Parameters of a new staking pool (`StakingAction::AddPool`).
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PoolParams {
+    pub stake_token: Address,
+    pub reward_token: Address,
+    /// Reward units per second.
+    pub reward_rate: i128,
+    pub lock_seconds: u64,
+    pub min_stake: i128,
+}
+
 /// Timelocked admin actions.
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum StakingAction {
     Upgrade(BytesN<32>),
     SetDelay(u64),
+    SetGuardian(Address),
+    /// Whitelist a new pool (id = `pool_count()` at execution).
+    AddPool(PoolParams),
+    /// (pool_id, reward_rate)
+    SetRewardRate(u32, i128),
+    /// Re-activate a pool deactivated with `set_active(pool, false)`.
+    Activate(u32),
+}
+
+impl gov::TimelockAction for StakingAction {
+    fn delay_class(&self) -> gov::DelayClass {
+        match self {
+            StakingAction::Upgrade(_) | StakingAction::SetDelay(_) => gov::DelayClass::Critical,
+            StakingAction::SetGuardian(_)
+            | StakingAction::AddPool(_)
+            | StakingAction::SetRewardRate(_, _)
+            | StakingAction::Activate(_) => gov::DelayClass::Standard,
+        }
+    }
+    fn validate(&self, env: &Env) {
+        match self {
+            StakingAction::AddPool(p) => check_params(env, p),
+            StakingAction::SetRewardRate(_, r) => check_rate(env, *r),
+            StakingAction::SetDelay(d) => gov::check_delay(env, *d),
+            _ => {}
+        }
+    }
 }
 
 #[contracttype]
@@ -214,6 +256,69 @@ fn check_rate(env: &Env, reward_rate: i128) {
     }
 }
 
+fn check_params(env: &Env, p: &PoolParams) {
+    if p.lock_seconds > MAX_LOCK_SECONDS {
+        panic_with_error!(env, StakingError::LockTooLong);
+    }
+    check_rate(env, p.reward_rate);
+    if p.min_stake < MIN_STAKE_FLOOR {
+        panic_with_error!(env, StakingError::InvalidMinStake);
+    }
+}
+
+fn add_pool_now(env: &Env, params: PoolParams) -> u32 {
+    check_params(env, &params);
+    let id: u32 = env.storage().instance().get(&DataKey::PoolCount).unwrap_or(0);
+    let p = Pool {
+        stake_token: params.stake_token,
+        reward_token: params.reward_token,
+        reward_rate: params.reward_rate,
+        lock_seconds: params.lock_seconds,
+        total_staked: 0,
+        acc_reward_per_share: 0,
+        last_update: env.ledger().timestamp(),
+        reward_reserve: 0,
+        active: true,
+        min_stake: params.min_stake,
+    };
+    save_pool(env, id, &p);
+    env.storage()
+        .instance()
+        .set(&DataKey::PoolCount, &id.saturating_add(1));
+    PoolSet {
+        pool_id: id,
+        reward_rate: p.reward_rate,
+        active: true,
+    }
+    .publish(env);
+    id
+}
+
+fn set_reward_rate_now(env: &Env, pool_id: u32, reward_rate: i128) {
+    check_rate(env, reward_rate);
+    let mut p = updated(env, &load_pool(env, pool_id), env.ledger().timestamp());
+    p.reward_rate = reward_rate;
+    save_pool(env, pool_id, &p);
+    PoolSet {
+        pool_id,
+        reward_rate,
+        active: p.active,
+    }
+    .publish(env);
+}
+
+fn set_active_now(env: &Env, pool_id: u32, active: bool) {
+    let mut p = updated(env, &load_pool(env, pool_id), env.ledger().timestamp());
+    p.active = active;
+    save_pool(env, pool_id, &p);
+    PoolSet {
+        pool_id,
+        reward_rate: p.reward_rate,
+        active,
+    }
+    .publish(env);
+}
+
 quasaria_gov::governance_entrypoints!(Staking, StakingAction);
 quasaria_gov::pause_entrypoints!(Staking);
 
@@ -230,78 +335,24 @@ impl Staking {
         match action {
             StakingAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             StakingAction::SetDelay(d) => gov::set_delay_now(&env, d),
+            StakingAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
+            StakingAction::AddPool(params) => {
+                add_pool_now(&env, params);
+            }
+            StakingAction::SetRewardRate(pool_id, rate) => set_reward_rate_now(&env, pool_id, rate),
+            StakingAction::Activate(pool_id) => set_active_now(&env, pool_id, true),
         }
     }
 
-    /// Whitelist a stake token with its reward stream. Returns pool id.
-    pub fn add_pool(
-        env: Env,
-        stake_token: Address,
-        reward_token: Address,
-        reward_rate: i128,
-        lock_seconds: u64,
-        min_stake: i128,
-    ) -> u32 {
-        gov::require_admin(&env);
-        if lock_seconds > MAX_LOCK_SECONDS {
-            panic_with_error!(&env, StakingError::LockTooLong);
-        }
-        check_rate(&env, reward_rate);
-        if min_stake < MIN_STAKE_FLOOR {
-            panic_with_error!(&env, StakingError::InvalidMinStake);
-        }
-        let id: u32 = env.storage().instance().get(&DataKey::PoolCount).unwrap_or(0);
-        let p = Pool {
-            stake_token,
-            reward_token,
-            reward_rate,
-            lock_seconds,
-            total_staked: 0,
-            acc_reward_per_share: 0,
-            last_update: env.ledger().timestamp(),
-            reward_reserve: 0,
-            active: true,
-            min_stake,
-        };
-        save_pool(&env, id, &p);
-        env.storage()
-            .instance()
-            .set(&DataKey::PoolCount, &id.saturating_add(1));
-        PoolSet {
-            pool_id: id,
-            reward_rate,
-            active: true,
-        }
-        .publish(&env);
-        id
-    }
-
-    pub fn set_reward_rate(env: Env, pool_id: u32, reward_rate: i128) {
-        gov::require_admin(&env);
-        check_rate(&env, reward_rate);
-        let mut p = updated(&env, &load_pool(&env, pool_id), env.ledger().timestamp());
-        p.reward_rate = reward_rate;
-        save_pool(&env, pool_id, &p);
-        PoolSet {
-            pool_id,
-            reward_rate,
-            active: p.active,
-        }
-        .publish(&env);
-    }
-
-    /// De-whitelist (no new stakes, rewards stop); users can still exit.
+    /// Instant **deactivation** only (no new stakes, rewards stop; users can
+    /// still unstake and claim). Re-activating is risk-increasing and goes
+    /// through the timelocked `StakingAction::Activate`.
     pub fn set_active(env: Env, pool_id: u32, active: bool) {
         gov::require_admin(&env);
-        let mut p = updated(&env, &load_pool(&env, pool_id), env.ledger().timestamp());
-        p.active = active;
-        save_pool(&env, pool_id, &p);
-        PoolSet {
-            pool_id,
-            reward_rate: p.reward_rate,
-            active,
+        if active {
+            panic_with_error!(&env, gov::GovError::UseTimelock);
         }
-        .publish(&env);
+        set_active_now(&env, pool_id, false);
     }
 
     /// Top up the reward reserve of a pool (anyone may fund).

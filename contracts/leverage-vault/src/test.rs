@@ -42,7 +42,7 @@ fn setup_with(c: Config) -> T {
     let env = Env::default();
     env.mock_all_auths();
     env.cost_estimate().budget().reset_unlimited();
-    env.ledger().set_timestamp(1_000_000);
+    env.ledger().set_timestamp(1_000_000 - DELAY);
     let admin = Address::generate(&env);
     let usdc = env.register_stellar_asset_contract_v2(admin.clone()).address();
     let oracle_id = env.register(MockOracle, (&admin, 14u32, DELAY));
@@ -52,7 +52,10 @@ fn setup_with(c: Config) -> T {
         (&admin, &usdc, &oracle_id, Some(reg_id.clone()), c, DELAY),
     );
     let reg = ReferralRegistryClient::new(&env, &reg_id);
-    reg.set_fee_source(&vid, &true);
+    let fs = quasaria_referral::ReferralAction::SetFeeSource(vid.clone(), true);
+    reg.propose_action(&fs);
+    env.ledger().set_timestamp(1_000_000);
+    reg.execute_action(&fs);
     let v = LeverageVaultClient::new(&env, &vid);
     v.set_market(&Asset::Other(Symbol::new(&env, "XLM")), &true);
     let oracle = MockOracleClient::new(&env, &oracle_id);
@@ -142,13 +145,12 @@ fn leverage_cap_enforced() {
         t.v.try_open_position(&u, &u, &xlm(&t.env), &true, &100_000_000, &9_999),
         Err(Ok(VaultError::LeverageTooLow.into()))
     );
-    // admin cannot exceed hard cap (rejected when the timelocked action executes)
+    // admin cannot exceed hard cap (rejected when the timelocked action is
+    // queued, and again on execution)
     let mut c = config();
     c.max_leverage_bps = HARD_MAX_LEVERAGE_BPS + 1;
     let a = VaultAction::SetConfig(c);
-    t.v.propose_action(&a);
-    warp(&t, DELAY);
-    assert_eq!(t.v.try_execute_action(&a), Err(Ok(VaultError::InvalidConfig.into())));
+    assert_eq!(t.v.try_propose_action(&a), Err(Ok(VaultError::InvalidConfig.into())));
 }
 
 #[test]
@@ -441,9 +443,7 @@ fn invalid_configs_rejected() {
     bad.push(c);
     for c in bad {
         let a = VaultAction::SetConfig(c);
-        t.v.propose_action(&a);
-        warp(&t, DELAY);
-        assert_eq!(t.v.try_execute_action(&a), Err(Ok(VaultError::InvalidConfig.into())));
+        assert_eq!(t.v.try_propose_action(&a), Err(Ok(VaultError::InvalidConfig.into())));
     }
 }
 
@@ -477,7 +477,7 @@ fn timelock_guards_reserve_withdrawal() {
 fn timelock_cancel_and_expiry() {
     let t = setup();
     let guardian = Address::generate(&t.env);
-    t.v.set_guardian(&guardian);
+    timelocked(&t, &VaultAction::SetGuardian(guardian.clone()));
     let evil_oracle = Address::generate(&t.env);
     let a = VaultAction::SetOracle(evil_oracle.clone());
     t.v.propose_action(&a);
@@ -510,11 +510,9 @@ fn timelock_delay_change_and_upgrade_are_timelocked() {
     warp(&t, DELAY);
     t.v.execute_action(&a);
     assert_eq!(t.v.timelock_delay(), 7_200);
-    // invalid delay rejected at execution
+    // invalid delay rejected when queued
     let bad = VaultAction::SetDelay(1);
-    t.v.propose_action(&bad);
-    warp(&t, 7_200);
-    assert_eq!(t.v.try_execute_action(&bad), Err(Ok(GovError::InvalidDelay.into())));
+    assert_eq!(t.v.try_propose_action(&bad), Err(Ok(GovError::InvalidDelay.into())));
     // upgrade: early execution rejected by the timelock
     let up = VaultAction::Upgrade(BytesN::from_array(&t.env, &[7u8; 32]));
     t.v.propose_action(&up);
@@ -532,7 +530,7 @@ fn timelock_delay_change_and_upgrade_are_timelocked() {
 fn pause_blocks_new_risk_but_not_exits() {
     let t = setup();
     let guardian = Address::generate(&t.env);
-    t.v.set_guardian(&guardian);
+    timelocked(&t, &VaultAction::SetGuardian(guardian.clone()));
     assert_eq!(t.v.guardian(), guardian);
     let u = trader(&t, 2_000_000_000);
     let keeper = Address::generate(&t.env);

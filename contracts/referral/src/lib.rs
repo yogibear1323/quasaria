@@ -56,6 +56,28 @@ pub enum ReferralAction {
     SetShareBps(u32),
     Upgrade(BytesN<32>),
     SetDelay(u64),
+    SetGuardian(Address),
+    /// (source, allowed): approve or remove a contract (pool / vault) that
+    /// may record referral earnings.
+    SetFeeSource(Address, bool),
+}
+
+impl gov::TimelockAction for ReferralAction {
+    fn delay_class(&self) -> gov::DelayClass {
+        match self {
+            ReferralAction::Upgrade(_) | ReferralAction::SetDelay(_) => gov::DelayClass::Critical,
+            ReferralAction::SetShareBps(_)
+            | ReferralAction::SetGuardian(_)
+            | ReferralAction::SetFeeSource(_, _) => gov::DelayClass::Standard,
+        }
+    }
+    fn validate(&self, env: &Env) {
+        match self {
+            ReferralAction::SetShareBps(s) => check_share(env, *s),
+            ReferralAction::SetDelay(d) => gov::check_delay(env, *d),
+            _ => {}
+        }
+    }
 }
 
 #[contractevent(topics = ["share_set"], data_format = "single-value")]
@@ -133,6 +155,17 @@ impl ReferralRegistry {
             }
             ReferralAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             ReferralAction::SetDelay(d) => gov::set_delay_now(&env, d),
+            ReferralAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
+            ReferralAction::SetFeeSource(source, allowed) => {
+                let key = DataKey::FeeSource(source.clone());
+                if allowed {
+                    env.storage().persistent().set(&key, &true);
+                    bump(&env, &key);
+                } else {
+                    env.storage().persistent().remove(&key);
+                }
+                FeeSourceSet { source, allowed }.publish(&env);
+            }
         }
     }
 
@@ -142,19 +175,8 @@ impl ReferralRegistry {
         env.storage().instance().get(&DataKey::ShareBps).unwrap_or(0)
     }
 
-    /// Admin approves a contract (pool / vault) allowed to record earnings
-    /// (bookkeeping only; cannot move funds).
-    pub fn set_fee_source(env: Env, source: Address, allowed: bool) {
-        gov::require_admin(&env);
-        let key = DataKey::FeeSource(source.clone());
-        if allowed {
-            env.storage().persistent().set(&key, &true);
-            bump(&env, &key);
-        } else {
-            env.storage().persistent().remove(&key);
-        }
-        FeeSourceSet { source, allowed }.publish(&env);
-    }
+    // Fee sources (contracts allowed to record earnings; bookkeeping only)
+    // are approved / removed via the timelocked `ReferralAction::SetFeeSource`.
 
     pub fn is_fee_source(env: Env, source: Address) -> bool {
         let key = DataKey::FeeSource(source);

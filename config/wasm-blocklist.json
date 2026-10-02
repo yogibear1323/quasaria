@@ -1,0 +1,22 @@
+{
+  "_comment": "F-12: wasm that must NEVER be deployed to the Stellar public network. scripts/lib/wasm-guard.ts refuses any wasm whose sha256 is listed here, any wasm whose contract meta / file name identifies it as a mock, and any wasm byte-identical to the locally built mock oracle. Add the hash of every mock-oracle build that reaches testnet. Mainnet deploys additionally require the hash to be in config/wasm-allowlist.mainnet.json (audited hashes).",
+  "blocked": [
+    {
+      "name": "quasaria_mock_oracle (v3, live on testnet as CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY)",
+      "sha256": "56bb596790a24d8c6f5d9fbba5c168968bab90207c1bec5ab2764cefa6aa0997",
+      "reason": "Mock oracle: admin-pushed prices (set_price). Testnet only."
+    },
+    {
+      "name": "quasaria_mock_oracle (v2, retired testnet CBE3RO7HTU766G3RHQYBBUNQY3WJLY7C5JRKYGTELIHHVI26HSEVJMPK)",
+      "sha256": "819620147fed705c09c8000e925dd1374f1dffc0acd197000bfa6faebbae5c2f",
+      "reason": "Mock oracle: admin-pushed prices (set_price). Testnet only."
+    },
+    {
+      "name": "quasaria_mock_oracle (branch mainnet-step1-multisig, rustc 1.99.0, stellar CLI 28.0.0)",
+      "sha256": "231c1238085539621999fa7ec76effc3d0e4820cb57d474029914f914467192e",
+      "reason": "Mock oracle: admin-pushed prices (set_price). Testnet only. (Its constructor also refuses mainnet.)"
+    }
+  ],
+  "blockedMetaPatterns": ["mock"],
+  "blockedFileNamePatterns": ["mock"]
+}

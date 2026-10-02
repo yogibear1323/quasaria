@@ -11,6 +11,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertWasmDeployable } from "./lib/wasm-guard.ts";
 import { Asset, BASE_FEE, Horizon, Keypair, Networks, Operation, TransactionBuilder } from "../frontend/node_modules/@stellar/stellar-sdk/lib/esm/index.js";
 
 if (process.env.NETWORK && process.env.NETWORK !== "testnet") throw new Error("TESTNET ONLY");
@@ -106,6 +107,7 @@ const state = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : {};
 let POOL: string = dep.contracts.lending;
 if (!POOL) {
   if (!existsSync(WASM)) throw new Error("build the contracts first (stellar contract build)");
+  assertWasmDeployable(WASM, NET); // F-12 guard (refuses mocks / non-audited wasm on mainnet)
   const pc = params.pool;
   const cfg = { max_price_age: pc.maxPriceAgeSec, close_factor_bps: pc.closeFactorBps, close_dust_usd: (BigInt(pc.closeDustUsd) * P14).toString(), max_user_reserves: pc.maxUserReserves, max_borrowers: pc.maxBorrowers };
   log("deploying lending pool…");
@@ -119,7 +121,17 @@ const wasmHash = sh(["contract", "fetch", "--id", POOL, "--network", NET, "--out
 void wasmHash;
 
 // ------------------------------------------------------------------ reserves
+// Mainnet Step 1: listing is a timelocked action and a reserve is listed with
+// borrowing + collateral disabled; enabling each is its own timelocked action.
+// Queue everything for unlisted assets, wait out the delay once, execute.
+// (Needs the Step-1 lending wasm; the pre-Step-1 pool had an instant add_reserve.)
 const listed = new Set<string>(JSON.parse(inv(POOL, "quasaria-admin", ["reserve_list"], false)));
+const queued: string[] = [];
+const queue = (action: unknown) => {
+  const a = JSON.stringify(action);
+  inv(POOL, "quasaria-admin", ["propose_action", "--action", a]);
+  queued.push(a);
+};
 const rows: Record<string, unknown>[] = [];
 for (const a of assets) {
   const tierName = params.assets[a.id] as string;
@@ -127,8 +139,12 @@ for (const a of assets) {
   const price = priceOf(a.testnet.sac);
   let cfg = reserveConfig(t, price);
   if (!listed.has(a.testnet.sac)) {
-    inv(POOL, "quasaria-admin", ["add_reserve", "--asset", a.testnet.sac, "--config", JSON.stringify(cfg)]);
-    log(`  + reserve ${a.id.padEnd(7)} ${tierName.padEnd(19)} LTV ${t.ltv / 100}% thr ${t.threshold / 100}% bonus ${t.bonus / 100}%`);
+    const c = cfg as Record<string, unknown>;
+    const listing = { ...c, borrowable: false, borrow_cap: "0", collateral_enabled: false, ltv_bps: 0 };
+    queue({ AddReserve: [a.testnet.sac, listing] });
+    if (c.collateral_enabled) queue({ EnableCollateral: [a.testnet.sac, { ltv_bps: c.ltv_bps, liq_threshold_bps: c.liq_threshold_bps, liq_bonus_bps: c.liq_bonus_bps }] });
+    if (c.borrowable) queue({ EnableBorrowing: [a.testnet.sac, String(c.borrow_cap)] });
+    log(`  + queued reserve ${a.id.padEnd(7)} ${tierName.padEnd(19)} LTV ${t.ltv / 100}% thr ${t.threshold / 100}% bonus ${t.bonus / 100}%`);
   } else {
     cfg = JSON.parse(inv(POOL, "quasaria-admin", ["reserve_config", "--asset", a.testnet.sac], false));
   }
@@ -139,6 +155,14 @@ for (const a of assets) {
     sac: a.testnet.sac, name: a.name, logo: a.logo, category: a.category, peg: a.peg, offPeg: a.offPeg, tier: tierName, tierLabel: t.label,
     config: cfg, seedPriceUsd: Number(price) / 1e14,
   });
+}
+
+if (queued.length) {
+  const delay = Number(params.pool.timelockDelaySec) + 15;
+  log(`  waiting ${delay}s for the timelock (${queued.length} queued actions)…`);
+  await sleep(delay * 1000);
+  for (const a of queued) inv(POOL, "quasaria-admin", ["execute_action", "--action", a]);
+  log(`  executed ${queued.length} timelocked listing actions`);
 }
 
 // ------------------------------------------------------------------ seed supply

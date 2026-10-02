@@ -1,0 +1,4 @@
+{
+  "_comment": "Audited wasm hashes allowed on the Stellar public network (plan §3.8 / §5.3). EMPTY until the audit + re-audit pin the final hashes, so every mainnet deploy is refused by scripts/lib/wasm-guard.ts until then. Each entry: { \"name\", \"sha256\", \"auditReport\", \"commit\" }.",
+  "allowed": []
+}

@@ -3,6 +3,7 @@
  * Quasaria contracts on TESTNET.
  */
 import { Account, Address, BASE_FEE, Contract, Keypair, TransactionBuilder, nativeToScVal, rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
+import { assertSourceOnlyAuth } from "./xdrDescribe";
 import { NETWORK_PASSPHRASE, OFFLINE_DEMO, RPC_URL } from "./config";
 
 export const soroban = new rpc.Server(RPC_URL);
@@ -51,6 +52,7 @@ export async function invokeContract(
   // the simulation a few seconds earlier.
   const sim = await soroban.simulateTransaction(tx, { cpuInstructions: INSTRUCTION_LEEWAY });
   if (!rpc.Api.isSimulationSuccess(sim)) throw new Error(`simulation failed: ${method}${"error" in sim ? ` (${sim.error})` : ""}`);
+  assertSourceOnlyAuth(method, sim.result?.auth);
   const prepared = rpc.assembleTransaction(tx, sim).build();
   const signed = await sign(prepared.toXDR());
   const sent = await soroban.sendTransaction(TransactionBuilder.fromXDR(signed, NETWORK_PASSPHRASE));

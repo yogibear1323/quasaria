@@ -1,5 +1,6 @@
 /** Soroban RPC adapter for the lending pool + mock oracle (TESTNET ONLY). */
 import { Account, Address, BASE_FEE, Contract, Keypair, Networks, TransactionBuilder, nativeToScVal, rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
+import { assertSourceOnlyAuth } from "../authGuard.js";
 import type { Account as Acct, LendingVenue, LiquidationPlan, Position, ReserveInfo } from "./keeper.js";
 
 export const assetStellar = (sac: string) => xdr.ScVal.scvVec([nativeToScVal("Stellar", { type: "symbol" }), new Address(sac).toScVal()]);
@@ -33,6 +34,7 @@ export class SorobanClient {
       .build();
     const sim = await this.server.simulateTransaction(tx);
     if (!rpc.Api.isSimulationSuccess(sim)) throw new Error(`${method}: simulation failed${"error" in sim ? ` (${String(sim.error).split("\n")[0]})` : ""}`);
+    assertSourceOnlyAuth(method, sim.result?.auth);
     const prepared = rpc.assembleTransaction(tx, sim).build();
     prepared.sign(this.kp);
     const sent = await this.server.sendTransaction(prepared);

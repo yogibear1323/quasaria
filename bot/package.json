@@ -17,7 +17,7 @@
     "oracle-feed": "tsx src/lending/cli.ts oracle-feed"
   },
   "dependencies": {
-    "@stellar/stellar-sdk": "^17.1.0"
+    "@stellar/stellar-sdk": "^17.2.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

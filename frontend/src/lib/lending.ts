@@ -6,6 +6,7 @@ import { Account, Address, BASE_FEE, Contract, Keypair, TransactionBuilder, nati
 import L from "../config/lending.json";
 import { NETWORK_PASSPHRASE, OFFLINE_DEMO } from "./config";
 import { soroban } from "./soroban";
+import { assertSourceOnlyAuth, authEntryLines, hostFunctionLines, scValText } from "./xdrDescribe";
 
 export type ReserveConfig = {
   decimals: number; ltv_bps: number; liq_threshold_bps: number; liq_bonus_bps: number; reserve_factor_bps: number;
@@ -179,6 +180,7 @@ export async function preparePoolCall(pubkey: string, method: string, args: xdr.
     const code = "error" in sim ? String(sim.error).match(/Error\(Contract, #(\d+)\)/)?.[1] : undefined;
     throw new Error(code ? `${method} would fail: ${errorText(Number(code))}` : `simulation failed: ${method}`);
   }
+  assertSourceOnlyAuth(method, sim.result?.auth);
   return rpc.assembleTransaction(tx, sim).build();
 }
 
@@ -203,15 +205,6 @@ export function labelFor(address: string): string | null {
   return null;
 }
 
-function scToTxrep(v: xdr.ScVal): string {
-  switch (v.type) {
-    case "scvAddress": return Address.fromScVal(v).toString();
-    case "scvI128": case "scvU64": case "scvU32": case "scvI64": case "scvBool": return String(scValToNative(v));
-    case "scvSymbol": return `"${String(scValToNative(v))}"`;
-    default: return JSON.stringify(scValToNative(v), (_k, x) => (typeof x === "bigint" ? x.toString() : x));
-  }
-}
-
 /**
  * Txrep-style (SEP-11) lines for a single-op invoke-contract transaction, annotated with
  * human-readable comments (assets as CODE:ISSUER, amounts in tokens).
@@ -232,18 +225,23 @@ export function txrep(tx: Transaction, notes: ArgNote[] = []): string[] {
     lines.push(`tx.operations[${i}].sourceAccount._present: false`, `${p}.type: ${op.type === "invokeHostFunction" ? "INVOKE_HOST_FUNCTION" : op.type}`);
     if (op.type !== "invokeHostFunction") return;
     const fn = op.func;
-    if (fn.type !== "hostFunctionTypeInvokeContract") return;
-    const ic = fn.invokeContract;
     const h = `${p}.invokeHostFunctionOp.hostFunction`;
+    if (fn.type !== "hostFunctionTypeInvokeContract") {
+      // Deploys / uploads (incl. CAP-85 external-ref executables) or a future arm: say so, don't hide it.
+      lines.push(...hostFunctionLines(fn, h), ...authEntryLines(op.auth, `${p}.invokeHostFunctionOp.auth`));
+      return;
+    }
+    const ic = fn.invokeContract;
     const contract = Address.fromScAddress(ic.contractAddress).toString();
     lines.push(`${h}.type: HOST_FUNCTION_TYPE_INVOKE_CONTRACT`, `${h}.invokeContract.contractAddress: ${contract}${labelFor(contract) ? `  (${labelFor(contract)})` : ""}`, `${h}.invokeContract.functionName: "${ic.functionName.toString()}"`, `${h}.invokeContract.args.len: ${ic.args.length}`);
     ic.args.forEach((a: xdr.ScVal, j: number) => {
-      const raw = scToTxrep(a);
+      const raw = scValText(a);
       const lab = a.type === "scvAddress" ? labelFor(raw) : null;
       const note = notes[j] ?? lab;
       lines.push(`${h}.invokeContract.args[${j}]: ${raw}${note ? `  (${note})` : ""}`);
     });
-    lines.push(`${p}.invokeHostFunctionOp.auth.len: ${op.auth?.length ?? 0}`);
+    // Each auth entry with its credential arm (SOURCE_ACCOUNT / ADDRESS / CAP-71 ADDRESS_V2 / WITH_DELEGATES).
+    lines.push(...authEntryLines(op.auth, `${p}.invokeHostFunctionOp.auth`));
   });
   lines.push(`tx.ext.v: 1  (Soroban resources from simulation)`, `signatures.len: 0  (your wallet signs next)`);
   return lines;

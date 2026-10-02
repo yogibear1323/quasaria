@@ -4,6 +4,7 @@
  * the owner delegated with `vault.set_operator` (it can trade, not withdraw).
  */
 import { Account, Address, BASE_FEE, Contract, Keypair, Networks, TransactionBuilder, nativeToScVal, rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
+import { assertSourceOnlyAuth } from "./authGuard.js";
 import type { KeeperVault, OpenRequest, TradingVenue } from "./exchange.js";
 import type { Position } from "./types.js";
 
@@ -54,6 +55,7 @@ export class SorobanVault implements TradingVenue, KeeperVault {
     // Instruction leeway: time-dependent contract math can cost slightly more on-chain than simulated.
     const sim = await this.server.simulateTransaction(tx, { cpuInstructions: 1_000_000 });
     if (!rpc.Api.isSimulationSuccess(sim)) throw new Error(`${method}: simulation failed${"error" in sim ? ` (${sim.error})` : ""}`);
+    assertSourceOnlyAuth(method, sim.result?.auth);
     const prepared = rpc.assembleTransaction(tx, sim).build();
     prepared.sign(this.kp);
     const sent = await this.server.sendTransaction(prepared);

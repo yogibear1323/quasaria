@@ -1,0 +1,37 @@
+{
+  "_comment": "Throwaway protocol-28 smoke test (scripts/smoke-p28.ts). TESTNET ONLY; not a Quasaria deployment; nothing here is used by the app.",
+  "ranAt": "2026-10-02T01:19:52.436Z",
+  "rpc": "https://soroban-testnet.stellar.org",
+  "rpcVersion": "29.0.0-b2b701685c79aee17fe4eb22dbd08a5dfd11594d",
+  "protocolVersion": 29,
+  "contractId": "CCSWFDENQXAVWYLDX6AQA3HBT4JQXX2XMFX5ELURLYBNZ5JLMLM25CH7",
+  "wasmSha256": "9ba468f38e7e30199af874fb9ed2dd5aaefe86ad6b0a5e74c9b3fb0f146f96da",
+  "upload": "28d49018cd58e86812c4740f01d1c845801b868f63b96a990e431d0f3ad02ee8",
+  "deploy": "4fedcbc229b1aa2a7fa567943203b78bb184b2f5f8dea6f90f22d137f712dde2",
+  "legacyAddressV1": {
+    "kind": "address",
+    "ok": true,
+    "hash": "15bed4828cf03e2c712db31b67805ce8c2d61c16b1b28620db1ef41d8ef7bfaa"
+  },
+  "addressV2": {
+    "kind": "addressV2",
+    "ok": true,
+    "hash": "6156e49b4a391d0c55e6af57d244d254e9db9daf717e03047f393115b922b61b"
+  },
+  "readBackPriceV2": "222",
+  "proposeAdmin": {
+    "kind": "addressV2",
+    "ok": true,
+    "hash": "e5a2f846bf74b6229a2562e0cdc9e99130c62812b5d49061789eb0643d7ae2a1"
+  },
+  "proposeAdminEvents": [
+    {
+      "topics": [
+        "admin_proposed",
+        "GAW6VTRO4EK5PVB4GLBZJJP7PPG6SP7NOVPJ6FXBEVBUCTRWBMLGPGEB",
+        "GBM6JK2JXQAJNCN7ZUD36CGBCXME2Z7FD3GQUHXQSYDQDXVFZ5WOSYXE"
+      ],
+      "data": {}
+    }
+  ]
+}

@@ -86,3 +86,28 @@ test("txrep/summary: decode classic tx", () => {
   assert.match(s, /BUMP_SEQUENCE/);
   assert.match(s, new RegExp(sdkHash(x, Networks.TESTNET)));
 });
+
+test("summary: protocol 27/28 credential arms are named, with address and delegates", async () => {
+  const { Address, Contract } = await import("@stellar/stellar-sdk");
+  const src = Keypair.random(), who = Keypair.random().publicKey(), del = Keypair.random().publicKey();
+  const c = new Contract("CA3D5KRYM6CB7OWQ6TWYRR3Z4T7GNZLKERYNZGGA5SOAOPIFY6YQGAXE");
+  const args = new xdr.InvokeContractArgs({ contractAddress: c.address().toScAddress(), functionName: "propose_action", args: [] });
+  const inv = new xdr.SorobanAuthorizedInvocation({ function: xdr.SorobanAuthorizedFunction.sorobanAuthorizedFunctionTypeContractFn(args), subInvocations: [] });
+  const ac = new xdr.SorobanAddressCredentials({ address: new Address(who).toScAddress(), nonce: 1n, signatureExpirationLedger: 9, signature: xdr.ScVal.scvVoid() });
+  const entries = [
+    xdr.SorobanCredentials.sorobanCredentialsSourceAccount(),
+    xdr.SorobanCredentials.sorobanCredentialsAddress(ac),
+    xdr.SorobanCredentials.sorobanCredentialsAddressV2(ac),
+    xdr.SorobanCredentials.sorobanCredentialsAddressWithDelegates(new xdr.SorobanAddressCredentialsWithDelegates({ addressCredentials: ac, delegates: [new xdr.SorobanDelegateSignature({ address: new Address(del).toScAddress(), signature: xdr.ScVal.scvVoid(), nestedDelegates: [] })] })),
+  ].map((credentials) => new xdr.SorobanAuthorizationEntry({ credentials, rootInvocation: inv }));
+  const env = new TransactionBuilder(new Account(src.publicKey(), "1"), { fee: "100", networkPassphrase: Networks.TESTNET })
+    .addOperation(Operation.invokeHostFunction({ func: xdr.HostFunction.hostFunctionTypeInvokeContract(args), auth: entries }))
+    .setTimeout(60).build().toEnvelope().toXDR("base64");
+  const s = summarize(env, Networks.TESTNET);
+  assert.match(s, /#0: source_account -> C/);
+  assert.match(s, new RegExp(`#1: address address=${who} .*legacy v1`));
+  assert.match(s, new RegExp(`#2: address_v2 address=${who} .*CAP-71`));
+  assert.match(s, new RegExp(`#3: address_with_delegates address=${who}`));
+  assert.match(s, new RegExp(`delegate ${del} \\(unsigned\\)`));
+  assert.match(toTxrep(env), /addressV2|address_v2|addressWithDelegates/);
+});

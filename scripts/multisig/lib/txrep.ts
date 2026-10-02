@@ -122,6 +122,13 @@ function describeScArg(j: unknown): string {
   return r.length > 600 ? r.slice(0, 600) + "…" : r;
 }
 
+const CREDENTIAL_NOTES: Record<string, string> = {
+  source_account: "",
+  address: "  (legacy v1 credential: Trezor firmware refuses it)",
+  address_v2: "  (CAP-71 address-bound credential)",
+  address_with_delegates: "  (CAP-71 delegated auth: each delegate signs separately)",
+};
+
 function describeOp(op: any, i: number, lines: string[]) {
   const src = op.source_account ? ` (op source ${op.source_account})` : "";
   const [kind, body] = Object.entries(op.body)[0] as [string, any];
@@ -138,10 +145,16 @@ function describeOp(op: any, i: number, lines: string[]) {
     const auth = body.auth as any[];
     lines.push(`      auth entries: ${auth.length}`);
     auth.forEach((e, n) => {
+      // Credential arms (stellar-xdr v28): source_account | address (legacy v1) |
+      // address_v2 (CAP-71) | address_with_delegates (CAP-71-01) | anything newer.
       const cred = typeof e.credentials === "string" ? e.credentials : Object.keys(e.credentials)[0];
-      const who = typeof e.credentials === "object" && e.credentials.address ? ` address=${e.credentials.address.address}` : "";
+      const body = typeof e.credentials === "object" ? e.credentials[cred] : null;
+      const addrCreds = body?.address_credentials ?? body;
+      const who = addrCreds?.address ? ` address=${addrCreds.address}` : "";
+      const note = CREDENTIAL_NOTES[cred] ?? "  <-- UNKNOWN credential type: do not sign, inspect the Txrep";
       const root = e.root_invocation?.function?.contract_fn;
-      lines.push(`        #${n}: ${cred}${who}${root ? ` -> ${root.contract_address}.${root.function_name}` : ""}`);
+      lines.push(`        #${n}: ${cred}${who}${root ? ` -> ${root.contract_address}.${root.function_name}` : ""}${note}`);
+      for (const d of (body?.delegates as any[] | undefined) ?? []) lines.push(`           delegate ${d.address}${d.signature === "void" ? " (unsigned)" : ""}`);
     });
   } else if (kind === "set_options") {
     lines.push(`  [${i}] SET_OPTIONS${src}`);

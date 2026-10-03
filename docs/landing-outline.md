@@ -2,7 +2,7 @@
 
 1. Hero
 Headline: Trade at the speed of light.
-Pitch: Quasaria is a self-banking decentralized exchange on Stellar where you trade, earn, and stay in full control of your keys. No sign-up forms and no middleman.
+Pitch: Stellar Decentralized Exchange
 Visual: the animated quasar scene with the illustrative logo, a live XLM price ticker, and two buttons, "Launch app" and "Create a wallet". Add a small "Testnet beta" badge until the live launch.
 
 2. Markets

@@ -130,7 +130,7 @@ export default function Pools() {
   return (
     <>
       <PageHead kicker="Scene · Nebula Drift" title="Liquidity Pools" right={<div className="row"><SourceTag {...chain} /><span className="pill pink">Constant product · SEP-41 LP shares</span><Link className="pill cyan" to="/calculators?c=lp">🧮 LP calculator</Link></div>}>
-        Deposit both assets into an x·y=k pool, receive QLP share tokens, and earn 80% of the 0.30% swap fee (20% goes to the trader's referrer, if any). Pick any pair from {ASSET_LIST.length} assets — all notable Stellar stablecoins plus popular assets like SHX, AQUA and yXLM — to build your self-banking setup.
+        Deposit both assets into an x·y=k pool, receive QLP share tokens, and earn 80% of the 0.30% swap fee (20% goes to the trader's referrer, if any). Pick any pair from {ASSET_LIST.length} assets — all notable Stellar stablecoins plus popular assets like SHX, AQUA and yXLM — to build your own setup.
       </PageHead>
 
       <div className="card" style={{ marginBottom: 18, position: "relative", zIndex: 20 }} data-testid="pool-picker">

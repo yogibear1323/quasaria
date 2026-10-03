@@ -1,6 +1,6 @@
 # Stellar Protocol 28 ("Adapter"), and the protocol 29 upgrade that followed
 
-Status: Oct 1, 2026, branch `protocol-28`. Testnet only. No mainnet transactions were made, and the live testnet contracts were not touched.
+Status: written Oct 1, 2026 on branch `protocol-28`; merged to `main` on Oct 2, 2026 (PR #2, after PR #1). Testnet only. No mainnet transactions were made, and the live testnet contracts were not touched.
 
 ## TL;DR
 
@@ -84,7 +84,7 @@ The live Quasaria testnet contracts were not redeployed or upgraded.
    - CAP-71 delegate-auth fixes in `authorizeEntry` / `needsNonInvokerSigningBy`
    - `scvSortedMap()` / `nativeToScVal()` sorting map keys in host order (previously some maps were rejected by the host)
    - `Asset.compare()` ordering by issuer key bytes, which fixes valid pool pairs being rejected by `getLiquidityPoolId` / `LiquidityPoolAsset`. We use both in `frontend/src/lib/stellar.ts`.
-2. **`frontend/src/lib/xdrDescribe.ts`** (new, total functions, 10 tests). It describes:
+2. **`frontend/src/lib/xdrDescribe.ts`** (new, total functions, 9 tests). It describes:
    - every `SorobanCredentials` arm: `SOURCE_ACCOUNT`, legacy `ADDRESS`, `ADDRESS_V2`, `ADDRESS_WITH_DELEGATES` with delegate list, and `UNKNOWN(...)` with a do-not-sign warning
    - every `ContractExecutable`, including CAP-85 `EXTERNAL_REF` (owner + tag)
    - `SCV_EXECUTABLE_TAG`
@@ -133,7 +133,7 @@ I merged `protocol-28` into PR #1 in a scratch worktree (local branch `scratch/p
   - bot **35/35**
   - `scripts/multisig` **31/31** + `tsc` (32/32 with the follow-up below)
   - wasm build reproduces PR #1's blocklisted mock-oracle hash `231c1238…192e` byte for byte; `wasm-guard --network mainnet` still refuses it on all five rules.
-- **Follow-up for PR #1** (`docs/patches/pr1-multisig-p28-credentials.patch`; applies cleanly to 659a094; not pushed to the PR branch): `scripts/multisig/lib/txrep.ts` `summarize()` only printed the address for legacy `address` credentials. It now does the following, with one new test:
+- **Follow-up for PR #1** (`docs/patches/pr1-multisig-p28-credentials.patch`; applies cleanly to 659a094; applied on `main` as commit `ecc01c4` after both PRs merged): `scripts/multisig/lib/txrep.ts` `summarize()` only printed the address for legacy `address` credentials. It now does the following, with one new test:
   - names `address_v2` / `address_with_delegates` with their address
   - lists delegates
   - marks legacy v1 ("Trezor refuses")

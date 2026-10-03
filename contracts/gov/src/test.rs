@@ -282,3 +282,26 @@ fn only_admin_can_queue_and_execute() {
     warp(&env, 300);
     assert!(c.try_execute_action(&TAction::Param(1)).is_err());
 }
+
+#[test]
+fn timelock_and_guardian_events_are_emitted() {
+    use soroban_sdk::{testutils::Events as _, Event};
+    let (env, c, admin) = setup(false, 300);
+    let g = Address::generate(&env);
+    let a = TAction::SetGuardian(g.clone());
+    let op = gov::op_id(&env, &a);
+    let has = |e: soroban_sdk::xdr::ContractEvent| env.events().all().events().contains(&e);
+
+    let eta = c.propose_action(&a);
+    assert!(has(gov::Queued { op: op.clone(), eta, action: a.clone().into_val(&env) }.to_xdr(&env, &c.address)));
+
+    env.ledger().set_timestamp(T0 + 300);
+    c.execute_action(&a);
+    assert!(has(gov::Executed { op: op.clone(), action: a.clone().into_val(&env) }.to_xdr(&env, &c.address)));
+    assert!(has(gov::GuardianSet { admin: admin.clone(), guardian: g.clone() }.to_xdr(&env, &c.address)));
+
+    let b = TAction::Param(7);
+    c.propose_action(&b);
+    c.cancel_action(&g, &b);
+    assert!(has(gov::Cancelled { op: gov::op_id(&env, &b), by: g.clone() }.to_xdr(&env, &c.address)));
+}

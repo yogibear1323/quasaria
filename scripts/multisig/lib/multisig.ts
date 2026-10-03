@@ -84,7 +84,10 @@ export function checkPlan(plan: MultisigPlan, state?: AccountState, opt: CheckOp
   if (plan.low > plan.med || plan.med > plan.high) errors.push(`thresholds must satisfy low <= med <= high (got ${plan.low}/${plan.med}/${plan.high})`);
   if (plan.masterWeight !== 0 && !opt.keepMaster) errors.push(`master weight must be 0 (got ${plan.masterWeight}); the master key is a single point of failure`);
 
+  // With --keep-master the master key stays a signer: count its weight in the
+  // lockout / single-key-control / lost-device checks below.
   const weights = plan.signers.map((s) => s.weight);
+  if (opt.keepMaster && isByte(plan.masterWeight) && plan.masterWeight > 0) weights.push(plan.masterWeight);
   const total = weights.reduce((a, b) => a + b, 0);
   const maxW = weights.length ? Math.max(...weights) : 0;
   if (total < plan.high) errors.push(`LOCKOUT: total signer weight ${total} < high threshold ${plan.high} (signer changes would be impossible forever)`);

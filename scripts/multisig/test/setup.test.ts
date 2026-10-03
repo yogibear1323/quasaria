@@ -150,3 +150,14 @@ test("parseSignerArg / parseHorizonAccount", () => {
   assert.equal(h.state.masterWeight, 0);
   assert.deepEqual(h.state.signers, [{ key: k, weight: 1 }]);
 });
+
+test("checkPlan --keep-master: the master weight counts toward single-key control and lost-device checks", () => {
+  const p = plan();
+  const km = (pl: MultisigPlan) => checkPlan(pl, undefined, { profile: "admin", keepMaster: true }).errors.join(" | ");
+  // master weight 2 alone reaches med 2: not multisig
+  assert.match(km({ ...p, masterWeight: 2 }), /single signer reaches the medium threshold/);
+  // master weight 1 next to three weight-1 signers is a valid 2-of-4
+  assert.equal(km({ ...p, masterWeight: 1 }), "");
+  // one signer (w1) + kept master (w1) reaches 2: no false LOCKOUT
+  assert.doesNotMatch(km({ ...p, signers: p.signers.slice(0, 1), masterWeight: 1 }), /LOCKOUT/);
+});

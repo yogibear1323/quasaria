@@ -15,11 +15,13 @@ import AccountModal from "../components/AccountModal";
 import OrderBook from "../components/OrderBook";
 import WorldMap, { type MapPin } from "../components/WorldMap";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
+import SizzleReel from "../components/SizzleReel";
 import { FeedBadge, RiskWarning } from "../components/ui";
 import { NewsDisclaimer, NewsGrid, NewsHeader, NewsSources } from "../components/News";
 import { useNews } from "../lib/news";
 import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
 import { parseOutline } from "../lib/landingCopy";
+import { SIZZLE_COPY } from "../lib/sizzle";
 import { useWallet } from "../lib/wallet";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
@@ -41,7 +43,7 @@ const VERIFIED = PAIRS.filter((p) => p.verified && p.primary);
 const TESTNET_POOLS = POOL_LIST.map((p) => ({ pool: p.pool, code: p.base, mock: assetById(p.base)?.testnet.kind === "mirror" }));
 
 // ---------------------------------------------------------------- shell bits
-function Section({ id, n, scene, onScene, children, kicker, wide, unnumbered }: { id: string; n: number; scene: Scene; onScene: (s: Scene) => void; children: ReactNode; kicker?: string; wide?: boolean; unnumbered?: boolean }) {
+function Section({ id, n, scene, onScene, children, kicker, wide, unnumbered, headline, pitch }: { id: string; n: number; scene: Scene; onScene: (s: Scene) => void; children: ReactNode; kicker?: string; wide?: boolean; unnumbered?: boolean; headline?: string; pitch?: string }) {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -54,8 +56,8 @@ function Section({ id, n, scene, onScene, children, kicker, wide, unnumbered }: 
   return (
     <section id={id} ref={ref} className={`l-section ${wide ? "wide" : ""}`} aria-labelledby={`${id}-h`}>
       <div className="l-kicker">{unnumbered ? kicker ?? c.title : <>{String(n).padStart(2, "0")} · {kicker ?? c.title}</>}</div>
-      <h2 id={`${id}-h`} className="l-h2">{c.headline}</h2>
-      <p className="l-pitch">{c.pitch}</p>
+      <h2 id={`${id}-h`} className="l-h2">{headline ?? c.headline}</h2>
+      <p className="l-pitch">{pitch ?? c.pitch}</p>
       <div className="l-visual">{children}</div>
     </section>
   );
@@ -673,6 +675,8 @@ export default function Landing() {
             </div>
           </section>
 
+          {/* Sizzle reel: not part of the 15-section approved outline, so its copy lives in lib/sizzle.ts */}
+          <Section id="watch" n={0} scene="quasar" onScene={onScene} kicker={SIZZLE_COPY.kicker} headline={SIZZLE_COPY.headline} pitch={SIZZLE_COPY.pitch} unnumbered><SizzleReel /></Section>
           <Section id="markets" n={2} scene="constellation" onScene={onScene}><MarketsPreview /></Section>
           <Section id="news" n={15} scene="constellation" onScene={onScene} kicker="News" unnumbered><NewsPreview /></Section>
           <Section id="trade" n={3} scene="quasar" onScene={onScene}><TradePreview /></Section>

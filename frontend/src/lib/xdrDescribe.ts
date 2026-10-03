@@ -43,8 +43,13 @@ export function scValText(v: xdr.ScVal): string {
         const t = scValToNative(v) as string | Uint8Array;
         return `executable tag ${typeof t === "string" ? JSON.stringify(t) : `0x${hex(t)}`}  (CAP-85)`;
       }
-      default:
-        return JSON.stringify(scValToNative(v), jsonSafe);
+      case "scvLedgerKeyContractInstance": return "LEDGER_KEY_CONTRACT_INSTANCE";
+      default: {
+        // JSON.stringify(undefined) is undefined: an arm the SDK maps to
+        // nothing (e.g. a future ScVal) must be flagged, not printed as "undefined".
+        const s = JSON.stringify(scValToNative(v), jsonSafe);
+        return s === undefined ? `UNKNOWN(${String(v.type)})  (WARNING: value type unknown to this app)` : s;
+      }
     }
   } catch {
     // An arm the SDK cannot convert natively: show the raw XDR, don't throw.

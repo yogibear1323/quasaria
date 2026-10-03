@@ -123,3 +123,14 @@ describe("source-only auth guard (wallet signs the envelope only)", () => {
     expect(() => assertSourceOnlyAuth("borrow", [entry(xdr.SorobanCredentials.sorobanCredentialsAddressV2(addrCreds()))])).toThrow(/borrow needs a separate authorization signature \(SOROBAN_CREDENTIALS_ADDRESS_V2\)/);
   });
 });
+
+describe("scValText totality", () => {
+  it("never renders a value as the string 'undefined'", () => {
+    expect(scValText(xdr.ScVal.scvLedgerKeyContractInstance())).toBe("LEDGER_KEY_CONTRACT_INSTANCE");
+    const future = { type: "scvSomethingNew", switch: () => ({ name: "scvSomethingNew", value: 99 }), value: () => undefined, toXdr: () => "AAAA" } as unknown as xdr.ScVal;
+    const out = scValText(future);
+    expect(typeof out).toBe("string");
+    expect(out).not.toBe("undefined");
+    expect(out).toMatch(/scvSomethingNew/);
+  });
+});

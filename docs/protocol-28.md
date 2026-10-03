@@ -84,7 +84,7 @@ The live Quasaria testnet contracts were not redeployed or upgraded.
    - CAP-71 delegate-auth fixes in `authorizeEntry` / `needsNonInvokerSigningBy`
    - `scvSortedMap()` / `nativeToScVal()` sorting map keys in host order (previously some maps were rejected by the host)
    - `Asset.compare()` ordering by issuer key bytes, which fixes valid pool pairs being rejected by `getLiquidityPoolId` / `LiquidityPoolAsset`. We use both in `frontend/src/lib/stellar.ts`.
-2. **`frontend/src/lib/xdrDescribe.ts`** (new, total functions, 9 tests). It describes:
+2. **`frontend/src/lib/xdrDescribe.ts`** (new, total functions, 10 tests: 9 in PR #2 + 1 follow-up). It describes:
    - every `SorobanCredentials` arm: `SOURCE_ACCOUNT`, legacy `ADDRESS`, `ADDRESS_V2`, `ADDRESS_WITH_DELEGATES` with delegate list, and `UNKNOWN(...)` with a do-not-sign warning
    - every `ContractExecutable`, including CAP-85 `EXTERNAL_REF` (owner + tag)
    - `SCV_EXECUTABLE_TAG`

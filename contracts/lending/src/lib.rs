@@ -306,15 +306,31 @@ impl gov::TimelockAction for LendingAction {
                     panic_with_error!(env, LendError::InvalidConfig);
                 }
             }
-            LendingAction::EnableCollateral(_, p) => {
-                if p.liq_threshold_bps == 0 || p.liq_bonus_bps == 0 || p.ltv_bps > p.liq_threshold_bps {
-                    panic_with_error!(env, LendError::InvalidConfig);
-                }
-            }
+            LendingAction::EnableCollateral(_, p) => check_collateral_params(env, p),
             LendingAction::WithdrawTreasury(_, _, amount) => pos_amount(*amount, env),
             LendingAction::SetDelay(d) => gov::check_delay(env, *d),
             LendingAction::SetOracle(_) | LendingAction::Upgrade(_) | LendingAction::SetGuardian(_) => {}
         }
+    }
+}
+
+/// Queue-time checks for `EnableCollateral`: the same bounds that
+/// `validate_reserve_config` applies at execution (threshold / bonus present,
+/// LTV <= threshold, hard caps, threshold × (1 + bonus) < 100 %), so an
+/// out-of-range proposal fails now instead of after the timelock.
+pub fn check_collateral_params(env: &Env, p: &CollateralParams) {
+    if p.liq_threshold_bps == 0
+        || p.liq_bonus_bps == 0
+        || p.ltv_bps > p.liq_threshold_bps
+        || p.liq_threshold_bps > MAX_LIQ_THRESHOLD_BPS
+        || p.liq_bonus_bps > MAX_LIQ_BONUS_BPS
+    {
+        panic_with_error!(env, LendError::InvalidConfig);
+    }
+    let t = i128::from(p.liq_threshold_bps);
+    let b = gov::add(env, BPS, i128::from(p.liq_bonus_bps));
+    if gov::mul(env, t, b) >= gov::mul(env, BPS, BPS) {
+        panic_with_error!(env, LendError::InvalidConfig);
     }
 }
 

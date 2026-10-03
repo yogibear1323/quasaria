@@ -1074,6 +1074,27 @@ fn step1_listing_must_have_borrow_and_collateral_disabled() {
 }
 
 #[test]
+fn step1_enable_collateral_bounds_checked_at_queue_time() {
+    let t = setup();
+    let a = Address::generate(&t.env);
+    let cp = |ltv_bps: u32, liq_threshold_bps: u32, liq_bonus_bps: u32| {
+        LendingAction::EnableCollateral(a.clone(), CollateralParams { ltv_bps, liq_threshold_bps, liq_bonus_bps })
+    };
+    for bad in [
+        cp(0, 0, 500),                            // no threshold
+        cp(7_000, 8_000, 0),                      // no bonus
+        cp(8_500, 8_000, 500),                    // LTV above threshold
+        cp(7_000, MAX_LIQ_THRESHOLD_BPS + 1, 1),  // threshold above the hard cap
+        cp(7_000, 8_000, MAX_LIQ_BONUS_BPS + 1),  // bonus above the hard cap
+        cp(8_000, 9_200, 900),                    // 92 % x 1.09 >= 100 %
+    ] {
+        assert_eq!(err(t.pool.try_propose_action(&bad)), le(LendError::InvalidConfig));
+    }
+    // in-range params queue fine (the reserve itself is checked at execution)
+    t.pool.propose_action(&cp(7_500, 8_000, 500));
+}
+
+#[test]
 fn step1_list_then_enable_collateral_then_borrowing() {
     let t = setup();
     let lp = t.lp(100_000);

@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
-import { CONTRACTS, CONTRACTS_CONFIGURED, DEMO_ACCOUNTS } from "./config";
+import { CONTRACTS, CONTRACTS_CONFIGURED, DEMO_ACCOUNTS, VAULT_MARKET } from "./config";
 import { addr, assetOther, readContract, soroban, u32, u64 } from "./soroban";
 import { fromUnits } from "./format";
 import { useWallet } from "./wallet";
@@ -199,6 +199,12 @@ export async function readReferrerOf(user: string) {
 }
 
 // ---------------------------------------------------------------- vault
+/** ScVal of the vault's XLM market key (`Asset::Stellar(sac)` or `Asset::Other(sym)`, see VAULT_MARKET). */
+export function vaultMarketAsset(): xdr.ScVal {
+  return "Stellar" in VAULT_MARKET
+    ? xdr.ScVal.scvVec([xdr.ScVal.scvSymbol("Stellar"), addr(VAULT_MARKET.Stellar)])
+    : assetOther(VAULT_MARKET.Other);
+}
 export type VaultPosition = { id: number; asset: string; isLong: boolean; margin: number; size: number; entry: number; sl: number; tp: number; openedAt: number };
 
 export async function readVault(owner: string) {
@@ -209,13 +215,13 @@ export async function readVault(owner: string) {
     readContract<number>(CONTRACTS.oracle, "decimals"),
     readContract<boolean>(CONTRACTS.vault, "paused"),
   ]);
-  const pd = await readContract<{ price: bigint; timestamp: bigint } | null>(CONTRACTS.oracle, "lastprice", [assetOther("XLM")]);
+  const pd = await readContract<{ price: bigint; timestamp: bigint } | null>(CONTRACTS.oracle, "lastprice", [vaultMarketAsset()]);
   const scale = 10 ** decimals;
   const ids = owner ? await readContract<bigint[]>(CONTRACTS.vault, "user_positions", [addr(owner)]) : [];
   const positions: VaultPosition[] = [];
   for (const id of ids) {
     const p = await readContract<{ id: bigint; asset: [string, string]; is_long: boolean; margin: bigint; size: bigint; entry_price: bigint; stop_loss: bigint; take_profit: bigint; opened_at: bigint }>(CONTRACTS.vault, "position", [u64(id)]);
-    positions.push({ id: Number(p.id), asset: String(p.asset[1]), isLong: p.is_long, margin: fromUnits(p.margin), size: fromUnits(p.size), entry: Number(p.entry_price) / scale, sl: Number(p.stop_loss) / scale, tp: Number(p.take_profit) / scale, openedAt: Number(p.opened_at) });
+    positions.push({ id: Number(p.id), asset: String(p.asset[1]) === CONTRACTS.xlmSac ? "XLM" : String(p.asset[1]), isLong: p.is_long, margin: fromUnits(p.margin), size: fromUnits(p.size), entry: Number(p.entry_price) / scale, sl: Number(p.stop_loss) / scale, tp: Number(p.take_profit) / scale, openedAt: Number(p.opened_at) });
   }
   const free = owner ? fromUnits(await readContract<bigint>(CONTRACTS.vault, "free_collateral", [addr(owner)])) : 0;
   return {

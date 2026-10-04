@@ -17,7 +17,7 @@
  * so pointing the page at a fresh testnet vault is a one-line config change.
  */
 import { xdr } from "@stellar/stellar-sdk";
-import { CONTRACTS, DEPLOYMENT } from "./config";
+import { CONTRACTS, DEPLOYMENT, VAULT_MARKET } from "./config";
 import { addr, assetOther, readContract, sym, u32, u64 } from "./soroban";
 import { fromUnits } from "./format";
 
@@ -44,11 +44,21 @@ export const LEGACY_VAULTS = ["CAKUVSFDQXQGGBO2ZYQEQH6HMRMMDV6DDF4HMGRKK4Y3O2TGF
 type PerpsCfg = { markets?: { code: string; stellar?: string; other?: string }[]; collateralSymbol?: string };
 const perpsCfg = ((DEPLOYMENT as unknown as { perps?: PerpsCfg }).perps ?? {}) as PerpsCfg;
 
-/** Default market list for `vault` (markets cannot be enumerated on-chain: set_market has no list view). */
-export function defaultMarkets(vault: string, cfg: PerpsCfg = perpsCfg, xlmSac = CONTRACTS.xlmSac): MarketSpec[] {
+type Configured = { vault: string; market: { Stellar: string } | { Other: string } };
+const CONFIGURED: Configured = { vault: DEPLOYMENT.contracts.vault, market: VAULT_MARKET };
+
+/**
+ * Market list for `vault` (markets cannot be enumerated on-chain: set_market has no list view).
+ * Order: testnet.json `perps.markets` → known legacy vault (`Other("XLM")`) → the deployment's
+ * `vault.marketAsset` (when `vault` is the configured vault) → `Stellar(native XLM SAC)`.
+ */
+export function defaultMarkets(vault: string, cfg: PerpsCfg = perpsCfg, xlmSac = CONTRACTS.xlmSac, configured: Configured = CONFIGURED): MarketSpec[] {
   if (cfg.markets?.length)
     return cfg.markets.map((m) => ({ code: m.code, key: m.stellar ? { type: "Stellar", id: m.stellar } : { type: "Other", code: m.other ?? m.code } }));
-  return [{ code: "XLM", key: LEGACY_VAULTS.includes(vault) ? { type: "Other", code: "XLM" } : { type: "Stellar", id: xlmSac } }];
+  if (LEGACY_VAULTS.includes(vault)) return [{ code: "XLM", key: { type: "Other", code: "XLM" } }];
+  if (vault === configured.vault)
+    return [{ code: "XLM", key: "Stellar" in configured.market ? { type: "Stellar", id: configured.market.Stellar } : { type: "Other", code: configured.market.Other } }];
+  return [{ code: "XLM", key: { type: "Stellar", id: xlmSac } }];
 }
 
 export const marketKeyScVal = (k: MarketKey) => (k.type === "Other" ? assetOther(k.code) : xdr.ScVal.scvVec([sym("Stellar"), addr(k.id)]));

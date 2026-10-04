@@ -118,6 +118,8 @@ describe("market keys", () => {
     expect(LEGACY_VAULTS).toContain(VAULT);
     expect(defaultMarkets(VAULT, {}, XLM_SAC)).toEqual(OLD_MKT);
     expect(defaultMarkets(NEW_VAULT, {}, XLM_SAC)).toEqual(NEW_MKT);
+    expect(defaultMarkets("CNEXT", {}, XLM_SAC, { vault: "CNEXT", market: { Other: "XLM" } })).toEqual(OLD_MKT);
+    expect(defaultMarkets("CNEXT", {}, XLM_SAC, { vault: "COTHER", market: { Other: "XLM" } })).toEqual(NEW_MKT);
     expect(defaultMarkets(NEW_VAULT, { markets: [{ code: "BTC", other: "BTC" }, { code: "XLM", stellar: XLM_SAC }] }, XLM_SAC)).toEqual([{ code: "BTC", key: { type: "Other", code: "BTC" } }, ...NEW_MKT]);
   });
   it("maps decoded assets back to market codes", () => {
@@ -250,6 +252,12 @@ describe("Perps page + navigation", () => {
     expect(src("src/App.tsx")).toMatch(/<Route path="\/perps" element={<Perps \/>} \/>/);
     expect(src("src/components/Layout.tsx")).toMatch(/{ to: "\/perps", label: "Perps"/);
     expect(src("vite.config.ts")).toMatch(/"perps"/);
+  });
+  it("targets the configured perps-v1 vault and its Stellar(XLM SAC) market key", async () => {
+    const { PERPS } = await import("../src/lib/perps");
+    const cfg = JSON.parse(src("src/config/testnet.json"));
+    expect(PERPS.vault).toBe(cfg.contracts.vault);
+    expect(PERPS.markets).toEqual([{ code: "XLM", key: { type: "Stellar", id: cfg.vault.marketAsset.Stellar } }]);
   });
   it("reads the vault id from the normal app config (swappable via testnet.json / VITE_VAULT_ID)", () => {
     expect(src("src/lib/perps.ts")).toMatch(/vault: CONTRACTS\.vault/);

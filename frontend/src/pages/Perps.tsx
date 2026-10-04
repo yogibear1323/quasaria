@@ -92,7 +92,7 @@ export default function Perps() {
           </div>
         }
       >
-        Perpetual-style long / short positions on the Warp leverage vault: oracle-priced, isolated margin, settled in {PERPS.collateral}. Funding (hourly, mark vs oracle) is being added — numbers below come straight from the deployed testnet contract.
+        Perpetual-style long / short positions on the Warp leverage vault: oracle-priced, isolated margin, settled in {PERPS.collateral}. Funding is charged hourly from the mark-vs-oracle premium{d && !d.fundingLive ? " (not live on this vault yet)" : ""}. Every number below comes straight from the deployed testnet contract.
       </PageHead>
 
       <RiskWarning>
@@ -267,7 +267,7 @@ export default function Perps() {
             <ul className="muted" style={{ fontSize: "0.82rem", paddingLeft: 18, margin: 0 }}>
               <li>Deposit {PERPS.collateral} as free collateral, then open a long or short with margin × leverage.</li>
               <li>Entry and exit fill at the oracle (index) price; PnL is linear in it.</li>
-              <li>Funding (in development): each hour the vault charges the TWAP of the mark-vs-oracle premium. Positive rate — longs pay shorts; negative — shorts pay longs. The reserve nets the imbalance.</li>
+              <li>Funding: each hour the vault charges the TWAP of the mark-vs-oracle premium. Positive rate — longs pay shorts; negative — shorts pay longs. The reserve nets the imbalance.</li>
               <li>Below health factor 1.0 anyone can liquidate the position for a bonus.</li>
               <li>The vault rejects oracle prices older than the max age; while stale, opens, closes and liquidations revert.</li>
               <li>Testnet tokens only. No guaranteed returns.</li>

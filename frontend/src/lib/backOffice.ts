@@ -209,3 +209,111 @@ export function sparkPath(v: number[], w = 150, h = 46) {
   const line = "M" + pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" L");
   return { line, area: `${line} L${w},${h} L0,${h} Z`, last: pts[pts.length - 1] };
 }
+
+// ---------------------------------------------------------------- floor animation model (robots)
+/** Signed QUSD amount; exactly zero renders as a clean "0.00". */
+export function fmtPnl(v: number | null, d = 2): string {
+  if (v === null || !Number.isFinite(v)) return "—";
+  if (Math.abs(v) < 0.5 * 10 ** -d) return (0).toFixed(d);
+  return `${v > 0 ? "+" : "−"}${Math.abs(v).toFixed(d)}`;
+}
+
+export interface Tally {
+  wins: number;
+  losses: number;
+  grossWon: number;
+  grossLost: number; // positive number
+  realized: number;
+}
+/** Win/loss tally from on-chain close events (RPC window ~7 days). */
+export function deskTally(trades: ChainTrade[]): Tally {
+  const t: Tally = { wins: 0, losses: 0, grossWon: 0, grossLost: 0, realized: 0 };
+  for (const x of trades) {
+    if (x.kind !== "close") continue;
+    const p = x.pnl ?? 0;
+    if (p >= 0) (t.wins++, (t.grossWon += p));
+    else (t.losses++, (t.grossLost += -p));
+    t.realized += p;
+  }
+  return t;
+}
+
+/** Speech bubble for the most recent real trade (open: "LONG XLM 3.0×", close: "CLOSED +0.42"), shown for 3 h. */
+export function bubbleFor(trades: ChainTrade[], now: number, maxAgeSec = 3 * 3600): { text: string; tone: "open" | "win" | "loss" } | null {
+  const t = trades[0];
+  if (!t || now - Date.parse(t.at) / 1000 > maxAgeSec) return null;
+  if (t.kind === "open") return { text: `${(t.side ?? "").toUpperCase()} XLM ${(t.leverage ?? 0).toFixed(1)}×`, tone: "open" };
+  const p = t.pnl ?? 0;
+  return { text: `CLOSED ${fmtPnl(p)}`, tone: p >= 0 ? "win" : "loss" };
+}
+
+/** Robot reaction to a close in the last `windowSec` seconds: cheer on a win, slump on a loss. */
+export function reactionFor(trades: ChainTrade[], now: number, windowSec = 600): "win" | "loss" | null {
+  const t = trades.find((x) => x.kind === "close");
+  if (!t || now - Date.parse(t.at) / 1000 > windowSec) return null;
+  return (t.pnl ?? 0) >= 0 ? "win" : "loss";
+}
+
+/** Desk glow tone from running P&L. */
+export const pnlTone = (v: number | null): "up" | "dn" | "flat" => (v === null || Math.abs(v) < 0.005 ? "flat" : v > 0 ? "up" : "dn");
+
+/** Latest trades across the floor for the wall-board ticker. */
+export function floorTape(desks: DeskView[], n = 12): { desk: string; t: ChainTrade }[] {
+  return desks
+    .flatMap((d) => d.trades.map((t) => ({ desk: d.cfg.name, t })))
+    .sort((a, b) => b.t.ledger - a.t.ledger || Date.parse(b.t.at) - Date.parse(a.t.at))
+    .slice(0, n);
+}
+
+// ---- EXAMPLE animation (clearly labelled on the page; never mixed with live numbers)
+export const EXAMPLE_PNLS = [0.42, -0.18, 0.95, -0.31, 0.27, -0.12, 0.64, -0.4];
+export const EXAMPLE_POSE: Record<number, DeskStatus> = { 3: "paused", 5: "halted" };
+export interface ExampleDesk {
+  pos: ChainPos | null;
+  trades: ChainTrade[];
+  realized: number;
+}
+export interface ExampleState {
+  step: number;
+  desks: Record<string, ExampleDesk>;
+}
+export const exampleInit = (desks: DeskCfg[] = BACK_OFFICE.desks): ExampleState => ({ step: 0, desks: Object.fromEntries(desks.map((d) => [d.id, { pos: null, trades: [], realized: 0 }])) });
+
+/** One scripted beat: the next active desk opens a position, or closes its open one for a scripted P&L. */
+export function exampleStep(s: ExampleState, price: number, nowMs: number, desks: DeskCfg[] = BACK_OFFICE.desks): ExampleState {
+  const active = desks.filter((_, i) => !EXAMPLE_POSE[i]);
+  const d = active[s.step % active.length];
+  const cur = s.desks[d.id];
+  const at = new Date(nowMs).toISOString();
+  const ledger = 1_000_000 + s.step;
+  let next: ExampleDesk;
+  if (!cur.pos) {
+    const side = (s.step + desks.indexOf(d)) % 3 === 2 ? "short" : "long";
+    const lev = [3, 2, 4, 2.5][s.step % 4];
+    const pos: ChainPos = { id: 90_000 + s.step, side, margin: 25, size: 25 * lev, leverage: lev, entry: price, stop: price * (side === "long" ? 0.985 : 1.015), takeProfit: price * (side === "long" ? 1.03 : 0.97), pendingFunding: 0, upnl: s.step % 2 ? -0.06 : 0.11 };
+    next = { pos, realized: cur.realized, trades: [{ kind: "open", id: pos.id, side, leverage: lev, price, ledger, at, tx: `example-${s.step}` }, ...cur.trades] };
+  } else {
+    const pnl = EXAMPLE_PNLS[s.step % EXAMPLE_PNLS.length];
+    next = { pos: null, realized: cur.realized + pnl, trades: [{ kind: "close", id: cur.pos.id, price: price * (1 + pnl / 1000), pnl, reason: pnl >= 0 ? "take_profit" : "stop", ledger, at, tx: `example-${s.step}` }, ...cur.trades] };
+  }
+  return { step: s.step + 1, desks: { ...s.desks, [d.id]: next } };
+}
+
+/** Desk views for the labelled example: scripted positions/trades/P&L, never the live values. */
+export function applyExample(views: DeskView[], s: ExampleState): DeskView[] {
+  return views.map((v, i) => {
+    const e = s.desks[v.cfg.id];
+    const upnl = e?.pos?.upnl ?? 0;
+    const pnl = (e?.realized ?? 0) + upnl;
+    return {
+      ...v,
+      status: EXAMPLE_POSE[i] ?? "running",
+      reason: EXAMPLE_POSE[i] === "halted" ? "example: drift halt" : "",
+      equity: v.cfg.capital + pnl,
+      pnl,
+      positions: e?.pos ? [e.pos] : [],
+      trades: e?.trades ?? [],
+      lastSignal: e?.pos ? `example: ${e.pos.side} signal` : "example",
+    };
+  });
+}

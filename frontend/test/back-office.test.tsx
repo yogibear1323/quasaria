@@ -3,7 +3,11 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { scValToNative, xdr } from "@stellar/stellar-sdk";
-import { BACK_OFFICE, mergeDesks, readFloorOnChain, sparkPath, statusAge, fetchStatus, type StatusDoc } from "../src/lib/backOffice";
+import {
+  BACK_OFFICE, EXAMPLE_POSE, applyExample, bubbleFor, deskTally, exampleInit, exampleStep, fetchStatus, floorTape, fmtPnl, mergeDesks, pnlTone, reactionFor, readFloorOnChain, sparkPath, statusAge,
+  type ChainTrade, type StatusDoc,
+} from "../src/lib/backOffice";
+import { RobotDesk } from "../src/components/RobotDesk";
 import BackOffice from "../src/pages/BackOffice";
 import { WalletProvider } from "../src/lib/wallet";
 
@@ -104,8 +108,104 @@ describe("page", () => {
     expect(src("src/App.tsx")).toContain('path="/back-office"');
   });
   it("copy + style rules: no gradient text, no banned wording", () => {
-    const files = ["src/pages/BackOffice.tsx", "src/lib/backOffice.ts", "src/theme/back-office.css", "src/config/back-office.json"].map(src).join("\n");
+    const files = ["src/components/RobotDesk.tsx", "src/pages/BackOffice.tsx", "src/lib/backOffice.ts", "src/theme/back-office.css", "src/config/back-office.json"].map(src).join("\n");
     expect(files).not.toMatch(/background-clip\s*:\s*text/i);
     expect(files).not.toMatch(new RegExp(["b", "a", "n", "k"].join(""), "i")); // owner copy rule
+  });
+});
+
+const iso = (sec: number) => new Date(sec * 1000).toISOString();
+const close = (pnl: number, ageSec: number, id = 1): ChainTrade => ({ kind: "close", id, price: 0.22, pnl, reason: "stop", ledger: 100 - ageSec / 10, at: iso(NOW - ageSec), tx: `tx${id}` });
+const open = (ageSec: number, id = 9): ChainTrade => ({ kind: "open", id, side: "long", leverage: 3, price: 0.22, ledger: 100 - ageSec / 10, at: iso(NOW - ageSec), tx: `tx${id}` });
+
+describe("robot floor model", () => {
+  it("fmtPnl: clean 0.00, signed values, unicode minus", () => {
+    expect(fmtPnl(0)).toBe("0.00");
+    expect(fmtPnl(-0.001)).toBe("0.00");
+    expect(fmtPnl(0.42)).toBe("+0.42");
+    expect(fmtPnl(-0.18)).toBe("−0.18");
+    expect(fmtPnl(null)).toBe("—");
+  });
+  it("tally: wins/losses, gross won vs lost, realized; opens ignored", () => {
+    const t = deskTally([close(0.42, 10, 1), close(-0.18, 20, 2), close(0.95, 30, 3), open(40)]);
+    expect(t).toMatchObject({ wins: 2, losses: 1 });
+    expect(t.grossWon).toBeCloseTo(1.37);
+    expect(t.grossLost).toBeCloseTo(0.18);
+    expect(t.realized).toBeCloseTo(1.19);
+    expect(deskTally([])).toEqual({ wins: 0, losses: 0, grossWon: 0, grossLost: 0, realized: 0 });
+  });
+  it("bubble shows the latest real trade for 3 h", () => {
+    expect(bubbleFor([open(60)], NOW)).toEqual({ text: "LONG XLM 3.0×", tone: "open" });
+    expect(bubbleFor([close(0.42, 60)], NOW)).toEqual({ text: "CLOSED +0.42", tone: "win" });
+    expect(bubbleFor([close(-0.18, 60)], NOW)?.tone).toBe("loss");
+    expect(bubbleFor([open(4 * 3600)], NOW)).toBeNull();
+    expect(bubbleFor([], NOW)).toBeNull();
+  });
+  it("reaction: cheer/slump only for a close in the last 10 min", () => {
+    expect(reactionFor([close(0.3, 120)], NOW)).toBe("win");
+    expect(reactionFor([open(30), close(-0.3, 120)], NOW)).toBe("loss");
+    expect(reactionFor([close(0.3, 3600)], NOW)).toBeNull();
+    expect(reactionFor([open(30)], NOW)).toBeNull();
+  });
+  it("glow tone + floor tape ordering", () => {
+    expect([pnlTone(null), pnlTone(0), pnlTone(0.2), pnlTone(-0.2)]).toEqual(["flat", "flat", "up", "dn"]);
+    const v = mergeDesks(BACK_OFFICE.desks, null, null, { vega: [close(0.1, 50, 1)], rigel: [open(10, 2)] }, false);
+    expect(floorTape(v).map((x) => x.desk)).toEqual(["Rigel", "Vega"]);
+  });
+  it("example script: alternates open/close on active desks, never touches paused/halted poses, labelled tx ids", () => {
+    let s = exampleInit();
+    for (let k = 0; k < 8; k++) s = exampleStep(s, 0.22, NOW * 1000 + k);
+    const posed = BACK_OFFICE.desks.filter((_, i) => EXAMPLE_POSE[i]).map((d) => d.id);
+    for (const id of posed) expect(s.desks[id].trades).toEqual([]);
+    const all = Object.values(s.desks).flatMap((d) => d.trades);
+    expect(all.length).toBe(8);
+    expect(all.every((t) => t.tx.startsWith("example"))).toBe(true);
+    expect(all.filter((t) => t.kind === "close").length).toBe(4);
+    const live = mergeDesks(BACK_OFFICE.desks, null, status(), null, false);
+    const ex = applyExample(live, s);
+    expect(live.every((d) => d.trades.length === 0)).toBe(true); // live views untouched
+    expect(ex[3].status).toBe("paused");
+    expect(ex[5].status).toBe("halted");
+    expect(ex[0].pnl).toBeCloseTo(s.desks[ex[0].cfg.id].realized + (s.desks[ex[0].cfg.id].pos?.upnl ?? 0));
+  });
+});
+
+describe("robot desk render", () => {
+  const view = (o: Partial<ReturnType<typeof mergeDesks>[number]> = {}) => ({ ...mergeDesks(BACK_OFFICE.desks, null, status(), null, false)[0], ...o });
+  const html = (d: ReturnType<typeof view>, example = false) => renderToStaticMarkup(<RobotDesk d={d} i={0} now={NOW} selected={false} onSelect={() => undefined} tradesLoaded example={example} />);
+  it("no trades: odometer 0.00, W 0 · L 0, no bubble, no example label", () => {
+    const h = html(view({ pnl: 0 }));
+    expect(h).toContain("st-running");
+    expect(h).toContain(">0.00<");
+    expect(h).toContain("W 0");
+    expect(h).not.toContain("bo-bubble");
+    expect(h).not.toMatch(/>example</i);
+  });
+  it("status drives pose classes; halted shows alarm, paused shows zzz", () => {
+    expect(html(view({ status: "halted" }))).toContain("st-halted");
+    expect(html(view({ status: "paused" }))).toContain("bo-zzz");
+  });
+  it("recent real win -> cheer + green glow + bubble; loss -> slump + red", () => {
+    const w = html(view({ pnl: 0.42, trades: [close(0.42, 60)] }));
+    expect(w).toContain("rx-win");
+    expect(w).toContain("t-up");
+    expect(w).toContain("CLOSED +0.42");
+    const l = html(view({ pnl: -0.18, trades: [close(-0.18, 60)] }));
+    expect(l).toContain("rx-loss");
+    expect(l).toContain("t-dn");
+  });
+  it("open position shows unrealized P&L on the desk", () => {
+    const pos = { id: 7, side: "long" as const, margin: 25, size: 75, leverage: 3, entry: 0.22, stop: 0.217, takeProfit: 0.227, pendingFunding: 0, upnl: 0.11 };
+    const h = html(view({ positions: [pos], pnl: 0.11 }));
+    expect(h).toContain("LONG 3.0×");
+    expect(h).toContain("uPnL <b class=\"g\">+0.11");
+  });
+  it("example mode is labelled on the odometer", () => {
+    expect(html(view({ pnl: 0.27 }), true)).toMatch(/<em>example<\/em>/);
+  });
+  it("css: reduced-motion kill switch, distinct strategy accents", () => {
+    const css = src("src/theme/back-office.css");
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce/);
+    for (const s of ["trend", "funding", "meanrev"]) expect(css).toContain(`.bo-desk.${s} { --acc:`);
   });
 });

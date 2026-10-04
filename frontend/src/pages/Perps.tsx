@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { scValToNative, xdr } from "@stellar/stellar-sdk";
 import { Link } from "react-router-dom";
 import { PageHead, RiskWarning, SourceTag, Stat, Tabs, TxStatus, ViewerNote, useTx } from "../components/ui";
@@ -11,6 +11,9 @@ import {
   FUNDING_NOT_LIVE, PERPS, decodeFundingEvent, estimateOpen, failureText, fmtAge, fmtK, fmtRate, fundingView, healthFactor, liquidationPrice,
   markFromPremium, marketKeyScVal, payerText, pnl, priceHealth, readPerps, type FundingEvent, type PerpsData, type PerpsMarket,
 } from "../lib/perps";
+
+/** Compact live XLM chart (lazy chunk with lightweight-charts; never blocks the Perps page). */
+const XlmChart = lazy(() => import("../components/XlmChart"));
 
 /** Recent `funding_upd` events from the vault (RPC keeps ~7 days of events). */
 async function readFundingHistory(vault: string): Promise<FundingEvent[]> {
@@ -77,6 +80,12 @@ export default function Perps() {
     hourlyRate: mv?.funding && !mv.funding.off ? mv.funding.predictedHourly : mv?.funding ? 0 : null,
   });
   const stale = !!mv?.health.stale;
+  const xlm = d?.markets.find((m) => m.code === "XLM");
+  const xlmMv = d && xlm ? (xlm === market ? mv : marketView(xlm, d, now, null)) : null;
+  const chartOverlay = useMemo(
+    () => (d && xlm ? { oracle: xlm.price, oracleTs: xlm.priceTs, mark: xlmMv?.mark.value ?? null, fundingHourly: xlmMv?.funding ? (xlmMv.funding.off ? 0 : xlmMv.funding.currentHourly) : null, maxAge: d.config.maxPriceAge, at: d.readAt } : null),
+    [d?.readAt, xlm?.price, xlmMv?.mark.value], // eslint-disable-line react-hooks/exhaustive-deps
+  );
   const belowMin = !!d && Number(margin) < d.config.minMargin;
   const needDeposit = !!d && est.need > d.free;
   const openBlock = !d ? "Vault not readable" : d.paused ? "Vault is paused: new positions are blocked" : stale ? "Oracle price is stale: the vault would revert (StalePrice)" : belowMin ? `Margin below vault minimum (${fmt(d.config.minMargin, 2)} ${PERPS.collateral})` : null;
@@ -95,6 +104,15 @@ export default function Perps() {
       >
         Perpetual-style long / short positions on the Warp leverage vault: oracle-priced, isolated margin, settled in {PERPS.collateral}. Funding is charged hourly from the mark-vs-oracle premium{d && !d.fundingLive ? " (not live on this vault yet)" : ""}. Every number below comes straight from the deployed testnet contract.
       </PageHead>
+      <section className="xc-embed" data-testid="perps-xlm-chart">
+        <div className="xc-embed-head">
+          <span className="muted">Live XLM-PERP/USD</span>
+          <Link to="/perps/chart" data-testid="perps-chart-link">Full chart →</Link>
+        </div>
+        <Suspense fallback={<div className="card muted" style={{ minHeight: 120 }}>Loading live chart…</div>}>
+          <XlmChart compact overlay={chartOverlay} />
+        </Suspense>
+      </section>
       <Link to="/back-office?view=demo" className="perps-demo-link" data-testid="perps-demo-link">
         <b>Try a demo account</b> · watch the six Back Office bots trade a simulated balance on live XLM prices before using real money <span aria-hidden>→</span>
       </Link>

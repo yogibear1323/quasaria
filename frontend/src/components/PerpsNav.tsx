@@ -9,6 +9,7 @@ import { NavLink } from "react-router-dom";
 
 export const PERPS_MENU = [
   { to: "/perps", label: "Perps", sub: "trade long / short" },
+  { to: "/perps/chart", label: "Live XLM chart", sub: "candles · oracle · mark" },
   { to: "/back-office", label: "Back Office · robot floor", sub: "six bots · demo account" },
 ];
 export const isPerpsPath = (p: string) => p.startsWith("/perps") || p.startsWith("/back-office");
@@ -103,7 +104,7 @@ export function PerpsNav({ pathname }: { pathname: string }) {
         createPortal(
           <div id="perps-menu" role="menu" aria-label="Perps" ref={menu} className="nav-menu" style={{ left: pos.left, top: pos.top }} onPointerEnter={(e) => e.pointerType === "mouse" && show()} onPointerLeave={(e) => e.pointerType === "mouse" && hide()} onKeyDown={onKey} onBlur={onBlur}>
             {PERPS_MENU.map((m) => (
-              <NavLink key={m.to} to={m.to} role="menuitem" className={({ isActive }) => (isActive ? "on" : "")} onClick={() => setOpen(false)}>
+              <NavLink key={m.to} to={m.to} end role="menuitem" className={({ isActive }) => (isActive ? "on" : "")} onClick={() => setOpen(false)}>
                 <b>{m.label}</b>
                 <small>{m.sub}</small>
               </NavLink>

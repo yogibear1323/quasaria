@@ -1,0 +1,54 @@
+/* Live XLM chart (Perps → Live XLM chart, compact embed on /perps). Solid colours only. */
+.xc-page { display: grid; gap: 14px; }
+.xc-pagehead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.xc-pagehead h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 6px 0 0; }
+.xc-pagehead p { margin: 8px 0 0; color: var(--text-2); max-width: 680px; font-size: .92rem; }
+.xc-kicker { font: 600 11px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--violet-hi); }
+.xc-ctas { display: flex; gap: 8px; flex-wrap: wrap; }
+.xc-label { margin: 0; font: 500 11px var(--font-mono); letter-spacing: .06em; color: var(--text-3); }
+
+.xc { background: #07080f; border: 1px solid rgba(139, 124, 255, .22); border-radius: 14px; padding: 12px; display: grid; gap: 8px; min-width: 0; }
+.xc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.xc-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.xc-sym { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--text); }
+.xc-sym small { color: var(--text-3); font-weight: 500; margin-left: 2px; }
+.xc-px { font-size: 1.45rem; font-weight: 700; color: var(--text); }
+.xc-ch { font-size: .85rem; color: var(--text-3); }
+.xc .up { color: #3cc495; } .xc .dn { color: #e0738a; }
+.xc-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.xc-chip { display: inline-flex; align-items: center; gap: 6px; font: 500 11px var(--font-mono); color: var(--text-2); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(255,255,255,.02); white-space: nowrap; }
+.xc-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); }
+.xc-chip.live i { background: #3cc495; box-shadow: 0 0 6px rgba(60,196,149,.7); animation: xc-pulse 2s ease-in-out infinite; }
+.xc-chip.stale { border-color: rgba(251,191,36,.45); color: var(--amber); }
+.xc-chip.stale i { background: var(--amber); }
+.xc-chip b { font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: .06em; }
+.xc-chip.oracle { border-color: rgba(34,211,238,.35); color: var(--cyan); }
+.xc-chip.mark { border-color: rgba(167,139,250,.4); color: #c4b5fd; }
+@keyframes xc-pulse { 50% { opacity: .45; } }
+.xc-tfs { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.xc-tfs button { font: 600 11px var(--font-mono); color: var(--text-2); background: transparent; border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; cursor: pointer; }
+.xc-tfs button:hover { border-color: var(--line-accent); color: var(--text); }
+.xc-tfs button.on { background: rgba(124, 92, 255, .2); border-color: rgba(139,124,255,.6); color: var(--text); }
+.xc-legend { margin-left: auto; font: 500 10.5px var(--font-mono); color: var(--text-3); }
+.xc-legend .o { color: var(--cyan); } .xc-legend .m { color: #a78bfa; }
+.xc-plot { position: relative; height: 460px; min-width: 0; border-radius: 10px; overflow: hidden; }
+.xc-compact .xc-plot { height: 240px; }
+.xc-compact .xc-px { font-size: 1.2rem; }
+.xc-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); font-size: .85rem; z-index: 3; pointer-events: none; }
+.xc-tip { position: absolute; z-index: 4; pointer-events: none; width: 168px; padding: 7px 9px; border-radius: 8px; background: rgba(11,13,24,.94); border: 1px solid rgba(139,124,255,.35); font-size: 10.5px; line-height: 1.55; color: var(--text-3); }
+.xc-tip b { color: var(--text); font-weight: 600; }
+.xc-stalenote { font-size: .78rem; color: var(--amber); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(251,191,36,.3); background: rgba(251,191,36,.06); }
+.xc-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font: 500 10.5px var(--font-mono); color: var(--text-3); }
+.xc-foot a { color: var(--text-2); }
+.xc-embed { margin-bottom: var(--s-3, 16px); }
+.xc-embed-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; font-size: .8rem; }
+@media (max-width: 720px) {
+  .xc { padding: 10px; border-radius: 12px; }
+  .xc-plot { height: 340px; }
+  .xc-compact .xc-plot { height: 210px; }
+  .xc-px { font-size: 1.2rem; }
+  .xc-legend { display: none; }
+  .xc-ctas { width: 100%; }
+  .xc-ctas .btn { flex: 1; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) { .xc-chip.live i { animation: none; } }

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Navigate, Route, Routes, useSearchParams } from "react-router-dom";
 import Layout from "./components/Layout";
 import Trade from "./pages/Trade";
@@ -18,6 +18,9 @@ import Lending from "./pages/Lending";
 import Perps from "./pages/Perps";
 import BackOffice from "./pages/BackOffice";
 import { GameProvider } from "./game/GameProvider";
+
+/** Live XLM chart pulls in lightweight-charts: lazy so it never weighs on other routes. */
+const XlmChart = lazy(() => import("./pages/XlmChart"));
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
 function RefCapture() {
@@ -48,6 +51,7 @@ export default function App() {
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/referrals" element={<Referrals />} />
           <Route path="/perps" element={<Perps />} />
+          <Route path="/perps/chart" element={<Suspense fallback={<p className="muted">Loading chart…</p>}><XlmChart /></Suspense>} />
           <Route path="/back-office" element={<BackOffice />} />
           <Route path="/bots" element={<Bots />} />
           <Route path="/quests" element={<Quests />} />

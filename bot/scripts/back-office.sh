@@ -49,8 +49,16 @@ case "${1:-status}" in
     sleep 1; echo "started supervisor $(cat "$PIDFILE" 2>/dev/null) — logs: $LOG_DIR/fleet.log, admin: http://127.0.0.1:$ADMIN_PORT/";;
   __supervise) echo $$ > "$PIDFILE"; supervise;;
   stop)
-    if [ -f "$PIDFILE" ]; then kill "$(cat "$PIDFILE")" 2>/dev/null && echo "stopped supervisor $(cat "$PIDFILE") (open positions keep their on-chain stops)"; else echo "not running"; fi;;
-  restart) "$0" stop; sleep 3; "$0" start;;
+    if [ -f "$PIDFILE" ]; then
+      sp=$(cat "$PIDFILE")
+      if kill "$sp" 2>/dev/null; then
+        # the TERM trap runs after the supervisor's current sleep returns (up to ~35s); wait for a clean exit
+        for _ in $(seq 1 60); do kill -0 "$sp" 2>/dev/null || break; sleep 1; done
+        if kill -0 "$sp" 2>/dev/null; then echo "supervisor $sp still running after 60s"; exit 1; fi
+        echo "stopped supervisor $sp (open positions keep their on-chain stops)"
+      else echo "not running"; rm -f "$PIDFILE"; fi
+    else echo "not running"; fi;;
+  restart) "$0" stop && "$0" start;;
   status)
     if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then echo "supervisor $(cat "$PIDFILE") runner $(cat "$CHILDPID" 2>/dev/null)"; else echo "not running"; fi
     cd "$BOT_DIR" && "$NODE_BIN" --import tsx src/office/cli.ts status;;

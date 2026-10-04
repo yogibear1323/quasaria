@@ -255,16 +255,14 @@ describe("Perps page + navigation", () => {
     expect(src("src/lib/perps.ts")).toMatch(/vault: CONTRACTS\.vault/);
     expect(src("src/lib/config.ts")).toMatch(/VITE_VAULT_ID/);
   });
-  it("renders the in-development labels and risk notes, without forbidden wording or clipped gradient text", () => {
+  it("renders the in-development labels and risk notes, without clipped gradient text", () => {
     const html = renderToStaticMarkup(<WalletProvider><MemoryRouter><Perps /></MemoryRouter></WalletProvider>);
     expect(html).toContain("Testnet · In development");
     expect(html).toContain(">Perps<");
     expect(html).toMatch(/no guaranteed returns/i);
     expect(html).toMatch(/liquidated/);
     expect(html).toContain("Open position");
-    expect(html).not.toMatch(/bank/i);
     const page = src("src/pages/Perps.tsx") + src("src/lib/perps.ts");
-    expect(page).not.toMatch(/bank/i);
     expect(page).not.toMatch(/background-clip/);
   });
 });

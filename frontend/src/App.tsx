@@ -15,6 +15,7 @@ import Quests from "./pages/Quests";
 import Merch from "./pages/Merch";
 import News from "./pages/News";
 import Lending from "./pages/Lending";
+import Perps from "./pages/Perps";
 import { GameProvider } from "./game/GameProvider";
 
 /** Captures ?ref=G... from shareable links for the Referrals page. */
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/stake" element={<Stake />} />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/referrals" element={<Referrals />} />
+          <Route path="/perps" element={<Perps />} />
           <Route path="/bots" element={<Bots />} />
           <Route path="/quests" element={<Quests />} />
           <Route path="/merch" element={<Merch />} />

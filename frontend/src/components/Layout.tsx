@@ -37,6 +37,7 @@ function XlmTicker() {
 const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/markets", label: "Markets", scene: "constellation" },
   { to: "/trade", label: "Trade", scene: "quasar" },
+  { to: "/perps", label: "Perps", scene: "warp" },
   { to: "/pools", label: "Pools", scene: "nebula" },
   { to: "/lending", label: "Lend", scene: "orbits" },
   { to: "/earn", label: "Earn", scene: "supernova" },

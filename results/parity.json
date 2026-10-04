@@ -1,0 +1,30 @@
+{
+ "vega": {
+  "ts_trades": 18,
+  "py_trades": 18,
+  "same_entry_time": 18,
+  "ts_net": -25.48,
+  "py_net": -29.58
+ },
+ "rigel": {
+  "ts_trades": 16,
+  "py_trades": 15,
+  "same_entry_time": 12,
+  "ts_net": -28.97,
+  "py_net": -32.32
+ },
+ "lyra": {
+  "ts_trades": 18,
+  "py_trades": 18,
+  "same_entry_time": 18,
+  "ts_net": -12.59,
+  "py_net": -12.59
+ },
+ "nova": {
+  "ts_trades": 18,
+  "py_trades": 18,
+  "same_entry_time": 18,
+  "ts_net": -15.23,
+  "py_net": -15.23
+ }
+}

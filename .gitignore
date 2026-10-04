@@ -41,3 +41,9 @@ id_ed25519*
 
 # multisig tooling outputs (unsigned XDR, rehearsal state)
 scripts/multisig/out/
+
+# research
+.venv/
+data/
+report.html
+__pycache__/

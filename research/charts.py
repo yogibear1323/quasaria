@@ -1,0 +1,13 @@
+import sys, json, numpy as np, pandas as pd, matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt; sys.path.insert(0, ".")
+import os; os.makedirs("../results/fig", exist_ok=True)
+t = json.load(open("../results/tally.json"))
+tfs = list(t["pre_positive_frac"]); x = np.arange(len(tfs))
+plt.figure(figsize=(7, 3.2)); plt.bar(x - 0.2, [t["pre_nocost_positive_frac"][k] * 100 for k in tfs], 0.4, label="before costs", color="#9bb")
+plt.bar(x + 0.2, [t["pre_positive_frac"][k] * 100 for k in tfs], 0.4, label="after fees+slippage+funding", color="#c55")
+plt.xticks(x, tfs); plt.ylabel("% of configs net-positive"); plt.title("Share of ~700 configs per timeframe that made money (pre-holdout period, simulated)"); plt.legend(fontsize=8); plt.tight_layout()
+plt.savefig("../results/fig/positive_share.png", dpi=130); plt.close()
+d = pd.read_csv("../data/coinbase_XLM-USD_3600.csv"); m = json.load(open("../results/wf_meta.json")); m1h = [z for z in m if z["tf"] == 3600][0]
+plt.figure(figsize=(7, 3)); plt.plot(pd.to_datetime(d.t, unit="s"), d.c, lw=0.7, color="#333")
+for k, a, b, e in m1h["folds"]: plt.axvspan(pd.to_datetime(b, unit="s"), pd.to_datetime(e, unit="s"), color="#6a6" if k % 2 else "#9c9", alpha=0.25)
+plt.axvspan(pd.to_datetime(m1h["holdout_start"], unit="s"), pd.to_datetime(d.t.iloc[-1], unit="s"), color="#c55", alpha=0.3)
+plt.title("XLM-USD (Coinbase 1h). Green = walk-forward OOS windows (1h/4h), red = untouched holdout"); plt.ylabel("USD"); plt.tight_layout(); plt.savefig("../results/fig/xlm_windows.png", dpi=130); plt.close()

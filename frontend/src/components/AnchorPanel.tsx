@@ -85,7 +85,7 @@ export default function AnchorPanel({ selected }: { selected: LendingAsset }) {
         <span className={`pill ${down ? "pink" : toml ? "green" : ""}`}>{down ? "test anchor unavailable" : toml ? `● ${TEST_ANCHOR_DOMAIN}` : "⟳ contacting test anchor…"}</span>
       </div>
       <p className="muted" style={{ fontSize: "0.82rem" }}>
-        Move testnet USDC (or the anchor's SRT test token) in and out through the Stellar Development Foundation's <b>test anchor</b>. You log in with a wallet signature (SEP-10), then the anchor's own window handles the rest (SEP-24, including any KYC form). No real money: the test anchor simulates bank transfers. This is only for the anchor session; lending itself needs no login.
+        Move testnet USDC (or the anchor's SRT test token) in and out through the Stellar Development Foundation's <b>test anchor</b>. You log in with a wallet signature (SEP-10), then the anchor's own window handles the rest (SEP-24, including any KYC form). No real money: the test anchor only simulates fiat deposits and withdrawals. This is only for the anchor session; lending itself needs no login.
       </p>
       {down ? (
         <div className="notice warn">The test anchor couldn't be reached ({down}). Lending works without it.</div>

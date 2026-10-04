@@ -565,7 +565,7 @@ Mock issuer: `GCHXGEAEFD6H4FRP3L3VXB4E6RHHMY3Q72O76QD4IOOLJIRQPAWZW2ZO`. Full ID
 
 The liquidity program lets users pick **either side of a pool from the full list**: every notable
 Stellar stablecoin plus popular assets such as SHX (Stronghold), AQUA, yXLM, BTC/ETH anchor
-tokens and VELO, so they can build a self-banking setup. **Testnet only.**
+tokens and VELO, so they can build a self-custody setup. **Testnet only.**
 
 1. **Mainnet reference list, verified read-only.** `node scripts/verify-mainnet-assets.ts` loads each
    candidate issuer from public mainnet Horizon (home_domain, holders, supply, live price vs XLM) and

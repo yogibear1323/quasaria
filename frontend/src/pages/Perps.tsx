@@ -7,7 +7,7 @@ import { addr, bool, i128, invokeContract, u32, u64 } from "../lib/soroban";
 import { useLiveXlmUsd } from "../lib/liveMarkets";
 import { fmt, short, toUnits } from "../lib/format";
 import {
-  FUNDING_NOT_LIVE, PERPS, decodeFundingEvent, estimateOpen, failureText, fmtAge, fmtRate, fundingView, healthFactor, liquidationPrice,
+  FUNDING_NOT_LIVE, PERPS, decodeFundingEvent, estimateOpen, failureText, fmtAge, fmtK, fmtRate, fundingView, healthFactor, liquidationPrice,
   markFromPremium, marketKeyScVal, payerText, pnl, priceHealth, readPerps, type FundingEvent, type PerpsData, type PerpsMarket,
 } from "../lib/perps";
 
@@ -254,7 +254,7 @@ export default function Perps() {
             </div>
             {d?.fundingLive && market?.fundingConfig.ok && (
               <p className="muted" style={{ fontSize: "0.76rem" }}>
-                Funding params: interval {fmtAge(market.fundingConfig.value.interval)}, cap {fmtRate(market.fundingConfig.value.maxFundingRatePerHour)}/h, max premium {fmtRate(market.fundingConfig.value.maxPremium, 2)}, k {fmt(market.fundingConfig.value.k, 2)}, skew scale {fmt(market.fundingConfig.value.skewScale, 0)}.
+                Funding params: interval {fmtAge(market.fundingConfig.value.interval)}, cap {fmtRate(market.fundingConfig.value.maxFundingRatePerHour)}/h, max premium {fmtRate(market.fundingConfig.value.maxPremium, 2)}, k {fmtK(market.fundingConfig.value.k)}, skew scale {fmt(market.fundingConfig.value.skewScale, 0)}.
               </p>
             )}
             <p className="muted" style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>

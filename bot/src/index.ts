@@ -15,6 +15,7 @@ import { PaperVault } from "./exchange.js";
 import { runKeeperOnce } from "./keeper.js";
 import { Keypair } from "@stellar/stellar-sdk";
 import { SorobanVault } from "./soroban.js";
+import { defaultMarkets } from "./office/deployment.js";
 
 function arg(name: string, def?: string) {
   const i = process.argv.indexOf(`--${name}`);
@@ -70,6 +71,7 @@ async function main() {
     rpcUrl: process.env.QUASARIA_RPC_URL!, vaultId: process.env.QUASARIA_VAULT_ID!, oracleId: process.env.QUASARIA_ORACLE_ID!,
     // dry-run without a key: throwaway keypair, used only as the simulation source
     secret: process.env.QUASARIA_SECRET || Keypair.random().secret(), owner: process.env.QUASARIA_OWNER,
+    markets: defaultMarkets(),
   });
   await live.assertTestnet();
 

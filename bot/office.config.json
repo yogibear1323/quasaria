@@ -1,0 +1,20 @@
+{
+  "loopSec": 60,
+  "driftMode": "standard",
+  "strictUntil": "2026-10-18T20:00:00Z",
+  "oracle": { "warnAgeSec": 600, "haltAgeSec": 900, "staleFlatSec": 1200, "warnDevPct": 0.75, "haltDevPct": 1.5, "killAfterBadSec": 1800 },
+  "limits": {
+    "hardMaxRiskPct": 2, "maxMarginPct": 25, "maxNotionalX": 1.5, "maxOpenPerDesk": 2, "minStopPct": 0.8, "maxStopPct": 7.5, "feeBufferPct": 0.25,
+    "deskDailyLossPct": 3, "deskDrawdownPct": 10, "lossStreak": 5, "lossStreakPauseSec": 14400, "entriesPerDeskDay": 6, "fundingGuardHourly": 0.0003,
+    "fleetOpenRiskPct": 5, "fleetSameDirRiskPct": 3.5, "fleetNetNotionalX": 1.5, "fleetGrossNotionalX": 2, "fleetReserveFrac": 0.5,
+    "fleetDailyLossPct": 4, "fleetDrawdownPct": 12, "entriesPerFleetDay": 24
+  },
+  "desks": [
+    { "id": "vega", "name": "Vega", "strategy": "trend", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": {} },
+    { "id": "rigel", "name": "Rigel", "strategy": "trend", "timeframeSec": 14400, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": {} },
+    { "id": "lyra", "name": "Lyra", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "params": { "minRateHourly": 0.0002 } },
+    { "id": "nova", "name": "Nova", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "params": { "minRateHourly": 0.0003 } },
+    { "id": "echo", "name": "Echo", "strategy": "meanrev", "timeframeSec": 900, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": {} },
+    { "id": "halo", "name": "Halo", "strategy": "meanrev", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": {} }
+  ]
+}

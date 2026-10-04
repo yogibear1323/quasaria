@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { PROMO_PAGE_URL, SIZZLE_WIDE_QUERY, sizzleCuts, type SizzleCut } from "../lib/sizzle";
 
 /** true when the media query matches; defaults to `fallback` where matchMedia is unavailable (SSR/tests). */
-function useMedia(query: string, fallback: boolean) {
+export function useMedia(query: string, fallback: boolean) {
   const get = () => (typeof window !== "undefined" && typeof window.matchMedia === "function" ? window.matchMedia(query).matches : fallback);
   const [m, setM] = useState(get);
   useEffect(() => {

@@ -84,11 +84,11 @@ function Panel({ d, status, example, tag }: { d: DeskView; status: StatusDoc | n
         <div><span className="bo-lbl">Drift score · {status?.driftMode ?? "—"}</span><b style={{ color: dcol }}>{!drift ? "No data" : drift.level === "green" ? "Normal" : drift.level === "amber" ? "Watch (half size)" : "Halt"}</b><span>{drift?.top ?? "waiting for the status feed"}</span></div>
       </div>
       <div className="bo-trades">
-        <span className="bo-lbl">Recent on-chain trades</span>
-        {d.trades.length ? d.trades.slice(0, 5).map((t) => <TradeRow key={`${t.tx}-${t.kind}`} t={t} />) : <span className="bo-mut">No trades in the last ~7 days of events.</span>}
+        <span className="bo-lbl">{tag === "demo" ? "Recent demo trades · simulated" : "Recent on-chain trades"}</span>
+        {d.trades.length ? d.trades.slice(0, 5).map((t) => <TradeRow key={`${t.tx}-${t.kind}`} t={t} />) : <span className="bo-mut">{tag === "demo" ? "No simulated trades yet." : "No trades in the last ~7 days of events."}</span>}
       </div>
       {d.lastSignal && <div className="bo-signal"><span className="bo-lbl">Last signal</span>{d.lastSignal}</div>}
-      <p className="bo-fine">Pause, flatten and kill are admin-only and run on the ops box, not in the browser. Testnet test funds; unaudited; no expected or guaranteed returns.</p>
+      <p className="bo-fine">{tag === "demo" ? "Demo desk: simulated in this browser with the fleet's strategy and risk rules. Not real money; simulated results do not guarantee future results." : "Pause, flatten and kill are admin-only and run on the ops box, not in the browser. Testnet test funds; unaudited; no expected or guaranteed returns."}</p>
     </aside>
   );
 }

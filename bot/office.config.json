@@ -11,7 +11,7 @@
   },
   "desks": [
     { "id": "vega", "name": "Vega", "strategy": "trend", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": {} },
-    { "id": "rigel", "name": "Rigel", "strategy": "trend", "timeframeSec": 14400, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": {} },
+    { "id": "rigel", "name": "Regal", "strategy": "trend", "timeframeSec": 14400, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": {} },
     { "id": "lyra", "name": "Lyra", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "params": { "minRateHourly": 0.0002 } },
     { "id": "nova", "name": "Nova", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "params": { "minRateHourly": 0.0003 } },
     { "id": "echo", "name": "Echo", "strategy": "meanrev", "timeframeSec": 900, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": {} },

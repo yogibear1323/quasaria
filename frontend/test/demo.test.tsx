@@ -191,7 +191,7 @@ describe("Perps nav submenu", () => {
     expect(html("/back-office")).toContain('class="active"');
     expect(html("/perps")).toContain('class="active"');
     expect(isPerpsPath("/back-office")).toBe(true);
-    expect(PERPS_MENU.map((m) => m.to)).toEqual(["/perps", "/back-office"]);
+    expect(PERPS_MENU.map((m) => m.to)).toEqual(["/perps", "/perps/chart", "/back-office"]);
     expect(src("src/components/PerpsNav.tsx")).toMatch(/Escape/);
   });
   it("Perps page links to the demo account", () => {

@@ -6,7 +6,7 @@
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
-  STRATEGY_LABEL, bubbleFor, deskTally, fmtPnl, pnlTone, reactionFor, sparkPath, tfLabel,
+  STRATEGY_LABEL, STRATEGY_SHORT, bubbleFor, deskTally, fmtPnl, pnlTone, reactionFor, sparkPath, tfLabel,
   type DeskView, type Strategy,
 } from "../lib/backOffice";
 
@@ -147,9 +147,16 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
       <span className="bo-top">
         <span className="bo-nm">{d.cfg.name}</span>
         <span className="bo-tf" title={`trades on ${tfLabel(d.cfg.timeframeSec)} bars`}>{tfLabel(d.cfg.timeframeSec)}</span>
-        <span className="bo-tag">{STRATEGY_LABEL[d.cfg.strategy]} · {tfLabel(d.cfg.timeframeSec)}</span>
+        <span className="bo-tag" title={STRATEGY_LABEL[d.cfg.strategy]}>{STRATEGY_SHORT[d.cfg.strategy]} · {tfLabel(d.cfg.timeframeSec)}</span>
         <span className="bo-light"><i />{STATUS_TEXT[d.status]}</span>
       </span>
+      {d.cfg.paused ? (
+        <span className="bo-note paused" title={d.cfg.paused}>Paused · {d.cfg.paused}</span>
+      ) : d.cfg.label ? (
+        <span className="bo-note exp" title={d.cfg.label}>{d.cfg.label}</span>
+      ) : d.cfg.lpFilterBars ? (
+        <span className="bo-note" title={`entries need a liquidity sweep + reclaim within ${d.cfg.lpFilterBars} bars`}>+ liquidity-pocket filter (≤{d.cfg.lpFilterBars} bars)</span>
+      ) : null}
 
       <span className="bo-scene">
         <svg className="bo-svg" viewBox="0 0 240 156" aria-hidden>
@@ -167,7 +174,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
               <rect className="rb-chest" x="48" y="75" width="24" height="16" rx="3" />
               <circle className="rb-led" cx="54" cy="83" r="2.4" /><rect className="rb-bars" x="59" y="80" width="9" height="2" rx="1" /><rect className="rb-bars b2" x="59" y="84" width="6" height="2" rx="1" />
               <g className="rb-hd">
-                <Head s={d.cfg.strategy} />
+                <Head s={d.cfg.strategy === "supertrend" ? "trend" : d.cfg.strategy === "liqpocket" ? "funding" : d.cfg.strategy} />
                 <path className="rb-mouth m-n" d="M53 48.5 Q60 51 67 48.5" />
                 <path className="rb-mouth m-w" d="M51 47 Q60 54 69 47" />
                 <path className="rb-mouth m-l" d="M53 51 Q60 46.5 67 51" />

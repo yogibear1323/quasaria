@@ -139,7 +139,7 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
   const st: DemoState = structuredClone(prev);
   const slip = (px: number, adverseUp: boolean) => px * (1 + ((adverseUp ? 1 : -1) * sim.slippageBps) / 10_000);
   const ctxFor = (d: DeskConfig, bars: Candle[]): StrategyContext => {
-    const base = { bars, price: m.price, now: m.now, fundingExtHourly: m.fundingHourly, fundingSamples: st.fleet.fundingSamples.map((x) => x.hourly), externalSkew: m.extSkew, trendBreakoutRecent: m.now - st.fleet.lastTrendEntry < (cfg === OFFICE ? 4 * 3600 : ACTIVE_TREND_GUARD_SEC) };
+    const base = { bars, price: m.price, now: m.now, fundingExtHourly: m.fundingHourly, fundingSamples: st.fleet.fundingSamples.map((x) => x.hourly), externalSkew: m.extSkew, trendBreakoutRecent: m.now - st.fleet.lastTrendEntry < ACTIVE_TREND_GUARD_SEC };
     if (d.strategy !== "funding" || !d.params.proxy) return base;
     const sp = skewProxy(bars, d.params.proxyBars ?? 10);
     return { ...base, fundingExtHourly: sp.hourly, externalSkew: sp.skew, fundingSamples: sp.samples };
@@ -229,7 +229,8 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
       continue;
     }
     if (gate.action === "pause") (s.pausedUntil = gate.until), (s.lossStreak = 0);
-    if (s.pausedUntil > now) (s.status = "paused"), (s.statusReason = gate.action === "pause" ? gate.reason : s.statusReason || "auto pause");
+    if (d.paused) (s.status = "paused"), (s.statusReason = d.paused); // config pause: no entries, still manages/closes
+    else if (s.pausedUntil > now) (s.status = "paused"), (s.statusReason = gate.action === "pause" ? gate.reason : s.statusReason || "auto pause");
     else (s.status = "running"), (s.statusReason = "");
 
     // 3) manage
@@ -282,7 +283,7 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
     s.entryTimes = [...s.entryTimes.filter((t) => t > now - 7 * 86_400), now];
     fleetBase.entryTimes.push(now);
     fleetBase.open.push({ side: sig.side, size: sz.notional, price, stop, margin: sz.margin });
-    if (d.strategy === "trend") f.lastTrendEntry = now;
+    if (d.strategy === "trend" || d.strategy === "supertrend") f.lastTrendEntry = now;
     s.trades = [{ kind: "open" as const, id, side: sig.side, leverage: sz.leverage, price: fill, reason: d.params.proxy ? proxyReason(sig.reason) : sig.reason, at: now, seq: id }, ...s.trades].slice(0, 60);
     s.lastSignal = `opened ${sig.side.toUpperCase()} ${sz.leverage.toFixed(1)}× — ${d.params.proxy ? proxyReason(sig.reason) : sig.reason}`;
   }

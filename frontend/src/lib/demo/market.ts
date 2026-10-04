@@ -43,10 +43,11 @@ export async function loadMarket(now: number, f: typeof fetch = fetch): Promise<
   const [m15, h1] = await Promise.all([candles(900, f), candles(3600, f)]);
   return { bars: { 900: m15, 3600: h1, 14400: aggregate(h1, 3600, 4) }, base: 900, at: now };
 }
-/** Active profile: 1m / 5m / 15m candles (+30m aggregated); 15s / 30s bars come from the live trade tape. */
+/** Active profile: same 15m / 1h / 4h decision frames as the fleet, plus 1m candles so stops/targets are checked on
+ *  1-minute highs/lows and the demo ticks every few seconds; 15s / 30s bars from the live trade tape feed the sparklines. */
 export async function loadActiveMarket(now: number, f: typeof fetch = fetch): Promise<DemoMarket> {
-  const [m1, m5, m15] = await Promise.all([candles(60, f), candles(300, f), candles(900, f)]);
-  return { bars: { 60: m1, 300: m5, 900: m15, 1800: aggregate(m15, 900, 2) }, base: 60, at: now };
+  const [m1, m15, h1] = await Promise.all([candles(60, f), candles(900, f), candles(3600, f)]);
+  return { bars: { 60: m1, 900: m15, 3600: h1, 14400: aggregate(h1, 3600, 4) }, base: 60, at: now };
 }
 
 /** Pick the tick price like the fleet: the on-chain oracle when fresh (< 15 min), else the public reference feed. */

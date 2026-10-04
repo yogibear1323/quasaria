@@ -2,7 +2,7 @@
   "loopSec": 60,
   "driftMode": "standard",
   "strictUntil": "2026-10-18T20:00:00Z",
-  "oracle": { "warnAgeSec": 600, "haltAgeSec": 900, "staleFlatSec": 1200, "warnDevPct": 0.75, "haltDevPct": 1.5, "killAfterBadSec": 1800 },
+  "oracle": { "warnAgeSec": 60, "haltAgeSec": 90, "staleFlatSec": 600, "warnDevPct": 0.75, "haltDevPct": 1.5, "killAfterBadSec": 1800 },
   "limits": {
     "hardMaxRiskPct": 2, "maxMarginPct": 25, "maxNotionalX": 1.5, "maxOpenPerDesk": 2, "minStopPct": 0.8, "maxStopPct": 7.5, "feeBufferPct": 0.25,
     "deskDailyLossPct": 3, "deskDrawdownPct": 10, "lossStreak": 5, "lossStreakPauseSec": 14400, "entriesPerDeskDay": 6, "fundingGuardHourly": 0.0003,
@@ -10,11 +10,11 @@
     "fleetDailyLossPct": 4, "fleetDrawdownPct": 12, "entriesPerFleetDay": 24
   },
   "desks": [
-    { "id": "vega", "name": "Vega", "strategy": "trend", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": {} },
-    { "id": "rigel", "name": "Regal", "strategy": "trend", "timeframeSec": 14400, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": {} },
-    { "id": "lyra", "name": "Lyra", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "params": { "minRateHourly": 0.0002 } },
-    { "id": "nova", "name": "Nova", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "params": { "minRateHourly": 0.0003 } },
-    { "id": "echo", "name": "Echo", "strategy": "meanrev", "timeframeSec": 900, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": {} },
-    { "id": "halo", "name": "Halo", "strategy": "meanrev", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": {} }
+    { "id": "vega", "name": "Vega", "strategy": "supertrend", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": { "n": 10, "m": 3, "lpSweepBars": 24 } },
+    { "id": "rigel", "name": "Regal", "strategy": "trend", "timeframeSec": 14400, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": { "lpSweepBars": 12 } },
+    { "id": "lyra", "name": "Lyra", "strategy": "liqpocket", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "label": "Experimental · liquidity pockets · simulated/testnet", "params": { "k": 2, "L": 50, "src": 1, "bufAtr": 0.25, "targetR": 3, "alignEma": 50, "timeStopBars": 48 } },
+    { "id": "nova", "name": "Nova", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "paused": "fast funding-skew strategy was net negative out-of-sample in the walk-forward study", "params": { "minRateHourly": 0.0003 } },
+    { "id": "echo", "name": "Echo", "strategy": "meanrev", "timeframeSec": 900, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "paused": "15m mean-reversion was net negative out-of-sample in the walk-forward study", "params": {} },
+    { "id": "halo", "name": "Halo", "strategy": "meanrev", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": { "lpSweepBars": 12 } }
   ]
 }

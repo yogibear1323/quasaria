@@ -22,9 +22,12 @@ const status = (o: Partial<StatusDoc["fleet"]> = {}, age = 60): StatusDoc => ({
 });
 
 describe("back office config", () => {
-  it("six named desks, two per strategy, public keys only", () => {
+  it("six named desks matching the fleet config (Echo/Nova paused, Lyra experimental), public keys only", () => {
     expect(BACK_OFFICE.desks.map((d) => d.name)).toEqual(["Vega", "Regal", "Lyra", "Nova", "Echo", "Halo"]);
-    for (const s of ["trend", "funding", "meanrev"]) expect(BACK_OFFICE.desks.filter((d) => d.strategy === s).length).toBe(2);
+    expect(Object.fromEntries(BACK_OFFICE.desks.map((d) => [d.id, `${d.strategy}/${d.timeframeSec}${d.paused ? "/paused" : ""}`]))).toEqual({
+      vega: "supertrend/3600", rigel: "trend/14400", lyra: "liqpocket/3600", nova: "funding/3600/paused", echo: "meanrev/900/paused", halo: "meanrev/3600",
+    });
+    expect(BACK_OFFICE.desks.find((d) => d.id === "lyra")!.label).toBe("Experimental · liquidity pockets · simulated/testnet");
     for (const d of BACK_OFFICE.desks) {
       expect(d.owner).toMatch(/^G[A-Z2-7]{55}$/);
       expect(d.operator).toMatch(/^G[A-Z2-7]{55}$/);
@@ -54,6 +57,19 @@ describe("merge chain + status", () => {
     expect(v[0].pnl).toBe(12);
     expect(v[5].status).toBe("halted");
     expect(mergeDesks(BACK_OFFICE.desks, chain, status(), null, true)[0].status).toBe("unknown");
+  });
+  it("the runner's status feed decides strategy / frame / pause / label (old runners publish none of the new keys)", () => {
+    const st = status();
+    const lyra = st.desks.find((d) => d.id === "lyra")!;
+    Object.assign(lyra, { strategy: "funding", timeframeSec: 3600 }); // pre-upgrade runner
+    let v = mergeDesks(BACK_OFFICE.desks, chain, st, null, false).find((d) => d.cfg.id === "lyra")!;
+    expect(v.cfg.strategy).toBe("funding");
+    expect(v.cfg.label).toBeUndefined();
+    Object.assign(lyra, { strategy: "liqpocket", label: "Experimental · liquidity pockets · simulated/testnet", configPaused: null, lpFilterBars: null });
+    v = mergeDesks(BACK_OFFICE.desks, chain, st, null, false).find((d) => d.cfg.id === "lyra")!;
+    expect(v.cfg.strategy).toBe("liqpocket");
+    expect(v.cfg.label).toMatch(/^Experimental/);
+    expect(mergeDesks(BACK_OFFICE.desks, chain, st, null, true).find((d) => d.cfg.id === "echo")!.cfg.paused).toMatch(/15m mean-reversion/); // stale -> config
   });
   it("global kill marks every desk halted with the reason", () => {
     const v = mergeDesks(BACK_OFFICE.desks, chain, status({ status: "killed", reason: "manual" }), null, false);

@@ -170,12 +170,12 @@ describe("oracle guard (independent freshness/deviation)", () => {
   const c = cfg.oracle;
   const now = 1_790_000_000;
   it("ok / deviation halt / age halt / no reference / flat oracle", () => {
-    expect(oracleVerdict(now, now - 100, [{ t: now, oracle: 0.2, ref: 0.2005 }], c).level).toBe("ok");
-    expect(oracleVerdict(now, now - 100, [{ t: now, oracle: 0.2, ref: 0.21 }], c).level).toBe("halt");
-    expect(oracleVerdict(now, now - 1000, [{ t: now, oracle: 0.2, ref: 0.2 }], c).level).toBe("halt");
-    expect(oracleVerdict(now, now - 100, [{ t: now, oracle: 0.2, ref: null }], c).level).toBe("halt");
+    expect(oracleVerdict(now, now - 30, [{ t: now, oracle: 0.2, ref: 0.2005 }], c).level).toBe("ok");
+    expect(oracleVerdict(now, now - 30, [{ t: now, oracle: 0.2, ref: 0.21 }], c).level).toBe("halt");
+    expect(oracleVerdict(now, now - 120, [{ t: now, oracle: 0.2, ref: 0.2 }], c).level).toBe("halt"); // vault rejects > 90 s
+    expect(oracleVerdict(now, now - 30, [{ t: now, oracle: 0.2, ref: null }], c).level).toBe("halt");
     const hist = Array.from({ length: 25 }, (_, i) => ({ t: now - 1200 + i * 50, oracle: 0.2, ref: 0.2 * (1 + i * 0.0003) }));
-    expect(oracleVerdict(now, now - 100, hist, c).reasons.join()).toMatch(/flat/);
+    expect(oracleVerdict(now, now - 30, hist, c).reasons.join()).toMatch(/flat/);
   });
 });
 
@@ -239,7 +239,13 @@ describe("funding rates exclude the fleet's own OI", () => {
 describe("config + backtest", () => {
   it("validates desks and refuses > 2% risk", () => {
     expect(cfg.desks.map((d) => d.name)).toEqual(["Vega", "Regal", "Lyra", "Nova", "Echo", "Halo"]);
-    expect(cfg.desks.filter((d) => d.strategy === "trend").length).toBe(2);
+    expect(Object.fromEntries(cfg.desks.map((d) => [d.id, `${d.strategy}/${d.timeframeSec}${d.paused ? "/paused" : ""}`]))).toEqual({
+      vega: "supertrend/3600", rigel: "trend/14400", lyra: "liqpocket/3600", nova: "funding/3600/paused", echo: "meanrev/900/paused", halo: "meanrev/3600",
+    });
+    for (const d of cfg.desks) expect(d.riskPct).toBeLessThanOrEqual(1);
+    expect(desk("lyra").label).toMatch(/Experimental · liquidity pockets · simulated\/testnet/);
+    expect(cfg.oracle.haltAgeSec).toBeLessThanOrEqual(90);
+    expect(() => parseOfficeConfig({ ...cfg, desks: [{ ...cfg.desks[0], strategy: "martingale" as never }] })).toThrow(/unknown strategy/);
     expect(() => parseOfficeConfig({ ...cfg, desks: [{ ...cfg.desks[0], riskPct: 3 }] })).toThrow(/riskPct/);
     expect(() => parseOfficeConfig({ ...cfg, limits: { ...L, hardMaxRiskPct: 5 } })).toThrow();
   });
@@ -247,7 +253,7 @@ describe("config + backtest", () => {
     const closes: number[] = [];
     let p = 0.2;
     for (let i = 0; i < 600; i++) closes.push((p *= 1 + 0.004 * Math.sin(i / 25) + 0.0004 * Math.cos(i * 1.7)));
-    const r = backtest(desk("vega"), series(closes), L, 500);
+    const r = backtest({ ...desk("vega"), strategy: "trend", params: {} }, series(closes), L, 500);
     expect(r.trades.length).toBeGreaterThan(2);
     for (const t of r.trades) expect(t.pnl).toBeGreaterThan(-500 * 0.02 * 1.6); // stop-sized losses (gaps/fees allowed)
   });
@@ -273,7 +279,13 @@ describe("fleet (paper venue)", () => {
   let store: Store;
   let fleet: Fleet;
   const owners = Object.fromEntries(cfg.desks.map((d) => [d.id, { owner: `OWNER_${d.id}`, operatorSecret: "" }]));
-  const config: OfficeConfig = { ...cfg, strictUntil: "2999-01-01T00:00:00Z" };
+  // end-to-end mechanics are tested on the original six running desks (Vega = 1h Donchian trend, no filter);
+  // the shipped config (paused desks, Supertrend, liquidity filter) is exercised in "fleet: shipped config" below.
+  const config: OfficeConfig = {
+    ...cfg,
+    strictUntil: "2999-01-01T00:00:00Z",
+    desks: cfg.desks.map(({ paused: _p, ...d }) => (d.id === "vega" ? { ...d, strategy: "trend" as const, params: {} } : d)),
+  };
 
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "office-"));

@@ -67,6 +67,9 @@ function Panel({ d, status, example, tag, driftMode }: { d: DeskView; status: St
         <span className={`bo-light ${d.status}`}><i />{STATUS_TEXT[d.status]}</span>
       </div>
       {d.reason && <div className="bo-reason">{d.reason}</div>}
+      {!d.reason && d.cfg.paused && <div className="bo-reason">Paused: {d.cfg.paused}</div>}
+      {d.cfg.label && <div className="bo-row"><span className="bo-lbl">Label</span><b className="bo-explbl">{d.cfg.label}</b></div>}
+      {d.cfg.lpFilterBars ? <div className="bo-row"><span className="bo-lbl">Entry filter</span><b title="entries need a sweep + reclaim of resting liquidity on the opposite side">Liquidity sweep ≤ {d.cfg.lpFilterBars} bars <small>· testnet experiment</small></b></div> : null}
       {d.watching && <div className="bo-watch bo-watch-p"><i>watching · {tfLabel(d.cfg.timeframeSec)} bars</i> {d.watching}</div>}
       <div className="bo-pos">
         <div><span className="bo-lbl">Position</span>{pos ? <b className={pos.side === "long" ? "g" : "r"}>{pos.side.toUpperCase()} XLM {pos.leverage.toFixed(1)}×</b> : <b>Flat</b>}<span>{pos ? `notional ${pos.size.toFixed(0)} · margin ${pos.margin.toFixed(0)} QUSD` : `${d.positions.length} open`}</span></div>
@@ -240,7 +243,7 @@ export default function BackOffice() {
               {ex ? "■ Stop example" : "▶ Play example animation"}
             </button>
             <div className="bo-legend">
-              <span className="bo-tag trend">Trend</span><span className="bo-tag funding">Funding</span><span className="bo-tag meanrev">Mean-Rev</span>
+              <span className="bo-tag trend">Trend</span><span className="bo-tag funding">Funding</span><span className="bo-tag meanrev">Mean-Rev</span><span className="bo-tag supertrend">Supertrend</span><span className="bo-tag liqpocket">Liq. pockets</span>
               <span className="bo-sep" /><span className="bo-lg running"><i />running</span><span className="bo-lg paused"><i />paused</span><span className="bo-lg halted"><i />halted</span>
             </div>
           </div>
@@ -264,7 +267,7 @@ export default function BackOffice() {
       </div>
 
       <RiskWarning>
-        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice.
+        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice. After a walk-forward study in which no setting was reliably profitable out-of-sample, the desks run slower 1h–4h settings, Echo and Nova are paused, and Lyra runs an experimental liquidity-pocket strategy (simulated/testnet only).
       </RiskWarning>
     </div>
   );

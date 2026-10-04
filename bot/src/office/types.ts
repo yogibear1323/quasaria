@@ -1,6 +1,6 @@
 import type { Candle } from "./indicators.js";
 export type Side = "long" | "short";
-export type StrategyKind = "trend" | "funding" | "meanrev";
+export type StrategyKind = "trend" | "funding" | "meanrev" | "supertrend" | "liqpocket";
 export type DeskStatus = "running" | "paused" | "halted";
 export type DriftMode = "strict" | "standard";
 
@@ -13,6 +13,10 @@ export interface DeskConfig {
   maxLeverage: number;
   capital: number; // initial test QUSD
   params: Record<string, number>;
+  /** config-level pause (reason): the desk takes no new entries but still manages and closes anything it holds. */
+  paused?: string;
+  /** optional display label, e.g. "Experimental · liquidity pockets · simulated/testnet". */
+  label?: string;
 }
 
 export interface LimitsConfig {

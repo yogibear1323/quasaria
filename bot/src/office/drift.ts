@@ -183,7 +183,7 @@ export function computeDrift(i: DriftInput): DriftResult {
 
 function strategySpecific(i: DriftInput, minTrades: number): DriftMetric {
   const t = i.trades.slice(-30);
-  if (i.strategy === "trend") {
+  if (i.strategy === "trend" || i.strategy === "supertrend") {
     const wins = t.filter((x) => x.pnl > 0), losses = t.filter((x) => x.pnl <= 0);
     if (t.length < minTrades || !wins.length || !losses.length || !i.baseline) return { id: "D-8", label: "payoff ratio", value: "waiting", points: 0, level: "ok" };
     const payoff = wins.reduce((a, x) => a + x.r, 0) / wins.length / Math.abs(losses.reduce((a, x) => a + x.r, 0) / losses.length || 1);

@@ -83,5 +83,5 @@ export function backtest(d: DeskConfig, bars: Candle[], L: LimitsConfig, startEq
 }
 
 export function toBaseline(r: BtResult, source: string): Baseline {
-  return { winRate: r.winRate, rSamples: r.trades.map((t) => Math.round(t.r * 1000) / 1000), tradesPerDayP95: Math.max(1, r.tradesPerDayP95), payoff: r.payoff, source };
+  return { winRate: r.winRate, rSamples: r.trades.map((t) => Math.round(t.r * 1000) / 1000), tradesPerDayP95: Math.max(2, r.tradesPerDayP95), payoff: r.payoff, source }; // p95 floored at 2 so one busy day on a thin sample cannot trip the D-5 halt
 }

@@ -30,7 +30,8 @@ describe("landing feature videos", () => {
     expect(html).toContain('loading="lazy"');
     expect(html).toMatch(/<source media="\(max-width: 720px\)" srcSet="[^"]*-9x16-poster\.jpg"/i);
     for (const v of FEATURE_VIDEOS) expect(html).toContain(fmtRuntime(v.seconds));
-    expect(html).toContain("In development · testnet");
+    expect(html).toContain("Live on testnet");
+    expect(html).not.toContain("In development");
     expect(html).toContain("Leverage amplifies losses");
   });
   it("sits between the sizzle reel and markets, with approved wording", () => {

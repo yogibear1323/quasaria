@@ -35,6 +35,27 @@
 //! margin (`min_margin`) guarantees every position pays a non-zero fee and has
 //! a non-zero maintenance requirement, so every position is liquidatable.
 //!
+//! ## Funding (perps draft, see `/workspace/quasaria-perps/funding-module.md`)
+//! Each market keeps open interest (`long_oi`/`short_oi`, notional at entry)
+//! and one **signed cumulative funding index** (RATE_SCALE = 1e12). The mark
+//! is `oracle * (1 + skew_premium)` with `skew_premium = clamp(k * skew /
+//! skew_scale, ±max_premium)` (`quasaria-pricing`). A time-weighted premium is
+//! accumulated on every touch; `update_funding` (anyone / keeper, also run on
+//! every position touch) advances the index by whole elapsed intervals
+//! (capped at `max_catchup_intervals`) at `rate = clamp(premium_twap +
+//! interest, ±max_funding_rate_per_hour * interval / 1h)`, and is a no-op
+//! within an interval. Positive index moves → longs pay, shorts receive.
+//! A position owes `size * (index - entry_index)` (shorts: negated), settled
+//! into its margin on open / increase / decrease / close / trigger /
+//! liquidate and counted in `health_factor` / `liquidation_price`. Payments go
+//! to the liquidity reserve and receipts come out of it, so the reserve nets
+//! the long/short imbalance (it is the counterparty to the skew). Rounding:
+//! payers round up, receivers round down. A stale oracle blocks the update
+//! (the index does not move); funding keeps accruing while paused. Funding
+//! parameters change only through the timelock (`SetFundingDefault` /
+//! `SetMarketFunding`); the
+//! constructor installs a 1 h interval with all rates at 0 (off).
+//!
 //! ## Governance
 //! Two-step admin transfer, guardian pause (blocks `deposit` and
 //! `open_position`; withdraw / close / triggers / liquidations stay open) and
@@ -43,6 +64,7 @@
 #![no_std]
 
 use quasaria_gov as gov;
+use quasaria_pricing as pricing;
 use soroban_sdk::{
     contract, contractclient, contracterror, contractevent, contractimpl, contracttype,
     panic_with_error, token, Address, BytesN, Env, Symbol, Vec,
@@ -66,6 +88,19 @@ pub const HARD_MAX_OPEN_POSITIONS: u32 = 10_000;
 pub const MAX_REFERRAL_SHARE_BPS: u32 = 5_000;
 /// Max ids returned by one `open_position_ids_page` call.
 pub const MAX_PAGE: u32 = 100;
+/// Funding interval bounds (seconds).
+pub const MIN_FUNDING_INTERVAL: u64 = 60;
+pub const MAX_FUNDING_INTERVAL: u64 = 86_400;
+/// Default funding interval (1 h).
+pub const DEFAULT_FUNDING_INTERVAL: u64 = 3_600;
+/// `k` ≤ 10.0 (RATE_SCALE units).
+pub const HARD_MAX_FUNDING_K: i128 = 10 * pricing::RATE_SCALE;
+/// `max_premium` ≤ 10 %.
+pub const HARD_MAX_PREMIUM: i128 = pricing::RATE_SCALE / 10;
+/// `max_funding_rate_per_hour` ≤ 1 % per hour.
+pub const HARD_MAX_FUNDING_RATE_PER_HOUR: i128 = pricing::RATE_SCALE / 100;
+/// At most this many missed intervals are charged by one update (1 week of hours).
+pub const HARD_MAX_CATCHUP_INTERVALS: u32 = 168;
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -88,6 +123,8 @@ pub enum VaultError {
     BelowMinMargin = 15,
     TooManyUserPositions = 16,
     TooManyOpenPositions = 17,
+    /// Increase would leave the position below health factor 1.0.
+    Unhealthy = 18,
 }
 
 /// Reflector-compatible asset identifier.
@@ -153,6 +190,47 @@ pub struct Position {
     pub take_profit: i128,
 }
 
+/// Funding parameters (per market, or the vault-wide default).
+/// Rates / premiums / `k` are RATE_SCALE (1e12 = 100 % / 1.0) fixed point;
+/// `skew_scale` is in collateral units.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FundingConfig {
+    /// Seconds per funding interval (default 3600).
+    pub interval: u64,
+    /// Premium sensitivity: `premium = k * skew / skew_scale`.
+    pub k: i128,
+    /// Skew (collateral units) at which the premium reaches `k`.
+    pub skew_scale: i128,
+    /// |skew premium| cap.
+    pub max_premium: i128,
+    /// |funding rate| cap per hour (scaled to the interval).
+    pub max_funding_rate_per_hour: i128,
+    /// Optional interest component added per interval (default 0).
+    pub interest_per_interval: i128,
+    /// Missed intervals charged by one update (the rest are forgiven).
+    pub max_catchup_intervals: u32,
+}
+
+/// Per-market funding / open-interest state.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FundingState {
+    /// Open notional (collateral units, at entry) per side.
+    pub long_oi: i128,
+    pub short_oi: i128,
+    /// Signed cumulative funding per 1.0 notional (RATE_SCALE).
+    pub index: i128,
+    /// Start of the current (not yet charged) interval.
+    pub last_funding_ts: u64,
+    /// Premium in force since `last_sample_ts` (from the current OI).
+    pub premium: i128,
+    /// Σ premium × seconds since `acc_start`.
+    pub premium_acc: i128,
+    pub acc_start: u64,
+    pub last_sample_ts: u64,
+}
+
 /// Timelocked admin actions (`propose_action` → wait → `execute_action`).
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -164,6 +242,10 @@ pub enum VaultAction {
     Upgrade(BytesN<32>),
     SetDelay(u64),
     SetGuardian(Address),
+    /// Vault-wide default funding parameters.
+    SetFundingDefault(FundingConfig),
+    /// Funding parameters for one market (overrides the default).
+    SetMarketFunding(Asset, FundingConfig),
 }
 
 impl gov::TimelockAction for VaultAction {
@@ -173,13 +255,19 @@ impl gov::TimelockAction for VaultAction {
             | VaultAction::WithdrawLiquidity(_, _)
             | VaultAction::Upgrade(_)
             | VaultAction::SetDelay(_) => gov::DelayClass::Critical,
-            VaultAction::SetConfig(_) | VaultAction::SetGuardian(_) => gov::DelayClass::Standard,
+            VaultAction::SetConfig(_)
+            | VaultAction::SetGuardian(_)
+            | VaultAction::SetFundingDefault(_)
+            | VaultAction::SetMarketFunding(_, _) => gov::DelayClass::Standard,
         }
     }
     fn validate(&self, env: &Env) {
         match self {
             VaultAction::SetConfig(c) => validate_config(env, c),
             VaultAction::SetDelay(d) => gov::check_delay(env, *d),
+            VaultAction::SetFundingDefault(f) | VaultAction::SetMarketFunding(_, f) => {
+                validate_funding(env, f)
+            }
             _ => {}
         }
     }
@@ -202,6 +290,15 @@ enum DataKey {
     UserPositions(Address),
     OpenAt(u32),
     OpenSlot(u64),
+    /// Vault-wide default `FundingConfig` (instance).
+    FundingDefault,
+    /// Per-market `FundingConfig` override.
+    FundingCfg(Asset),
+    /// Per-market `FundingState`.
+    Funding(Asset),
+    /// Funding index at which position `id` last settled. Kept outside
+    /// `Position` so stored positions stay decodable after an upgrade.
+    FundEntry(u64),
 }
 
 #[contractevent(topics = ["pos_open"])]
@@ -233,6 +330,51 @@ pub struct Liquidated {
     pub id: u64,
     pub liquidator: Address,
     pub bonus: i128,
+}
+
+#[contractevent(topics = ["pos_increase"])]
+pub struct PositionIncreased {
+    #[topic]
+    pub owner: Address,
+    pub id: u64,
+    pub margin_added: i128,
+    pub size_added: i128,
+    pub entry_price: i128,
+}
+
+#[contractevent(topics = ["funding_upd"])]
+pub struct FundingUpdated {
+    #[topic]
+    pub asset: Asset,
+    /// Whole intervals elapsed / actually charged (≤ catch-up cap).
+    pub intervals: u64,
+    pub charged: u64,
+    pub premium_twap: i128,
+    pub rate: i128,
+    pub index: i128,
+}
+
+#[contractevent(topics = ["funding_set"])]
+pub struct FundingSettled {
+    #[topic]
+    pub owner: Address,
+    pub id: u64,
+    /// > 0 paid by the trader into the reserve; < 0 received from it.
+    pub amount: i128,
+    /// Owed but not moved (payer's margin or the reserve ran out).
+    pub shortfall: i128,
+}
+
+#[contractevent(topics = ["funding_cfg"], data_format = "single-value")]
+pub struct FundingDefaultSet {
+    pub config: FundingConfig,
+}
+
+#[contractevent(topics = ["mkt_funding_cfg"])]
+pub struct MarketFundingSet {
+    #[topic]
+    pub asset: Asset,
+    pub config: FundingConfig,
 }
 
 #[contractevent(topics = ["liq_funded"])]
@@ -541,6 +683,240 @@ fn delete_position(env: &Env, pos: &Position) {
     }
     put_user_list(env, &pos.owner, &out);
     index_remove(env, pos.id);
+    env.storage().persistent().remove(&DataKey::FundEntry(pos.id));
+}
+
+// ------------------------------------------------------------- funding
+
+/// Constructor default: 1 h interval, every rate 0 (funding off until a
+/// timelocked `SetFundingDefault` / `SetMarketFunding` turns it on).
+pub fn default_funding_config() -> FundingConfig {
+    FundingConfig {
+        interval: DEFAULT_FUNDING_INTERVAL,
+        k: 0,
+        skew_scale: 1,
+        max_premium: 0,
+        max_funding_rate_per_hour: 0,
+        interest_per_interval: 0,
+        max_catchup_intervals: 24,
+    }
+}
+
+pub fn validate_funding(env: &Env, f: &FundingConfig) {
+    let cap = pricing::max_rate_per_interval(env, f.max_funding_rate_per_hour, f.interval);
+    if f.interval < MIN_FUNDING_INTERVAL
+        || f.interval > MAX_FUNDING_INTERVAL
+        || f.k < 0
+        || f.k > HARD_MAX_FUNDING_K
+        || f.skew_scale <= 0
+        || f.max_premium < 0
+        || f.max_premium > HARD_MAX_PREMIUM
+        || f.max_funding_rate_per_hour < 0
+        || f.max_funding_rate_per_hour > HARD_MAX_FUNDING_RATE_PER_HOUR
+        || f.interest_per_interval > cap
+        || f.interest_per_interval < -cap
+        || f.max_catchup_intervals == 0
+        || f.max_catchup_intervals > HARD_MAX_CATCHUP_INTERVALS
+    {
+        panic_with_error!(env, VaultError::InvalidConfig);
+    }
+}
+
+fn funding_cfg(env: &Env, asset: &Asset) -> FundingConfig {
+    let k = DataKey::FundingCfg(asset.clone());
+    if let Some(c) = env.storage().persistent().get::<DataKey, FundingConfig>(&k) {
+        bump_p(env, &k);
+        return c;
+    }
+    env.storage()
+        .instance()
+        .get(&DataKey::FundingDefault)
+        .unwrap_or_else(default_funding_config)
+}
+
+fn load_fstate(env: &Env, asset: &Asset) -> FundingState {
+    let k = DataKey::Funding(asset.clone());
+    let now = env.ledger().timestamp();
+    let st = env.storage().persistent().get(&k).unwrap_or(FundingState {
+        long_oi: 0,
+        short_oi: 0,
+        index: 0,
+        last_funding_ts: now,
+        premium: 0,
+        premium_acc: 0,
+        acc_start: now,
+        last_sample_ts: now,
+    });
+    bump_p(env, &k);
+    st
+}
+
+/// Accumulate the TWAP sample and charge every whole elapsed interval.
+/// Pure state transition (no storage); emits `FundingUpdated` if `emit`.
+/// Callers must have validated a fresh oracle price for `asset` first.
+fn advance_funding(env: &Env, asset: &Asset, st: &mut FundingState, c: &FundingConfig, emit: bool) {
+    let now = env.ledger().timestamp();
+    if now > st.last_sample_ts {
+        let dt = i128::from(now - st.last_sample_ts);
+        st.premium_acc = gov::add(env, st.premium_acc, gov::mul(env, st.premium, dt));
+        st.last_sample_ts = now;
+    }
+    let (n, charged) = pricing::elapsed_intervals(now, st.last_funding_ts, c.interval, c.max_catchup_intervals);
+    if n == 0 {
+        return; // within the interval: no-op for the index
+    }
+    let tw = pricing::twap(env, st.premium_acc, now.saturating_sub(st.acc_start), st.premium);
+    let rate = pricing::funding_rate(env, tw, c.interest_per_interval, c.max_funding_rate_per_hour, c.interval);
+    st.index = gov::add(env, st.index, pricing::index_delta(env, rate, charged));
+    // keep the cadence: the interval boundary moves by whole intervals
+    st.last_funding_ts = gov::checked_add_u64(
+        env,
+        st.last_funding_ts,
+        n.checked_mul(c.interval)
+            .unwrap_or_else(|| panic_with_error!(env, gov::GovError::MathOverflow)),
+    );
+    st.premium_acc = 0;
+    st.acc_start = now;
+    if emit {
+        FundingUpdated {
+            asset: asset.clone(),
+            intervals: n,
+            charged,
+            premium_twap: tw,
+            rate,
+            index: st.index,
+        }
+        .publish(env);
+    }
+}
+
+/// Re-sample the premium from the (possibly changed) OI and persist.
+fn commit_market(env: &Env, asset: &Asset, st: &mut FundingState, c: &FundingConfig) {
+    st.premium = pricing::skew_premium(env, st.long_oi, st.short_oi, c.k, c.skew_scale, c.max_premium);
+    let k = DataKey::Funding(asset.clone());
+    env.storage().persistent().set(&k, st);
+    bump_p(env, &k);
+}
+
+fn oi_add(env: &Env, st: &mut FundingState, is_long: bool, size: i128) {
+    if is_long {
+        st.long_oi = gov::add(env, st.long_oi, size);
+    } else {
+        st.short_oi = gov::add(env, st.short_oi, size);
+    }
+}
+
+/// Saturating: positions opened before the upgrade were never counted.
+fn oi_sub(st: &mut FundingState, is_long: bool, size: i128) {
+    let side = if is_long { &mut st.long_oi } else { &mut st.short_oi };
+    *side = if *side > size { *side - size } else { 0 };
+}
+
+fn entry_index(env: &Env, id: u64, current: i128) -> i128 {
+    env.storage()
+        .persistent()
+        .get(&DataKey::FundEntry(id))
+        .unwrap_or(current)
+}
+
+fn set_entry_index(env: &Env, id: u64, index: i128) {
+    let k = DataKey::FundEntry(id);
+    env.storage().persistent().set(&k, &index);
+    bump_p(env, &k);
+}
+
+/// Settle `pos`'s funding at `index` into its margin (the caller saves or
+/// deletes the position). Payments go to the reserve (capped by margin);
+/// receipts come out of it (capped by the reserve). Never creates value.
+fn settle_funding(env: &Env, pos: &mut Position, index: i128) {
+    let entry = entry_index(env, pos.id, index);
+    set_entry_index(env, pos.id, index);
+    if entry == index {
+        return;
+    }
+    let owed = pricing::funding_owed(env, pos.is_long, pos.size, entry, index);
+    let liq = liquidity(env);
+    let (amount, shortfall) = if owed > 0 {
+        let paid = if owed > pos.margin { pos.margin } else { owed };
+        pos.margin = gov::sub(env, pos.margin, paid);
+        set_liquidity(env, gov::add(env, liq, paid));
+        (paid, gov::sub(env, owed, paid))
+    } else if owed < 0 {
+        let want = gov::sub(env, 0, owed);
+        let got = if want > liq { liq } else { want };
+        pos.margin = gov::add(env, pos.margin, got);
+        set_liquidity(env, gov::sub(env, liq, got));
+        (gov::sub(env, 0, got), gov::sub(env, want, got))
+    } else {
+        (0, 0)
+    };
+    FundingSettled {
+        owner: pos.owner.clone(),
+        id: pos.id,
+        amount,
+        shortfall,
+    }
+    .publish(env);
+}
+
+/// Funding `pos` would owe if settled now (projects whole elapsed intervals;
+/// > 0 = owes). Read-only.
+fn pending_funding_of(env: &Env, pos: &Position) -> i128 {
+    let c = funding_cfg(env, &pos.asset);
+    let mut st = load_fstate(env, &pos.asset);
+    advance_funding(env, &pos.asset, &mut st, &c, false);
+    let entry = entry_index(env, pos.id, st.index);
+    pricing::funding_owed(env, pos.is_long, pos.size, entry, st.index)
+}
+
+/// Margin after pending funding (for HF / liquidation-price views).
+fn effective_margin(env: &Env, pos: &Position) -> i128 {
+    gov::sub(env, pos.margin, pending_funding_of(env, pos))
+}
+
+/// Size-weighted average entry that keeps PnL unchanged; rounded against
+/// the trader (longs up, shorts down).
+fn blended_entry(env: &Env, is_long: bool, size_a: i128, entry_a: i128, size_b: i128, price_b: i128) -> i128 {
+    const U: i128 = 1_000_000_000_000_000_000;
+    let total = gov::add(env, size_a, size_b);
+    if is_long {
+        let units = gov::add(
+            env,
+            gov::mul_div_floor(env, size_a, U, entry_a),
+            gov::mul_div_floor(env, size_b, U, price_b),
+        );
+        gov::mul_div_ceil(env, total, U, units)
+    } else {
+        let units = gov::add(
+            env,
+            gov::mul_div_ceil(env, size_a, U, entry_a),
+            gov::mul_div_ceil(env, size_b, U, price_b),
+        );
+        gov::mul_div_floor(env, total, U, units)
+    }
+}
+
+/// Opening-fee split shared by open / increase: referral share to the
+/// referrer's free balance (capped), the rest to the reserve.
+fn distribute_fee(env: &Env, owner: &Address, fee: i128) {
+    let mut to_reserve = fee;
+    if let Some(reg) = env
+        .storage()
+        .instance()
+        .get::<DataKey, Address>(&DataKey::Referral)
+    {
+        let rc = ReferralClient::new(env, &reg);
+        if let Some(referrer) = rc.get_referrer(owner) {
+            let share = rc.share_bps().min(MAX_REFERRAL_SHARE_BPS);
+            let cut = gov::mul_div_floor(env, fee, i128::from(share), BPS);
+            if cut > 0 {
+                set_free(env, &referrer, gov::add(env, get_free(env, &referrer), cut));
+                rc.record_reward(&env.current_contract_address(), &referrer, &collateral(env), &cut);
+                to_reserve = gov::sub(env, to_reserve, cut);
+            }
+        }
+    }
+    set_liquidity(env, gov::add(env, liquidity(env), to_reserve));
 }
 
 #[contract]
@@ -607,6 +983,21 @@ impl LeverageVault {
             VaultAction::Upgrade(hash) => gov::upgrade_now(&env, &hash),
             VaultAction::SetDelay(d) => gov::set_delay_now(&env, d),
             VaultAction::SetGuardian(g) => gov::set_guardian_now(&env, &g),
+            // New parameters apply from the next charged interval: elapsed,
+            // uncharged time is priced with the new config on the next
+            // update (call `update_funding` before executing to avoid that).
+            VaultAction::SetFundingDefault(config) => {
+                validate_funding(&env, &config);
+                env.storage().instance().set(&DataKey::FundingDefault, &config);
+                FundingDefaultSet { config }.publish(&env);
+            }
+            VaultAction::SetMarketFunding(asset, config) => {
+                validate_funding(&env, &config);
+                let k = DataKey::FundingCfg(asset.clone());
+                env.storage().persistent().set(&k, &config);
+                bump_p(&env, &k);
+                MarketFundingSet { asset, config }.publish(&env);
+            }
         }
     }
 
@@ -739,26 +1130,13 @@ impl LeverageVault {
 
         // Fee split: referral share -> referrer's free balance, rest -> reserve.
         // The share is capped here, whatever the registry returns.
-        let mut to_reserve = fee;
-        if let Some(reg) = env
-            .storage()
-            .instance()
-            .get::<DataKey, Address>(&DataKey::Referral)
-        {
-            let rc = ReferralClient::new(&env, &reg);
-            if let Some(referrer) = rc.get_referrer(&owner) {
-                let share = rc.share_bps().min(MAX_REFERRAL_SHARE_BPS);
-                let cut = gov::mul_div_floor(&env, fee, i128::from(share), BPS);
-                if cut > 0 {
-                    set_free(&env, &referrer, gov::add(&env, get_free(&env, &referrer), cut));
-                    rc.record_reward(&env.current_contract_address(), &referrer, &collateral(&env), &cut);
-                    to_reserve = gov::sub(&env, to_reserve, cut);
-                }
-            }
-        }
-        set_liquidity(&env, gov::add(&env, liquidity(&env), to_reserve));
+        distribute_fee(&env, &owner, fee);
 
         let price = oracle_price(&env, &asset);
+        // funding: bring the market up to date before the OI changes
+        let fc = funding_cfg(&env, &asset);
+        let mut fs = load_fstate(&env, &asset);
+        advance_funding(&env, &asset, &mut fs, &fc, true);
         let id: u64 = env.storage().instance().get(&DataKey::NextId).unwrap_or(1);
         let next = id
             .checked_add(1)
@@ -777,6 +1155,9 @@ impl LeverageVault {
             take_profit: 0,
         };
         save_position(&env, &pos);
+        set_entry_index(&env, id, fs.index);
+        oi_add(&env, &mut fs, is_long, size);
+        commit_market(&env, &pos.asset, &mut fs, &fc);
         ul.push_back(id);
         put_user_list(&env, &owner, &ul);
         index_insert(&env, id);
@@ -804,17 +1185,142 @@ impl LeverageVault {
 
     /// Never paused.
     pub fn close_position(env: Env, caller: Address, id: u64) -> i128 {
-        let pos = load_position(&env, id);
+        let mut pos = load_position(&env, id);
         require_controller(&env, &caller, &pos.owner);
         gov::bump_instance(&env);
         let price = oracle_price(&env, &pos.asset);
+        Self::touch_and_release_all(&env, &mut pos);
         Self::finish(&env, &pos, price, Symbol::new(&env, "user"))
+    }
+
+    /// Add margin (and notional at `leverage_bps` on the added margin) to an
+    /// open position at the current oracle price. Funding is settled first;
+    /// the entry becomes the size-weighted average. Paused by the guardian.
+    pub fn increase_position(env: Env, caller: Address, id: u64, margin: i128, leverage_bps: u32) -> i128 {
+        let mut pos = load_position(&env, id);
+        require_controller(&env, &caller, &pos.owner);
+        gov::bump_instance(&env);
+        gov::when_not_paused(&env);
+        let c = cfg(&env);
+        if margin <= 0 {
+            panic_with_error!(&env, VaultError::ZeroAmount);
+        }
+        if leverage_bps < 10_000 {
+            panic_with_error!(&env, VaultError::LeverageTooLow);
+        }
+        if leverage_bps > c.max_leverage_bps {
+            panic_with_error!(&env, VaultError::LeverageTooHigh);
+        }
+        if !env.storage().persistent().has(&DataKey::Market(pos.asset.clone())) {
+            panic_with_error!(&env, VaultError::MarketNotEnabled);
+        }
+        let price = oracle_price(&env, &pos.asset);
+        let fc = funding_cfg(&env, &pos.asset);
+        let mut fs = load_fstate(&env, &pos.asset);
+        advance_funding(&env, &pos.asset, &mut fs, &fc, true);
+        settle_funding(&env, &mut pos, fs.index);
+
+        let add = gov::mul_div_floor(&env, margin, i128::from(leverage_bps), BPS);
+        let fee = gov::mul_div_floor(&env, add, i128::from(c.open_fee_bps), BPS);
+        let free = get_free(&env, &pos.owner);
+        let need = gov::add(&env, margin, fee);
+        if free < need {
+            panic_with_error!(&env, VaultError::InsufficientCollateral);
+        }
+        set_free(&env, &pos.owner, gov::sub(&env, free, need));
+        distribute_fee(&env, &pos.owner, fee);
+
+        let new_size = gov::add(&env, pos.size, add);
+        let new_margin = gov::add(&env, pos.margin, margin);
+        // total leverage stays within the cap
+        if gov::mul(&env, new_size, BPS) > gov::mul(&env, new_margin, i128::from(c.max_leverage_bps)) {
+            panic_with_error!(&env, VaultError::LeverageTooHigh);
+        }
+        let entry = blended_entry(&env, pos.is_long, pos.size, pos.entry_price, add, price);
+        let pnl = pnl_at(&env, pos.is_long, new_size, entry, price);
+        if health_factor_bps(&env, new_margin, new_size, pnl, c.maintenance_margin_bps) < BPS {
+            panic_with_error!(&env, VaultError::Unhealthy);
+        }
+        pos.size = new_size;
+        pos.margin = new_margin;
+        pos.entry_price = entry;
+        save_position(&env, &pos);
+        oi_add(&env, &mut fs, pos.is_long, add);
+        commit_market(&env, &pos.asset, &mut fs, &fc);
+        PositionIncreased {
+            owner: pos.owner.clone(),
+            id,
+            margin_added: margin,
+            size_added: add,
+            entry_price: entry,
+        }
+        .publish(&env);
+        new_size
+    }
+
+    /// Close `size` of a position (the whole position if `size >=` its size).
+    /// Funding is settled first; margin is released pro rata (floored, the
+    /// remainder stays in the position). Risk-reducing: never paused.
+    pub fn decrease_position(env: Env, caller: Address, id: u64, size: i128) -> i128 {
+        let mut pos = load_position(&env, id);
+        require_controller(&env, &caller, &pos.owner);
+        gov::bump_instance(&env);
+        if size <= 0 {
+            panic_with_error!(&env, VaultError::ZeroAmount);
+        }
+        let price = oracle_price(&env, &pos.asset);
+        if size >= pos.size {
+            Self::touch_and_release_all(&env, &mut pos);
+            return Self::finish(&env, &pos, price, Symbol::new(&env, "user"));
+        }
+        Self::touch_and_release(&env, &mut pos, size);
+        let part_margin = gov::mul_div_floor(&env, pos.margin, size, pos.size);
+        let mut part = pos.clone();
+        part.size = size;
+        part.margin = part_margin;
+        let (pnl, payout) = settle(&env, &part, price);
+        pos.size = gov::sub(&env, pos.size, size);
+        pos.margin = gov::sub(&env, pos.margin, part_margin);
+        if pos.margin < cfg(&env).min_margin {
+            panic_with_error!(&env, VaultError::BelowMinMargin);
+        }
+        save_position(&env, &pos);
+        set_free(&env, &pos.owner, gov::add(&env, get_free(&env, &pos.owner), payout));
+        PositionClosed {
+            owner: pos.owner.clone(),
+            id,
+            exit_price: price,
+            pnl,
+            payout,
+            reason: Symbol::new(&env, "decrease"),
+        }
+        .publish(&env);
+        payout
+    }
+
+    /// Permissionless: advance `asset`'s funding index by every whole elapsed
+    /// interval (no-op within an interval). Refuses a stale oracle price, so
+    /// the index never moves on stale data. Not paused (funding accrues
+    /// while paused). Returns the index.
+    pub fn update_funding(env: Env, asset: Asset) -> i128 {
+        gov::bump_instance(&env);
+        let known = env.storage().persistent().has(&DataKey::Market(asset.clone()))
+            || env.storage().persistent().has(&DataKey::Funding(asset.clone()));
+        if !known {
+            panic_with_error!(&env, VaultError::MarketNotEnabled);
+        }
+        oracle_price(&env, &asset); // staleness / future-skew gate
+        let fc = funding_cfg(&env, &asset);
+        let mut fs = load_fstate(&env, &asset);
+        advance_funding(&env, &asset, &mut fs, &fc, true);
+        commit_market(&env, &asset, &mut fs, &fc);
+        fs.index
     }
 
     /// Permissionless keeper entry point: close when SL or TP is crossed.
     pub fn execute_trigger(env: Env, id: u64) -> i128 {
         gov::bump_instance(&env);
-        let pos = load_position(&env, id);
+        let mut pos = load_position(&env, id);
         let price = oracle_price(&env, &pos.asset);
         let sl_hit = pos.stop_loss > 0
             && ((pos.is_long && price <= pos.stop_loss) || (!pos.is_long && price >= pos.stop_loss));
@@ -825,6 +1331,7 @@ impl LeverageVault {
             panic_with_error!(&env, VaultError::TriggerNotHit);
         }
         let reason = if sl_hit { "stop_loss" } else { "take_profit" };
+        Self::touch_and_release_all(&env, &mut pos);
         Self::finish(&env, &pos, price, Symbol::new(&env, reason))
     }
 
@@ -833,8 +1340,10 @@ impl LeverageVault {
     pub fn liquidate(env: Env, liquidator: Address, id: u64) -> i128 {
         liquidator.require_auth();
         gov::bump_instance(&env);
-        let pos = load_position(&env, id);
+        let mut pos = load_position(&env, id);
         let price = oracle_price(&env, &pos.asset);
+        // funding is settled into the margin first, so it counts in the HF
+        Self::touch_and_release_all(&env, &mut pos);
         let c = cfg(&env);
         let pnl = pnl_at(&env, pos.is_long, pos.size, pos.entry_price, price);
         if health_factor_bps(&env, pos.margin, pos.size, pnl, c.maintenance_margin_bps) >= BPS {
@@ -933,11 +1442,36 @@ impl LeverageVault {
         Self::open_position_ids_page(env, 0, MAX_PAGE)
     }
 
+    /// Effective funding parameters for `asset` (override or default).
+    pub fn funding_config(env: Env, asset: Asset) -> FundingConfig {
+        funding_cfg(&env, &asset)
+    }
+
+    /// Stored funding / OI state of `asset` (as of its last touch).
+    pub fn funding_state(env: Env, asset: Asset) -> FundingState {
+        load_fstate(&env, &asset)
+    }
+
+    /// Funding position `id` would settle now (> 0 owes, < 0 receives).
+    pub fn pending_funding(env: Env, id: u64) -> i128 {
+        pending_funding_of(&env, &load_position(&env, id))
+    }
+
+    /// Mark = oracle * (1 + skew premium) at the current OI.
+    pub fn mark_price(env: Env, asset: Asset) -> i128 {
+        let price = oracle_price(&env, &asset);
+        let c = funding_cfg(&env, &asset);
+        let st = load_fstate(&env, &asset);
+        let prem = pricing::skew_premium(&env, st.long_oi, st.short_oi, c.k, c.skew_scale, c.max_premium);
+        pricing::mark_price(&env, price, prem)
+    }
+
     pub fn health_factor(env: Env, id: u64) -> i128 {
         let pos = load_position(&env, id);
         let price = oracle_price(&env, &pos.asset);
         let pnl = pnl_at(&env, pos.is_long, pos.size, pos.entry_price, price);
-        health_factor_bps(&env, pos.margin, pos.size, pnl, cfg(&env).maintenance_margin_bps)
+        // includes funding not yet settled (projected to now)
+        health_factor_bps(&env, effective_margin(&env, &pos), pos.size, pnl, cfg(&env).maintenance_margin_bps)
     }
 
     pub fn liquidation_price(env: Env, id: u64) -> i128 {
@@ -945,7 +1479,7 @@ impl LeverageVault {
         liquidation_price(
             &env,
             pos.is_long,
-            pos.margin,
+            effective_margin(&env, &pos),
             pos.size,
             pos.entry_price,
             cfg(&env).maintenance_margin_bps,
@@ -954,6 +1488,24 @@ impl LeverageVault {
 }
 
 impl LeverageVault {
+    /// Bring `pos`'s market funding up to date, settle the position's funding
+    /// into its margin, and remove `released` notional from the market OI.
+    /// The caller has already validated a fresh oracle price.
+    fn touch_and_release(env: &Env, pos: &mut Position, released: i128) {
+        let fc = funding_cfg(env, &pos.asset);
+        let mut fs = load_fstate(env, &pos.asset);
+        advance_funding(env, &pos.asset, &mut fs, &fc, true);
+        settle_funding(env, pos, fs.index);
+        oi_sub(&mut fs, pos.is_long, released);
+        commit_market(env, &pos.asset, &mut fs, &fc);
+    }
+
+    /// [`Self::touch_and_release`] for the whole position (full close).
+    fn touch_and_release_all(env: &Env, pos: &mut Position) {
+        let size = pos.size;
+        Self::touch_and_release(env, pos, size);
+    }
+
     fn finish(env: &Env, pos: &Position, price: i128, reason: Symbol) -> i128 {
         let (pnl, payout) = settle(env, pos, price);
         set_free(env, &pos.owner, gov::add(env, get_free(env, &pos.owner), payout));
@@ -973,3 +1525,5 @@ impl LeverageVault {
 
 #[cfg(test)]
 mod test;
+#[cfg(test)]
+mod test_funding;

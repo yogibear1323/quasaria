@@ -1,6 +1,6 @@
 [package]
-name = "quasaria-leverage-vault"
-description = "Quasaria leverage/margin vault with oracle health-factor liquidations"
+name = "quasaria-pricing"
+description = "Quasaria perps pricing library: skew-premium mark price, funding rate and funding-index math (pure functions)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,15 +8,12 @@ authors.workspace = true
 publish.workspace = true
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["rlib"]
 doctest = false
 
 [dependencies]
 soroban-sdk = { workspace = true }
 quasaria-gov = { workspace = true }
-quasaria-pricing = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
-quasaria-mock-oracle = { workspace = true }
-quasaria-referral = { workspace = true }

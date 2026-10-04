@@ -4,71 +4,17 @@ import { expertContract } from "../lib/config";
 import { useChain } from "../lib/chain";
 import { short } from "../lib/format";
 import {
-  BACK_OFFICE, STRATEGY_LABEL, fetchStatus, mergeDesks, readFloorOnChain, readFloorTrades, sparkPath, statusAge, tfLabel,
-  type ChainTrade, type DeskView, type StatusDoc,
+  BACK_OFFICE, STRATEGY_LABEL, applyExample, deskTally, exampleInit, exampleStep, fetchStatus, floorTape, fmtPnl, mergeDesks, readFloorOnChain, readFloorTrades, statusAge, tfLabel,
+  type ChainTrade, type DeskView, type ExampleState, type StatusDoc,
 } from "../lib/backOffice";
+import { RobotDesk, useCountUp, useReducedMotion } from "../components/RobotDesk";
 import { PERPS } from "../lib/perps";
 import "../theme/back-office.css";
 
 const EXPERT_TX = "https://stellar.expert/explorer/testnet/tx/";
 const EXPERT_ACCT = "https://stellar.expert/explorer/testnet/account/";
-const sgn = (v: number, d = 2) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(d)}`;
 const STATUS_TEXT = { running: "Running", paused: "Paused", halted: "Halted", unknown: "No status" } as const;
 const ago = (s: number | null) => (s === null ? "—" : s < 90 ? `${Math.round(s)} s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
-
-function Spark({ values, up, id }: { values: number[]; up: boolean; id: string }) {
-  const p = sparkPath(values);
-  const color = up ? "#34d399" : "#fb7185";
-  if (!p.line) return <div className="bo-spark bo-spark-empty">waiting for bars</div>;
-  return (
-    <svg className="bo-spark" viewBox="0 0 150 46" preserveAspectRatio="none" aria-hidden>
-      <defs>
-        <linearGradient id={`bo-g-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={color} stopOpacity=".35" />
-          <stop offset="1" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={p.area} fill={`url(#bo-g-${id})`} />
-      <path d={p.line} fill="none" stroke={color} strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
-      {p.last && <circle cx={p.last[0]} cy={p.last[1]} r="2.4" fill="#fff" />}
-    </svg>
-  );
-}
-
-function bubbleFor(d: DeskView, now: number): string | null {
-  const t = d.trades.find((x) => x.kind === "open");
-  if (!t || now - Date.parse(t.at) / 1000 > 3 * 3600) return null;
-  return `${(t.side ?? "").toUpperCase()} XLM ${(t.leverage ?? 0).toFixed(1)}×`;
-}
-
-function Desk({ d, selected, onSelect, now, i }: { d: DeskView; selected: boolean; onSelect: () => void; now: number; i: number }) {
-  const pnl = d.pnl ?? 0;
-  const up = pnl >= 0 && d.status !== "halted";
-  const pos = d.positions[0];
-  const bubble = bubbleFor(d, now);
-  return (
-    <button className={`bo-desk ${d.cfg.strategy} ${d.status} ${selected ? "sel" : ""} ${up ? "up" : "dn"}`} onClick={onSelect} aria-pressed={selected} aria-label={`${d.cfg.name} desk`}>
-      {bubble && <span className={`bo-bubble ${i % 2 ? "l" : ""}`}>{bubble}<i /></span>}
-      <span className="bo-top">
-        <span className="bo-tag">{STRATEGY_LABEL[d.cfg.strategy]} · {tfLabel(d.cfg.timeframeSec)}</span>
-        <span className="bo-light"><i />{STATUS_TEXT[d.status]}</span>
-      </span>
-      <span className="bo-laptop">
-        <span className="bo-screen">
-          <span className="bo-scr-h"><span>XLM-PERP</span><span className={up ? "g" : "r"}>{d.pnl === null ? "—" : sgn(pnl)}</span></span>
-          <Spark values={d.spark} up={up} id={d.cfg.id} />
-          <span className="bo-scr-f">
-            {d.status === "halted" ? <b className="r">HALTED</b> : pos ? <b>{pos.side.toUpperCase()} {pos.leverage.toFixed(1)}× · {pos.margin.toFixed(0)} m</b> : <b>FLAT</b>}
-            <span>{pos ? `entry ${pos.entry.toFixed(4)} · stop ${pos.stop ? pos.stop.toFixed(4) : "—"}` : d.lastSignal ? d.lastSignal.slice(0, 34) : "waiting for a signal"}</span>
-          </span>
-        </span>
-        <span className="bo-base" />
-      </span>
-      <span className="bo-surface" />
-      <span className="bo-plate"><span className="bo-nm">{d.cfg.name}</span><span className="bo-pnl">{d.pnl === null ? "—" : sgn(pnl)} <small>QUSD</small></span></span>
-    </button>
-  );
-}
 
 function Meter({ label, value, limit }: { label: string; value: number | null; limit: number }) {
   const pct = value === null ? 0 : Math.min(100, (value / limit) * 100);
@@ -82,16 +28,24 @@ function Meter({ label, value, limit }: { label: string; value: number | null; l
 
 function TradeRow({ t }: { t: ChainTrade }) {
   const when = new Date(t.at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  if (t.tx.startsWith("example"))
+    return (
+      <span className="bo-tr ex">
+        <span className={t.kind === "open" ? "c" : (t.pnl ?? 0) >= 0 ? "g" : "r"}>{t.kind === "open" ? "OPEN" : "CLOSE"}</span>
+        {t.kind === "open" ? `${(t.side ?? "").toUpperCase()} ${(t.leverage ?? 0).toFixed(1)}×` : `${fmtPnl(t.pnl ?? 0)}`}
+        <em>example</em>
+      </span>
+    );
   return (
     <a className="bo-tr" href={EXPERT_TX + t.tx} target="_blank" rel="noreferrer">
       <span className={t.kind === "open" ? "c" : (t.pnl ?? 0) >= 0 ? "g" : "r"}>{t.kind === "open" ? "OPEN" : (t.reason ?? "close").replace("_", " ").toUpperCase().slice(0, 6)}</span>
-      {t.kind === "open" ? `${(t.side ?? "").toUpperCase()} ${(t.leverage ?? 0).toFixed(1)}× @${t.price.toFixed(4)}` : `#${t.id} ${sgn(t.pnl ?? 0)} @${t.price.toFixed(4)}`}
+      {t.kind === "open" ? `${(t.side ?? "").toUpperCase()} ${(t.leverage ?? 0).toFixed(1)}× @${t.price.toFixed(4)}` : `#${t.id} ${fmtPnl(t.pnl ?? 0)} @${t.price.toFixed(4)}`}
       <em>{when}</em>
     </a>
   );
 }
 
-function Panel({ d, status }: { d: DeskView; status: StatusDoc | null }) {
+function Panel({ d, status, example }: { d: DeskView; status: StatusDoc | null; example: boolean }) {
   const pos = d.positions[0];
   const L = BACK_OFFICE.limits;
   const drift = d.drift;
@@ -102,7 +56,7 @@ function Panel({ d, status }: { d: DeskView; status: StatusDoc | null }) {
       <div className="bo-p-h">
         <div>
           <span className={`bo-tag ${d.cfg.strategy}`}>{STRATEGY_LABEL[d.cfg.strategy]} · {tfLabel(d.cfg.timeframeSec)}</span>
-          <h3>{d.cfg.name}</h3>
+          <h3>{d.cfg.name}{example && <span className="bo-exchip">example</span>}</h3>
           <a className="bo-mut" href={EXPERT_ACCT + d.cfg.owner} target="_blank" rel="noreferrer">owner {short(d.cfg.owner)} · bot key {short(d.cfg.operator)} (cannot withdraw)</a>
         </div>
         <span className={`bo-light ${d.status}`}><i />{STATUS_TEXT[d.status]}</span>
@@ -110,10 +64,11 @@ function Panel({ d, status }: { d: DeskView; status: StatusDoc | null }) {
       {d.reason && <div className="bo-reason">{d.reason}</div>}
       <div className="bo-pos">
         <div><span className="bo-lbl">Position</span>{pos ? <b className={pos.side === "long" ? "g" : "r"}>{pos.side.toUpperCase()} XLM {pos.leverage.toFixed(1)}×</b> : <b>Flat</b>}<span>{pos ? `notional ${pos.size.toFixed(0)} · margin ${pos.margin.toFixed(0)} QUSD` : `${d.positions.length} open`}</span></div>
-        <div><span className="bo-lbl">Unrealized</span><b className={(pos?.upnl ?? 0) >= 0 ? "g" : "r"}>{pos ? sgn(pos.upnl) : "—"}</b><span>{pos ? `entry ${pos.entry.toFixed(4)}` : "no open position"}</span></div>
+        <div><span className="bo-lbl">Unrealized</span><b className={(pos?.upnl ?? 0) >= 0 ? "g" : "r"}>{pos ? fmtPnl(pos.upnl) : "—"}</b><span>{pos ? `entry ${pos.entry.toFixed(4)}` : "no open position"}</span></div>
       </div>
       <div className="bo-row"><span className="bo-lbl">Risk per trade</span><b>{d.cfg.riskPct.toFixed(2)}% <small>· max {d.cfg.maxLeverage}×</small></b></div>
       <div className="bo-row"><span className="bo-lbl">Stop / take-profit</span><b>{pos?.stop ? pos.stop.toFixed(4) : "—"} <small>/ {pos?.takeProfit ? pos.takeProfit.toFixed(4) : "—"}</small></b></div>
+      <div className="bo-row"><span className="bo-lbl">Running P&amp;L</span><b className={(d.pnl ?? 0) > 0.004 ? "g" : (d.pnl ?? 0) < -0.004 ? "r" : ""}>{fmtPnl(d.pnl)} <small>QUSD · {(() => { const t = deskTally(d.trades); return `W ${t.wins} · L ${t.losses} · won ${t.grossWon.toFixed(2)} · lost ${t.grossLost.toFixed(2)}`; })()}</small></b></div>
       <div className="bo-row"><span className="bo-lbl">Equity</span><b>{d.equity === null ? "—" : d.equity.toFixed(2)} <small>/ {d.cfg.capital} test QUSD</small></b></div>
       <Meter label="Daily loss vs limit" value={d.dailyLossPct} limit={L.deskDailyLossPct} />
       <Meter label="Drawdown vs limit" value={d.drawdownPct} limit={L.deskDrawdownPct} />
@@ -133,6 +88,38 @@ function Panel({ d, status }: { d: DeskView; status: StatusDoc | null }) {
     </aside>
   );
 }
+
+function WallBoard({ desks, price, funding, open, maxOpen, example }: { desks: DeskView[]; price: number | null; funding: number | null; open: number; maxOpen: number; example: boolean }) {
+  const reduced = useReducedMotion();
+  const fleet = desks.some((d) => d.pnl !== null) ? desks.reduce((a, d) => a + (d.pnl ?? 0), 0) : null;
+  const shown = useCountUp(fleet ?? 0, reduced);
+  const tape = floorTape(desks);
+  const items = tape.map(({ desk, t }) =>
+    t.kind === "open" ? { k: `${t.tx}${t.kind}`, c: "c", s: `${desk.toUpperCase()} ${(t.side ?? "").toUpperCase()} XLM ${(t.leverage ?? 0).toFixed(1)}× @${t.price.toFixed(4)}` } : { k: `${t.tx}${t.kind}`, c: (t.pnl ?? 0) >= 0 ? "g" : "r", s: `${desk.toUpperCase()} CLOSED ${fmtPnl(t.pnl ?? 0)} QUSD` },
+  );
+  return (
+    <div className={`bo-board ${example ? "ex" : ""}`} aria-label="Trading floor wall board">
+      <div className="bo-cells">
+        <div><span>XLM</span><b className="c">{price ? price.toFixed(4) : "—"}</b></div>
+        <div><span>Funding · 1h</span><b>{funding === null ? "—" : `${(funding * 100).toFixed(4)}%`}</b></div>
+        <div><span>Open</span><b>{open}<small>/{maxOpen}</small></b></div>
+        <div><span>Floor P&amp;L</span><b className={(fleet ?? 0) > 0.004 ? "g" : (fleet ?? 0) < -0.004 ? "r" : ""}>{fleet === null ? "—" : fmtPnl(shown)}</b></div>
+        <div className="bo-tn"><span>{example ? "Example" : "Testnet"}</span><b className="am">{example ? "not real" : "test funds"}</b></div>
+      </div>
+      <div className="bo-tape" aria-live="polite">
+        {items.length ? (
+          <div className={`bo-tape-in ${items.length > 2 ? "run" : ""}`}>
+            {[...items, ...(items.length > 2 ? items : [])].map((x, j) => <span key={`${x.k}-${j}`} className={x.c}>{x.s}</span>)}
+          </div>
+        ) : (
+          <div className="bo-tape-in"><span>No fills yet · six bots watching XLM-PERP · Testnet · test funds</span></div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const EXAMPLE_BEATS = 14;
 
 export default function BackOffice() {
   const [nonce, setNonce] = useState(0);
@@ -155,8 +142,20 @@ export default function BackOffice() {
   const now = Date.now() / 1000;
   const { age, stale } = statusAge(status, now);
   const desks = useMemo(() => mergeDesks(BACK_OFFICE.desks, chain.data, status, trades, stale), [chain.data, status, trades, stale]);
+  const [ex, setEx] = useState<ExampleState | null>(null);
+  const exPrice = chain.data?.price ?? status?.market.oraclePrice ?? 0.2;
+  useEffect(() => {
+    if (!ex) return;
+    if (ex.step >= EXAMPLE_BEATS) {
+      const t = setTimeout(() => setEx(null), 3500);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setEx((s) => (s ? exampleStep(s, exPrice, Date.now()) : s)), ex.step === 0 ? 700 : 2200);
+    return () => clearTimeout(t);
+  }, [ex, exPrice]);
+  const view = useMemo(() => (ex ? applyExample(desks, ex) : desks), [desks, ex]);
   const [sel, setSel] = useState(BACK_OFFICE.desks[0].id);
-  const selected = desks.find((d) => d.cfg.id === sel) ?? desks[0];
+  const selected = view.find((d) => d.cfg.id === sel) ?? view[0];
 
   const totalEq = chain.data ? desks.reduce((a, d) => a + (d.equity ?? 0), 0) : status?.fleet.equity ?? null;
   const capital = BACK_OFFICE.desks.reduce((a, d) => a + d.capital, 0);
@@ -184,7 +183,7 @@ export default function BackOffice() {
       </PageHead>
 
       <section className="bo-ticker" aria-label="Fleet summary">
-        <div className="bo-t"><span className="bo-lbl">Fleet PnL · since start</span><b className={(fleetPnl ?? 0) >= 0 ? "g" : "r"}>{fleetPnl === null ? "—" : sgn(fleetPnl)} <small>QUSD</small></b><span>{totalEq === null ? "—" : `${totalEq.toFixed(2)} of ${startEq.toFixed(0)} test QUSD`}{status ? ` · today ${sgn(status.fleet.pnlToday)}` : ""}</span></div>
+        <div className="bo-t"><span className="bo-lbl">Fleet PnL · since start</span><b className={(fleetPnl ?? 0) >= 0 ? "g" : "r"}>{fleetPnl === null ? "—" : fmtPnl(fleetPnl)} <small>QUSD</small></b><span>{totalEq === null ? "—" : `${totalEq.toFixed(2)} of ${startEq.toFixed(0)} test QUSD`}{status ? ` · today ${fmtPnl(status.fleet.pnlToday)}` : ""}</span></div>
         <div className="bo-t"><span className="bo-lbl">Risk used</span><b>{status ? `${status.fleet.riskUsedPct.toFixed(1)}%` : "—"} <small>/ {BACK_OFFICE.limits.fleetOpenRiskPct.toFixed(1)}%</small></b><div className="bo-bar"><i style={{ width: `${Math.min(100, ((status?.fleet.riskUsedPct ?? 0) / BACK_OFFICE.limits.fleetOpenRiskPct) * 100)}%` }} /></div></div>
         <div className="bo-t"><span className="bo-lbl">Open positions</span><b>{openCount} <small>/ {BACK_OFFICE.desks.length * BACK_OFFICE.limits.maxOpenPerDesk}</small></b><span>{status ? `net ${status.fleet.netSide} · same-side cap ${BACK_OFFICE.limits.fleetSameDirRiskPct}%` : "—"}</span></div>
         <div className="bo-t"><span className="bo-lbl">Oracle · XLM</span><b className={status?.market.oracleLevel === "halt" ? "r" : "c"}>{chain.data?.price ? chain.data.price.toFixed(4) : status ? status.market.oraclePrice.toFixed(4) : "—"}</b><span>{status ? `age ${status.market.oracleAgeSec}s · vs ref ${status.market.deviationPct === null ? "—" : `${status.market.deviationPct.toFixed(2)}%`} · ${status.market.oracleLevel}` : "independent check: —"}</span></div>
@@ -200,16 +199,30 @@ export default function BackOffice() {
         <section className="bo-floor" aria-label="Trading floor">
           <div className="bo-floor-h">
             <h2>Trading floor</h2>
+            <button className={`bo-exbtn ${ex ? "on" : ""}`} onClick={() => setEx(ex ? null : exampleInit())} aria-pressed={!!ex} title="Plays a scripted, clearly labelled example of the animations. Not real trades.">
+              {ex ? "■ Stop example" : "▶ Play example animation"}
+            </button>
             <div className="bo-legend">
               <span className="bo-tag trend">Trend</span><span className="bo-tag funding">Funding</span><span className="bo-tag meanrev">Mean-Rev</span>
               <span className="bo-sep" /><span className="bo-lg running"><i />running</span><span className="bo-lg paused"><i />paused</span><span className="bo-lg halted"><i />halted</span>
             </div>
           </div>
-          <div className="bo-desks">
-            {desks.map((d, i) => <Desk key={d.cfg.id} d={d} i={i} now={now} selected={d.cfg.id === selected.cfg.id} onSelect={() => setSel(d.cfg.id)} />)}
+          <WallBoard
+            desks={view}
+            price={chain.data?.price ?? status?.market.oraclePrice ?? null}
+            funding={status ? status.market.fundingPredictedHourly : null}
+            open={ex ? view.reduce((a, d) => a + d.positions.length, 0) : openCount}
+            maxOpen={BACK_OFFICE.desks.length * BACK_OFFICE.limits.maxOpenPerDesk}
+            example={!!ex}
+          />
+          {ex && <div className="bo-exbanner" role="status">EXAMPLE · scripted animation, not real trades or P&amp;L · ends after {EXAMPLE_BEATS} beats</div>}
+          <div className={`bo-desks ${ex ? "ex" : ""}`}>
+            {view.map((d, i) => (
+              <RobotDesk key={`${d.cfg.id}-${ex ? "ex" : "live"}`} d={d} i={i} now={Date.now() / 1000} tradesLoaded={ex ? true : trades !== null} example={!!ex} selected={d.cfg.id === selected.cfg.id} onSelect={() => setSel(d.cfg.id)} />
+            ))}
           </div>
         </section>
-        <Panel d={selected} status={status} />
+        <Panel d={selected} status={status} example={!!ex} />
       </div>
 
       <RiskWarning>

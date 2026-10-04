@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import AccountModal from "./AccountModal";
+import { PerpsNav } from "./PerpsNav";
 import logo from "../assets/logo.svg";
 import CosmicBackground, { type Scene } from "./CosmicBackground";
 import { useWallet } from "../lib/wallet";
@@ -38,7 +39,6 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/markets", label: "Markets", scene: "constellation" },
   { to: "/trade", label: "Trade", scene: "quasar" },
   { to: "/perps", label: "Perps", scene: "warp" },
-  { to: "/back-office", label: "Back Office", scene: "warp" },
   { to: "/pools", label: "Pools", scene: "nebula" },
   { to: "/lending", label: "Lend", scene: "orbits" },
   { to: "/earn", label: "Earn", scene: "supernova" },
@@ -53,6 +53,7 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
 
 export function sceneFor(path: string): Scene {
   if (path.startsWith("/calculators")) return "orbits";
+  if (path.startsWith("/back-office")) return "warp";
   return NAV.find((n) => path.startsWith(n.to))?.scene ?? "quasar";
 }
 
@@ -105,11 +106,15 @@ export default function Layout() {
             <span className="word">Quasaria</span>
           </NavLink>
           <nav className="nav">
-            {NAV.map((n) => (
-              <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive || (n.to === "/earn" && loc.pathname.startsWith("/calculators")) ? "active" : "")}>
-                {n.label}
-              </NavLink>
-            ))}
+            {NAV.map((n) =>
+              n.to === "/perps" ? (
+                <PerpsNav key={n.to} pathname={loc.pathname} />
+              ) : (
+                <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive || (n.to === "/earn" && loc.pathname.startsWith("/calculators")) ? "active" : "")}>
+                  {n.label}
+                </NavLink>
+              ),
+            )}
           </nav>
           <XlmTicker />
           <span className="net-badge">Testnet</span>

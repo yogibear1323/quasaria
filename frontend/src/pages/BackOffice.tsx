@@ -8,6 +8,10 @@ import {
   type ChainTrade, type DeskView, type ExampleState, type StatusDoc,
 } from "../lib/backOffice";
 import { RobotDesk, useCountUp, useReducedMotion } from "../components/RobotDesk";
+import { DemoAccount, ModeSwitch, type FloorMode } from "../components/DemoAccount";
+import { useDemo } from "../lib/demo/useDemo";
+import { demoViews, mirrorViews } from "../lib/demo/views";
+import { useSearchParams } from "react-router-dom";
 import { PERPS } from "../lib/perps";
 import "../theme/back-office.css";
 
@@ -28,12 +32,12 @@ function Meter({ label, value, limit }: { label: string; value: number | null; l
 
 function TradeRow({ t }: { t: ChainTrade }) {
   const when = new Date(t.at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-  if (t.tx.startsWith("example"))
+  if (t.tx.startsWith("example") || t.tx.startsWith("demo"))
     return (
       <span className="bo-tr ex">
         <span className={t.kind === "open" ? "c" : (t.pnl ?? 0) >= 0 ? "g" : "r"}>{t.kind === "open" ? "OPEN" : "CLOSE"}</span>
         {t.kind === "open" ? `${(t.side ?? "").toUpperCase()} ${(t.leverage ?? 0).toFixed(1)}×` : `${fmtPnl(t.pnl ?? 0)}`}
-        <em>example</em>
+        <em>{t.tx.startsWith("demo") ? "demo · simulated" : "example"}</em>
       </span>
     );
   return (
@@ -45,7 +49,7 @@ function TradeRow({ t }: { t: ChainTrade }) {
   );
 }
 
-function Panel({ d, status, example }: { d: DeskView; status: StatusDoc | null; example: boolean }) {
+function Panel({ d, status, example, tag }: { d: DeskView; status: StatusDoc | null; example: boolean; tag?: string }) {
   const pos = d.positions[0];
   const L = BACK_OFFICE.limits;
   const drift = d.drift;
@@ -56,7 +60,7 @@ function Panel({ d, status, example }: { d: DeskView; status: StatusDoc | null; 
       <div className="bo-p-h">
         <div>
           <span className={`bo-tag ${d.cfg.strategy}`}>{STRATEGY_LABEL[d.cfg.strategy]} · {tfLabel(d.cfg.timeframeSec)}</span>
-          <h3>{d.cfg.name}{example && <span className="bo-exchip">example</span>}</h3>
+          <h3>{d.cfg.name}{(example || tag) && <span className="bo-exchip">{example ? "example" : tag}</span>}</h3>
           <a className="bo-mut" href={EXPERT_ACCT + d.cfg.owner} target="_blank" rel="noreferrer">owner {short(d.cfg.owner)} · bot key {short(d.cfg.operator)} (cannot withdraw)</a>
         </div>
         <span className={`bo-light ${d.status}`}><i />{STATUS_TEXT[d.status]}</span>
@@ -68,8 +72,8 @@ function Panel({ d, status, example }: { d: DeskView; status: StatusDoc | null; 
       </div>
       <div className="bo-row"><span className="bo-lbl">Risk per trade</span><b>{d.cfg.riskPct.toFixed(2)}% <small>· max {d.cfg.maxLeverage}×</small></b></div>
       <div className="bo-row"><span className="bo-lbl">Stop / take-profit</span><b>{pos?.stop ? pos.stop.toFixed(4) : "—"} <small>/ {pos?.takeProfit ? pos.takeProfit.toFixed(4) : "—"}</small></b></div>
-      <div className="bo-row"><span className="bo-lbl">Running P&amp;L</span><b className={(d.pnl ?? 0) > 0.004 ? "g" : (d.pnl ?? 0) < -0.004 ? "r" : ""}>{fmtPnl(d.pnl)} <small>QUSD · {(() => { const t = deskTally(d.trades); return `W ${t.wins} · L ${t.losses} · won ${t.grossWon.toFixed(2)} · lost ${t.grossLost.toFixed(2)}`; })()}</small></b></div>
-      <div className="bo-row"><span className="bo-lbl">Equity</span><b>{d.equity === null ? "—" : d.equity.toFixed(2)} <small>/ {d.cfg.capital} test QUSD</small></b></div>
+      <div className="bo-row"><span className="bo-lbl">Running P&amp;L</span><b className={(d.pnl ?? 0) > 0.004 ? "g" : (d.pnl ?? 0) < -0.004 ? "r" : ""}>{fmtPnl(d.pnl)} <small>{d.unit ?? "QUSD"} · {(() => { const t = deskTally(d.trades); return `W ${t.wins} · L ${t.losses} · won ${t.grossWon.toFixed(2)} · lost ${t.grossLost.toFixed(2)}`; })()}</small></b></div>
+      <div className="bo-row"><span className="bo-lbl">Equity</span><b>{d.equity === null ? "—" : d.equity.toFixed(2)} <small>/ {d.cfg.capital.toFixed(d.unit ? 2 : 0)} {d.unit ?? "test QUSD"}</small></b></div>
       <Meter label="Daily loss vs limit" value={d.dailyLossPct} limit={L.deskDailyLossPct} />
       <Meter label="Drawdown vs limit" value={d.drawdownPct} limit={L.deskDrawdownPct} />
       <div className="bo-drift">
@@ -89,13 +93,13 @@ function Panel({ d, status, example }: { d: DeskView; status: StatusDoc | null; 
   );
 }
 
-function WallBoard({ desks, price, funding, open, maxOpen, example }: { desks: DeskView[]; price: number | null; funding: number | null; open: number; maxOpen: number; example: boolean }) {
+function WallBoard({ desks, price, funding, open, maxOpen, example, tag }: { desks: DeskView[]; price: number | null; funding: number | null; open: number; maxOpen: number; example: boolean; tag?: string }) {
   const reduced = useReducedMotion();
   const fleet = desks.some((d) => d.pnl !== null) ? desks.reduce((a, d) => a + (d.pnl ?? 0), 0) : null;
   const shown = useCountUp(fleet ?? 0, reduced);
   const tape = floorTape(desks);
   const items = tape.map(({ desk, t }) =>
-    t.kind === "open" ? { k: `${t.tx}${t.kind}`, c: "c", s: `${desk.toUpperCase()} ${(t.side ?? "").toUpperCase()} XLM ${(t.leverage ?? 0).toFixed(1)}× @${t.price.toFixed(4)}` } : { k: `${t.tx}${t.kind}`, c: (t.pnl ?? 0) >= 0 ? "g" : "r", s: `${desk.toUpperCase()} CLOSED ${fmtPnl(t.pnl ?? 0)} QUSD` },
+    t.kind === "open" ? { k: `${t.tx}${t.kind}`, c: "c", s: `${desk.toUpperCase()} ${(t.side ?? "").toUpperCase()} XLM ${(t.leverage ?? 0).toFixed(1)}× @${t.price.toFixed(4)}` } : { k: `${t.tx}${t.kind}`, c: (t.pnl ?? 0) >= 0 ? "g" : "r", s: `${desk.toUpperCase()} CLOSED ${fmtPnl(t.pnl ?? 0)} ${desks[0]?.unit ?? "QUSD"}` },
   );
   return (
     <div className={`bo-board ${example ? "ex" : ""}`} aria-label="Trading floor wall board">
@@ -104,7 +108,7 @@ function WallBoard({ desks, price, funding, open, maxOpen, example }: { desks: D
         <div><span>Funding · 1h</span><b>{funding === null ? "—" : `${(funding * 100).toFixed(4)}%`}</b></div>
         <div><span>Open</span><b>{open}<small>/{maxOpen}</small></b></div>
         <div><span>Floor P&amp;L</span><b className={(fleet ?? 0) > 0.004 ? "g" : (fleet ?? 0) < -0.004 ? "r" : ""}>{fleet === null ? "—" : fmtPnl(shown)}</b></div>
-        <div className="bo-tn"><span>{example ? "Example" : "Testnet"}</span><b className="am">{example ? "not real" : "test funds"}</b></div>
+        <div className="bo-tn"><span>{example ? "Example" : tag === "demo" ? "Demo" : tag === "mirror" ? "Mirror" : "Testnet"}</span><b className="am">{example || tag ? "not real money" : "test funds"}</b></div>
       </div>
       <div className="bo-tape" aria-live="polite">
         {items.length ? (
@@ -112,7 +116,7 @@ function WallBoard({ desks, price, funding, open, maxOpen, example }: { desks: D
             {[...items, ...(items.length > 2 ? items : [])].map((x, j) => <span key={`${x.k}-${j}`} className={x.c}>{x.s}</span>)}
           </div>
         ) : (
-          <div className="bo-tape-in"><span>No fills yet · six bots watching XLM-PERP · Testnet · test funds</span></div>
+          <div className="bo-tape-in"><span>{tag === "demo" ? "No demo fills yet · six bots watching live XLM · simulated" : "No fills yet · six bots watching XLM-PERP · Testnet · test funds"}</span></div>
         )}
       </div>
     </div>
@@ -142,6 +146,18 @@ export default function BackOffice() {
   const now = Date.now() / 1000;
   const { age, stale } = statusAge(status, now);
   const desks = useMemo(() => mergeDesks(BACK_OFFICE.desks, chain.data, status, trades, stale), [chain.data, status, trades, stale]);
+  const [params, setParams] = useSearchParams();
+  const qm = params.get("view");
+  const [mode, setModeState] = useState<FloorMode>(qm === "demo" || params.get("demo") === "1" ? "demo" : qm === "mirror" ? "mirror" : "live");
+  const setMode = (m: FloorMode) => {
+    setModeState(m);
+    const p = new URLSearchParams(params);
+    p.delete("demo");
+    if (m === "live") p.delete("view");
+    else p.set("view", m);
+    setParams(p, { replace: true });
+  };
+  const dm = useDemo({ oraclePrice: chain.data?.price ?? null, fundingHourly: status?.market.fundingPredictedHourly ?? 0 });
   const [ex, setEx] = useState<ExampleState | null>(null);
   const exPrice = chain.data?.price ?? status?.market.oraclePrice ?? 0.2;
   useEffect(() => {
@@ -153,7 +169,20 @@ export default function BackOffice() {
     const t = setTimeout(() => setEx((s) => (s ? exampleStep(s, exPrice, Date.now()) : s)), ex.step === 0 ? 700 : 2200);
     return () => clearTimeout(t);
   }, [ex, exPrice]);
-  const view = useMemo(() => (ex ? applyExample(desks, ex) : desks), [desks, ex]);
+  const demoPx = dm.price ?? chain.data?.price ?? status?.market.oraclePrice ?? null;
+  const sparks = useMemo(() => {
+    const m = dm.market;
+    if (!m) return {};
+    const c = (b: { c: number }[]) => b.slice(-40).map((x) => x.c);
+    return { 900: c(m.m15), 3600: c(m.h1), 14400: c(m.h4) } as Record<number, number[]>;
+  }, [dm.market]);
+  const base = useMemo(() => {
+    if (mode === "demo" && dm.demo && demoPx) return demoViews(dm.demo, BACK_OFFICE.desks, demoPx, sparks);
+    if (mode === "mirror") return mirrorViews(desks, dm.demo?.balance ?? 1000);
+    return desks;
+  }, [mode, dm.demo, demoPx, sparks, desks]);
+  const tag = mode === "demo" && dm.demo ? "demo" : mode === "mirror" ? "mirror" : undefined;
+  const view = useMemo(() => (ex ? applyExample(base, ex) : base), [base, ex]);
   const [sel, setSel] = useState(BACK_OFFICE.desks[0].id);
   const selected = view.find((d) => d.cfg.id === sel) ?? view[0];
 
@@ -195,7 +224,12 @@ export default function BackOffice() {
         </div>
       </section>
 
-      <div className="bo-grid">
+      <ModeSwitch mode={mode} setMode={setMode} hasDemo={!!dm.demo} />
+      {mode !== "live" && (
+        <DemoAccount demo={dm.demo} price={demoPx} note={dm.note} runner={dm.runner} available={dm.available} create={dm.create} close={dm.close} reset={dm.reset} desks={BACK_OFFICE.desks} mode={mode} />
+      )}
+      {tag && <div className="bo-demobanner" role="status">{tag === "demo" ? "DEMO · simulated · not real money" : `MIRROR · live testnet fleet scaled to $${(dm.demo?.balance ?? 1000).toLocaleString("en-US")} · display only · not real money`}</div>}
+      <div className={`bo-grid ${tag ? `m-${tag}` : ""}`}>
         <section className="bo-floor" aria-label="Trading floor">
           <div className="bo-floor-h">
             <h2>Trading floor</h2>
@@ -214,15 +248,16 @@ export default function BackOffice() {
             open={ex ? view.reduce((a, d) => a + d.positions.length, 0) : openCount}
             maxOpen={BACK_OFFICE.desks.length * BACK_OFFICE.limits.maxOpenPerDesk}
             example={!!ex}
+            tag={tag}
           />
           {ex && <div className="bo-exbanner" role="status">EXAMPLE · scripted animation, not real trades or P&amp;L · ends after {EXAMPLE_BEATS} beats</div>}
           <div className={`bo-desks ${ex ? "ex" : ""}`}>
             {view.map((d, i) => (
-              <RobotDesk key={`${d.cfg.id}-${ex ? "ex" : "live"}`} d={d} i={i} now={Date.now() / 1000} tradesLoaded={ex ? true : trades !== null} example={!!ex} selected={d.cfg.id === selected.cfg.id} onSelect={() => setSel(d.cfg.id)} />
+              <RobotDesk key={`${d.cfg.id}-${ex ? "ex" : tag ?? "live"}`} d={d} i={i} now={Date.now() / 1000} tradesLoaded={ex || tag === "demo" ? true : trades !== null} example={!!ex} tag={ex ? undefined : tag} selected={d.cfg.id === selected.cfg.id} onSelect={() => setSel(d.cfg.id)} />
             ))}
           </div>
         </section>
-        <Panel d={selected} status={status} example={!!ex} />
+        <Panel d={selected} status={status} example={!!ex} tag={tag} />
       </div>
 
       <RiskWarning>

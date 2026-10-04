@@ -97,8 +97,10 @@ interface Fx {
   text: string;
 }
 
-export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example }: { d: DeskView; i: number; now: number; selected: boolean; onSelect: () => void; tradesLoaded: boolean; example: boolean }) {
+export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example, tag }: { d: DeskView; i: number; now: number; selected: boolean; onSelect: () => void; tradesLoaded: boolean; example: boolean; tag?: string }) {
   const reduced = useReducedMotion();
+  const unit = d.unit ?? "QUSD";
+  const label = tag ?? (example ? "example" : null);
   const pnl = d.pnl;
   const shown = useCountUp(pnl ?? 0, reduced);
   const tone = d.status === "halted" ? "dn" : pnlTone(pnl);
@@ -122,7 +124,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
     prev.current = key;
     const t = d.trades[0];
     const id = Date.now() + Math.random();
-    const e: Fx = t.kind === "open" ? { id, kind: "open", text: `${(t.side ?? "").toUpperCase()} ${(t.leverage ?? 0).toFixed(1)}×` } : { id, kind: (t.pnl ?? 0) >= 0 ? "win" : "loss", text: `${fmtPnl(t.pnl ?? 0)} QUSD` };
+    const e: Fx = t.kind === "open" ? { id, kind: "open", text: `${(t.side ?? "").toUpperCase()} ${(t.leverage ?? 0).toFixed(1)}×` } : { id, kind: (t.pnl ?? 0) >= 0 ? "win" : "loss", text: `${fmtPnl(t.pnl ?? 0)} ${unit}` };
     setFx((f) => [...f.slice(-3), e]);
     const tm = setTimeout(() => setFx((f) => f.filter((x) => x.id !== id)), 2800);
     return () => clearTimeout(tm);
@@ -140,7 +142,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
       style={style}
       onClick={onSelect}
       aria-pressed={selected}
-      aria-label={`${d.cfg.name} desk: ${STATUS_TEXT[d.status]}, P&L ${fmtPnl(pnl)} QUSD`}
+      aria-label={`${d.cfg.name} desk: ${STATUS_TEXT[d.status]}, P&L ${fmtPnl(pnl)} ${unit}`}
     >
       <span className="bo-top">
         <span className="bo-nm">{d.cfg.name}</span>
@@ -202,9 +204,9 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
 
         {bubble && <span className={`bo-bubble ${bubble.tone}`}>{bubble.text}<i /></span>}
         {d.status === "paused" && <span className="bo-zzz" aria-hidden><i>z</i><i>z</i><i>Z</i></span>}
-        <span className={`bo-odo ${tone}`} title="Running P&L (realized + unrealized), test QUSD">
-          {example && <em>example</em>}
-          <b>{pnl === null ? "···" : fmtPnl(shown)}</b><small>QUSD</small>
+        <span className={`bo-odo ${tone}`} title={`Running P&L (realized + unrealized), ${unit}`}>
+          {label && <em>{label}</em>}
+          <b>{pnl === null ? "···" : fmtPnl(shown)}</b><small>{unit}</small>
         </span>
         {fx.map((e) => (
           <span key={e.id} className="bo-fx" aria-hidden>

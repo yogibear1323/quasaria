@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { scValToNative, xdr } from "@stellar/stellar-sdk";
+import { Link } from "react-router-dom";
 import { PageHead, RiskWarning, SourceTag, Stat, Tabs, TxStatus, ViewerNote, useTx } from "../components/ui";
 import { OFFLINE_DEMO, expertContract } from "../lib/config";
 import { scanEvents, useChain, useViewer } from "../lib/chain";
@@ -94,6 +95,9 @@ export default function Perps() {
       >
         Perpetual-style long / short positions on the Warp leverage vault: oracle-priced, isolated margin, settled in {PERPS.collateral}. Funding is charged hourly from the mark-vs-oracle premium{d && !d.fundingLive ? " (not live on this vault yet)" : ""}. Every number below comes straight from the deployed testnet contract.
       </PageHead>
+      <Link to="/back-office?view=demo" className="perps-demo-link" data-testid="perps-demo-link">
+        <b>Try a demo account</b> · watch the six Back Office bots trade a simulated balance on live XLM prices before using real money <span aria-hidden>→</span>
+      </Link>
 
       <RiskWarning>
         Perps are leveraged: at {lev}× a {fmt(100 / lev, 1)}% move against you can wipe out your margin, and positions are liquidated when the health factor drops below 1.0. Funding payments can drain margin over time. Profits are paid from a finite vault reserve and are capped by it. Stale oracle prices block trading and closing. This is unaudited testnet software with no guaranteed returns and no real value; nothing here is financial advice.

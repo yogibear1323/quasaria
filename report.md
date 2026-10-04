@@ -1,6 +1,6 @@
 # Quasaria perps desks — strategy research (backtest / simulated only)
 
-*Prepared for Robert Walker, Oct 04, 2026. Branch `strat/research` (research only; nothing deployed, live site / demo defaults / testnet fleet untouched). All figures are **simulated backtests on historical XLM-USD prices**; they are not forecasts and imply no future returns.*
+*Prepared for Robert Walker, Oct 04, 2026. Branch `strat/research`. **Update, Oct 4 2026, 3:32 PM MST:** the owner approved going live on **testnet only** (test funds, no mainnet). The oracle fix, the slower desk settings and the liquidity-pocket experiment are now running on testnet; see §11–§13. Sections 1–10 are the original research. All figures are **simulated backtests on historical XLM-USD prices**; they are not forecasts and imply no future returns.*
 
 ## 1. Headline
 
@@ -252,6 +252,8 @@ No third-party code was copied; every strategy was reimplemented from the publis
 | macd       | MACD 12/26/9 signal cross (Gerald Appel) with 200-EMA trend filter                                                                                                       | https://school.stockcharts.com/doku.php?id=technical_indicators:moving_average_convergence_divergence_macd | public description; reimplemented                                    |
 | supertrend | Supertrend (Olivier Seban) ATR(10)x3 flip with line as trailing stop                                                                                                     | https://www.tradingview.com/support/solutions/43000634738-supertrend/                                      | public description; reimplemented (TradingView built-in, not copied) |
 | chandelier | Chandelier exit (Chuck LeBeau): highest high(22) - 3*ATR(22) trail, used as an exit option on breakouts                                                                  | https://school.stockcharts.com/doku.php?id=technical_indicators:chandelier_exit                            | public description; reimplemented                                    |
+| lpsweep    | Liquidity sweep + reclaim of swing / equal highs-lows and prior-day high-low (stop-hunt reversal; ICT/'smart money' liquidity concepts, Wyckoff spring/upthrust)         | https://school.stockcharts.com/doku.php?id=market_analysis:the_wyckoff_method                              | public descriptions; reimplemented                                   |
+| vpnode     | Volume-profile value-area re-entry toward the POC ('80 % rule', J. Dalton 'Mind over Markets' 1990)                                                                      | book                                                                                                       | rules only; reimplemented                                            |
 | random     | Random-entry control: random time + side with each config's own exits/stops/costs                                                                                        | this study                                                                                                 | -                                                                    |
 
 Open-source libraries checked (LICENSE files read 2026-10-04): | repo                           | license                                                  |
@@ -371,3 +373,111 @@ cd research
 Outputs in `results/`: `windows_<tf>.csv` (every config × every window), `summary_family_tf.csv`, `summary_meta.csv`, `summary_current.csv`, `wf_folds_selected.csv`, `robustness_top.csv`, `fixed_defaults.csv`, `move_vs_cost.csv`, `oracle_lag_test.csv`, `parity.json`, `tally.json`, `results.json`.
 
 *Limitations:* one asset and one venue's price history; Coinbase prices stand in for the vault oracle; the 2-year window contains a few very large trend moves that dominate trend results; 1m history is only 45 days; sub-minute frames are approximated; fleet-level caps and drift halts not modelled; the 10 % halt is modelled as a 7-day operator reset. All results are simulated.
+
+
+## 11. What is live on testnet now (owner GO-LIVE, Oct 4 2026, 3:32 PM MST; test funds only)
+
+| item | state |
+|---|---|
+| Oracle fix (PR #24) | vault `max_price_age` 900 s → **90 s** (timelocked `SetConfig`); feed pushes **XLM/USD every ~20 s** (`--fast-interval 20`), full 42-asset refresh every 300 s; fast pushes skip cached/snapshot prices and moves > 1.5 % away from Coinbase |
+| Fleet guard | warn / halt at oracle age 60 / 90 s (was 600 / 900 s) |
+| Vega | 1h **Supertrend 10×3** + liquidity-pocket entry filter (sweep ≤ 24 bars) |
+| Regal | 4h trend (fleet 20/50/20, 2 ATR stop, 3 ATR trail) + filter (≤ 12 bars) |
+| Halo | 1h mean-rev (fleet BB 20/2.2, RSI 28/72, ADX < 20) + filter (≤ 12 bars) |
+| Lyra | **Experimental · liquidity pockets · simulated/testnet**: standalone sweep + reclaim, 1h, risk 0.75 %, max 3× |
+| Echo, Nova | **paused** (no new entries) |
+| Risk | ≤ 1 % per trade on every desk, 2 % hard cap, desk daily-loss 3 % / drawdown 10 %, floor limits unchanged |
+| Demo | the Active profile now runs the same desks and settings as the fleet |
+
+These settings were chosen to *lose less*, not because they were shown to make money. None of the figures below is a forecast.
+
+## 12. Oracle-latency fix: re-run of the arbitrage simulation
+
+72 hours of Coinbase XLM-USD trades at 1-second resolution; a trader opens when the live market is more than the gap away from the on-chain oracle and closes at the next push; 20 bps total costs.
+
+| setup                                |   entry gap % |   trades/day |   win % |   avg net bps (after 20 bps costs) |   sum net % of notional / day |
+|:-------------------------------------|--------------:|-------------:|--------:|-----------------------------------:|------------------------------:|
+| OLD feed (300 s push, 900 s max age) |          0.10 |       218.30 |   21.00 |                              -9.09 |                        -19.85 |
+| OLD feed (300 s push, 900 s max age) |          0.25 |        58.00 |   74.00 |                               8.23 |                          4.77 |
+| OLD feed (300 s push, 900 s max age) |          0.50 |        10.70 |   94.00 |                              32.14 |                          3.43 |
+| NEW feed (20 s XLM push)             |          0.10 |       406.30 |    5.00 |                              -9.71 |                        -39.47 |
+| NEW feed (20 s XLM push)             |          0.25 |        19.70 |   64.00 |                               4.77 |                          0.94 |
+| NEW feed (20 s XLM push)             |          0.50 |         1.70 |  100.00 |                              32.10 |                          0.53 |
+| option: 10 s XLM push                |          0.10 |       422.00 |    4.00 |                             -10.82 |                        -45.66 |
+| option: 10 s XLM push                |          0.25 |        17.70 |   72.00 |                               3.92 |                          0.69 |
+| option: 10 s XLM push                |          0.50 |         2.30 |  100.00 |                              17.42 |                          0.41 |
+
+Feed outages (vault rejects prices older than `max_price_age`):
+
+| setup                                |   entry gap % |   opportunities / 3,000 outages |   win % |   avg net bps |
+|:-------------------------------------|--------------:|--------------------------------:|--------:|--------------:|
+| feed outage 120s, vault max age 900s |          0.25 |                             147 |   74.00 |          7.36 |
+| feed outage 600s, vault max age 900s |          0.25 |                            1185 |   64.00 |          5.78 |
+| feed outage 120s, vault max age 90s  |          0.25 |                              88 |   69.00 |          7.16 |
+| feed outage 600s, vault max age 90s  |          0.25 |                             110 |   44.00 |          1.57 |
+
+**Result:** at the realistic 0.25 % gap the edge falls from about +4.8 % of notional per day to about +0.9 %/day (roughly −80 %), and at 0.5 % from +3.4 % to +0.5 %/day. It is **reduced, not eliminated**: when XLM moves fast within the 20 s push window, a gap above 0.25 % still appears about 20 times a day. A 10 s push helps only a little (+0.7 %/day). The 90 s max age caps what a feed outage can be used for (600 s outage: +1.6 bps average instead of +5.8 bps). Remaining options for the contract/keeper owners: push on deviation (e.g. > 0.1 %) instead of on a timer only; delayed or two-step execution (commit, then fill at the next oracle price); an oracle-age-scaled fee; or a second on-chain price source with a deviation check.
+
+## 13. Liquidity pockets: implementation and evaluation
+
+**What "liquidity pockets" means here.** Public APIs (Coinbase, Kraken) serve only the *current* order book, so no historical depth exists to backtest against. Resting liquidity is therefore inferred from price structure, as commonly described for stop-runs: confirmed swing highs/lows (pivot k bars each side), **equal highs/lows** within 0.1 ATR (stop clusters), the prior UTC day's high/low, and a **sweep + reclaim** when a bar trades through an unswept level and closes back on the other side. Volume-profile nodes (POC / value area) were tested as a second family. Everything at bar i uses data up to the close of bar i only. The TypeScript port the bots run (`bot/src/office/liquidity.ts`) gives signals **identical** to the research code on all 17,511 1h bars (0 mismatches across four parameter sets; Supertrend also 0 mismatches).
+
+**Search:** 954 new configurations (sweep and volume-node families on 15m / 1h / 4h, plus 18 filter variants on the three slower desks), 5,160 in total with the original study. Bonferroni threshold: 5.2e-05 for this batch and 9.7e-06 overall. The random-entry control uses 300 runs, so p-values cannot go below ~0.003, far above either threshold. Walk-forward (WF) is the same as §4: OOS = out-of-sample windows, HO = untouched holdout (2026-08-23 → 2026-10-04). Fees and slippage are included. $ figures are for a $500 desk.
+
+### 13.1 Standalone (Lyra's approach)
+
+| config      |   OOS trades |   OOS win % |   OOS net $ |   OOS PF |   avg win $ |   avg loss $ |   OOS max DD % | +windows   |   p vs random |   random median $ |   HO trades |   HO win % |   HO net $ |   HO DD % |
+|:------------|-------------:|------------:|------------:|---------:|------------:|-------------:|---------------:|:-----------|--------------:|------------------:|------------:|-----------:|-----------:|----------:|
+| lpsweep 15m |          119 |       29.00 |     -120.33 |     0.67 |        7.06 |        -4.37 |          11.28 | 0/5        |          0.67 |           -100.00 |       28.00 |      21.00 |     -49.68 |     10.49 |
+| vpnode 15m  |          617 |       37.00 |     -354.62 |     0.78 |        5.50 |        -4.09 |          20.14 | 0/5        |          0.72 |           -317.59 |       72.00 |      19.00 |    -135.61 |     29.37 |
+| lpsweep 1h  |          100 |       34.00 |      -18.92 |     0.94 |        8.54 |        -4.69 |           8.12 | 4/8        |          0.18 |            -67.74 |        1.00 |     100.00 |      10.71 |      0.31 |
+| vpnode 1h   |          336 |       38.00 |     -196.65 |     0.79 |        5.77 |        -4.44 |          24.80 | 2/8        |          0.73 |           -144.54 |       26.00 |      31.00 |     -31.87 |     12.01 |
+| lpsweep 4h  |           60 |       32.00 |       -7.13 |     0.96 |        9.61 |        -4.63 |           8.12 | 4/8        |          0.39 |            -21.04 |        1.00 |       0.00 |      -4.90 |      0.98 |
+| vpnode 4h   |          118 |       31.00 |     -119.32 |     0.68 |        6.75 |        -4.56 |          12.03 | 3/8        |          0.96 |            -18.07 |        8.00 |     100.00 |      63.15 |      1.51 |
+
+**Every standalone liquidity-pocket family lost money out of sample.** The least bad is 1h sweep + reclaim: 100 OOS trades, win rate 34 %, net −$19, PF 0.94, average win $8.54 vs average loss −$4.69, max drawdown 8.1 %. Its holdout of +$10.7 rests on a single trade and means nothing. Lyra runs the best pre-holdout 1h config (equal highs/lows, k = 2, 50-bar memory, 0.25 ATR beyond the sweep, 3R target, EMA50 alignment, 48-bar time stop) **as a labelled testnet experiment only**.
+
+### 13.2 As an entry filter on the slower desks
+
+The honest test is the **WF-selected filter** row, where the filter (or none) is picked in-sample in each window. The fixed-filter rows are 18 post-hoc variants and are shown for transparency only. The WF-selected rows have no single holdout config (the pick changes per window), hence “—”.
+
+| config                                                 |   OOS trades |   OOS win % |   OOS net $ |   OOS PF |   avg win $ |   avg loss $ |   OOS max DD % | +windows   | p vs random        | random median $     | HO trades   | HO win %   | HO net $            | HO DD %            |
+|:-------------------------------------------------------|-------------:|------------:|------------:|---------:|------------:|-------------:|---------------:|:-----------|:-------------------|:--------------------|:------------|:-----------|:--------------------|:-------------------|
+| Vega 1h Supertrend 10x3 + none (baseline)              |          238 |       36.00 |      316.14 |     1.54 |       10.48 |        -3.85 |          19.71 | 4/8        | 0.0066666666666666 | 68.94353713246124   | 21.0        | 38.0       | -6.943756343733577  | 3.899221531362904  |
+| Vega 1h Supertrend 10x3 + sweep 6                      |           32 |       19.00 |      -54.82 |     0.23 |        2.73 |        -2.74 |          11.70 | 0/8        | 1.0                | -3.4124617789635616 | 3.0         | 33.0       | 0.4456575372419546  | 1.7742013429454315 |
+| Vega 1h Supertrend 10x3 + sweep 12                     |           83 |       34.00 |       56.30 |     1.36 |        7.67 |        -2.88 |           9.63 | 4/8        | 0.2666666666666666 | 4.124325183431814   | 8.0         | 25.0       | -5.263241571442316  | 2.734980715189723  |
+| Vega 1h Supertrend 10x3 + sweep 24                     |          169 |       37.00 |      340.83 |     1.78 |       12.38 |        -4.14 |          14.12 | 3/8        | 0.0                | 33.38511103414863   | 14.0        | 36.0       | -1.9236986808878185 | 3.81232973461038   |
+| Vega 1h Supertrend 10x3 + room 1                       |          158 |       34.00 |      219.54 |     1.57 |       11.35 |        -3.64 |          19.46 | 4/8        | 0.0233333333333333 | 35.6663453754761    | 17.0        | 35.0       | -9.39048611813836   | 3.8992215313628966 |
+| Vega 1h Supertrend 10x3 + room 2                       |           98 |       37.00 |      280.65 |     2.11 |       14.82 |        -4.08 |          16.22 | 4/8        | 0.0066666666666666 | 3.5111921873172056  | 14.0        | 36.0       | -7.883708854618643  | 3.8992215313628975 |
+| Vega 1h Supertrend 10x3 + room 3                       |           53 |       34.00 |      135.91 |     2.00 |       15.11 |        -3.89 |          18.21 | 1/8        | 0.0433333333333333 | -7.546887356140967  | 9.0         | 33.0       | -3.727453695684949  | 3.020987276385319  |
+| Vega 1h Supertrend 10x3 + WF-selected filter           |          186 |       33.00 |      266.77 |     1.73 |       10.40 |        -2.94 |          10.00 | 3/8        | —                  | —                   | —           | —          | —                   | —                  |
+| Regal 4h trend (fleet 20/50/20) + none (baseline)      |          120 |       29.00 |      164.56 |     1.47 |       14.64 |        -4.09 |          24.17 | 3/8        | 0.05               | 13.377947212501164  | 9.0         | 0.0        | -36.21891598577075  | 7.44489500928003   |
+| Regal 4h trend (fleet 20/50/20) + sweep 6              |           12 |       58.00 |      110.15 |     8.77 |       17.76 |        -2.83 |           9.48 | 4/8        | 0.0                | -4.574842312788092  | 2.0         | 0.0        | -6.919321087019509  | 1.6346060638073985 |
+| Regal 4h trend (fleet 20/50/20) + sweep 12             |           29 |       48.00 |      290.62 |     5.68 |       25.19 |        -4.14 |          10.47 | 4/8        | 0.0                | -3.735017099931284  | 6.0         | 0.0        | -24.63613846599733  | 5.1689601671169125 |
+| Regal 4h trend (fleet 20/50/20) + sweep 24             |           76 |       32.00 |      277.57 |     2.15 |       21.60 |        -4.63 |          15.60 | 3/8        | 0.0                | -6.148953290904376  | 9.0         | 0.0        | -36.21891598577075  | 7.44489500928003   |
+| Regal 4h trend (fleet 20/50/20) + room 1               |           99 |       30.00 |      205.81 |     1.70 |       16.70 |        -4.28 |          21.60 | 3/8        | 0.01               | 5.774522065339966   | 7.0         | 0.0        | -30.237171152155963 | 6.251139937790473  |
+| Regal 4h trend (fleet 20/50/20) + room 2               |           83 |       30.00 |      201.44 |     1.77 |       18.47 |        -4.49 |          21.78 | 4/8        | 0.02               | 0.3384536228048833  | 6.0         | 0.0        | -24.02441573064656  | 5.011282923048962  |
+| Regal 4h trend (fleet 20/50/20) + room 3               |           67 |       33.00 |      167.05 |     1.77 |       17.49 |        -4.84 |          19.73 | 2/8        | 0.0233333333333333 | 1.8639261988987732  | 6.0         | 0.0        | -24.02441573064656  | 5.011282923048962  |
+| Regal 4h trend (fleet 20/50/20) + WF-selected filter   |           61 |       30.00 |      170.94 |     2.14 |       17.79 |        -3.47 |          10.24 | 3/8        | —                  | —                   | —           | —          | —                   | —                  |
+| Halo 1h mean-rev (fleet BB20/2.2) + none (baseline)    |           20 |       15.00 |      -54.75 |     0.21 |        4.87 |        -4.08 |          11.11 | 1/8        | 0.99               | -11.729684041040752 | 1.0         | 100.0      | 0.677564538941979   | 0.4804354419278178 |
+| Halo 1h mean-rev (fleet BB20/2.2) + sweep 6            |           13 |       15.00 |      -32.35 |     0.32 |        7.73 |        -4.35 |           6.64 | 2/8        | 0.94               | -8.057616463833753  | 0.0         | —          | 0.0                 | 0.0                |
+| Halo 1h mean-rev (fleet BB20/2.2) + sweep 12           |           14 |       21.00 |      -27.42 |     0.43 |        6.85 |        -4.36 |           5.84 | 2/8        | 0.85               | -8.323847281041491  | 0.0         | —          | 0.0                 | 0.0                |
+| Halo 1h mean-rev (fleet BB20/2.2) + sweep 24           |           15 |       20.00 |      -31.99 |     0.39 |        6.80 |        -4.37 |           6.75 | 1/8        | 0.8933333333333333 | -9.068592643721573  | 1.0         | 100.0      | 0.677564538941979   | 0.4804354419278178 |
+| Halo 1h mean-rev (fleet BB20/2.2) + room 1             |           20 |       15.00 |      -54.75 |     0.21 |        4.87 |        -4.08 |          11.11 | 1/8        | 0.98               | -9.68835432133186   | 1.0         | 100.0      | 0.677564538941979   | 0.4804354419278178 |
+| Halo 1h mean-rev (fleet BB20/2.2) + room 2             |           20 |       15.00 |      -54.75 |     0.21 |        4.87 |        -4.08 |          11.11 | 1/8        | 0.98               | -12.488593893866978 | 1.0         | 100.0      | 0.677564538941979   | 0.4804354419278178 |
+| Halo 1h mean-rev (fleet BB20/2.2) + room 3             |           17 |       12.00 |      -51.08 |     0.16 |        4.89 |        -4.06 |          10.38 | 1/8        | 0.9833333333333332 | -11.353456114585414 | 1.0         | 100.0      | 0.677564538941979   | 0.4804354419278178 |
+| Halo 1h mean-rev (fleet BB20/2.2) + WF-selected filter |           17 |       18.00 |      -42.05 |     0.34 |        7.16 |        -4.54 |           3.83 | 1/8        | —                  | —                   | —           | —          | —                   | —                  |
+
+| desk                                                   | filter picked in each of the 8 windows (in-sample)                                                                   |
+|:-------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------|
+| Vega 1h Supertrend 10x3 + WF-selected filter           | None; None; None; ('sweep', 24); ('sweep', 24); ('room', 1); ('sweep', 12); None                                     |
+| Regal 4h trend (fleet 20/50/20) + WF-selected filter   | None; ('sweep', 12); ('room', 3); ('sweep', 24); ('sweep', 24); ('sweep', 12); ('sweep', 12); ('sweep', 12)          |
+| Halo 1h mean-rev (fleet BB20/2.2) + WF-selected filter | ('sweep', 24); ('sweep', 24); ('room', 3); ('sweep', 12); ('sweep', 12); ('sweep', 12); ('sweep', 24); ('sweep', 24) |
+
+**Verdict: out of sample, the filter does NOT improve the slower desks.**
+* **Vega (1h Supertrend):** with the filter, OOS net falls from $316 to $267, the win rate falls from 36.1 % to 32.8 %, and trades drop from 238 to 186. PF rises from 1.54 to 1.73 and max drawdown falls from 19.7 % to 10.0 %. **This is worse out-of-sample on net P&L and win rate**; the only gain is lower drawdown.
+* **Regal (4h trend):** about the same: net $165 → $171 and win rate 29.2 % → 29.5 %, with half the trades (120 → 61) and half the drawdown (24.2 % → 10.2 %).
+* **Halo (1h mean-rev):** still negative: −$55 → −$42 on only 17 trades, win rate 18 %.
+* The fixed post-hoc variants look better in places (Regal sweep ≤ 6: 58 % win on 12 trades; Regal sweep ≤ 12: 48 % win, +$291 on 29 trades; Vega sweep ≤ 24: +$341). But these were chosen after seeing the results, and their holdouts are negative or near zero (Regal −$7 to −$36 with 0 wins; Vega sweep ≤ 24 −$1.9). None passes the multiple-testing threshold.
+
+**Why it is enabled anyway:** the owner asked to run the filter (and Lyra) on testnet as an experiment. They run with ≤ 1 % risk per trade and all existing limits. Settings live: Vega sweep ≤ 24 bars, Regal and Halo ≤ 12 bars (pivot k = 3, 100-bar memory, any source). The filter can be removed from a desk by deleting `lpSweepBars` from `bot/office.config.json`. It should be judged on forward testnet results against written pass/fail rules (§9.3), not on these backtests.

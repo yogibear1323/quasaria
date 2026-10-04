@@ -216,7 +216,7 @@ def metrics(tr, eq, equity0=500.0, bars_per_day=24):
     n = len(tr)
     out = {"trades": n}
     if n == 0:
-        out.update(win_rate=np.nan, avg_r=np.nan, net=0.0, gross=0.0, fees=0.0, funding=0.0, pf=np.nan, max_dd_pct=0.0, sharpe=np.nan, cost_share=np.nan)
+        out.update(avg_win=np.nan, avg_loss=np.nan, win_rate=np.nan, avg_r=np.nan, net=0.0, gross=0.0, fees=0.0, funding=0.0, pf=np.nan, max_dd_pct=0.0, sharpe=np.nan, cost_share=np.nan)
         return out
     pnl = tr[:, 7]; fees = tr[:, 8]; fund = tr[:, 9]
     slip_cost = np.abs(tr[:, 5]) * 2 * 5e-4  # approx 5 bps each side
@@ -232,7 +232,8 @@ def metrics(tr, eq, equity0=500.0, bars_per_day=24):
     else:
         sh = np.nan
     costs = fees.sum() + slip_cost.sum()
-    out.update(win_rate=float((pnl > 0).mean()), avg_r=float(r.mean()), net=float(pnl.sum()), gross=float(gross.sum()), fees=float(fees.sum()),
+    out.update(avg_win=float(pnl[pnl > 0].mean()) if (pnl > 0).any() else 0.0, avg_loss=float(pnl[pnl <= 0].mean()) if (pnl <= 0).any() else 0.0,
+               win_rate=float((pnl > 0).mean()), avg_r=float(r.mean()), net=float(pnl.sum()), gross=float(gross.sum()), fees=float(fees.sum()),
                slippage=float(slip_cost.sum()), funding=float(fund.sum()), pf=float(wins / losses) if losses > 0 else np.inf,
                max_dd_pct=float(dd), sharpe=float(sh) if sh == sh else np.nan,
                cost_share=float(costs / max(abs(gross).sum(), 1e-9)))

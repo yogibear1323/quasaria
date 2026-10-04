@@ -17,7 +17,7 @@ def aggregate(df, gran, k):
     return out[out.n == k].drop(columns="n").reset_index(drop=True)
 
 def bars(df):
-    return {k: df[k].to_numpy(np.float64) if k != "t" else df[k].to_numpy(np.int64) for k in ["t", "o", "h", "l", "c"]}
+    return {k: df[k].to_numpy(np.float64) if k != "t" else df[k].to_numpy(np.int64) for k in ["t", "o", "h", "l", "c", "v"] if k in df}
 
 def series(tf):
     """bars at timeframe tf (sec)."""

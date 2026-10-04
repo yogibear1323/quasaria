@@ -1,0 +1,14 @@
+setup,thr_pct,trades,trades_per_day,win,avg_net_bps,sum_net_pct_per_day,note
+"OLD feed (300 s push, 900 s max age)",0.1,655,218.3,0.209,-9.09,-19.85,
+"OLD feed (300 s push, 900 s max age)",0.25,174,58.0,0.736,8.23,4.77,
+"OLD feed (300 s push, 900 s max age)",0.5,32,10.7,0.938,32.14,3.43,
+NEW feed (20 s XLM push),0.1,1219,406.3,0.049,-9.71,-39.47,
+NEW feed (20 s XLM push),0.25,59,19.7,0.644,4.77,0.94,
+NEW feed (20 s XLM push),0.5,5,1.7,1.0,32.1,0.53,
+option: 10 s XLM push,0.1,1266,422.0,0.043,-10.82,-45.66,
+option: 10 s XLM push,0.25,53,17.7,0.717,3.92,0.69,
+option: 10 s XLM push,0.5,7,2.3,1.0,17.42,0.41,
+"feed outage 120s, vault max age 900s",0.25,147,,0.735,7.36,,opportunities per 3000 outages
+"feed outage 600s, vault max age 900s",0.25,1185,,0.641,5.78,,opportunities per 3000 outages
+"feed outage 120s, vault max age 90s",0.25,88,,0.693,7.16,,opportunities per 3000 outages
+"feed outage 600s, vault max age 90s",0.25,110,,0.445,1.57,,opportunities per 3000 outages

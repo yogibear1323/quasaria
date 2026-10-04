@@ -18,6 +18,8 @@ SOURCES = {
     "macd": ("MACD 12/26/9 signal cross (Gerald Appel) with 200-EMA trend filter", "https://school.stockcharts.com/doku.php?id=technical_indicators:moving_average_convergence_divergence_macd", "public description; reimplemented"),
     "supertrend": ("Supertrend (Olivier Seban) ATR(10)x3 flip with line as trailing stop", "https://www.tradingview.com/support/solutions/43000634738-supertrend/", "public description; reimplemented (TradingView built-in, not copied)"),
     "chandelier": ("Chandelier exit (Chuck LeBeau): highest high(22) - 3*ATR(22) trail, used as an exit option on breakouts", "https://school.stockcharts.com/doku.php?id=technical_indicators:chandelier_exit", "public description; reimplemented"),
+    "lpsweep": ("Liquidity sweep + reclaim of swing / equal highs-lows and prior-day high-low (stop-hunt reversal; ICT/'smart money' liquidity concepts, Wyckoff spring/upthrust)", "https://school.stockcharts.com/doku.php?id=market_analysis:the_wyckoff_method", "public descriptions; reimplemented"),
+    "vpnode": ("Volume-profile value-area re-entry toward the POC ('80 % rule', J. Dalton 'Mind over Markets' 1990)", "book", "rules only; reimplemented"),
     "random": ("Random-entry control: random time + side with each config's own exits/stops/costs", "this study", "-"),
 }
 LIB_LICENSES = {  # checked 2026-10-04 via raw LICENSE files; NO code from these repos is included here
@@ -134,7 +136,29 @@ class Cache:
     def hh_incl(self, n): return self.get(("hhi", n), lambda: np.concatenate([roll_max_prev(self.b["h"], n)[1:], [np.nan]]) if False else np.maximum(roll_max_prev(self.b["h"], n - 1), self.b["h"]))
     def ll_incl(self, n): return self.get(("lli", n), lambda: np.minimum(roll_min_prev(self.b["l"], n - 1), self.b["l"]))
 
+def _lp(C, k=3, L=100, src=3):
+    from liquidity import sweep_scan
+    b = C.b
+    return C.get(("lp", k, L, src), lambda: sweep_scan(b["h"], b["l"], b["c"], b["t"], C.atr(14), k, L, src, 0.1))
+
+def _lp_filter(C, p, side):
+    """liquidity-pocket entry filter: ('sweep', M) = a sweep+reclaim of resting liquidity on the OPPOSITE side within the
+    last M bars (longs after sell-side stops were taken); ('room', d) = no unswept liquidity level within d ATR in the
+    trade direction (don't enter straight into a stop cluster)."""
+    f = p.get("lpf")
+    if not f: return side
+    kind, x = f
+    ls, ss, ext, up, dn, since_sell, since_buy = _lp(C)
+    c = C.b["c"]; a = C.atr(14)
+    if kind == "sweep":
+        okL = since_sell <= x; okS = since_buy <= x
+    else:
+        okL = np.isnan(up) | ((up - c) > x * a); okS = np.isnan(dn) | ((c - dn) > x * a)
+    side[(side > 0) & ~okL] = 0; side[(side < 0) & ~okS] = 0
+    return side
+
 def _filters(C, p, side):
+    side = _lp_filter(C, p, side)
     """optional regime filters shared by directional families: adx_min (trend strength), sess (UTC hours), long_only."""
     b = C.b
     if p.get("adx_min", 0) > 0:
@@ -250,6 +274,33 @@ def gen(name, C, p, tf_sec):
         stop = line.copy()
         s["exl"] = dirn == -1; s["exs"] = dirn == 1
         s["trl"] = np.where(dirn == 1, line, np.nan); s["trs"] = np.where(dirn == -1, line, np.nan)
+    elif name == "lpsweep":
+        ls, ss, ext, up, dn, _, _ = _lp(C, p["k"], p["L"], p["src"])
+        a = C.atr(14)
+        side[ls] = 1; side[ss] = -1
+        if p.get("align"):
+            e = C.ema(50); side[(side > 0) & ~(c > e)] = 0; side[(side < 0) & ~(c < e)] = 0
+        stop = np.where(side > 0, ext - p["buf"] * a, ext + p["buf"] * a)
+        dist = np.maximum(np.abs(c - stop), 0.008 * c)
+        if p["tgt"] == "opp":
+            tp = np.where(side > 0, np.where(up - c >= dist, up, c + 2 * dist), np.where(c - dn >= dist, dn, c - 2 * dist))
+            tp = np.where(np.isnan(tp), np.where(side > 0, c + 2 * dist, c - 2 * dist), tp)
+        else:
+            R = float(p["tgt"][:-1]); tp = np.where(side > 0, c + R * dist, c - R * dist)
+        s["tp"] = np.where(side != 0, tp, 0)
+        s["time_stop"] = p.get("timeBars", 48) * tf_sec
+    elif name == "vpnode":
+        from liquidity import value_area
+        poc, vah, val = C.get(("va", p["N"]), lambda: value_area(b["h"], b["l"], c, b.get("v", np.ones(n)), p["N"], 30))
+        a = C.atr(14); pc = np.concatenate([[np.nan], c[:-1]]); pvah = np.concatenate([[np.nan], vah[:-1]]); pval = np.concatenate([[np.nan], val[:-1]])
+        hi2 = np.maximum(b["h"], np.concatenate([[np.nan], b["h"][:-1]])); lo2 = np.minimum(b["l"], np.concatenate([[np.nan], b["l"][:-1]]))
+        side[(pc < pval) & (c > val) & (c < poc)] = 1   # re-entry into value from below -> rotate toward POC
+        side[(pc > pvah) & (c < vah) & (c > poc)] = -1
+        stop = np.where(side > 0, lo2 - p["buf"] * a, hi2 + p["buf"] * a)
+        dist = np.maximum(np.abs(c - stop), 0.008 * c)
+        tp = poc if p["tgt"] == "poc" else np.where(side > 0, c + 2 * dist, c - 2 * dist)
+        s["tp"] = np.where(side != 0, tp, 0)
+        s["time_stop"] = p["timeBars"] * tf_sec
     elif name == "skewproxy":
         N = p["N"]; rng = b["h"] - b["l"]
         pr = np.where(rng > 0, (c - b["o"]) / np.where(rng > 0, rng, 1), 0)
@@ -270,7 +321,7 @@ def gen(name, C, p, tf_sec):
     side = _filters(C, p, side)
     stop = np.where(side != 0, stop, np.nan)
     s["side"] = side; s["stop"] = np.nan_to_num(stop, nan=0.0)
-    if name not in ("bbmr", "skewproxy"):
+    if name not in ("bbmr", "skewproxy", "lpsweep", "vpnode"):
         _tp(C, p, s, side, s["stop"])
     s["side"][np.isnan(c)] = 0
     return s

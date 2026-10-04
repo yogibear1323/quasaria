@@ -44,7 +44,7 @@ rg = FIX[(FIX.strategy.str.startswith("trend (fleet")) & (FIX.tf == "4h")].iloc[
 
 text = f"""# Quasaria perps desks — strategy research (backtest / simulated only)
 
-*Prepared for Robert Walker, {dt.date(2026,10,4):%b %d, %Y}. Branch `strat/research` (research only; nothing deployed, live site / demo defaults / testnet fleet untouched). All figures are **simulated backtests on historical XLM-USD prices**; they are not forecasts and imply no future returns.*
+*Prepared for Robert Walker, {dt.date(2026,10,4):%b %d, %Y}. Branch `strat/research`. **Update, Oct 4 2026, 3:32 PM MST:** the owner approved going live on **testnet only** (test funds, no mainnet). The oracle fix, the slower desk settings and the liquidity-pocket experiment are now running on testnet; see §11–§13. Sections 1–10 are the original research. All figures are **simulated backtests on historical XLM-USD prices**; they are not forecasts and imply no future returns.*
 
 ## 1. Headline
 
@@ -174,6 +174,88 @@ Outputs in `results/`: `windows_<tf>.csv` (every config × every window), `summa
 
 *Limitations:* one asset and one venue's price history; Coinbase prices stand in for the vault oracle; the 2-year window contains a few very large trend moves that dominate trend results; 1m history is only 45 days; sub-minute frames are approximated; fleet-level caps and drift halts not modelled; the 10 % halt is modelled as a 7-day operator reset. All results are simulated.
 """
+
+# ---------------------------------------------------------------- update: go-live (testnet), oracle fix, liquidity pockets
+OL2 = pd.read_csv(f"{R}/oracle_lag_v2.csv"); LP = pd.read_csv(f"{R}/lp_summary.csv"); LPT = json.load(open(f"{R}/lp_tally.json"))
+def _fmt(df):
+    d = df.copy()
+    for c in [c for c in d.columns if c.endswith("win_rate")]: d[c] = (d[c] * 100).round(0)
+    return d
+ol2 = OL2[OL2.trades_per_day.notna()][["setup", "thr_pct", "trades_per_day", "win", "avg_net_bps", "sum_net_pct_per_day"]].copy()
+ol2["win"] = (ol2.win * 100).round(0)
+ol2 = ol2.rename(columns={"thr_pct": "entry gap %", "trades_per_day": "trades/day", "win": "win %", "avg_net_bps": "avg net bps (after 20 bps costs)", "sum_net_pct_per_day": "sum net % of notional / day"})
+olo = OL2[OL2.trades_per_day.isna()][["setup", "thr_pct", "trades", "win", "avg_net_bps"]].copy(); olo["win"] = (olo.win * 100).round(0)
+olo = olo.rename(columns={"thr_pct": "entry gap %", "trades": "opportunities / 3,000 outages", "win": "win %", "avg_net_bps": "avg net bps"})
+cols = {"name": "config", "oos_trades": "OOS trades", "oos_win_rate": "OOS win %", "oos_net": "OOS net $", "oos_pf": "OOS PF", "oos_avg_win": "avg win $", "oos_avg_loss": "avg loss $", "oos_max_dd_pct": "OOS max DD %", "oos_pos_windows": "+windows",
+        "p_vs_random": "p vs random", "random_median": "random median $", "ho_trades": "HO trades", "ho_win_rate": "HO win %", "ho_net": "HO net $", "ho_dd": "HO DD %"}
+sa = _fmt(LP[LP.kind == "standalone"])[list(cols)].rename(columns=cols).fillna("—")
+fl = _fmt(LP[LP.kind.isin(["filter", "filter-WF"])])[list(cols)].rename(columns=cols).fillna("—")
+wfp = LP[LP.kind == "filter-WF"][["name", "picks"]].rename(columns={"name": "desk", "picks": "filter picked in each of the 8 windows (in-sample)"})
+def row(name): return LP[LP.name == name].iloc[0]
+vb, vw = row("Vega 1h Supertrend 10x3 + none (baseline)"), row("Vega 1h Supertrend 10x3 + WF-selected filter")
+rb, rw = row("Regal 4h trend (fleet 20/50/20) + none (baseline)"), row("Regal 4h trend (fleet 20/50/20) + WF-selected filter")
+hb, hw = row("Halo 1h mean-rev (fleet BB20/2.2) + none (baseline)"), row("Halo 1h mean-rev (fleet BB20/2.2) + WF-selected filter")
+lb = row("lpsweep 1h")
+
+text += f"""
+
+## 11. What is live on testnet now (owner GO-LIVE, Oct 4 2026, 3:32 PM MST; test funds only)
+
+| item | state |
+|---|---|
+| Oracle fix (PR #24) | vault `max_price_age` 900 s → **90 s** (timelocked `SetConfig`); feed pushes **XLM/USD every ~20 s** (`--fast-interval 20`), full 42-asset refresh every 300 s; fast pushes skip cached/snapshot prices and moves > 1.5 % away from Coinbase |
+| Fleet guard | warn / halt at oracle age 60 / 90 s (was 600 / 900 s) |
+| Vega | 1h **Supertrend 10×3** + liquidity-pocket entry filter (sweep ≤ 24 bars) |
+| Regal | 4h trend (fleet 20/50/20, 2 ATR stop, 3 ATR trail) + filter (≤ 12 bars) |
+| Halo | 1h mean-rev (fleet BB 20/2.2, RSI 28/72, ADX < 20) + filter (≤ 12 bars) |
+| Lyra | **Experimental · liquidity pockets · simulated/testnet**: standalone sweep + reclaim, 1h, risk 0.75 %, max 3× |
+| Echo, Nova | **paused** (no new entries) |
+| Risk | ≤ 1 % per trade on every desk, 2 % hard cap, desk daily-loss 3 % / drawdown 10 %, floor limits unchanged |
+| Demo | the Active profile now runs the same desks and settings as the fleet |
+
+These settings were chosen to *lose less*, not because they were shown to make money. None of the figures below is a forecast.
+
+## 12. Oracle-latency fix: re-run of the arbitrage simulation
+
+72 hours of Coinbase XLM-USD trades at 1-second resolution; a trader opens when the live market is more than the gap away from the on-chain oracle and closes at the next push; 20 bps total costs.
+
+{md(ol2, 2)}
+
+Feed outages (vault rejects prices older than `max_price_age`):
+
+{md(olo, 2)}
+
+**Result:** at the realistic 0.25 % gap the edge falls from about +4.8 % of notional per day to about +0.9 %/day (roughly −80 %), and at 0.5 % from +3.4 % to +0.5 %/day. It is **reduced, not eliminated**: when XLM moves fast within the 20 s push window, a gap above 0.25 % still appears about 20 times a day. A 10 s push helps only a little (+0.7 %/day). The 90 s max age caps what a feed outage can be used for (600 s outage: +1.6 bps average instead of +5.8 bps). Remaining options for the contract/keeper owners: push on deviation (e.g. > 0.1 %) instead of on a timer only; delayed or two-step execution (commit, then fill at the next oracle price); an oracle-age-scaled fee; or a second on-chain price source with a deviation check.
+
+## 13. Liquidity pockets: implementation and evaluation
+
+**What "liquidity pockets" means here.** Public APIs (Coinbase, Kraken) serve only the *current* order book, so no historical depth exists to backtest against. Resting liquidity is therefore inferred from price structure, as commonly described for stop-runs: confirmed swing highs/lows (pivot k bars each side), **equal highs/lows** within 0.1 ATR (stop clusters), the prior UTC day's high/low, and a **sweep + reclaim** when a bar trades through an unswept level and closes back on the other side. Volume-profile nodes (POC / value area) were tested as a second family. Everything at bar i uses data up to the close of bar i only. The TypeScript port the bots run (`bot/src/office/liquidity.ts`) gives signals **identical** to the research code on all 17,511 1h bars (0 mismatches across four parameter sets; Supertrend also 0 mismatches).
+
+**Search:** {LPT['new_configs']} new configurations (sweep and volume-node families on 15m / 1h / 4h, plus 18 filter variants on the three slower desks), {LPT['total']:,} in total with the original study. Bonferroni threshold: {LPT['bonferroni_alpha_lp']:.1e} for this batch and {LPT['bonferroni_alpha_total']:.1e} overall. The random-entry control uses 300 runs, so p-values cannot go below ~0.003, far above either threshold. Walk-forward (WF) is the same as §4: OOS = out-of-sample windows, HO = untouched holdout ({ho_start} → {end}). Fees and slippage are included. $ figures are for a $500 desk.
+
+### 13.1 Standalone (Lyra's approach)
+
+{md(sa, 2)}
+
+**Every standalone liquidity-pocket family lost money out of sample.** The least bad is 1h sweep + reclaim: {lb['oos_trades']:.0f} OOS trades, win rate {lb['oos_win_rate']*100:.0f} %, net −${-lb['oos_net']:.0f}, PF {lb['oos_pf']:.2f}, average win ${lb['oos_avg_win']:.2f} vs average loss −${-lb['oos_avg_loss']:.2f}, max drawdown {lb['oos_max_dd_pct']:.1f} %. Its holdout of +${lb['ho_net']:.1f} rests on a single trade and means nothing. Lyra runs the best pre-holdout 1h config (equal highs/lows, k = 2, 50-bar memory, 0.25 ATR beyond the sweep, 3R target, EMA50 alignment, 48-bar time stop) **as a labelled testnet experiment only**.
+
+### 13.2 As an entry filter on the slower desks
+
+The honest test is the **WF-selected filter** row, where the filter (or none) is picked in-sample in each window. The fixed-filter rows are 18 post-hoc variants and are shown for transparency only. The WF-selected rows have no single holdout config (the pick changes per window), hence “—”.
+
+{md(fl, 2)}
+
+{md(wfp, 0)}
+
+**Verdict: out of sample, the filter does NOT improve the slower desks.**
+* **Vega (1h Supertrend):** with the filter, OOS net falls from ${vb['oos_net']:.0f} to ${vw['oos_net']:.0f}, the win rate falls from {vb['oos_win_rate']*100:.1f} % to {vw['oos_win_rate']*100:.1f} %, and trades drop from {vb['oos_trades']:.0f} to {vw['oos_trades']:.0f}. PF rises from {vb['oos_pf']:.2f} to {vw['oos_pf']:.2f} and max drawdown falls from {vb['oos_max_dd_pct']:.1f} % to {vw['oos_max_dd_pct']:.1f} %. **This is worse out-of-sample on net P&L and win rate**; the only gain is lower drawdown.
+* **Regal (4h trend):** about the same: net ${rb['oos_net']:.0f} → ${rw['oos_net']:.0f} and win rate {rb['oos_win_rate']*100:.1f} % → {rw['oos_win_rate']*100:.1f} %, with half the trades ({rb['oos_trades']:.0f} → {rw['oos_trades']:.0f}) and half the drawdown ({rb['oos_max_dd_pct']:.1f} % → {rw['oos_max_dd_pct']:.1f} %).
+* **Halo (1h mean-rev):** still negative: −${-hb['oos_net']:.0f} → −${-hw['oos_net']:.0f} on only {hw['oos_trades']:.0f} trades, win rate {hw['oos_win_rate']*100:.0f} %.
+* The fixed post-hoc variants look better in places (Regal sweep ≤ 6: 58 % win on 12 trades; Regal sweep ≤ 12: 48 % win, +$291 on 29 trades; Vega sweep ≤ 24: +$341). But these were chosen after seeing the results, and their holdouts are negative or near zero (Regal −$7 to −$36 with 0 wins; Vega sweep ≤ 24 −$1.9). None passes the multiple-testing threshold.
+
+**Why it is enabled anyway:** the owner asked to run the filter (and Lyra) on testnet as an experiment. They run with ≤ 1 % risk per trade and all existing limits. Settings live: Vega sweep ≤ 24 bars, Regal and Halo ≤ 12 bars (pivot k = 3, 100-bar memory, any source). The filter can be removed from a desk by deleting `lpSweepBars` from `bot/office.config.json`. It should be judged on forward testnet results against written pass/fail rules (§9.3), not on these backtests.
+"""
+
 open("../report.md", "w").write(text)
 html = markdown.markdown(text, extensions=["tables", "fenced_code"])
 css = """<style>@page{size:A4 landscape;margin:12mm} body{font-family:'DejaVu Sans',Arial,sans-serif;font-size:9.5px;line-height:1.35}

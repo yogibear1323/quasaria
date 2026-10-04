@@ -658,3 +658,23 @@ select.input option, select.input optgroup { background: var(--bg-elev); color: 
 .perps-side .btn { justify-content: center; width: 100%; }
 .perps-market { margin-bottom: var(--s-4, 16px); }
 .perps-market h2 { font-family: var(--font-mono); letter-spacing: 0.02em; }
+
+/* Perps nav item with submenu (Perps · Back Office) */
+.nav-dd { display: inline-flex; align-items: center; position: relative; flex: none; }
+.nav-dd > a { padding-right: 4px !important; }
+.nav-caret { all: unset; cursor: pointer; display: inline-grid; place-items: center; width: 18px; height: 26px; margin-right: 2px; border-radius: 6px; color: var(--text-3); transition: transform .15s, color .15s; }
+.nav-caret:hover, .nav-dd.open .nav-caret { color: var(--text); }
+.nav-dd.open .nav-caret svg { transform: rotate(180deg); }
+.nav-caret:focus-visible { box-shadow: var(--ring); }
+.nav-menu { position: fixed; z-index: 200; min-width: 230px; padding: 6px; border-radius: 12px; border: 1px solid var(--line-2); background: rgba(10, 11, 22, 0.97); box-shadow: 0 18px 40px -16px #000, 0 0 0 1px rgba(139, 124, 255, 0.12); display: flex; flex-direction: column; gap: 2px; animation: nav-menu-in .14s ease-out; }
+.nav-menu a { display: flex; flex-direction: column; gap: 1px; padding: 8px 10px; border-radius: 8px; color: var(--text-2); text-decoration: none; }
+.nav-menu a b { font-weight: 600; font-size: 0.86rem; color: var(--text); }
+.nav-menu a small { font-size: 0.7rem; color: var(--text-3); }
+.nav-menu a:hover, .nav-menu a:focus-visible { background: rgba(139, 124, 255, 0.12); outline: none; }
+.nav-menu a.on { box-shadow: inset 2px 0 0 var(--violet-hi, #a78bfa); background: rgba(139, 124, 255, 0.08); }
+@keyframes nav-menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .nav-menu { animation: none; } .nav-caret { transition: none; } }
+
+.perps-demo-link { display: block; margin: -4px 0 16px; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, 0.35); background: rgba(34, 211, 238, 0.05); color: var(--text-2); font-size: 0.86rem; text-decoration: none; }
+.perps-demo-link b { color: #67e8f9; }
+.perps-demo-link:hover { border-color: rgba(34, 211, 238, 0.6); color: var(--text); }

@@ -176,6 +176,8 @@ export interface DeskView {
   drawdownPct: number | null;
   lastSignal: string;
   spark: number[];
+  /** display unit; live = test QUSD */
+  unit?: string;
 }
 
 export function mergeDesks(desks: DeskCfg[], chain: ChainFloor | null, status: StatusDoc | null, trades: Record<string, ChainTrade[]> | null, stale: boolean): DeskView[] {

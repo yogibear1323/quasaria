@@ -18,6 +18,19 @@ export const vecAddr = (xs: string[]) => xdr.ScVal.scvVec(xs.map(addr));
 /** Reflector / vault `Asset::Other(Symbol)` */
 export const assetOther = (code: string) => xdr.ScVal.scvVec([sym("Other"), sym(code)]);
 
+/**
+ * Compact, stable detail for a failed simulation: the contract error code
+ * (`Error(Contract, #7)`) or "non-existent contract function" when the
+ * deployed wasm lacks the method (used for feature detection, e.g. Perps).
+ */
+export function simErrorDetail(sim: unknown): string {
+  const raw = sim && typeof sim === "object" && "error" in sim ? String((sim as { error: unknown }).error) : "";
+  if (!raw) return "";
+  if (/non-existent contract function/.test(raw)) return " (non-existent contract function)";
+  const code = raw.match(/Error\(Contract, #\d+\)/)?.[0];
+  return code ? ` (${code})` : "";
+}
+
 /** Read-only call via simulation (no wallet needed). */
 export async function readContract<T = unknown>(contractId: string, method: string, args: xdr.ScVal[] = []): Promise<T> {
   if (OFFLINE_DEMO || !contractId) throw new Error("contract not configured");
@@ -27,7 +40,7 @@ export async function readContract<T = unknown>(contractId: string, method: stri
     .setTimeout(30)
     .build();
   const sim = await soroban.simulateTransaction(tx);
-  if (!rpc.Api.isSimulationSuccess(sim) || !sim.result) throw new Error(`simulation failed: ${method}`);
+  if (!rpc.Api.isSimulationSuccess(sim) || !sim.result) throw new Error(`simulation failed: ${method}${simErrorDetail(sim)}`);
   return scValToNative(sim.result.retval) as T;
 }
 

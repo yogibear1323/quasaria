@@ -613,3 +613,9 @@ select.input option, select.input optgroup { background: var(--bg-elev); color: 
 .news-more { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: var(--s-4); }
 @media (max-width: 560px) { .news-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .news-card:hover, .news-card:hover .news-thumb img { transform: none; } }
+
+/* ---- Perps */
+.perps-side { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: rgba(4, 5, 10, 0.55); }
+.perps-side .btn { justify-content: center; width: 100%; }
+.perps-market { margin-bottom: var(--s-4, 16px); }
+.perps-market h2 { font-family: var(--font-mono); letter-spacing: 0.02em; }

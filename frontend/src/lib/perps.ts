@@ -201,6 +201,12 @@ export function fmtRate(r: number | null | undefined, digits = 4) {
   return `${p > 0 ? "+" : p < 0 ? "−" : ""}${Math.abs(p).toFixed(digits)}%`;
 }
 
+/** Funding sensitivity `k` (dimensionless) with enough precision for small values: 0.0005 → "0.0005". */
+export function fmtK(k: number | null | undefined) {
+  if (k === null || k === undefined || !Number.isFinite(k)) return "—";
+  return k.toLocaleString("en-US", { maximumSignificantDigits: 4, maximumFractionDigits: 12, useGrouping: false });
+}
+
 /** Who pays at a given signed rate. */
 export const payerText = (rate: number) => (rate > 0 ? "longs pay shorts" : rate < 0 ? "shorts pay longs" : "no transfer");
 

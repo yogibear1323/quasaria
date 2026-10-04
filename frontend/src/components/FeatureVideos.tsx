@@ -27,7 +27,7 @@ export default function FeatureVideos() {
                 <span className="l-fv-time">{fmtRuntime(v.seconds)}</span>
               </span>
               <span className="l-fv-title">{v.title}</span>
-              {v.tag ? <span className={`l-fv-tag ${v.tag.startsWith("In development") ? "dev" : "risk"}`}>{v.tag}</span> : null}
+              {v.tag ? <span className={`l-fv-tag ${v.tag.startsWith("In development") ? "dev" : v.tag.startsWith("Live") ? "live" : "risk"}`}>{v.tag}</span> : null}
             </button>
           </li>
         ))}

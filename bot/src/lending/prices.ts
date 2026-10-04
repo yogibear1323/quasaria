@@ -200,3 +200,81 @@ export function filterFreshPrices(prices: UsdPrice[], usdSource: string): { fres
   const fresh = prices.filter((p) => p.source !== "snapshot");
   return { fresh, skipped: prices.filter((p) => p.source === "snapshot").map((p) => p.id) };
 }
+
+// ---------------------------------------------------------------- multi-source XLM/USD + deviation-triggered pushes
+/** Single attempt, short timeout: the fast loop polls every ~2 s and must never stall on one slow venue. */
+export const quickFetcher: Fetcher = async (url) => {
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(2_500), headers: { "user-agent": "quasaria-oracle-feed (testnet)" } });
+    return r.ok ? ((await r.json()) as Json) : null;
+  } catch {
+    return null;
+  }
+};
+
+export type SourceQuote = { source: string; usd: number | null };
+const mid = (b: unknown, a: unknown) => {
+  const bid = Number(b), ask = Number(a);
+  return bid > 0 && ask > 0 && ask >= bid && (ask - bid) / ((ask + bid) / 2) < 0.01 ? (bid + ask) / 2 : null;
+};
+
+/** Independent public XLM/USD venues (best bid/ask mid; null when unreachable or the book is crossed/wide). */
+export const XLM_SOURCES: Record<string, { url: string; parse: (j: Json) => number | null }> = {
+  coinbase: { url: "https://api.exchange.coinbase.com/products/XLM-USD/ticker", parse: (j) => mid(j.bid, j.ask) },
+  kraken: { url: "https://api.kraken.com/0/public/Ticker?pair=XLMUSD", parse: (j) => { const r = j.result && (Object.values(j.result)[0] as Json | undefined); return r ? mid(r.b?.[0], r.a?.[0]) : null; } },
+  bitstamp: { url: "https://www.bitstamp.net/api/v2/ticker/xlmusd/", parse: (j) => mid(j.bid, j.ask) },
+};
+
+export async function fetchXlmSources(get: Fetcher = quickFetcher, names = Object.keys(XLM_SOURCES)): Promise<SourceQuote[]> {
+  return Promise.all(
+    names.map(async (n) => {
+      const j = await get(XLM_SOURCES[n].url).catch(() => null);
+      let usd: number | null = null;
+      try {
+        usd = j ? XLM_SOURCES[n].parse(j) : null;
+      } catch {
+        usd = null;
+      }
+      return { source: n, usd: usd && Number.isFinite(usd) && usd > 0 ? usd : null };
+    }),
+  );
+}
+
+const median = (v: number[]) => {
+  const s = [...v].sort((a, b) => a - b), m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+
+export type CrossCheck = { ok: true; usd: number; used: string[]; outliers: string[] } | { ok: false; reason: string; outliers: string[] };
+/**
+ * Cross-check independent sources: the price is the median of the sources within `maxSpreadPct` of the overall median,
+ * and at least `minSources` must agree. Fewer live sources, or no agreeing pair, -> no price (the push is skipped and
+ * flagged; the vault then rejects trading once the on-chain price is older than max_price_age — fail closed).
+ */
+export function crossCheck(quotes: SourceQuote[], maxSpreadPct = 0.5, minSources = 2): CrossCheck {
+  const live = quotes.filter((q): q is { source: string; usd: number } => q.usd !== null && q.usd > 0);
+  if (live.length < minSources) return { ok: false, reason: `only ${live.length} live source(s) (${live.map((q) => q.source).join(", ") || "none"}); need ${minSources}`, outliers: [] };
+  const m = median(live.map((q) => q.usd));
+  const agree = live.filter((q) => (Math.abs(q.usd - m) / m) * 100 <= maxSpreadPct);
+  const outliers = live.filter((q) => !agree.includes(q)).map((q) => `${q.source} ${q.usd.toFixed(5)} (${(((q.usd - m) / m) * 100).toFixed(2)}%)`);
+  if (agree.length < minSources) return { ok: false, reason: `sources disagree by more than ${maxSpreadPct}%: ${live.map((q) => `${q.source} ${q.usd.toFixed(5)}`).join(", ")}`, outliers };
+  return { ok: true, usd: median(agree.map((q) => q.usd)), used: agree.map((q) => q.source), outliers };
+}
+
+export type FastDecision = { push: true; why: "first" | "deviation" | "heartbeat"; movePct: number; pendingJump: null } | { push: false; reason: string; pendingJump: number | null };
+/**
+ * When to push XLM/USD: immediately when the cross-checked price moved >= `devPct` from the last pushed price
+ * (deviation trigger), otherwise every `heartbeatSec` (keeps the on-chain age well under the vault's 90 s).
+ * A move > `maxJumpPct` within one poll is held until the next read confirms it.
+ */
+export function decideFastPush(p: { usd: number; lastPushed: number | null; lastPushAt: number; now: number; pendingJump: number | null }, devPct = 0.12, heartbeatSec = 20, maxJumpPct = 5): FastDecision {
+  if (!p.lastPushed) return { push: true, why: "first", movePct: 0, pendingJump: null };
+  const move = (Math.abs(p.usd - p.lastPushed) / p.lastPushed) * 100;
+  if (move > maxJumpPct) {
+    const confirmed = p.pendingJump && Math.abs(p.usd - p.pendingJump) / p.pendingJump < 0.01;
+    if (!confirmed) return { push: false, reason: `jump ${move.toFixed(2)}% vs last push; waiting for confirmation`, pendingJump: p.usd };
+  }
+  if (move >= devPct) return { push: true, why: "deviation", movePct: move, pendingJump: null };
+  if (p.now - p.lastPushAt >= heartbeatSec) return { push: true, why: "heartbeat", movePct: move, pendingJump: null };
+  return { push: false, reason: "within band", pendingJump: null };
+}

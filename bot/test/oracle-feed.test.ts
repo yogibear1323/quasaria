@@ -23,3 +23,48 @@ describe("oracle feed stale/deviation guard", () => {
     expect(b.push).toBe(true);
   });
 });
+
+import { crossCheck, decideFastPush, fetchXlmSources } from "../src/lending/prices.js";
+
+describe("oracle feed: independent sources + cross-check", () => {
+  it("parses Coinbase / Kraken / Bitstamp mids and drops unreachable or wide books", async () => {
+    const fake = async (url: string) =>
+      url.includes("coinbase") ? { bid: "0.2200", ask: "0.2202" } : url.includes("kraken") ? { error: [], result: { XXLMZUSD: { b: ["0.2199"], a: ["0.2201"] } } } : url.includes("bitstamp") ? { bid: "0.20", ask: "0.24" } : null;
+    const q = await fetchXlmSources(fake);
+    expect(q.find((x) => x.source === "coinbase")!.usd).toBeCloseTo(0.2201, 6);
+    expect(q.find((x) => x.source === "kraken")!.usd).toBeCloseTo(0.22, 6);
+    expect(q.find((x) => x.source === "bitstamp")!.usd).toBeNull(); // 18% spread: not a usable quote
+    const down = await fetchXlmSources(async () => null);
+    expect(down.every((x) => x.usd === null)).toBe(true);
+  });
+  it("needs two agreeing sources; prices the median of the agreeing ones; flags outliers", () => {
+    const ok = crossCheck([{ source: "coinbase", usd: 0.22 }, { source: "kraken", usd: 0.2202 }, { source: "bitstamp", usd: 0.2201 }]);
+    expect(ok.ok && ok.usd).toBeCloseTo(0.2201, 8);
+    const out = crossCheck([{ source: "coinbase", usd: 0.22 }, { source: "kraken", usd: 0.2201 }, { source: "bitstamp", usd: 0.23 }]);
+    expect(out.ok).toBe(true);
+    expect(out.outliers[0]).toMatch(/^bitstamp/);
+    expect(out.ok && out.used).toEqual(["coinbase", "kraken"]);
+    const one = crossCheck([{ source: "coinbase", usd: 0.22 }, { source: "kraken", usd: null }, { source: "bitstamp", usd: null }]);
+    expect(one.ok).toBe(false);
+    expect(!one.ok && one.reason).toMatch(/only 1 live source/);
+    const split = crossCheck([{ source: "coinbase", usd: 0.22 }, { source: "kraken", usd: 0.23 }]);
+    expect(split.ok).toBe(false);
+    expect(!split.ok && split.reason).toMatch(/disagree/);
+  });
+});
+
+describe("oracle feed: deviation-triggered pushes with a heartbeat", () => {
+  const base = { lastPushed: 0.22, lastPushAt: 1000, now: 1005, pendingJump: null };
+  it("pushes immediately on a >= 0.12% move, otherwise every 20 s", () => {
+    expect(decideFastPush({ ...base, usd: 0.22 * 1.0013 }).push).toBe(true);
+    expect((decideFastPush({ ...base, usd: 0.22 * 0.9987 }) as { why: string }).why).toBe("deviation");
+    expect(decideFastPush({ ...base, usd: 0.22 * 1.0005 }).push).toBe(false);
+    expect((decideFastPush({ ...base, usd: 0.22 * 1.0005, now: 1020 }) as { why: string }).why).toBe("heartbeat");
+    expect((decideFastPush({ ...base, usd: 0.22, lastPushed: null }) as { why: string }).why).toBe("first");
+  });
+  it("holds a > 5% jump until confirmed", () => {
+    const a = decideFastPush({ ...base, usd: 0.24 });
+    expect(a.push).toBe(false);
+    expect(decideFastPush({ ...base, usd: 0.2401, pendingJump: a.pendingJump }).push).toBe(true);
+  });
+});

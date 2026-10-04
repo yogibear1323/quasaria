@@ -23,7 +23,7 @@ const status = (o: Partial<StatusDoc["fleet"]> = {}, age = 60): StatusDoc => ({
 
 describe("back office config", () => {
   it("six named desks, two per strategy, public keys only", () => {
-    expect(BACK_OFFICE.desks.map((d) => d.name)).toEqual(["Vega", "Rigel", "Lyra", "Nova", "Echo", "Halo"]);
+    expect(BACK_OFFICE.desks.map((d) => d.name)).toEqual(["Vega", "Regal", "Lyra", "Nova", "Echo", "Halo"]);
     for (const s of ["trend", "funding", "meanrev"]) expect(BACK_OFFICE.desks.filter((d) => d.strategy === s).length).toBe(2);
     for (const d of BACK_OFFICE.desks) {
       expect(d.owner).toMatch(/^G[A-Z2-7]{55}$/);
@@ -151,7 +151,7 @@ describe("robot floor model", () => {
   it("glow tone + floor tape ordering", () => {
     expect([pnlTone(null), pnlTone(0), pnlTone(0.2), pnlTone(-0.2)]).toEqual(["flat", "flat", "up", "dn"]);
     const v = mergeDesks(BACK_OFFICE.desks, null, null, { vega: [close(0.1, 50, 1)], rigel: [open(10, 2)] }, false);
-    expect(floorTape(v).map((x) => x.desk)).toEqual(["Rigel", "Vega"]);
+    expect(floorTape(v).map((x) => x.desk)).toEqual(["Regal", "Vega"]);
   });
   it("example script: alternates open/close on active desks, never touches paused/halted poses, labelled tx ids", () => {
     let s = exampleInit();

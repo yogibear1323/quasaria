@@ -238,7 +238,7 @@ describe("funding rates exclude the fleet's own OI", () => {
 
 describe("config + backtest", () => {
   it("validates desks and refuses > 2% risk", () => {
-    expect(cfg.desks.map((d) => d.name)).toEqual(["Vega", "Rigel", "Lyra", "Nova", "Echo", "Halo"]);
+    expect(cfg.desks.map((d) => d.name)).toEqual(["Vega", "Regal", "Lyra", "Nova", "Echo", "Halo"]);
     expect(cfg.desks.filter((d) => d.strategy === "trend").length).toBe(2);
     expect(() => parseOfficeConfig({ ...cfg, desks: [{ ...cfg.desks[0], riskPct: 3 }] })).toThrow(/riskPct/);
     expect(() => parseOfficeConfig({ ...cfg, limits: { ...L, hardMaxRiskPct: 5 } })).toThrow();

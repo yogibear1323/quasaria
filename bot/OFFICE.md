@@ -5,7 +5,7 @@ Six automated desks trade the XLM perp on the perps-v1 leverage vault (market ke
 | Desk | Strategy | Bars | Risk/trade | Max lev |
 |---|---|---|---|---|
 | Vega | trend (Donchian-20 breakout with EMA20/50 filter, 2×ATR stop, 3×ATR trail) | 1h | 1.0% | 5× |
-| Rigel | trend | 4h | 1.0% | 5× |
+| Regal | trend | 4h | 1.0% | 5× |
 | Lyra | funding capture (receiving side of external skew ≥ 0.02%/h for 2 samples; 1.25% stop) | hourly checks | 0.75% | 3× |
 | Nova | funding capture (stricter: ≥ 0.03%/h) | hourly checks | 0.75% | 3× |
 | Echo | mean reversion (BB 20/2.2 + RSI 28/72, ADX < 20, target mid band, 1.5×ATR stop, 12-bar time stop) | 15m | 1.0% | 4× |

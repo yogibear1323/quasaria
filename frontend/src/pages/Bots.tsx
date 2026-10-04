@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { PageHead, RiskWarning, SourceTag, Stat, Tabs, TxStatus, ViewerNote, useTx } from "../components/ui";
 import { DEMO_POSITIONS } from "../lib/demo";
 import { CONTRACTS, expertContract } from "../lib/config";
-import { readVault, useChain, useViewer } from "../lib/chain";
-import { addr, assetOther, bool, i128, invokeContract, u32, u64 } from "../lib/soroban";
+import { readVault, useChain, useViewer, vaultMarketAsset } from "../lib/chain";
+import { addr, bool, i128, invokeContract, u32, u64 } from "../lib/soroban";
 import { healthFactor, liquidationPrice, pnl } from "../lib/math";
 import { fmt, toUnits } from "../lib/format";
 
@@ -112,7 +112,7 @@ export default function Bots() {
               <button className="btn" disabled={!ack} onClick={download}>Export bot config</button>
               <button className="btn ghost" disabled={!ack || tx.busy || belowMin || vaultPaused} onClick={() => tx.run("open position", async () => {
                 const me = tx.wallet.address!;
-                return refresh((await invokeContract(me, tx.wallet.sign, CONTRACTS.vault, "open_position", [addr(me), addr(me), assetOther("XLM"), bool(side === "long"), i128(toUnits(Number(margin))), u32(lev * 10_000)])).hash.slice(0, 10));
+                return refresh((await invokeContract(me, tx.wallet.sign, CONTRACTS.vault, "open_position", [addr(me), addr(me), vaultMarketAsset(), bool(side === "long"), i128(toUnits(Number(margin))), u32(lev * 10_000)])).hash.slice(0, 10));
               })}>Open manually</button>
               <button className="btn ghost" disabled={!ack || tx.busy} onClick={() => {
                 const op = window.prompt("Bot operator address (G…) — it can trade but never withdraw:");

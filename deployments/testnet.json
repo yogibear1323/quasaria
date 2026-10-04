@@ -14,7 +14,7 @@
     "router": "CDSGPKLVVSCZDXPI2NNZRYY23UCQS3TXQWBCFIKINFIBJDCD57TQRWFB",
     "staking": "CBB6WT3KRJDNKKJPDKLPEPVCZC63DYPVBRXCR72HPTL6PQL54P7VB63K",
     "oracle": "CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY",
-    "vault": "CAKUVSFDQXQGGBO2ZYQEQH6HMRMMDV6DDF4HMGRKK4Y3O2TGFWDAM55V",
+    "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
     "lending": "CDCT3D7CMUB72CB7P7U2GNPP32UZCNXWO663GTA6EEUP552LMZAARE46"
   },
   "assets": {
@@ -49,7 +49,14 @@
       "min_margin": "100000000",
       "max_positions_per_user": 10,
       "max_open_positions": 1000
-    }
+    },
+    "marketAsset": {
+      "Stellar": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+    },
+    "generation": "perps-v1",
+    "deployedAt": "2026-10-04T20:01:40Z",
+    "wasmSha256": "56d094a322ce22d8c65e2ce1dc219e5d6f94ce9a2c8e2321f73e061da8200cbd",
+    "note": "Fresh leverage vault from main ec914ce (PR #6 funding module). Same admin/guardian, 300 s timelock, QUSD collateral, mock oracle and referral registry as the previous vault. XLM market key is Asset::Stellar(native XLM SAC), which the oracle-feed refreshes every 300 s from live mainnet prices; the stale Asset::Other(XLM) key is not used. Funding enabled for XLM via timelocked SetMarketFunding. Testnet-only, unaudited."
   },
   "staking": {
     "minStake": "10000000"
@@ -97,6 +104,15 @@
         "ZUSD": "CA5UHWWQXXFMZNBLVGHIQCBBEQAVHKWVWCCJP77QLHGQB5BQ43R6FRZD",
         "AUDD": "CDMBASDQ7TZNQ2EJYYALTZKL6DJUEMY5RAXVMA2GYCF3HU6D4WYVJQOJ"
       }
+    },
+    "warpVaultHalted": {
+      "vault": "CAKUVSFDQXQGGBO2ZYQEQH6HMRMMDV6DDF4HMGRKK4Y3O2TGFWDAM55V",
+      "oracle": "CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY",
+      "marketAsset": {
+        "Other": "XLM"
+      },
+      "status": "deprecated / halted",
+      "note": "Previous Warp leverage vault (pre-funding wasm). Halted on a stale Asset::Other(XLM) oracle price (0.1234 USD); positions 1 and 2 remain open. Left in place untouched; unwind decision pending. Not used by the app."
     }
   },
   "assetPools": {

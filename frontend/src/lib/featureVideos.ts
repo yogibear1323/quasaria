@@ -22,7 +22,7 @@ export const FEATURE_VIDEOS: FeatureVideo[] = [
   { id: "08-xp-ranks-quests", title: "XP ranks & Quests", seconds: 29 },
   { id: "09-markets-news", title: "Markets & Stellar news", seconds: 28 },
   { id: "10-governance-security", title: "Governance & security", seconds: 28 },
-  { id: "11-perps-funding-live", title: "Perps funding", seconds: 29, tag: "Live on testnet" },
+  { id: "11-perps-funding-bots", title: "Perps funding + bots", seconds: 45, tag: "Live on testnet" },
 ];
 
 export const FEATURE_VIDEOS_COPY = {

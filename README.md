@@ -73,7 +73,7 @@ relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md)
 | 3 | **Liquidity providing** | `amm-pool`: x·y=k, SEP-41 **QLP** share token, 0.30% fee accrues to LPs | Pools page: deposit/withdraw, fee APR estimate |
 | 4 | **Staking** | `staking`: admin-whitelisted pools, per-pool reward rate, funded reserves, optional lock | Stake page |
 | 5 | **Referrals** | `referral`: set-once, no self-referral, no cycles; pools & vault pay referrers a share of fees | Referral dashboard, `?ref=` shareable link |
-| 6 | **Bot leverage trading** | `leverage-vault`: collateral, positions with max-leverage cap, health-factor liquidation, operator delegation, on-chain SL/TP; `mock-oracle` with a Reflector-compatible interface | `bot/`: grid / DCA / momentum strategies, risk manager, paper vault, liquidation + SL/TP keeper |
+| 6 | **Bot leverage trading** | `leverage-vault`: collateral, positions with max-leverage cap, health-factor liquidation, operator delegation, on-chain SL/TP; `mock-oracle` with a Reflector-compatible interface | `bot/`: grid / DCA / momentum strategies, risk manager, paper vault, liquidation + SL/TP keeper; Back Office fleet of six testnet perp desks ([bot/OFFICE.md](bot/OFFICE.md)) |
 | 7 | **Earn calculators** | Reads staking pools (rate, lock, reserve), QFX `yield_info`/`reserves`, pool `info` (fee) and recent `swap` events | `/earn` hub + `/calculators` (staking, holder yield, LP fees + impermanent loss); pure math in `src/lib/calc.ts` |
 
 ---

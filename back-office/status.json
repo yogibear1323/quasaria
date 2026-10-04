@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-04T21:10:48.000Z",
+ "generatedAt": "2026-10-04T21:13:47.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.2200755,
-  "oracleAgeSec": 176,
-  "referencePrice": 0.220251,
-  "deviationPct": 0.0797,
+  "oraclePrice": 0.2202831,
+  "oracleAgeSec": 40,
+  "referencePrice": 0.22017,
+  "deviationPct": 0.0514,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -155,7 +155,7 @@
   },
   {
    "id": "rigel",
-   "name": "Rigel",
+   "name": "Regal",
    "strategy": "trend",
    "timeframeSec": 14400,
    "owner": "GA4YHTLKSPZIO4I53KWVRAAS5ACZJJMHGPQH46QNGABBV2BFY3SN43VL",

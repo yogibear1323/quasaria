@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { xdr, scValToNative } from "@stellar/stellar-sdk";
 import {
-  FUNDING_NOT_LIVE, classifyError, estimateOpen, fmtAge, fmtRate, fundingOwed, fundingView, healthFactor, hourly, liquidationPrice,
+  FUNDING_NOT_LIVE, classifyError, estimateOpen, fmtAge, fmtK, fmtRate, fundingOwed, fundingView, healthFactor, hourly, liquidationPrice,
   markFromPremium, oiFromPositions, parseFundingConfig, parseFundingState, payerText, pnl, priceHealth, readPerps, skewPremium,
   decodeFundingEvent, codeOfAsset, defaultMarkets, LEGACY_VAULTS, type MarketSpec, type Reader,
 } from "../src/lib/perps";
@@ -103,6 +103,14 @@ describe("funding math mirrors contracts/pricing", () => {
     expect(fmtRate(null)).toBe("—");
     expect(payerText(1)).toBe("longs pay shorts");
     expect(payerText(-1)).toBe("shorts pay longs");
+    // k from the live perps-v1 vault (5e8 / 1e12) must not round to 0.00
+    expect(fmtK(parseFundingConfig(fcfg({ k: 500_000_000n })).k)).toBe("0.0005");
+    expect(fmtK(1)).toBe("1");
+    expect(fmtK(2.5)).toBe("2.5");
+    expect(fmtK(0)).toBe("0");
+    expect(fmtK(0.000012345)).toBe("0.00001235");
+    expect(fmtK(NaN)).toBe("—");
+    expect(src("src/pages/Perps.tsx")).toMatch(/k \{fmtK\(market\.fundingConfig\.value\.k\)\}/);
     expect(fmtAge(30)).toBe("30 s");
     expect(fmtAge(900)).toBe("15 min");
     expect(fmtAge(497_633)).toBe("5.8 d");

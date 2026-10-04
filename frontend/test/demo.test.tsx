@@ -205,11 +205,12 @@ describe("Perps nav submenu", () => {
 });
 
 describe("Active demo profile (owner decision: default for new demos, each bot on its own frame)", () => {
-  it("is the default; every desk has a distinct frame; risk + limits identical to the live fleet", () => {
+  it("is the default; runs the fleet's slower settings (paused desks included); risk + limits identical to the live fleet", () => {
     expect(newDemo(500, T0, "d").profile).toBe("active");
-    const frames = ACTIVE.desks.map((d) => d.timeframeSec);
-    expect(new Set(frames).size).toBe(ACTIVE.desks.length);
-    expect(Object.fromEntries(ACTIVE.desks.map((d) => [d.id, frameLabel(d.timeframeSec)]))).toEqual({ echo: "15s", halo: "30s", lyra: "1m", vega: "5m", rigel: "15m", nova: "30m" });
+    expect(Object.fromEntries(ACTIVE.desks.map((d) => [d.id, `${d.strategy} ${frameLabel(d.timeframeSec)}${d.paused ? " paused" : ""}`]))).toEqual({
+      vega: "supertrend 1h", rigel: "trend 4h", lyra: "liqpocket 1h", nova: "funding 1h paused", echo: "meanrev 15m paused", halo: "meanrev 1h",
+    });
+    expect(ACTIVE.desks.map((d) => d.params)).toEqual(OFFICE.desks.map((d) => d.params));
     for (const k of Object.keys(ACTIVE_DESKS)) expect(OFFICE.desks.some((d) => d.id === k)).toBe(true); // internal ids (Regal = "rigel")
     expect(ACTIVE.limits).toEqual(OFFICE.limits);
     expect(ACTIVE.risk).toEqual(OFFICE.risk);
@@ -269,12 +270,14 @@ describe("Active demo profile (owner decision: default for new demos, each bot o
     const h1 = aggregate(m15, 900, 4);
     for (const b of m15) {
       const now = b.t + 900;
-      const bars = { 15: closedBy(m15, 900, now).slice(-300), 30: closedBy(m15, 900, now).slice(-300), 60: closedBy(m15, 900, now).slice(-300), 300: closedBy(m15, 900, now).slice(-300), 900: closedBy(m15, 900, now).slice(-300), 1800: closedBy(h1, 3600, now).slice(-300) };
+      const bars = { 900: closedBy(m15, 900, now).slice(-300), 3600: closedBy(h1, 3600, now).slice(-300), 14400: closedBy(aggregate(h1, 3600, 4), 14400, now).slice(-300) };
       st = stepDemo(st, { now, price: b.c, hi: b.h, lo: b.l, bars, fundingHourly: 0, extSkew: 0, entryBlock: "oracle deviates 2.0% from market" });
     }
     expect(Object.values(st.desks).flatMap((d) => d.trades).length).toBe(0);
-    expect(st.desks.echo.watching).toMatch(/^\[15s\]/);
-    expect(st.desks.rigel.watching).toMatch(/^\[15m\]/);
+    expect(st.desks.echo.watching).toMatch(/^\[15m\] paused: /);
+    expect(st.desks.echo.status).toBe("paused");
+    expect(st.desks.rigel.watching).toMatch(/^\[4h\]/);
+    expect(st.desks.vega.watching).toMatch(/^\[1h\]/);
   });
 });
 

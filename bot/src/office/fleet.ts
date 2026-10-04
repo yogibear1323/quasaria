@@ -337,7 +337,8 @@ export class Fleet {
       this.store.journal({ desk: d.id, type: "auto_pause", reason: gate.reason, until: gate.until });
       this.log(`[${d.id}] auto-pause until ${new Date(gate.until * 1000).toISOString()}: ${gate.reason}`);
     }
-    if (!s.manualPause) {
+    if (d.paused) (s.status = "paused"), (s.statusReason = `paused in config: ${d.paused}`);
+    else if (!s.manualPause) {
       if (s.pausedUntil > now) (s.status = "paused"), (s.statusReason = gate.action === "pause" ? gate.reason : s.statusReason || "auto pause");
       else (s.status = "running"), (s.statusReason = "");
     }
@@ -410,7 +411,7 @@ export class Fleet {
     if (!opened) return block("open transaction failed");
     s.entryTimes.push(now);
     fleetBase.entryTimes.push(now);
-    if (d.strategy === "trend") f.lastTrendEntry = now;
+    if (d.strategy === "trend" || d.strategy === "supertrend") f.lastTrendEntry = now;
     const j: JournalOpen = {
       id: opened.value.id, side: sig.side, entry: opened.value.entry, decisionPrice: price, stop, takeProfit: tp, size: sz.notional,
       margin: sz.margin, leverage: sz.leverage, riskAmount: sz.riskAmount, openedAt: now, reason: sig.reason, openTx: opened.hash, lastPendingFunding: 0,
@@ -472,7 +473,7 @@ export class Fleet {
         const top = dr?.metrics.filter((x) => x.points > 0).sort((a, b) => b.points - a.points)[0];
         const tb = bars[d.timeframeSec] ?? [];
         return {
-          id: d.id, name: d.name, strategy: d.strategy, timeframeSec: d.timeframeSec, owner: this.keys[d.id]?.owner ?? null,
+          id: d.id, name: d.name, strategy: d.strategy, timeframeSec: d.timeframeSec, label: d.label ?? null, configPaused: d.paused ?? null, lpFilterBars: d.params.lpSweepBars ?? null, owner: this.keys[d.id]?.owner ?? null,
           status: s.status, reason: s.statusReason, manualPause: s.manualPause,
           equity: r4(eq), startEquity: r4(s.startEquity), pnlToday: r4(eq - s.dayStart.equity), pnlTotal: r4(eq - s.startEquity),
           riskPct: d.riskPct, maxLeverage: d.maxLeverage, dailyLossPct: r4(dailyLossPct(rs)), dailyLimitPct: L.deskDailyLossPct, drawdownPct: r4(drawdownPct(rs)), drawdownLimitPct: L.deskDrawdownPct,

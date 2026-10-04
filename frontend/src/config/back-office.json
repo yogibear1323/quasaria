@@ -13,13 +13,14 @@
   {
    "id": "vega",
    "name": "Vega",
-   "strategy": "trend",
+   "strategy": "supertrend",
    "timeframeSec": 3600,
    "riskPct": 1.0,
    "maxLeverage": 5,
    "capital": 500,
    "owner": "GA4ZSIH3WRNNJNB2CFGQCPL5ITAH5BOYIJCO6GRSUQZSWLUFGHUWTA3N",
-   "operator": "GAA2W64WCCBA56DKEGX6V5NTU7EDY2J2Z5FYIJWYIF7XM4AVMFZYTGZQ"
+   "operator": "GAA2W64WCCBA56DKEGX6V5NTU7EDY2J2Z5FYIJWYIF7XM4AVMFZYTGZQ",
+   "lpFilterBars": 24
   },
   {
    "id": "rigel",
@@ -30,18 +31,20 @@
    "maxLeverage": 5,
    "capital": 500,
    "owner": "GA4YHTLKSPZIO4I53KWVRAAS5ACZJJMHGPQH46QNGABBV2BFY3SN43VL",
-   "operator": "GDJ44NIJARJAFWCXTNOHNZCMDVWF36OWLEJRZJWSVCY4Q7CGVV6Z4OPD"
+   "operator": "GDJ44NIJARJAFWCXTNOHNZCMDVWF36OWLEJRZJWSVCY4Q7CGVV6Z4OPD",
+   "lpFilterBars": 12
   },
   {
    "id": "lyra",
    "name": "Lyra",
-   "strategy": "funding",
+   "strategy": "liqpocket",
    "timeframeSec": 3600,
    "riskPct": 0.75,
    "maxLeverage": 3,
    "capital": 500,
    "owner": "GCSHHXGMHVNLPHGTTREPVIQEA2F7JHVW3GJLA67OGVSWKSA2LH5INJBE",
-   "operator": "GCY5CHJ3WYOFKZKVMPRE2PQVOJQQ2HRS4LA3AVFBZMN3CISTXGRSPDOR"
+   "operator": "GCY5CHJ3WYOFKZKVMPRE2PQVOJQQ2HRS4LA3AVFBZMN3CISTXGRSPDOR",
+   "label": "Experimental · liquidity pockets · simulated/testnet"
   },
   {
    "id": "nova",
@@ -52,7 +55,8 @@
    "maxLeverage": 3,
    "capital": 500,
    "owner": "GA6LRKACPTM3T2JR4JE3WGITHECPG4S7JX6N43JMVYODOXX7LK7REMJM",
-   "operator": "GATOI2ILGH6262QL65VKNXM3Z5VLEK7VRYVAZZAEQCIND2QLXMGOMUC3"
+   "operator": "GATOI2ILGH6262QL65VKNXM3Z5VLEK7VRYVAZZAEQCIND2QLXMGOMUC3",
+   "paused": "fast funding-skew strategy was net negative out-of-sample in the walk-forward study"
   },
   {
    "id": "echo",
@@ -63,7 +67,8 @@
    "maxLeverage": 4,
    "capital": 500,
    "owner": "GD5XDC7PZNHTHGA4ZAKJPST3COWSQECAEVT3S5OT37RRWP5L3ILL2GFU",
-   "operator": "GAMOJS3NIVIHVC7ZEWZFJ3CUAEH3GFINWMPKG5ZCSFQYUT5ZKWXJEUDU"
+   "operator": "GAMOJS3NIVIHVC7ZEWZFJ3CUAEH3GFINWMPKG5ZCSFQYUT5ZKWXJEUDU",
+   "paused": "15m mean-reversion was net negative out-of-sample in the walk-forward study"
   },
   {
    "id": "halo",
@@ -74,7 +79,8 @@
    "maxLeverage": 4,
    "capital": 500,
    "owner": "GAUVX5NKCIFR527OA5AA2SZEO5IKRW3E7NBJIYFHIQOFEEZBAMFK4EPD",
-   "operator": "GDON7MQQE35ZL636VBF7JTDI7CXOU3QJ2PXYASNMUZUMLWKIM34XI6PC"
+   "operator": "GDON7MQQE35ZL636VBF7JTDI7CXOU3QJ2PXYASNMUZUMLWKIM34XI6PC",
+   "lpFilterBars": 12
   }
  ]
 }

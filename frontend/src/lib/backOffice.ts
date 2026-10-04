@@ -11,7 +11,7 @@ import { scanEvents } from "./chain";
 import { readContract, addr, u64 } from "./soroban";
 import { PERPS, marketKeyScVal } from "./perps";
 
-export type Strategy = "trend" | "funding" | "meanrev";
+export type Strategy = "trend" | "funding" | "meanrev" | "supertrend" | "liqpocket";
 export type DeskStatus = "running" | "paused" | "halted" | "unknown";
 export interface DeskCfg {
   id: string;
@@ -23,9 +23,17 @@ export interface DeskCfg {
   capital: number;
   owner: string;
   operator: string;
+  /** config-level pause reason (desk takes no new entries) */
+  paused?: string;
+  /** display label, e.g. "Experimental · liquidity pockets · simulated/testnet" */
+  label?: string;
+  /** liquidity-pocket entry filter: sweep within N bars required */
+  lpFilterBars?: number;
 }
 export const BACK_OFFICE = cfg as { statusUrl: string; limits: Record<string, number>; desks: DeskCfg[] };
-export const STRATEGY_LABEL: Record<Strategy, string> = { trend: "Trend", funding: "Funding", meanrev: "Mean-Rev" };
+export const STRATEGY_LABEL: Record<Strategy, string> = { trend: "Trend", funding: "Funding", meanrev: "Mean-Rev", supertrend: "Supertrend", liqpocket: "Liquidity pockets (experimental)" };
+/** compact tag for the robot desks */
+export const STRATEGY_SHORT: Record<Strategy, string> = { trend: "Trend", funding: "Funding", meanrev: "Mean-Rev", supertrend: "Supertrend", liqpocket: "Liq. pockets" };
 export const tfLabel = (s: number) => (s >= 3600 ? `${s / 3600}h` : s >= 60 ? `${s / 60}m` : `${s}s`);
 
 const UNIT = 1e7;
@@ -122,6 +130,11 @@ export async function readFloorTrades(desks: DeskCfg[] = BACK_OFFICE.desks, vaul
 // ---------------------------------------------------------------- status feed
 export interface StatusDesk {
   id: string;
+  strategy?: Strategy;
+  timeframeSec?: number;
+  label?: string | null;
+  configPaused?: string | null;
+  lpFilterBars?: number | null;
   status: DeskStatus;
   reason: string;
   equity: number;
@@ -189,8 +202,14 @@ export function mergeDesks(desks: DeskCfg[], chain: ChainFloor | null, status: S
     const fleetKilled = status?.fleet.status === "killed" && !stale;
     const st: DeskStatus = !s || stale ? "unknown" : fleetKilled ? "halted" : s.status;
     const equity = c ? c.equity : s ? s.equity : null;
+    // the runner's status feed is authoritative for what the desk is actually running (config may have moved on)
+    // (a runner that predates config pauses / labels / the liquidity filter publishes no `configPaused` key: none are active)
+    const live =
+      s && !stale
+        ? { strategy: s.strategy ?? d.strategy, timeframeSec: s.timeframeSec ?? d.timeframeSec, label: s.label ?? undefined, paused: s.configPaused ?? undefined, lpFilterBars: s.lpFilterBars ?? undefined }
+        : {};
     return {
-      cfg: d,
+      cfg: { ...d, ...live },
       status: st,
       reason: fleetKilled ? `global kill: ${status!.fleet.reason}` : s?.reason ?? "",
       equity,

@@ -158,7 +158,7 @@ export function DemoAccount({ demo, price, note, runner, available, create, clos
           </table>
         </div>
       )}
-      <p className="dm-fine">Simulated results only: fills, fees (10 bps), funding and slippage (5 bps) are modelled, not executed. Active trades short frames, so costs weigh more: ~0.2% of notional per round trip (10 bps open fee + 5 bps slippage each way) is larger than many 15s–5m moves (fee drag). Past or simulated performance does not guarantee future results; there are no guaranteed returns. The one-demo cap is per browser.</p>
+      <p className="dm-fine">Simulated results only: fills, fees (10 bps), funding and slippage (5 bps) are modelled, not executed. Both profiles now run the fleet's slower 1h–4h settings (Echo and Nova paused; Lyra runs an experimental liquidity-pocket strategy on testnet), so trades are infrequent: a fresh demo can sit flat for hours or days. Round-trip cost is ~0.2% of notional (10 bps open fee + 5 bps slippage each way). In our walk-forward tests no setting was reliably profitable out-of-sample. Past or simulated performance does not guarantee future results; there are no guaranteed returns. The one-demo cap is per browser.</p>
     </section>
   );
 }

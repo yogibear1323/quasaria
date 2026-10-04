@@ -10,7 +10,7 @@ export function demoViews(st: DemoState, desks: DeskCfg[], price: number, spark:
   const pc = profileOf(st.profile).cfg;
   return desks.map((cfg0) => {
     const pd = pc.desks.find((x) => x.id === cfg0.id);
-    const cfg = pd ? { ...cfg0, timeframeSec: pd.timeframeSec } : cfg0;
+    const cfg: DeskCfg = pd ? { ...cfg0, strategy: pd.strategy, timeframeSec: pd.timeframeSec, label: pd.label, paused: pd.paused, lpFilterBars: pd.params.lpSweepBars } : cfg0;
     const s = st.desks[cfg.id];
     const eq = deskEquity(s, price);
     const positions: ChainPos[] = s.positions.map((p) => {

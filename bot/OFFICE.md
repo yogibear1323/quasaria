@@ -4,19 +4,21 @@ Six automated desks trade the XLM perp on the perps-v1 leverage vault (market ke
 
 | Desk | Strategy | Bars | Risk/trade | Max lev |
 |---|---|---|---|---|
-| Vega | trend (Donchian-20 breakout with EMA20/50 filter, 2×ATR stop, 3×ATR trail) | 1h | 1.0% | 5× |
-| Regal | trend | 4h | 1.0% | 5× |
-| Lyra | funding capture (receiving side of external skew ≥ 0.02%/h for 2 samples; 1.25% stop) | hourly checks | 0.75% | 3× |
-| Nova | funding capture (stricter: ≥ 0.03%/h) | hourly checks | 0.75% | 3× |
-| Echo | mean reversion (BB 20/2.2 + RSI 28/72, ADX < 20, target mid band, 1.5×ATR stop, 12-bar time stop) | 15m | 1.0% | 4× |
-| Halo | mean reversion | 1h | 1.0% | 4× |
+| Vega | Supertrend ATR(10)×3 flip, stop = the line (trailed), exit on the opposite flip; liquidity-pocket entry filter (sweep ≤ 24 bars) | 1h | 1.0% | 5× |
+| Regal | trend (Donchian-20 breakout with EMA20/50 filter, 2×ATR stop, 3×ATR trail); liquidity-pocket entry filter (≤ 12 bars) | 4h | 1.0% | 5× |
+| Lyra | **Experimental · liquidity pockets · simulated/testnet**: sweep + reclaim of equal highs/lows (pivot k=2, 50-bar memory), stop 0.25×ATR beyond the sweep, 3R target, EMA50 alignment, 48-bar time stop | 1h | 0.75% | 3× |
+| Nova | funding capture (≥ 0.03%/h) — **paused in config** (net negative out-of-sample) | hourly checks | 0.75% | 3× |
+| Echo | mean reversion (BB 20/2.2 + RSI 28/72, ADX < 20) — **paused in config** (15m was net negative out-of-sample) | 15m | 1.0% | 4× |
+| Halo | mean reversion (BB 20/2.2 + RSI 28/72, ADX < 20, target mid band, 1.5×ATR stop, 12-bar time stop); liquidity-pocket entry filter (≤ 12 bars) | 1h | 1.0% | 4× |
+
+Liquidity pockets (`liquidity.ts`, exact port of `research/liquidity.py`; no historical order-book depth exists in public APIs, so resting liquidity is inferred from swing/equal highs-lows and prior-day high/low). The entry filter and Lyra are **testnet experiments**: in the walk-forward + holdout study (fees included) the filter did **not** raise the out-of-sample win rate or net result of the slower desks (Vega: lower net and win rate; Regal: about the same net, half the trades and drawdown; Halo: still negative), and standalone liquidity-pocket strategies were net negative out-of-sample. They are enabled on testnet to observe live behaviour, not because they were shown to work. Config pauses (`"paused": "reason"`) stop new entries but still manage and close open positions; `resume` does not override them.
 
 Funding capture is directional: a single oracle-priced vault has no second venue to hedge on, and the fleet's own OI is excluded when judging skew.
 
 - **Sizing:** notional = equity × risk% ÷ (stop distance + 0.25% buffer); margin ≤ 25% and notional ≤ 1.5× desk equity; leverage ≤ desk cap and low enough that the stop sits inside half the liquidation distance; hard max 2% risk. Every position gets an on-chain SL/TP (`set_triggers`); if that fails twice the position is closed.
 - **Desk limits:** daily loss 3% → entries stop until 00:00 UTC; drawdown 10% → halt + close positions (manual `reset`); 5 losses in a row → 4 h pause; ≤ 2 open; ≤ 6 entries/day.
 - **Floor-wide limits (all desks trade XLM):** open risk ≤ 5% of fleet equity, same-direction ≤ 3.5%, net notional ≤ 1.5×, gross ≤ 2× equity and ≤ 50% of the vault reserve, ≤ 24 entries/day; fleet daily loss 4% → pause all; fleet drawdown 12% → global kill.
-- **Drift stop:** D-1 win-rate z, D-2 KS test on R, D-3 bootstrap cumulative R (vs `office.baselines.json` backtests), D-4 slippage/failed txs, D-5 trade frequency, D-8 strategy metric → score 0–100 (amber = half size, red = halt + close). Strict thresholds until `strictUntil` (14 days). Hard triggers: independent oracle check vs Coinbase/Kraken (deviation > 1.5%, age > 900 s, flat while reference moves) blocks entries fleet-wide and triggers the global kill after 30 min; journal-vs-chain reconciliation mismatch halts the desk.
+- **Drift stop:** D-1 win-rate z, D-2 KS test on R, D-3 bootstrap cumulative R (vs `office.baselines.json` backtests), D-4 slippage/failed txs, D-5 trade frequency, D-8 strategy metric → score 0–100 (amber = half size, red = halt + close). Strict thresholds until `strictUntil` (14 days). Hard triggers: independent oracle check vs Coinbase/Kraken (deviation > 1.5%, age > 90 s (the vault's `max_price_age`; the oracle feed pushes XLM every ~20 s), flat while reference moves) blocks entries fleet-wide and triggers the global kill after 30 min; journal-vs-chain reconciliation mismatch halts the desk.
 - **Keys:** `~/.quasaria-office/keys.json` (0600, outside the repo, never committed). Owner accounts hold the test QUSD; the runner only loads the operator keys (`set_operator`: can trade, can never withdraw).
 
 ```bash

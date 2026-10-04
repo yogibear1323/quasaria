@@ -15,7 +15,7 @@ export function parseOfficeConfig(raw: unknown): OfficeConfig {
   for (const d of c.desks) {
     if (ids.has(d.id)) fail(`duplicate desk ${d.id}`);
     ids.add(d.id);
-    if (!["trend", "funding", "meanrev"].includes(d.strategy)) fail(`${d.id}: unknown strategy ${d.strategy}`);
+    if (!["trend", "funding", "meanrev", "supertrend", "liqpocket"].includes(d.strategy)) fail(`${d.id}: unknown strategy ${d.strategy}`);
     if (!(d.riskPct > 0 && d.riskPct <= L.hardMaxRiskPct)) fail(`${d.id}: riskPct must be in (0, ${L.hardMaxRiskPct}]`);
     if (!(d.maxLeverage >= 1 && d.maxLeverage <= 10)) fail(`${d.id}: maxLeverage must be 1..10 (vault cap)`);
     if (![900, 3600, 14400].includes(d.timeframeSec)) fail(`${d.id}: timeframe must be 900/3600/14400`);

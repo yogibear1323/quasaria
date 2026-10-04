@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-04T22:50:06.000Z",
+ "generatedAt": "2026-10-04T22:54:19.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.22280025,
-  "oracleAgeSec": 9,
-  "referencePrice": 0.222899,
-  "deviationPct": 0.0443,
+  "oraclePrice": 0.22297975,
+  "oracleAgeSec": 2,
+  "referencePrice": 0.22297,
+  "deviationPct": 0.0044,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -40,8 +40,11 @@
   {
    "id": "vega",
    "name": "Vega",
-   "strategy": "trend",
+   "strategy": "supertrend",
    "timeframeSec": 3600,
+   "label": null,
+   "configPaused": null,
+   "lpFilterBars": 24,
    "owner": "GA4ZSIH3WRNNJNB2CFGQCPL5ITAH5BOYIJCO6GRSUQZSWLUFGHUWTA3N",
    "status": "running",
    "reason": "",
@@ -158,6 +161,9 @@
    "name": "Regal",
    "strategy": "trend",
    "timeframeSec": 14400,
+   "label": null,
+   "configPaused": null,
+   "lpFilterBars": 12,
    "owner": "GA4YHTLKSPZIO4I53KWVRAAS5ACZJJMHGPQH46QNGABBV2BFY3SN43VL",
    "status": "running",
    "reason": "",
@@ -209,7 +215,7 @@
      {
       "id": "D-5",
       "label": "trade frequency",
-      "value": "0/24h vs p95 1.0",
+      "value": "0/24h vs p95 2.0",
       "points": 0,
       "level": "ok"
      },
@@ -272,8 +278,11 @@
   {
    "id": "lyra",
    "name": "Lyra",
-   "strategy": "funding",
+   "strategy": "liqpocket",
    "timeframeSec": 3600,
+   "label": "Experimental · liquidity pockets · simulated/testnet",
+   "configPaused": null,
+   "lpFilterBars": null,
    "owner": "GCSHHXGMHVNLPHGTTREPVIQEA2F7JHVW3GJLA67OGVSWKSA2LH5INJBE",
    "status": "running",
    "reason": "",
@@ -325,14 +334,14 @@
      {
       "id": "D-5",
       "label": "trade frequency",
-      "value": "0/24h vs p95 3.0",
+      "value": "0/24h vs p95 2.0",
       "points": 0,
       "level": "ok"
      },
      {
       "id": "D-8",
-      "label": "funding share",
-      "value": "waiting (0/10)",
+      "label": "oversized losses",
+      "value": "0 losses < −1.5R in last 0",
       "points": 0,
       "level": "ok"
      }
@@ -390,9 +399,12 @@
    "name": "Nova",
    "strategy": "funding",
    "timeframeSec": 3600,
+   "label": null,
+   "configPaused": "fast funding-skew strategy was net negative out-of-sample in the walk-forward study",
+   "lpFilterBars": null,
    "owner": "GA6LRKACPTM3T2JR4JE3WGITHECPG4S7JX6N43JMVYODOXX7LK7REMJM",
-   "status": "running",
-   "reason": "",
+   "status": "paused",
+   "reason": "paused in config: fast funding-skew strategy was net negative out-of-sample in the walk-forward study",
    "manualPause": false,
    "equity": 500,
    "startEquity": 500,
@@ -506,9 +518,12 @@
    "name": "Echo",
    "strategy": "meanrev",
    "timeframeSec": 900,
+   "label": null,
+   "configPaused": "15m mean-reversion was net negative out-of-sample in the walk-forward study",
+   "lpFilterBars": null,
    "owner": "GD5XDC7PZNHTHGA4ZAKJPST3COWSQECAEVT3S5OT37RRWP5L3ILL2GFU",
-   "status": "running",
-   "reason": "",
+   "status": "paused",
+   "reason": "paused in config: 15m mean-reversion was net negative out-of-sample in the walk-forward study",
    "manualPause": false,
    "equity": 500,
    "startEquity": 500,
@@ -557,7 +572,7 @@
      {
       "id": "D-5",
       "label": "trade frequency",
-      "value": "0/24h vs p95 1.0",
+      "value": "0/24h vs p95 2.0",
       "points": 0,
       "level": "ok"
      },
@@ -622,6 +637,9 @@
    "name": "Halo",
    "strategy": "meanrev",
    "timeframeSec": 3600,
+   "label": null,
+   "configPaused": null,
+   "lpFilterBars": 12,
    "owner": "GAUVX5NKCIFR527OA5AA2SZEO5IKRW3E7NBJIYFHIQOFEEZBAMFK4EPD",
    "status": "running",
    "reason": "",
@@ -673,7 +691,7 @@
      {
       "id": "D-5",
       "label": "trade frequency",
-      "value": "0/24h vs p95 1.0",
+      "value": "0/24h vs p95 2.0",
       "points": 0,
       "level": "ok"
      },

@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-04T21:23:57.000Z",
+ "generatedAt": "2026-10-04T21:29:06.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.22022205,
-  "oracleAgeSec": 20,
-  "referencePrice": 0.220215,
-  "deviationPct": 0.0032,
+  "oraclePrice": 0.22021555,
+  "oracleAgeSec": 14,
+  "referencePrice": 0.220234,
+  "deviationPct": 0.0084,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,

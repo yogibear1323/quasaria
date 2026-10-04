@@ -1,9 +1,11 @@
 /** Demo account controls + history for the Back Office (browser-only simulation; never touches testnet funds). */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DEMO_MAX, DEMO_MIN, DEMO_PRESETS, demoEquity, validateBalance, type DemoState } from "../lib/demo/engine";
 import { botStats } from "../lib/demo/views";
-import { fmtGap } from "../lib/demo/useDemo";
-import type { DeskCfg } from "../lib/backOffice";
+import { fmtGap, type Feed } from "../lib/demo/useDemo";
+import { FEED_LABEL, feedLevel } from "../lib/demo/market";
+import { tfLabel, type DeskCfg } from "../lib/backOffice";
+import { PROFILES, type Profile } from "../lib/demo/profiles";
 import type { CreateResult } from "../lib/demo/store";
 
 export type FloorMode = "live" | "demo" | "mirror";
@@ -39,11 +41,37 @@ function Curve({ pts, start }: { pts: { t: number; eq: number }[]; start: number
   );
 }
 
-export function DemoAccount({ demo, price, note, runner, available, create, close, reset, desks, mode }: {
-  demo: DemoState | null; price: number | null; note: string; runner: boolean; available: boolean; desks: DeskCfg[]; mode: FloorMode;
-  create: (b: unknown) => Promise<CreateResult>; close: () => void; reset: () => Promise<CreateResult | null>;
+/** Live market feed readout: source, XLM price, last tick age, tick counts; pulse colour by freshness. */
+export function LiveFeed({ feed, demo, runner }: { feed: Feed | null; demo: DemoState; runner: boolean }) {
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  useEffect(() => {
+    const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const at = feed?.at ?? (demo.ticks ? demo.lastTick : null);
+  const age = at === null ? null : Math.max(0, now - at);
+  const lvl = feedLevel(age);
+  const src = feed ? FEED_LABEL[feed.source] : runner ? "connecting…" : "ticked by another open tab";
+  return (
+    <div className={`dm-feed ${lvl}`} role="status" aria-label="Live market feed">
+      <span className="dm-pulse" aria-hidden />
+      <span className="dm-fl">Live market feed</span>
+      <span><em>source</em> {src}</span>
+      <span><em>XLM</em> <b>{feed ? feed.price.toFixed(4) : "—"}</b></span>
+      <span><em>last tick</em> <b>{age === null ? "—" : `${age}s ago`}</b>{lvl !== "fresh" && age !== null ? (lvl === "stale" ? " · late" : " · stale") : ""}</span>
+      <span><em>ticks</em> <b>{demo.ticks ?? 0}</b>{feed ? ` (this tab ${feed.sessionTicks})` : ""}</span>
+      {feed?.dataAt && <span><em>last trade</em> {Math.max(0, now - Math.floor(feed.dataAt))}s ago{feed.trades ? ` · ${feed.trades} on tape` : ""}</span>}
+      {feed?.oracle && <span><em>oracle check</em> {feed.oracle.price.toFixed(4)} · {feed.oracle.devPct.toFixed(2)}% · {feed.oracle.ageSec}s old</span>}
+    </div>
+  );
+}
+
+export function DemoAccount({ demo, price, note, runner, available, create, close, reset, desks, mode, feed = null }: {
+  demo: DemoState | null; price: number | null; note: string; runner: boolean; available: boolean; desks: DeskCfg[]; mode: FloorMode; feed?: Feed | null;
+  create: (b: unknown, p?: Profile) => Promise<CreateResult>; close: () => void; reset: () => Promise<CreateResult | null>;
 }) {
   const [amount, setAmount] = useState("1000");
+  const [profile, setProfile] = useState<Profile>("active");
   const [err, setErr] = useState("");
   const [confirm, setConfirm] = useState<"" | "close" | "reset">("");
   const px = price ?? 0;
@@ -61,7 +89,7 @@ export function DemoAccount({ demo, price, note, runner, available, create, clos
             <p className="dm-copy">Pick a starting balance. The bots run the same strategy and risk code as the live testnet fleet on live XLM prices, with simulated fills, fees, funding and slippage. Nothing is real money and nothing touches a wallet; the demo lives only in this browser.</p>
           </div>
         </div>
-        <form className="dm-form" onSubmit={async (e) => { e.preventDefault(); setErr(""); const r = await create(amount); if (!r.ok) setErr(r.message); }}>
+        <form className="dm-form" onSubmit={async (e) => { e.preventDefault(); setErr(""); const r = await create(amount, profile); if (!r.ok) setErr(r.message); }}>
           <div className="dm-presets" role="group" aria-label="Preset balances">
             {DEMO_PRESETS.map((p) => (
               <button type="button" key={p} className={Number(amount) === p ? "on" : ""} onClick={() => setAmount(String(p))}>{usd(p, 0)}</button>
@@ -71,8 +99,15 @@ export function DemoAccount({ demo, price, note, runner, available, create, clos
             <span>Starting balance (demo $)</span>
             <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} aria-invalid={!v.ok} aria-describedby="dm-hint" />
           </label>
+          <div className="dm-profile" role="radiogroup" aria-label="Demo profile">
+            {(["active", "strict"] as Profile[]).map((p) => (
+              <button type="button" role="radio" aria-checked={profile === p} key={p} className={profile === p ? "on" : ""} onClick={() => setProfile(p)} title={PROFILES[p].blurb}>
+                {PROFILES[p].label}{p === "active" ? " (default)" : ""}
+              </button>
+            ))}
+          </div>
           <button className="btn" type="submit" disabled={!v.ok || !available}>Start demo</button>
-          <small id="dm-hint" className={v.ok ? "" : "bad"}>{v.ok ? `${usd(DEMO_MIN, 0)} – ${usd(DEMO_MAX, 0)} · split across the six desks like the fleet` : v.reason}</small>
+          <small id="dm-hint" className={v.ok ? "" : "bad"}>{v.ok ? `${usd(DEMO_MIN, 0)} – ${usd(DEMO_MAX, 0)} · split across the six desks like the fleet · ${PROFILES[profile].label}: ${PROFILES[profile].blurb}` : v.reason}</small>
           {err && <small className="bad" role="alert">{err}</small>}
         </form>
         <p className="dm-fine">Simulated results only. Past or simulated performance does not guarantee future results; there are no guaranteed returns. One demo per browser.</p>
@@ -85,7 +120,7 @@ export function DemoAccount({ demo, price, note, runner, available, create, clos
     <section className="dm card-ish" aria-label="Your demo account">
       <div className="dm-h">
         <div>
-          <span className="bo-lbl">Demo account · simulated · not real money</span>
+          <span className="bo-lbl">Demo account · simulated · not real money · <span className="dm-prof">{PROFILES[demo.profile ?? "strict"].label} profile</span></span>
           <h3>{usd(eq)} <small className={pnl > 0.004 ? "g" : pnl < -0.004 ? "r" : ""}>{signed(pnl)}</small></h3>
           <p className="dm-copy">Started with {usd(demo.balance)} {fmtGap(Math.max(60, Math.floor(Date.now() / 1000) - demo.createdAt))} ago · {runner ? "simulating in this tab" : "simulated by another open tab"}{demo.fleet.killed ? ` · floor stop: ${demo.fleet.killReason}` : ""}</p>
           {(note || away) && <p className="dm-note">{note || (away.mode === "caught-up" ? `caught up ${fmtGap(away.to - away.from)} from price history` : `paused while away ${fmtGap(away.to - away.from)}`)}</p>}
@@ -106,15 +141,16 @@ export function DemoAccount({ demo, price, note, runner, available, create, clos
           )}
         </div>
       </div>
+      {mode !== "mirror" && <LiveFeed feed={feed} demo={demo} runner={runner} />}
       {mode !== "mirror" && (
         <div className="dm-body">
           <Curve pts={demo.history} start={demo.balance} />
           <table className="dm-stats">
-            <thead><tr><th>Bot</th><th>Trades</th><th>Win</th><th>P&amp;L</th><th>Max DD</th><th>Status</th></tr></thead>
+            <thead><tr><th>Bot</th><th>Frame</th><th>Trades</th><th>Win</th><th>P&amp;L</th><th>Max DD</th><th>Status</th></tr></thead>
             <tbody>
               {stats.map((s) => (
                 <tr key={s.id}>
-                  <td>{s.name}</td><td>{s.trades}</td><td>{s.winRate === null ? "—" : `${Math.round(s.winRate * 100)}%`}</td>
+                  <td>{s.name}</td><td>{tfLabel(s.frameSec)}</td><td>{s.trades}</td><td>{s.winRate === null ? "—" : `${Math.round(s.winRate * 100)}%`}</td>
                   <td className={s.pnl > 0.004 ? "g" : s.pnl < -0.004 ? "r" : ""}>{signed(s.pnl)}</td><td>{s.maxDd.toFixed(1)}%</td><td>{s.status}</td>
                 </tr>
               ))}
@@ -122,7 +158,7 @@ export function DemoAccount({ demo, price, note, runner, available, create, clos
           </table>
         </div>
       )}
-      <p className="dm-fine">Simulated results only: fills, fees (10 bps), funding and slippage (5 bps) are modelled, not executed. Past or simulated performance does not guarantee future results; there are no guaranteed returns. The one-demo cap is per browser.</p>
+      <p className="dm-fine">Simulated results only: fills, fees (10 bps), funding and slippage (5 bps) are modelled, not executed. Active trades short frames, so costs weigh more: ~0.2% of notional per round trip (10 bps open fee + 5 bps slippage each way) is larger than many 15s–5m moves (fee drag). Past or simulated performance does not guarantee future results; there are no guaranteed returns. The one-demo cap is per browser.</p>
     </section>
   );
 }

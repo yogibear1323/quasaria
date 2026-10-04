@@ -26,7 +26,7 @@ export interface DeskCfg {
 }
 export const BACK_OFFICE = cfg as { statusUrl: string; limits: Record<string, number>; desks: DeskCfg[] };
 export const STRATEGY_LABEL: Record<Strategy, string> = { trend: "Trend", funding: "Funding", meanrev: "Mean-Rev" };
-export const tfLabel = (s: number) => (s >= 3600 ? `${s / 3600}h` : `${s / 60}m`);
+export const tfLabel = (s: number) => (s >= 3600 ? `${s / 3600}h` : s >= 60 ? `${s / 60}m` : `${s}s`);
 
 const UNIT = 1e7;
 
@@ -178,6 +178,8 @@ export interface DeskView {
   spark: number[];
   /** display unit; live = test QUSD */
   unit?: string;
+  /** demo: what the bot is waiting for */
+  watching?: string;
 }
 
 export function mergeDesks(desks: DeskCfg[], chain: ChainFloor | null, status: StatusDoc | null, trades: Record<string, ChainTrade[]> | null, stale: boolean): DeskView[] {

@@ -3,20 +3,20 @@
  * Back Office fleet (imported directly from bot/src/office) on live XLM prices, with simulated fills.
  * No wallet, no keys, no transactions: demo balances are numbers in localStorage, fully separate from testnet funds.
  */
-import { createOfficeStrategy, type StrategyContext } from "../../../../bot/src/office/strategies";
+import { createOfficeStrategy, explainEntry, type StrategyContext } from "../../../../bot/src/office/strategies";
 import { clampStop, sizePosition } from "../../../../bot/src/office/sizing";
 import { deskGate, fleetGate, fleetLevel, fundingGuard, toOpenRisk, type OpenRisk } from "../../../../bot/src/office/risk";
 import { computeDrift, type Baseline, type ClosedTrade, type DriftResult } from "../../../../bot/src/office/drift";
 import type { Candle } from "../../../../bot/src/office/indicators";
 import type { ChainPosition, DeskConfig, DriftMode, LimitsConfig, OfficeConfig, Side } from "../../../../bot/src/office/types";
-import officeJson from "../../../../bot/office.config.json";
-import baselineJson from "../../../../bot/office.baselines.json";
+import { ACTIVE_TREND_GUARD_SEC, BASELINES, OFFICE, profileOf, type Profile } from "./profiles";
 
-export const OFFICE = officeJson as unknown as OfficeConfig;
-export const BASELINES = (baselineJson as unknown as { desks: Record<string, Baseline> }).desks;
+export { BASELINES, OFFICE };
+export type { Profile };
 
 /** Simulated venue parameters (match the testnet leverage vault: 10 bps open fee, 5 % maintenance, 10 min margin). */
 export const SIM = { openFeeBps: 10, mmBps: 500, minMargin: 10, slippageBps: 5, reservePerFleetUnit: 10_000 / 3_000 };
+export type SimParams = typeof SIM;
 export const DEMO_MIN = 500;
 export const DEMO_MAX = 1_000_000;
 export const DEMO_PRESETS = [500, 1_000, 5_000];
@@ -66,6 +66,8 @@ export interface DeskSim {
   lastSignal: string;
   trades: SimTrade[]; // newest first
   drift: { score: number; level: DriftResult["level"]; top: string } | null;
+  /** what the desk is waiting for (display only, from the strategy's own indicators) */
+  watching?: string;
 }
 export interface DemoState {
   v: 1;
@@ -78,6 +80,10 @@ export interface DemoState {
   desks: Record<string, DeskSim>;
   history: { t: number; eq: number }[];
   away: { from: number; to: number; mode: "caught-up" | "paused" }[];
+  /** simulation steps taken (live ticks + catch-up bars) */
+  ticks?: number;
+  /** trading profile (missing = strict, for demos created before profiles existed) */
+  profile?: Profile;
 }
 export interface MarketInput {
   now: number;
@@ -87,11 +93,14 @@ export interface MarketInput {
   bars: Record<number, Candle[]>; // closed bars per timeframe
   fundingHourly: number; // predicted hourly funding (> 0 longs pay)
   extSkew: number;
+  /** set when the independent oracle check fails (stale / deviating): entries are blocked, like the fleet */
+  entryBlock?: string;
 }
 
 const day = (t: number) => Math.floor(t / 86_400);
 
-export function newDemo(balance: number, now: number, id: string, cfg: OfficeConfig = OFFICE): DemoState {
+export function newDemo(balance: number, now: number, id: string, profile: Profile = "active"): DemoState {
+  const cfg = profileOf(profile).cfg;
   const total = cfg.desks.reduce((a, d) => a + d.capital, 0);
   const desks: Record<string, DeskSim> = {};
   let left = balance;
@@ -101,21 +110,40 @@ export function newDemo(balance: number, now: number, id: string, cfg: OfficeCon
     left -= eq;
     desks[d.id] = { id: d.id, free: eq, positions: [], startEquity: eq, dayStart: { day: day(now), equity: eq }, peak: eq, maxDd: 0, lossStreak: 0, pausedUntil: 0, entryTimes: [], closed: [], status: "running", statusReason: "", lastBarT: 0, lastSignal: "waiting for the next closed bar", trades: [], drift: null };
   }
-  return { v: 1, id, createdAt: now, balance, lastTick: now, seq: 0, fleet: { dayStart: { day: day(now), equity: balance }, peak: balance, killed: false, killReason: "", paused: "", lastTrendEntry: 0, fundingSamples: [] }, desks, history: [{ t: now, eq: balance }], away: [] };
+  return { v: 1, id, createdAt: now, balance, lastTick: now, seq: 0, fleet: { dayStart: { day: day(now), equity: balance }, peak: balance, killed: false, killReason: "", paused: "", lastTrendEntry: 0, fundingSamples: [] }, desks, history: [{ t: now, eq: balance }], away: [], ticks: 0, profile };
 }
 
 const pnlAt = (p: ChainPosition, price: number) => ((p.side === "long" ? price - p.entry : p.entry - price) / p.entry) * p.size;
 export const deskEquity = (s: DeskSim, price: number) => s.free + s.positions.reduce((a, p) => a + p.margin + pnlAt(p, price) - p.pendingFunding, 0);
 export const demoEquity = (st: DemoState, price: number) => Object.values(st.desks).reduce((a, s) => a + deskEquity(s, price), 0);
-const slip = (price: number, adverseUp: boolean) => price * (1 + ((adverseUp ? 1 : -1) * SIM.slippageBps) / 10_000);
+
+/** Candle buy/sell pressure on a desk's own frame: mean of (close-open)/(high-low) over the last n bars, in [-1, 1]. */
+export function candlePressure(bars: Candle[], n: number, end = bars.length): number {
+  const w = bars.slice(Math.max(0, end - n), end);
+  if (!w.length) return 0;
+  return w.reduce((a, b) => a + (b.h > b.l ? (b.c - b.o) / (b.h - b.l) : 0), 0) / w.length;
+}
+/** Skew proxy for Active funding desks: pressure mapped onto the funding strategy's inputs (cap 0.05 %/h like the vault). */
+export function skewProxy(bars: Candle[], n: number) {
+  const toRate = (p: number) => Math.max(-0.0005, Math.min(0.0005, p * 0.0005));
+  const p = candlePressure(bars, n), prev = candlePressure(bars, n, bars.length - 1);
+  return { pressure: p, hourly: toRate(p), skew: p * 100_000, samples: [toRate(prev), toRate(p)] };
+}
 
 function driftMode(now: number, cfg: OfficeConfig): DriftMode {
   return cfg.strictUntil && now * 1000 < Date.parse(cfg.strictUntil) ? "strict" : cfg.driftMode;
 }
 
 /** One simulation step (mirrors Fleet.tick/processDesk). Pure: returns a new state. */
-export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE, baselines: Record<string, Baseline> = BASELINES): DemoState {
+export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE, baselines: Record<string, Baseline> = BASELINES, sim: SimParams = SIM): DemoState {
   const st: DemoState = structuredClone(prev);
+  const slip = (px: number, adverseUp: boolean) => px * (1 + ((adverseUp ? 1 : -1) * sim.slippageBps) / 10_000);
+  const ctxFor = (d: DeskConfig, bars: Candle[]): StrategyContext => {
+    const base = { bars, price: m.price, now: m.now, fundingExtHourly: m.fundingHourly, fundingSamples: st.fleet.fundingSamples.map((x) => x.hourly), externalSkew: m.extSkew, trendBreakoutRecent: m.now - st.fleet.lastTrendEntry < (cfg === OFFICE ? 4 * 3600 : ACTIVE_TREND_GUARD_SEC) };
+    if (d.strategy !== "funding" || !d.params.proxy) return base;
+    const sp = skewProxy(bars, d.params.proxyBars ?? 10);
+    return { ...base, fundingExtHourly: sp.hourly, externalSkew: sp.skew, fundingSamples: sp.samples };
+  };
   const L: LimitsConfig = cfg.limits;
   const { now, price } = m;
   if (!(price > 0) || now <= st.lastTick) return st;
@@ -157,7 +185,7 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
   if (f.dayStart.day !== day(now)) f.dayStart = { day: day(now), equity: fleetEq };
   f.peak = Math.max(f.peak, fleetEq);
   const open: OpenRisk[] = cfg.desks.flatMap((d) => st.desks[d.id].positions.map((p) => toOpenRisk(p, price)));
-  const fleetBase = { equity: fleetEq, dayStartEquity: f.dayStart.equity, peakEquity: f.peak, entryTimes: cfg.desks.flatMap((d) => st.desks[d.id].entryTimes), open, reserve: st.balance * SIM.reservePerFleetUnit };
+  const fleetBase = { equity: fleetEq, dayStartEquity: f.dayStart.equity, peakEquity: f.peak, entryTimes: cfg.desks.flatMap((d) => st.desks[d.id].entryTimes), open, reserve: st.balance * sim.reservePerFleetUnit };
   const lvl = fleetLevel(fleetBase, L);
   if (lvl.action === "kill" && !f.killed) (f.killed = true), (f.killReason = lvl.reason);
   f.paused = lvl.action === "pause" ? lvl.reason : "";
@@ -207,7 +235,7 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
     // 3) manage
     const lastBar = bars[bars.length - 1];
     const newBar = !!lastBar && lastBar.t > s.lastBarT;
-    const ctx: StrategyContext = { bars, price, now, fundingExtHourly: m.fundingHourly, fundingSamples: f.fundingSamples.map((x) => x.hourly), externalSkew: m.extSkew, trendBreakoutRecent: now - f.lastTrendEntry < 4 * 3600 };
+    const ctx = ctxFor(d, bars);
     const strat = createOfficeStrategy(d);
     if (newBar || d.strategy === "funding") {
       for (const p of [...s.positions]) {
@@ -229,6 +257,7 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
     if (f.killed) { block("global kill active"); continue; }
     if (s.status !== "running") { block(`desk ${s.status}`); continue; }
     if (f.paused) { block(f.paused); continue; }
+    if (m.entryBlock) { block(m.entryBlock); continue; }
     if (gate.action !== "ok") { block(gate.reason); continue; }
     if (d.strategy !== "funding") {
       const fg = fundingGuard(sig.side, m.fundingHourly, L);
@@ -241,12 +270,12 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
     if (fg.action !== "ok") { block(fg.reason); continue; }
     const sz = sizePosition({
       equity: eq, riskPct: dr.level === "amber" ? d.riskPct / 2 : d.riskPct, hardMaxRiskPct: L.hardMaxRiskPct, entry: price, stop, maxLeverage: d.maxLeverage,
-      maxMarginPct: L.maxMarginPct, maxNotionalX: L.maxNotionalX, minMargin: SIM.minMargin, feeBufferPct: L.feeBufferPct, mmBps: SIM.mmBps,
-      riskBudget: fg.riskBudget, notionalBudget: fg.notionalBudget, freeCollateral: s.free, openFeeBps: SIM.openFeeBps,
+      maxMarginPct: L.maxMarginPct, maxNotionalX: L.maxNotionalX, minMargin: sim.minMargin, feeBufferPct: L.feeBufferPct, mmBps: sim.mmBps,
+      riskBudget: fg.riskBudget, notionalBudget: fg.notionalBudget, freeCollateral: s.free, openFeeBps: sim.openFeeBps,
     });
     if (!sz.ok) { block(sz.reason); continue; }
     const fill = slip(price, sig.side === "long");
-    const fee = (sz.notional * SIM.openFeeBps) / 10_000;
+    const fee = (sz.notional * sim.openFeeBps) / 10_000;
     const id = ++st.seq;
     s.free -= sz.margin + fee;
     s.positions = [...s.positions, { id, side: sig.side, margin: sz.margin, size: sz.notional, entry: fill, openedAt: now, stopLoss: stop, takeProfit: tp, pendingFunding: 0, risk: sz.riskAmount, decisionPrice: price, fee }];
@@ -254,13 +283,25 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
     fleetBase.entryTimes.push(now);
     fleetBase.open.push({ side: sig.side, size: sz.notional, price, stop, margin: sz.margin });
     if (d.strategy === "trend") f.lastTrendEntry = now;
-    s.trades = [{ kind: "open" as const, id, side: sig.side, leverage: sz.leverage, price: fill, reason: sig.reason, at: now, seq: id }, ...s.trades].slice(0, 60);
-    s.lastSignal = `opened ${sig.side.toUpperCase()} ${sz.leverage.toFixed(1)}× — ${sig.reason}`;
+    s.trades = [{ kind: "open" as const, id, side: sig.side, leverage: sz.leverage, price: fill, reason: d.params.proxy ? proxyReason(sig.reason) : sig.reason, at: now, seq: id }, ...s.trades].slice(0, 60);
+    s.lastSignal = `opened ${sig.side.toUpperCase()} ${sz.leverage.toFixed(1)}× — ${d.params.proxy ? proxyReason(sig.reason) : sig.reason}`;
   }
 
-  // drawdown stats + equity curve
+  // drawdown stats + equity curve + "watching" line
   for (const d of cfg.desks) {
     const s = st.desks[d.id];
+    const p0 = s.positions[0];
+    s.watching = f.killed
+      ? `floor stop: ${f.killReason}`
+      : s.status === "halted"
+        ? `halted: ${s.statusReason}`
+        : p0
+          ? `in a ${p0.side} ${(p0.size / p0.margin).toFixed(1)}× position · stop ${p0.stopLoss.toFixed(4)}${p0.takeProfit ? ` · target ${p0.takeProfit.toFixed(4)}` : ""}`
+          : s.status === "paused"
+            ? `paused: ${s.statusReason}`
+            : explainEntry(d, ctxFor(d, m.bars[d.timeframeSec] ?? [])).replace(/^Funding:/, d.params.proxy ? "Skew proxy (candle pressure, not funding):" : "Funding:") +
+              (s.lastSignal.includes("blocked") ? ` · last ${s.lastSignal}` : "");
+    s.watching = `[${frameLabel(d.timeframeSec)}] ${s.watching}`;
     const eq = deskEquity(s, price);
     s.peak = Math.max(s.peak, eq);
     s.maxDd = Math.max(s.maxDd, s.peak > 0 ? ((s.peak - eq) / s.peak) * 100 : 0);
@@ -269,6 +310,7 @@ export function step(prev: DemoState, m: MarketInput, cfg: OfficeConfig = OFFICE
   const lastH = st.history[st.history.length - 1];
   if (!lastH || now - lastH.t >= 300) st.history = thin([...st.history, { t: now, eq: Math.round(total * 100) / 100 }], 720);
   st.lastTick = now;
+  st.ticks = (st.ticks ?? 0) + 1;
   return st;
 }
 
@@ -279,21 +321,31 @@ function thin(h: { t: number; eq: number }[], max: number) {
   return [...h.slice(0, half).filter((_, i) => i % 2 === 0), ...h.slice(half)];
 }
 
+/** Funding desks in Active trade the skew proxy, not funding: say so in their trade reasons. */
+export const proxyReason = (r: string) => `skew proxy (candle pressure, not funding): ${r.replace(/funding/gi, "proxy rate").replace(/external skew/gi, "proxy skew")}`;
+
 export const closedBy = (bars: Candle[], gran: number, t: number) => bars.filter((b) => b.t + gran <= t);
 
+export const frameLabel = (s: number) => (s < 60 ? `${s}s` : s < 3600 ? `${s / 60}m` : `${s / 3600}h`);
+
+/** Profile-aware step. */
+export const stepDemo = (st: DemoState, m: MarketInput, sim: SimParams = SIM) => step(st, m, profileOf(st.profile).cfg, profileOf(st.profile).baselines, sim);
+
 /**
- * Catch up after the tab was closed: replay 15-minute bars (high/low for stops) from the last tick to now.
- * Gaps older than CATCHUP_MAX_SEC or the available history are recorded as "paused while away".
+ * Catch up after the tab was closed: replay `base`-second bars (high/low for stops) from the last tick to now.
+ * Frames with no history in `hist` (sub-minute) simply resume live. Gaps older than `maxSec` / the available history
+ * are recorded as "paused while away".
  */
-export function catchUp(st: DemoState, hist: { m15: Candle[]; h1: Candle[]; h4: Candle[] }, now: number, fundingHourly: number, cfg: OfficeConfig = OFFICE, baselines: Record<string, Baseline> = BASELINES): DemoState {
-  if (now - st.lastTick < 900) return st;
-  const from = Math.max(st.lastTick, now - CATCHUP_MAX_SEC, (hist.m15[0]?.t ?? now) + 900);
+export function catchUp(st: DemoState, hist: Record<number, Candle[]>, base: number, now: number, fundingHourly: number, maxSec = CATCHUP_MAX_SEC, sim: SimParams = SIM): DemoState {
+  if (now - st.lastTick < base) return st;
+  const series = hist[base] ?? [];
+  const from = Math.max(st.lastTick, now - maxSec, (series[0]?.t ?? now) + base);
   let out = st;
-  if (from > st.lastTick + 900) out = { ...out, lastTick: from, away: [...out.away, { from: st.lastTick, to: from, mode: "paused" as const }].slice(-20) };
-  const replay = hist.m15.filter((b) => b.t + 900 > out.lastTick && b.t + 900 <= now);
+  if (from > st.lastTick + base) out = { ...out, lastTick: from, away: [...out.away, { from: st.lastTick, to: from, mode: "paused" as const }].slice(-20) };
+  const replay = series.filter((b) => b.t + base > out.lastTick && b.t + base <= now);
   if (!replay.length) return out;
   const start = out.lastTick;
-  const byTf = (t: number): Record<number, Candle[]> => ({ 900: closedBy(hist.m15, 900, t).slice(-300), 3600: closedBy(hist.h1, 3600, t).slice(-300), 14400: closedBy(hist.h4, 14400, t).slice(-300) });
-  for (const b of replay) out = step(out, { now: b.t + 900, price: b.c, hi: b.h, lo: b.l, bars: byTf(b.t + 900), fundingHourly, extSkew: 0 }, cfg, baselines);
+  const byTf = (t: number): Record<number, Candle[]> => Object.fromEntries(Object.entries(hist).map(([g, bs]) => [Number(g), closedBy(bs, Number(g), t).slice(-300)]));
+  for (const b of replay) out = stepDemo(out, { now: b.t + base, price: b.c, hi: b.h, lo: b.l, bars: byTf(b.t + base), fundingHourly, extSkew: 0 }, sim);
   return { ...out, away: [...out.away, { from: start, to: out.lastTick, mode: "caught-up" as const }].slice(-20) };
 }

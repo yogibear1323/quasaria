@@ -1,3 +1,4 @@
+import { PROFILES } from "../lib/demo/profiles";
 import { useEffect, useMemo, useState } from "react";
 import { PageHead, RiskWarning } from "../components/ui";
 import { expertContract } from "../lib/config";
@@ -49,7 +50,7 @@ function TradeRow({ t }: { t: ChainTrade }) {
   );
 }
 
-function Panel({ d, status, example, tag }: { d: DeskView; status: StatusDoc | null; example: boolean; tag?: string }) {
+function Panel({ d, status, example, tag, driftMode }: { d: DeskView; status: StatusDoc | null; example: boolean; tag?: string; driftMode?: string }) {
   const pos = d.positions[0];
   const L = BACK_OFFICE.limits;
   const drift = d.drift;
@@ -60,12 +61,13 @@ function Panel({ d, status, example, tag }: { d: DeskView; status: StatusDoc | n
       <div className="bo-p-h">
         <div>
           <span className={`bo-tag ${d.cfg.strategy}`}>{STRATEGY_LABEL[d.cfg.strategy]} · {tfLabel(d.cfg.timeframeSec)}</span>
-          <h3>{d.cfg.name}{(example || tag) && <span className="bo-exchip">{example ? "example" : tag}</span>}</h3>
+          <h3>{d.cfg.name}<span className="bo-tf" title={`trades on ${tfLabel(d.cfg.timeframeSec)} bars`}>{tfLabel(d.cfg.timeframeSec)}</span>{(example || tag) && <span className="bo-exchip">{example ? "example" : tag}</span>}</h3>
           <a className="bo-mut" href={EXPERT_ACCT + d.cfg.owner} target="_blank" rel="noreferrer">owner {short(d.cfg.owner)} · bot key {short(d.cfg.operator)} (cannot withdraw)</a>
         </div>
         <span className={`bo-light ${d.status}`}><i />{STATUS_TEXT[d.status]}</span>
       </div>
       {d.reason && <div className="bo-reason">{d.reason}</div>}
+      {d.watching && <div className="bo-watch bo-watch-p"><i>watching · {tfLabel(d.cfg.timeframeSec)} bars</i> {d.watching}</div>}
       <div className="bo-pos">
         <div><span className="bo-lbl">Position</span>{pos ? <b className={pos.side === "long" ? "g" : "r"}>{pos.side.toUpperCase()} XLM {pos.leverage.toFixed(1)}×</b> : <b>Flat</b>}<span>{pos ? `notional ${pos.size.toFixed(0)} · margin ${pos.margin.toFixed(0)} QUSD` : `${d.positions.length} open`}</span></div>
         <div><span className="bo-lbl">Unrealized</span><b className={(pos?.upnl ?? 0) >= 0 ? "g" : "r"}>{pos ? fmtPnl(pos.upnl) : "—"}</b><span>{pos ? `entry ${pos.entry.toFixed(4)}` : "no open position"}</span></div>
@@ -81,7 +83,7 @@ function Panel({ d, status, example, tag }: { d: DeskView; status: StatusDoc | n
           <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="4" /><circle cx="20" cy="20" r="16" fill="none" stroke={dcol} strokeWidth="4" strokeDasharray={`${dash} 100.5`} strokeLinecap="round" transform="rotate(-90 20 20)" /></svg>
           <b>{drift ? drift.score : "—"}</b>
         </div>
-        <div><span className="bo-lbl">Drift score · {status?.driftMode ?? "—"}</span><b style={{ color: dcol }}>{!drift ? "No data" : drift.level === "green" ? "Normal" : drift.level === "amber" ? "Watch (half size)" : "Halt"}</b><span>{drift?.top ?? "waiting for the status feed"}</span></div>
+        <div><span className="bo-lbl">Drift score · {driftMode ?? status?.driftMode ?? "—"}</span><b style={{ color: dcol }}>{!drift ? "No data" : drift.level === "green" ? "Normal" : drift.level === "amber" ? "Watch (half size)" : "Halt"}</b><span>{drift?.top ?? "waiting for the status feed"}</span></div>
       </div>
       <div className="bo-trades">
         <span className="bo-lbl">{tag === "demo" ? "Recent demo trades · simulated" : "Recent on-chain trades"}</span>
@@ -157,7 +159,7 @@ export default function BackOffice() {
     else p.set("view", m);
     setParams(p, { replace: true });
   };
-  const dm = useDemo({ oraclePrice: chain.data?.price ?? null, fundingHourly: status?.market.fundingPredictedHourly ?? 0 });
+  const dm = useDemo({ oraclePrice: chain.data?.price ?? null, oracleTs: chain.data?.priceTs ?? null, fundingHourly: status?.market.fundingPredictedHourly ?? 0 });
   const [ex, setEx] = useState<ExampleState | null>(null);
   const exPrice = chain.data?.price ?? status?.market.oraclePrice ?? 0.2;
   useEffect(() => {
@@ -173,9 +175,10 @@ export default function BackOffice() {
   const sparks = useMemo(() => {
     const m = dm.market;
     if (!m) return {};
-    const c = (b: { c: number }[]) => b.slice(-40).map((x) => x.c);
-    return { 900: c(m.m15), 3600: c(m.h1), 14400: c(m.h4) } as Record<number, number[]>;
-  }, [dm.market]);
+    const out: Record<number, number[]> = { ...dm.subBars };
+    for (const [g, b] of Object.entries(m.bars)) out[Number(g)] = b.slice(-40).map((x) => x.c);
+    return out;
+  }, [dm.market, dm.subBars]);
   const base = useMemo(() => {
     if (mode === "demo" && dm.demo && demoPx) return demoViews(dm.demo, BACK_OFFICE.desks, demoPx, sparks);
     if (mode === "mirror") return mirrorViews(desks, dm.demo?.balance ?? 1000);
@@ -226,7 +229,7 @@ export default function BackOffice() {
 
       <ModeSwitch mode={mode} setMode={setMode} hasDemo={!!dm.demo} />
       {mode !== "live" && (
-        <DemoAccount demo={dm.demo} price={demoPx} note={dm.note} runner={dm.runner} available={dm.available} create={dm.create} close={dm.close} reset={dm.reset} desks={BACK_OFFICE.desks} mode={mode} />
+        <DemoAccount demo={dm.demo} price={demoPx} note={dm.note} runner={dm.runner} available={dm.available} create={dm.create} close={dm.close} reset={dm.reset} desks={BACK_OFFICE.desks} mode={mode} feed={dm.feed} />
       )}
       {tag && <div className="bo-demobanner" role="status">{tag === "demo" ? "DEMO · simulated · not real money" : `MIRROR · live testnet fleet scaled to $${(dm.demo?.balance ?? 1000).toLocaleString("en-US")} · display only · not real money`}</div>}
       <div className={`bo-grid ${tag ? `m-${tag}` : ""}`}>
@@ -257,7 +260,7 @@ export default function BackOffice() {
             ))}
           </div>
         </section>
-        <Panel d={selected} status={status} example={!!ex} tag={tag} />
+        <Panel d={selected} status={status} example={!!ex} tag={tag} driftMode={tag === "demo" && dm.demo ? `${PROFILES[dm.demo.profile ?? "strict"].cfg.driftMode ?? "strict"} (demo ${PROFILES[dm.demo.profile ?? "strict"].label})` : undefined} />
       </div>
 
       <RiskWarning>

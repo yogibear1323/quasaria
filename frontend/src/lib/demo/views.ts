@@ -1,12 +1,16 @@
 /** Map demo simulator state (and the optional live-fleet mirror) onto the robot floor's DeskView model. */
 import type { ChainPos, ChainTrade, DeskCfg, DeskView } from "../backOffice";
 import { deskEquity, type DemoState } from "./engine";
+import { profileOf } from "./profiles";
 import { dailyLossPct, drawdownPct } from "../../../../bot/src/office/risk";
 
 export const DEMO_UNIT = "demo $";
 
 export function demoViews(st: DemoState, desks: DeskCfg[], price: number, spark: Record<number, number[]> = {}): DeskView[] {
-  return desks.map((cfg) => {
+  const pc = profileOf(st.profile).cfg;
+  return desks.map((cfg0) => {
+    const pd = pc.desks.find((x) => x.id === cfg0.id);
+    const cfg = pd ? { ...cfg0, timeframeSec: pd.timeframeSec } : cfg0;
     const s = st.desks[cfg.id];
     const eq = deskEquity(s, price);
     const positions: ChainPos[] = s.positions.map((p) => {
@@ -29,6 +33,7 @@ export function demoViews(st: DemoState, desks: DeskCfg[], price: number, spark:
       lastSignal: s.lastSignal,
       spark: spark[cfg.timeframeSec] ?? [],
       unit: DEMO_UNIT,
+      watching: s.watching,
     };
   });
 }
@@ -54,15 +59,17 @@ export interface BotStats {
   trades: number;
   wins: number;
   winRate: number | null;
+  frameSec: number;
   pnl: number;
   maxDd: number;
   status: string;
 }
 export function botStats(st: DemoState, desks: DeskCfg[], price: number): BotStats[] {
+  const pc = profileOf(st.profile).cfg;
   return desks.map((d) => {
     const s = st.desks[d.id];
     const closes = s.trades.filter((t) => t.kind === "close");
     const wins = closes.filter((t) => (t.pnl ?? 0) > 0).length;
-    return { id: d.id, name: d.name, trades: closes.length, wins, winRate: closes.length ? wins / closes.length : null, pnl: deskEquity(s, price) - s.startEquity, maxDd: s.maxDd, status: st.fleet.killed ? "halted" : s.status };
+    return { id: d.id, name: d.name, frameSec: pc.desks.find((x) => x.id === d.id)?.timeframeSec ?? d.timeframeSec, trades: closes.length, wins, winRate: closes.length ? wins / closes.length : null, pnl: deskEquity(s, price) - s.startEquity, maxDd: s.maxDd, status: st.fleet.killed ? "halted" : s.status };
   });
 }

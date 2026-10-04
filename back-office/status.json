@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-04T20:55:33.000Z",
+ "generatedAt": "2026-10-04T21:00:38.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.2197418,
-  "oracleAgeSec": 206,
-  "referencePrice": 0.21986,
-  "deviationPct": 0.0538,
+  "oraclePrice": 0.22002685,
+  "oracleAgeSec": 196,
+  "referencePrice": 0.220049,
+  "deviationPct": 0.0101,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -107,11 +107,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T19:00Z",
+   "lastSignal": "no signal @ bar 10-04T20:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.214517,
     0.215273,
     0.214839,
     0.213766,
@@ -150,7 +149,8 @@
     0.217521,
     0.217265,
     0.218481,
-    0.219388
+    0.219388,
+    0.220122
    ]
   },
   {
@@ -339,11 +339,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T19:00Z",
+   "lastSignal": "no signal @ bar 10-04T20:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.214517,
     0.215273,
     0.214839,
     0.213766,
@@ -382,7 +381,8 @@
     0.217521,
     0.217265,
     0.218481,
-    0.219388
+    0.219388,
+    0.220122
    ]
   },
   {
@@ -455,11 +455,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T19:00Z",
+   "lastSignal": "no signal @ bar 10-04T20:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.214517,
     0.215273,
     0.214839,
     0.213766,
@@ -498,7 +497,8 @@
     0.217521,
     0.217265,
     0.218481,
-    0.219388
+    0.219388,
+    0.220122
    ]
   },
   {
@@ -571,11 +571,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T20:30Z",
+   "lastSignal": "no signal @ bar 10-04T20:45Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.216461,
     0.216668,
     0.216354,
     0.215789,
@@ -614,7 +613,8 @@
     0.219388,
     0.21973,
     0.219485,
-    0.219261
+    0.219261,
+    0.22011
    ]
   },
   {
@@ -687,11 +687,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T19:00Z",
+   "lastSignal": "no signal @ bar 10-04T20:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.214517,
     0.215273,
     0.214839,
     0.213766,
@@ -730,7 +729,8 @@
     0.217521,
     0.217265,
     0.218481,
-    0.219388
+    0.219388,
+    0.220122
    ]
   }
  ]

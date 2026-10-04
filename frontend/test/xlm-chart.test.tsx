@@ -8,7 +8,7 @@ import {
 } from "../src/lib/xlmChart";
 import { PERPS_MENU, isPerpsPath } from "../src/components/PerpsNav";
 import XlmChartPage from "../src/pages/XlmChart";
-import { overlayPoints, XLM_CHART_LABEL } from "../src/components/XlmChart";
+import { localTick, overlayPoints, XLM_CHART_LABEL } from "../src/components/XlmChart";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const bar = (t: number, o: number, h: number, l: number, c: number, v = 1): Bar => ({ t, o, h, l, c, v });
@@ -108,6 +108,16 @@ describe("candles", () => {
     const s = [{ at: 61, oracle: 1, mark: null }, { at: 100, oracle: 2, mark: 2.1 }, { at: 130, oracle: 3, mark: null }];
     expect(overlayPoints(s, "oracle", 60)).toEqual([{ time: 60, value: 2 }, { time: 120, value: 3 }]);
     expect(overlayPoints(s, "mark", 60)).toEqual([{ time: 60, value: 2.1 }]);
+  });
+});
+
+describe("time labels", () => {
+  it("axis ticks use local time like the tooltip", () => {
+    const t = Date.UTC(2026, 9, 4, 21, 30) / 1000;
+    const d = new Date(t * 1000);
+    expect(localTick(t, 0)).toBe(String(d.getFullYear()));
+    expect(localTick(t, 2)).toBe(String(d.getDate()));
+    expect(localTick(t, 3)).toMatch(new RegExp(String(d.getMinutes()).padStart(2, "0")));
   });
 });
 

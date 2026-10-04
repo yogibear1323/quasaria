@@ -26,6 +26,15 @@ const C = {
 };
 const px = (v: number | null | undefined, d = 4) => (v == null || !Number.isFinite(v) ? "—" : `$${v.toFixed(v < 1 ? Math.max(d, 4) : 2)}`);
 const vol = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(1)}K` : v.toFixed(0));
+/** Axis + crosshair labels in the viewer's local time (lightweight-charts defaults to UTC), matching the tooltip. */
+export function localTick(t: number, type: number) {
+  const d = new Date(t * 1000);
+  if (type === 0) return String(d.getFullYear());
+  if (type === 1) return d.toLocaleString(undefined, { month: "short" });
+  if (type === 2) return String(d.getDate());
+  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+const localFull = (t: number) => new Date(t * 1000).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
 const visible = () => typeof document === "undefined" || document.visibilityState !== "hidden";
 
 /** Session samples of oracle/mark (kept across tf switches and route changes). */
@@ -158,8 +167,8 @@ export default function XlmChart({ compact = false, overlay: overlayProp, defaul
       grid: { vertLines: { color: C.grid }, horzLines: { color: C.grid } },
       crosshair: { mode: CrosshairMode.Normal, vertLine: { color: C.cross, labelBackgroundColor: "#2a2350" }, horzLine: { color: C.cross, labelBackgroundColor: "#2a2350" } },
       rightPriceScale: { borderColor: "rgba(255,255,255,0.08)", scaleMargins: { top: 0.08, bottom: 0.24 } },
-      timeScale: { borderColor: "rgba(255,255,255,0.08)", timeVisible: true, secondsVisible: false, rightOffset: 4 },
-      localization: { priceFormatter: (p: number) => p.toFixed(5) },
+      timeScale: { borderColor: "rgba(255,255,255,0.08)", timeVisible: true, secondsVisible: false, rightOffset: 4, tickMarkFormatter: (t: Time, type: number) => localTick(Number(t), type) },
+      localization: { priceFormatter: (p: number) => p.toFixed(5), timeFormatter: (t: Time) => localFull(Number(t)) },
     });
     const candle = chart.addSeries(CandlestickSeries, {
       upColor: C.up, downColor: C.down, borderUpColor: C.up, borderDownColor: C.down, wickUpColor: C.up, wickDownColor: C.down,
@@ -272,7 +281,7 @@ export default function XlmChart({ compact = false, overlay: overlayProp, defaul
         {!bars.length && <div className="xc-empty">{histErr ? `Price feed unavailable (${histErr}). Retrying…` : "Loading XLM candles…"}</div>}
         {hover && tip && (
           <div className="xc-tip mono" style={tip} data-testid="xlm-chart-tip">
-            <div>{new Date(hover.bar.t * 1000).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+            <div>{localFull(hover.bar.t)}</div>
             <div>O <b>{hover.bar.o.toFixed(5)}</b> H <b>{hover.bar.h.toFixed(5)}</b></div>
             <div>L <b>{hover.bar.l.toFixed(5)}</b> C <b className={hover.bar.c >= hover.bar.o ? "up" : "dn"}>{hover.bar.c.toFixed(5)}</b></div>
             <div>Vol <b>{vol(hover.bar.v)}</b> XLM</div>

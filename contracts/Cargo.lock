@@ -1285,12 +1285,21 @@ version = "0.1.0"
 dependencies = [
  "quasaria-gov",
  "quasaria-mock-oracle",
+ "quasaria-pricing",
  "quasaria-referral",
  "soroban-sdk",
 ]
 
 [[package]]
 name = "quasaria-mock-oracle"
+version = "0.1.0"
+dependencies = [
+ "quasaria-gov",
+ "soroban-sdk",
+]
+
+[[package]]
+name = "quasaria-pricing"
 version = "0.1.0"
 dependencies = [
  "quasaria-gov",

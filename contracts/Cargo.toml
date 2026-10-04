@@ -10,6 +10,7 @@ members = [
   "mock-oracle",
   "gov",
   "lending",
+  "pricing",
 ]
 
 [workspace.package]
@@ -26,6 +27,7 @@ quasaria-amm-pool = { path = "amm-pool" }
 quasaria-mock-oracle = { path = "mock-oracle" }
 quasaria-reward-token = { path = "reward-token" }
 quasaria-gov = { path = "gov" }
+quasaria-pricing = { path = "pricing" }
 
 [profile.release]
 opt-level = "z"

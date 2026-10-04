@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lending-keeper": "tsx src/lending/cli.ts lending-keeper",
-    "oracle-feed": "tsx src/lending/cli.ts oracle-feed"
+    "oracle-feed": "tsx src/lending/cli.ts oracle-feed",
+    "office": "tsx src/office/cli.ts"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^17.2.1"

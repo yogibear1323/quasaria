@@ -12,12 +12,24 @@ const UNIT = 10_000_000; // 7-decimal collateral token
 const toI128 = (v: number) => nativeToScVal(BigInt(Math.round(v * UNIT)), { type: "i128" });
 const assetOther = (code: string) => xdr.ScVal.scvVec([nativeToScVal("Other", { type: "symbol" }), nativeToScVal(code, { type: "symbol" })]);
 
+/** Vault/oracle market key: `{ Stellar: "C…token" }` (perps-v1 XLM market) or `{ Other: "XLM" }` (legacy). */
+export type MarketAsset = { Stellar: string } | { Other: string };
+export function assetScVal(a: MarketAsset): xdr.ScVal {
+  return "Stellar" in a
+    ? xdr.ScVal.scvVec([nativeToScVal("Stellar", { type: "symbol" }), new Address(a.Stellar).toScVal()])
+    : assetOther(a.Other);
+}
+/** Market key for a ticker: an explicit mapping (e.g. XLM -> deployments vault.marketAsset) wins over the legacy Other(code). */
+export const marketKeyFor = (code: string, markets: Record<string, MarketAsset> = {}) => assetScVal(markets[code] ?? { Other: code });
+
 export interface LiveOptions {
   rpcUrl: string;
   vaultId: string;
   oracleId: string;
   secret: string;
   owner?: string;
+  /** ticker -> on-chain market key; perps-v1 keys XLM by its token address (deployments vault.marketAsset). */
+  markets?: Record<string, MarketAsset>;
 }
 
 export class SorobanVault implements TradingVenue, KeeperVault {
@@ -71,7 +83,7 @@ export class SorobanVault implements TradingVenue, KeeperVault {
 
   async price(asset: string) {
     if (this.oracleDecimals === null) this.oracleDecimals = await this.read<number>(this.o.oracleId, "decimals");
-    const pd = await this.read<{ price: bigint; timestamp: bigint } | null>(this.o.oracleId, "lastprice", [assetOther(asset)]);
+    const pd = await this.read<{ price: bigint; timestamp: bigint } | null>(this.o.oracleId, "lastprice", [marketKeyFor(asset, this.o.markets)]);
     if (!pd) throw new Error(`oracle has no price for ${asset}`);
     return Number(pd.price) / 10 ** this.oracleDecimals;
   }
@@ -83,7 +95,7 @@ export class SorobanVault implements TradingVenue, KeeperVault {
 
   async open(req: OpenRequest): Promise<Position> {
     const id = await this.write<bigint>("open_position", [
-      new Address(this.kp.publicKey()).toScVal(), new Address(req.owner).toScVal(), assetOther(req.asset),
+      new Address(this.kp.publicKey()).toScVal(), new Address(req.owner).toScVal(), marketKeyFor(req.asset, this.o.markets),
       nativeToScVal(req.side === "long"), toI128(req.margin), nativeToScVal(Math.round(req.leverage * 10_000), { type: "u32" }),
     ]);
     return { ...(await this.position(Number(id))), strategyId: req.strategyId };
@@ -130,10 +142,19 @@ export class SorobanVault implements TradingVenue, KeeperVault {
     }>(this.o.vaultId, "position", [nativeToScVal(BigInt(id), { type: "u64" })]);
     const d = 10 ** (this.oracleDecimals ?? 14);
     return {
-      id: Number(p.id), owner: p.owner, asset: String(p.asset[1]), side: p.is_long ? "long" : "short",
+      id: Number(p.id), owner: p.owner, asset: this.tickerOf(p.asset), side: p.is_long ? "long" : "short",
       margin: Number(p.margin) / UNIT, size: Number(p.size) / UNIT, entryPrice: Number(p.entry_price) / d,
       openedAt: Number(p.opened_at), stopLoss: Number(p.stop_loss) / d, takeProfit: Number(p.take_profit) / d,
     };
+  }
+
+  /** Decoded Asset enum (["Stellar", "C…"] | ["Other", "XLM"]) -> ticker used by strategies. */
+  private tickerOf(a: [string, string]) {
+    if (a[0] === "Stellar") {
+      const hit = Object.entries(this.o.markets ?? {}).find(([, m]) => "Stellar" in m && m.Stellar === String(a[1]));
+      return hit ? hit[0] : String(a[1]);
+    }
+    return String(a[1]);
   }
 
   async liquidate(id: number) {

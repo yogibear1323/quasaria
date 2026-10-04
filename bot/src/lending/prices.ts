@@ -154,3 +154,49 @@ export function feedAssetsFrom(doc: { assets: Array<Record<string, any>> }, ids?
       snapshotPerXlm: Number(a.pricePerXlm),
     }));
 }
+
+/**
+ * Fast perps-market price (XLM/USD only): one mainnet SDEX USDC order-book read, cross-checked against an independent
+ * public reference (Coinbase XLM-USD ticker) when that is reachable. Returns null price when the quote is not live.
+ */
+export async function fetchXlmUsdFast(get: Fetcher = defaultFetcher, horizon = MAINNET_HORIZON): Promise<{ usd: number | null; source: string; reference: number | null }> {
+  const ob = await get(`${horizon}/order_book?selling_asset_type=native&${qs("buying", "USDC", MAINNET_USDC_ISSUER)}&limit=1`);
+  const bid = ob?.bids?.[0] ? Number(ob.bids[0].price) : null;
+  const ask = ob?.asks?.[0] ? Number(ob.asks[0].price) : null;
+  const usd = bid && ask && (ask - bid) / ((ask + bid) / 2) < 0.02 ? (bid + ask) / 2 : null;
+  const ref = await get("https://api.exchange.coinbase.com/products/XLM-USD/ticker").catch(() => null);
+  const reference = ref?.price ? Number(ref.price) : null;
+  return { usd, source: usd ? "mainnet USDC sdex-mid" : "none", reference: reference && reference > 0 ? reference : null };
+}
+
+export type PushDecision = { push: true } | { push: false; reason: string };
+
+/**
+ * Never publish a stale or suspicious price as fresh:
+ *  - the XLM/USD quote must be live (not the cached snapshot fallback);
+ *  - when an independent reference is available it must agree within `maxDevPct`;
+ *  - a jump of more than `maxJumpPct` vs the last pushed price within one fast interval is held back once
+ *    (pushed only if the next read confirms it).
+ */
+export function decideXlmPush(p: { usd: number | null; source: string; reference: number | null; lastPushed: number | null; pendingJump: number | null }, maxDevPct = 1.5, maxJumpPct = 5): PushDecision & { pendingJump?: number | null } {
+  if (!p.usd || !(p.usd > 0) || p.source === "snapshot" || p.source === "none") return { push: false, reason: `no live XLM/USD quote (${p.source})` };
+  if (p.reference) {
+    const dev = (Math.abs(p.usd - p.reference) / p.reference) * 100;
+    if (dev > maxDevPct) return { push: false, reason: `XLM/USD ${p.usd.toFixed(5)} deviates ${dev.toFixed(2)}% from reference ${p.reference.toFixed(5)} (> ${maxDevPct}%)` };
+  }
+  if (p.lastPushed) {
+    const jump = (Math.abs(p.usd - p.lastPushed) / p.lastPushed) * 100;
+    if (jump > maxJumpPct) {
+      const confirmed = p.pendingJump && Math.abs(p.usd - p.pendingJump) / p.pendingJump < 0.01;
+      if (!confirmed) return { push: false, reason: `jump ${jump.toFixed(2)}% vs last push; waiting for confirmation`, pendingJump: p.usd };
+    }
+  }
+  return { push: true, pendingJump: null };
+}
+
+/** Drop prices that came from the cached snapshot; refuse the whole batch if XLM/USD itself is the snapshot. */
+export function filterFreshPrices(prices: UsdPrice[], usdSource: string): { fresh: UsdPrice[]; skipped: string[]; refused?: string } {
+  if (usdSource === "snapshot") return { fresh: [], skipped: prices.map((p) => p.id), refused: "XLM/USD fell back to the cached snapshot: nothing pushed" };
+  const fresh = prices.filter((p) => p.source !== "snapshot");
+  return { fresh, skipped: prices.filter((p) => p.source === "snapshot").map((p) => p.id) };
+}

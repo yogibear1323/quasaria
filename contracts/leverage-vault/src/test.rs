@@ -649,3 +649,69 @@ fn regression_f08_vault_ttls_extended() {
         );
     });
 }
+
+// ---------------------------------------------------------------- oracle-latency fix (2026-10-04)
+// The vault fills at the oracle price, so an old price is a free option for anyone who sees the live market.
+// Testnet now runs max_price_age = 90 s (set through the timelocked SetConfig path) with a 20 s XLM push.
+
+fn tight_config() -> Config {
+    let mut c = config();
+    c.max_price_age = 90;
+    c
+}
+
+#[test]
+fn oracle_fix_set_config_through_timelock_tightens_max_age() {
+    let t = setup();
+    assert_eq!(t.v.config().max_price_age, 600);
+    timelocked(&t, &VaultAction::SetConfig(tight_config()));
+    assert_eq!(t.v.config().max_price_age, 90);
+}
+
+#[test]
+fn oracle_fix_stale_open_rejected_at_91s_ok_at_90s() {
+    let t = setup_with(tight_config());
+    let u = trader(&t, 20_000_000_000);
+    warp(&t, 90);
+    t.v.open_position(&u, &u, &xlm(&t.env), &true, &1_000_000_000, &20_000); // exactly 90 s: accepted
+    warp(&t, 1);
+    for long in [true, false] {
+        assert_eq!(
+            t.v.try_open_position(&u, &u, &xlm(&t.env), &long, &1_000_000_000, &20_000),
+            Err(Ok(VaultError::StalePrice.into()))
+        );
+    }
+}
+
+#[test]
+fn oracle_fix_stale_close_increase_decrease_trigger_rejected() {
+    let t = setup_with(tight_config());
+    let u = trader(&t, 20_000_000_000);
+    let id = t.v.open_position(&u, &u, &xlm(&t.env), &true, &1_000_000_000, &20_000);
+    t.v.set_triggers(&u, &id, &(P / 2), &(P * 3 / 2));
+    warp(&t, 91);
+    assert_eq!(t.v.try_close_position(&u, &id), Err(Ok(VaultError::StalePrice.into())));
+    assert_eq!(t.v.try_increase_position(&u, &id, &100_000_000, &20_000), Err(Ok(VaultError::StalePrice.into())));
+    assert_eq!(t.v.try_decrease_position(&u, &id, &1), Err(Ok(VaultError::StalePrice.into())));
+    assert_eq!(t.v.try_execute_trigger(&id), Err(Ok(VaultError::StalePrice.into())));
+    assert_eq!(t.v.try_liquidate(&u, &id), Err(Ok(VaultError::StalePrice.into())));
+    // a fresh push re-enables exits immediately
+    set_price(&t, P);
+    t.v.close_position(&u, &id);
+}
+
+#[test]
+fn oracle_fix_stale_arbitrage_blocked() {
+    // market has moved +2 % but the oracle was last pushed 120 s ago: an open at the old price must fail,
+    // and once the fresh price lands the would-be arbitrage has nothing left to capture.
+    let t = setup_with(tight_config());
+    let u = trader(&t, 20_000_000_000);
+    warp(&t, 120);
+    assert_eq!(
+        t.v.try_open_position(&u, &u, &xlm(&t.env), &true, &1_000_000_000, &50_000),
+        Err(Ok(VaultError::StalePrice.into()))
+    );
+    set_price(&t, P * 102 / 100);
+    let id = t.v.open_position(&u, &u, &xlm(&t.env), &true, &1_000_000_000, &50_000);
+    assert_eq!(t.v.position(&id).entry_price, P * 102 / 100);
+}

@@ -5,7 +5,11 @@
  *   npm run lending-keeper -- --once       # one sweep
  *   npm run lending-keeper -- --dry-run    # plan only, never sends a transaction
  *   npm run oracle-feed -- --once          # refresh all 42 mock-oracle prices from mainnet Horizon
- *   npm run oracle-feed                    # refresh every 5 min (max_price_age is 15 min)
+ *   npm run oracle-feed                    # full refresh every --interval s (default 300) AND a fast XLM/USD push
+ *                                          # (perps market) every --fast-interval s (default 20); the perps vault
+ *                                          # rejects prices older than its max_price_age (90 s). --fast-interval 0 = off.
+ *   Stale guard: nothing is pushed when XLM/USD falls back to the cached snapshot or deviates > 1.5 % from an
+ *   independent reference (Coinbase XLM-USD); snapshot-priced assets are skipped in full refreshes.
  *
  * Keys: QUASARIA_SECRET (liquidator) / QUASARIA_ORACLE_SECRET (oracle admin) from the env or
  * bot/.env, or --identity <name> to read one from the local stellar CLI keystore in-process
@@ -17,7 +21,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Keypair, Networks, rpc } from "@stellar/stellar-sdk";
-import { feedAssetsFrom, fetchUsdPrices, toOracleInt } from "./prices.js";
+import { decideXlmPush, feedAssetsFrom, fetchUsdPrices, fetchXlmUsdFast, filterFreshPrices, toOracleInt } from "./prices.js";
 import { runLendingKeeperOnce } from "./keeper.js";
 import { SorobanClient, SorobanLending, pushPrices } from "./soroban.js";
 
@@ -62,21 +66,46 @@ async function main() {
     await c.assertTestnet();
     const feed = feedAssetsFrom(assetsDoc);
     const every = Number(arg("interval", "300")) * 1000;
+    const fastEvery = Number(arg("fast-interval", "20")) * 1000;
+    const xlm = feed.find((a) => !a.mainnet);
+    let lastFull = 0, lastPushed: number | null = null, pendingJump: number | null = null;
     for (;;) {
-      try {
-        const { prices, usdPerXlm, usdSource } = await fetchUsdPrices(feed, { snapshotUsdPerXlm: assetsDoc.mainnetSource.usdPerXlm });
-        const bySource = prices.reduce<Record<string, number>>((m, p) => ((m[p.source.split(" ")[0]] = (m[p.source.split(" ")[0]] ?? 0) + 1), m), {});
-        console.log(`oracle-feed: ${prices.length} prices, XLM $${usdPerXlm.toFixed(5)} (${usdSource}), sources ${JSON.stringify(bySource)}`);
-        if (flag("verbose")) for (const p of prices) console.log(`  ${p.id.padEnd(7)} $${p.usd.toPrecision(6).padStart(12)}  ${p.source}`);
-        if (!flag("dry-run")) {
-          await pushPrices(c, oracleId, prices.map((p) => ({ sac: p.sac, price: toOracleInt(p.usd) })));
-          console.log(`oracle-feed: pushed to ${oracleId} at ${new Date().toISOString()}`);
+      const t0 = Date.now();
+      if (t0 - lastFull >= every || !fastEvery) {
+        lastFull = t0;
+        try {
+          const { prices, usdPerXlm, usdSource } = await fetchUsdPrices(feed, { snapshotUsdPerXlm: assetsDoc.mainnetSource.usdPerXlm });
+          const bySource = prices.reduce<Record<string, number>>((m, p) => ((m[p.source.split(" ")[0]] = (m[p.source.split(" ")[0]] ?? 0) + 1), m), {});
+          console.log(`oracle-feed: ${prices.length} prices, XLM $${usdPerXlm.toFixed(5)} (${usdSource}), sources ${JSON.stringify(bySource)}`);
+          if (flag("verbose")) for (const p of prices) console.log(`  ${p.id.padEnd(7)} $${p.usd.toPrecision(6).padStart(12)}  ${p.source}`);
+          const { fresh, skipped, refused } = filterFreshPrices(prices, usdSource);
+          if (refused) console.error(`oracle-feed: ${refused}`);
+          else if (skipped.length) console.error(`oracle-feed: skipped snapshot-priced (stale) assets: ${skipped.join(", ")}`);
+          if (!flag("dry-run") && fresh.length) {
+            await pushPrices(c, oracleId, fresh.map((p) => ({ sac: p.sac, price: toOracleInt(p.usd) })));
+            if (usdSource !== "snapshot") lastPushed = usdPerXlm;
+            console.log(`oracle-feed: pushed ${fresh.length} to ${oracleId} at ${new Date().toISOString()}`);
+          }
+        } catch (e) {
+          console.error("oracle-feed: refresh failed:", (e as Error).message);
         }
-      } catch (e) {
-        console.error("oracle-feed: refresh failed:", (e as Error).message);
+      } else if (xlm) {
+        try {
+          const q = await fetchXlmUsdFast();
+          const d = decideXlmPush({ ...q, lastPushed, pendingJump });
+          if ("pendingJump" in d) pendingJump = d.pendingJump ?? null;
+          if (!d.push) console.error(`oracle-feed: fast push skipped: ${d.reason}`);
+          else if (!flag("dry-run")) {
+            await pushPrices(c, oracleId, [{ sac: xlm.sac, price: toOracleInt(q.usd!) }]);
+            lastPushed = q.usd;
+            if (flag("verbose")) console.log(`oracle-feed: fast XLM $${q.usd!.toFixed(5)} (ref ${q.reference?.toFixed(5) ?? "n/a"}) at ${new Date().toISOString()}`);
+          }
+        } catch (e) {
+          console.error("oracle-feed: fast push failed:", (e as Error).message);
+        }
       }
       if (flag("once") || flag("dry-run")) return;
-      await sleep(every);
+      await sleep(Math.max(1000, (fastEvery || every) - (Date.now() - t0)));
     }
   }
 

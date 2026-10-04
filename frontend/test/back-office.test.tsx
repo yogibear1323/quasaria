@@ -109,7 +109,7 @@ describe("page", () => {
     expect(src("src/App.tsx")).toContain('path="/back-office"');
   });
   it("copy + style rules: no gradient text, no banned wording", () => {
-    const files = ["src/components/RobotDesk.tsx", "src/components/DemoAccount.tsx", "src/components/PerpsNav.tsx", "src/lib/demo/engine.ts", "src/lib/demo/store.ts", "src/lib/demo/views.ts", "src/lib/demo/useDemo.ts", "src/lib/demo/market.ts", "src/pages/BackOffice.tsx", "src/lib/backOffice.ts", "src/theme/back-office.css", "src/config/back-office.json"].map(src).join("\n");
+    const files = ["src/components/RobotDesk.tsx", "src/components/DemoAccount.tsx", "src/components/PerpsNav.tsx", "src/lib/demo/engine.ts", "src/lib/demo/store.ts", "src/lib/demo/views.ts", "src/lib/demo/useDemo.ts", "src/lib/demo/market.ts", "src/lib/demo/profiles.ts", "src/pages/BackOffice.tsx", "src/lib/backOffice.ts", "src/theme/back-office.css", "src/config/back-office.json"].map(src).join("\n");
     expect(files).not.toMatch(/background-clip\s*:\s*text/i);
     expect(files).not.toMatch(new RegExp(["b", "a", "n", "k"].join(""), "i")); // owner copy rule
   });

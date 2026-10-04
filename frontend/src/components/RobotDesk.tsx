@@ -146,6 +146,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
     >
       <span className="bo-top">
         <span className="bo-nm">{d.cfg.name}</span>
+        <span className="bo-tf" title={`trades on ${tfLabel(d.cfg.timeframeSec)} bars`}>{tfLabel(d.cfg.timeframeSec)}</span>
         <span className="bo-tag">{STRATEGY_LABEL[d.cfg.strategy]} · {tfLabel(d.cfg.timeframeSec)}</span>
         <span className="bo-light"><i />{STATUS_TEXT[d.status]}</span>
       </span>
@@ -222,6 +223,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
         <span>lost <b className={tally.grossLost ? "r" : ""}>{tally.grossLost ? `−${tally.grossLost.toFixed(2)}` : "0.00"}</b></span>
         <span>uPnL <b className={pos ? (upnl >= 0 ? "g" : "r") : ""}>{pos ? fmtPnl(upnl) : "—"}</b></span>
       </span>
+      {d.watching && <span className="bo-watch" title={d.watching}><i>watching</i> {d.watching}</span>}
     </button>
   );
 }

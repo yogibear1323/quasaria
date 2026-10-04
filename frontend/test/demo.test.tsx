@@ -9,6 +9,11 @@ import { botStats, demoViews, mirrorViews } from "../src/lib/demo/views";
 import { BACK_OFFICE, mergeDesks } from "../src/lib/backOffice";
 import { PerpsNav, PERPS_MENU, isPerpsPath } from "../src/components/PerpsNav";
 import { DemoAccount } from "../src/components/DemoAccount";
+import { ACTIVE, ACTIVE_DESKS, PROFILES } from "../src/lib/demo/profiles";
+import { TradeTape, feedLevel } from "../src/lib/demo/market";
+import { frameLabel, skewProxy, stepDemo } from "../src/lib/demo/engine";
+import { tfLabel } from "../src/lib/backOffice";
+import { explainEntry } from "../../bot/src/office/strategies";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const T0 = 1_790_000_000 - (1_790_000_000 % 3600);
@@ -74,8 +79,8 @@ describe("demo simulator (same bot modules)", () => {
   });
   it("deterministic on a fixed price series; trades respect the risk caps; equity stays consistent", () => {
     const m15 = series(1400);
-    const a = run(newDemo(1000, T0, "a"), m15);
-    const b = run(newDemo(1000, T0, "a"), m15);
+    const a = run(newDemo(1000, T0, "a", "strict"), m15);
+    const b = run(newDemo(1000, T0, "a", "strict"), m15);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
     const opens = Object.values(a.desks).flatMap((d) => d.trades.filter((t) => t.kind === "open"));
     expect(opens.length).toBeGreaterThan(0);
@@ -92,10 +97,10 @@ describe("demo simulator (same bot modules)", () => {
     const m15 = series(300);
     const h1 = aggregate(m15, 900, 4), h4 = aggregate(h1, 3600, 4);
     const now = m15[m15.length - 1].t + 900;
-    const fresh = catchUp(newDemo(1000, now - 6 * 3600, "c"), { m15, h1, h4 }, now, 0);
+    const fresh = catchUp(newDemo(1000, now - 6 * 3600, "c", "strict"), { 900: m15, 3600: h1, 14400: h4 }, 900, now, 0);
     expect(fresh.away.at(-1)?.mode).toBe("caught-up");
     expect(fresh.lastTick).toBe(now);
-    const old = catchUp(newDemo(1000, now - 5 * 86_400, "o"), { m15, h1, h4 }, now, 0);
+    const old = catchUp(newDemo(1000, now - 5 * 86_400, "o", "strict"), { 900: m15, 3600: h1, 14400: h4 }, 900, now, 0);
     expect(old.away[0].mode).toBe("paused");
     expect(old.away[0].to - old.away[0].from).toBeGreaterThanOrEqual(5 * 86_400 - CATCHUP_MAX_SEC - 900);
   });
@@ -196,5 +201,88 @@ describe("Perps nav submenu", () => {
   });
   it("Perps page links to the demo account", () => {
     expect(src("src/pages/Perps.tsx")).toContain('to="/back-office?view=demo"');
+  });
+});
+
+describe("Active demo profile (owner decision: default for new demos, each bot on its own frame)", () => {
+  it("is the default; every desk has a distinct frame; risk + limits identical to the live fleet", () => {
+    expect(newDemo(500, T0, "d").profile).toBe("active");
+    const frames = ACTIVE.desks.map((d) => d.timeframeSec);
+    expect(new Set(frames).size).toBe(ACTIVE.desks.length);
+    expect(Object.fromEntries(ACTIVE.desks.map((d) => [d.id, frameLabel(d.timeframeSec)]))).toEqual({ echo: "15s", halo: "30s", lyra: "1m", vega: "5m", rigel: "15m", nova: "30m" });
+    for (const k of Object.keys(ACTIVE_DESKS)) expect(OFFICE.desks.some((d) => d.id === k)).toBe(true); // internal ids (Regal = "rigel")
+    expect(ACTIVE.limits).toEqual(OFFICE.limits);
+    expect(ACTIVE.risk).toEqual(OFFICE.risk);
+    for (const d of ACTIVE.desks) {
+      const o = OFFICE.desks.find((x) => x.id === d.id)!;
+      expect(d.riskPct).toBe(o.riskPct);
+      expect(d.riskPct).toBeGreaterThan(0); // percent units; fleet values (0.75–1%) unchanged
+      expect(d.riskPct).toBeLessThanOrEqual(2);
+      expect(d.maxLeverage).toBe(o.maxLeverage);
+      expect(d.capital).toBe(o.capital);
+    }
+    expect(PROFILES.strict.cfg).toBe(OFFICE);
+    expect(newDemo(500, T0, "s", "strict").profile).toBe("strict");
+  });
+  it("tfLabel / frameLabel handle second frames", () => {
+    expect(tfLabel(15)).toBe("15s");
+    expect(tfLabel(300)).toBe("5m");
+    expect(tfLabel(14400)).toBe("4h");
+    expect(frameLabel(30)).toBe("30s");
+  });
+  it("skew proxy maps candle pressure into bounded funding-style inputs", () => {
+    const up: Candle[] = Array.from({ length: 12 }, (_, i) => ({ t: T0 + i * 60, o: 1, h: 1.01, l: 0.999, c: 1.009 }));
+    const p = skewProxy(up, 10);
+    expect(p.hourly).toBeGreaterThan(0);
+    expect(Math.abs(p.hourly)).toBeLessThanOrEqual(0.0005);
+    const dn = skewProxy(up.map((b) => ({ ...b, o: b.c, c: b.o })), 10);
+    expect(dn.hourly).toBeLessThan(0);
+  });
+  it("trade tape builds closed sub-minute bars and fills gaps flat", () => {
+    const tape = new TradeTape();
+    tape.add([{ id: 1, t: T0 + 1, price: 0.2, size: 1 }, { id: 2, t: T0 + 5, price: 0.21, size: 1 }, { id: 3, t: T0 + 40, price: 0.19, size: 1 }]);
+    tape.add([{ id: 3, t: T0 + 40, price: 0.19, size: 1 }]); // dedupe
+    expect(tape.trades.length).toBe(3);
+    const b = tape.bars(15, T0 + 61);
+    expect(b.map((x) => x.t)).toEqual([T0, T0 + 15, T0 + 30, T0 + 45]);
+    expect(b[0]).toMatchObject({ o: 0.2, h: 0.21, l: 0.2, c: 0.21 });
+    expect(b[1]).toMatchObject({ o: 0.21, c: 0.21, h: 0.21, l: 0.21 });
+    expect(b[2].c).toBe(0.19);
+  });
+  it("feed freshness levels", () => {
+    expect(feedLevel(10)).toBe("fresh");
+    expect(feedLevel(120)).toBe("stale");
+    expect(feedLevel(500)).toBe("down");
+    expect(feedLevel(null)).toBe("down");
+  });
+  it("explainEntry describes each strategy's live condition (display only)", () => {
+    const bars = series(300);
+    for (const d of ACTIVE.desks) {
+      const txt = explainEntry(d, { bars, price: bars[bars.length - 1].c, now: bars[bars.length - 1].t + 900, fundingExtHourly: 0, fundingSamples: [], externalSkew: 0, trendBreakoutRecent: false });
+      expect(typeof txt).toBe("string");
+      expect(txt.length).toBeGreaterThan(5);
+    }
+  });
+  it("an oracle deviation block stops new entries, and the watching line carries the frame", () => {
+    const m15 = series(400);
+    let st = newDemo(1000, T0, "b", "active");
+    const h1 = aggregate(m15, 900, 4);
+    for (const b of m15) {
+      const now = b.t + 900;
+      const bars = { 15: closedBy(m15, 900, now).slice(-300), 30: closedBy(m15, 900, now).slice(-300), 60: closedBy(m15, 900, now).slice(-300), 300: closedBy(m15, 900, now).slice(-300), 900: closedBy(m15, 900, now).slice(-300), 1800: closedBy(h1, 3600, now).slice(-300) };
+      st = stepDemo(st, { now, price: b.c, hi: b.h, lo: b.l, bars, fundingHourly: 0, extSkew: 0, entryBlock: "oracle deviates 2.0% from market" });
+    }
+    expect(Object.values(st.desks).flatMap((d) => d.trades).length).toBe(0);
+    expect(st.desks.echo.watching).toMatch(/^\[15s\]/);
+    expect(st.desks.rigel.watching).toMatch(/^\[15m\]/);
+  });
+});
+
+describe("Active profile honesty", () => {
+  it("proxy desks label their trade reasons as a skew proxy, not funding", async () => {
+    const { proxyReason } = await import("../src/lib/demo/engine");
+    const r = proxyReason("receive funding 0.0130%/h, external skew 25983");
+    expect(r).toMatch(/^skew proxy \(candle pressure, not funding\)/);
+    expect(r.replace(/not funding/, "")).not.toMatch(/funding/i);
   });
 });

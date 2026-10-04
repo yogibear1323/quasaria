@@ -4,7 +4,7 @@
  * Only one tab (the "runner", heartbeat lease) advances the simulation; the rest render what it saves.
  * Limitation (by design, no server): the cap is per browser profile, not per person.
  */
-import { newDemo, validateBalance, type DemoState } from "./engine";
+import { newDemo, validateBalance, type DemoState, type Profile } from "./engine";
 
 export const DEMO_KEY = "quasaria.demo.v1";
 export const RUNNER_KEY = "quasaria.demo.runner";
@@ -33,19 +33,19 @@ export function loadDemo(kv: KV): DemoState | null {
 export type CreateResult = { ok: true; demo: DemoState } | { ok: false; reason: "exists" | "invalid"; message: string; demo?: DemoState };
 
 /** Synchronous core: refuses when a demo already exists in this browser. */
-export function createDemo(kv: KV, balanceInput: unknown, now: number, id: string): CreateResult {
+export function createDemo(kv: KV, balanceInput: unknown, now: number, id: string, profile: Profile = "active"): CreateResult {
   const v = validateBalance(balanceInput);
   if (!v.ok) return { ok: false, reason: "invalid", message: v.reason };
   const existing = loadDemo(kv);
   if (existing) return { ok: false, reason: "exists", message: "You already have a demo open — close it to start a new one.", demo: existing };
-  const demo = newDemo(v.value, now, id);
+  const demo = newDemo(v.value, now, id, profile);
   kv.setItem(DEMO_KEY, JSON.stringify(demo));
   return { ok: true, demo };
 }
 
 /** Cross-tab safe create: serialised by a Web Lock when the browser has one. */
-export async function createDemoLocked(kv: KV, balanceInput: unknown, now: number, id: string, locks: Locks | null | undefined): Promise<CreateResult> {
-  const run = () => createDemo(kv, balanceInput, now, id);
+export async function createDemoLocked(kv: KV, balanceInput: unknown, now: number, id: string, locks: Locks | null | undefined, profile: Profile = "active"): Promise<CreateResult> {
+  const run = () => createDemo(kv, balanceInput, now, id, profile);
   return locks ? locks.request("quasaria-demo-create", run) : run();
 }
 

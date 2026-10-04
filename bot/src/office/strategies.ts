@@ -6,7 +6,7 @@
  *  - meanrev: fade closes outside Bollinger(20, 2.2) with RSI extreme, only when ADX < 20 and no fresh trend breakout;
  *             target = middle band, 1.5×ATR stop, 12-bar time stop.
  */
-import { adx, atr, bollinger, donchianPrev, emaSeries, last, rsi, type Candle } from "./indicators.js";
+import { adx, atr, bollinger, donchianPrev, emaSeries, last, rsi, stdev, sma, type Candle } from "./indicators.js";
 import type { ChainPosition, DeskConfig, Signal } from "./types.js";
 
 export interface StrategyContext {
@@ -124,4 +124,41 @@ export function createOfficeStrategy(d: DeskConfig): OfficeStrategy {
   if (d.strategy === "trend") return trend(d);
   if (d.strategy === "funding") return funding(d);
   return meanrev(d);
+}
+
+/**
+ * Read-only explanation of what a desk is waiting for, computed from the SAME indicators and parameters as `entry()`.
+ * Display only (Back Office demo "watching" line); never used for decisions.
+ */
+export function explainEntry(d: DeskConfig, ctx: StrategyContext): string {
+  const { bars } = ctx;
+  const fx = (v: number) => v.toFixed(4);
+  if (d.strategy === "trend") {
+    const fast = p(d, "fast", 20), slow = p(d, "slow", 50), look = p(d, "breakout", 20);
+    if (bars.length < slow + 2) return `Trend: warming up (${bars.length}/${slow + 2} bars)`;
+    const closes = bars.map((b) => b.c);
+    const ef = last(emaSeries(closes, fast)), es = last(emaSeries(closes, slow));
+    const { high, low } = donchianPrev(bars, look);
+    const c = last(closes);
+    if (ef > es) return `Trend: up (EMA${fast}>EMA${slow}), waiting for a close above ${fx(high)} (last close ${fx(c)}, ${(((high - c) / c) * 100).toFixed(2)}% away)`;
+    if (ef < es) return `Trend: down (EMA${fast}<EMA${slow}), waiting for a close below ${fx(low)} (last close ${fx(c)}, ${(((c - low) / c) * 100).toFixed(2)}% away)`;
+    return `Trend: EMAs flat, no direction`;
+  }
+  if (d.strategy === "funding") {
+    const minRate = p(d, "minRateHourly", 0.0002), minSkew = p(d, "minExternalSkew", 5000);
+    const r = Math.abs(ctx.fundingExtHourly);
+    if (r < minRate) return `Funding: rate ${(ctx.fundingExtHourly * 100).toFixed(4)}%/h below the ${(minRate * 100).toFixed(3)}%/h threshold`;
+    if (ctx.fundingSamples.length < 2) return `Funding: rate ok, collecting hourly samples (${ctx.fundingSamples.length}/2)`;
+    if (Math.abs(ctx.externalSkew) < minSkew) return `Funding: external skew ${ctx.externalSkew.toFixed(0)} below ${minSkew}`;
+    return `Funding: rate ${(ctx.fundingExtHourly * 100).toFixed(4)}%/h, waiting for a calm bar`;
+  }
+  const n = p(d, "bbPeriod", 20), k = p(d, "bbK", 2.2), lo = p(d, "rsiLow", 28), hi = p(d, "rsiHigh", 72), maxAdx = p(d, "maxAdx", 20);
+  if (bars.length < Math.max(n, 30) + 1) return `Mean-rev: warming up (${bars.length}/${Math.max(n, 30) + 1} bars)`;
+  if (ctx.trendBreakoutRecent) return `Mean-rev: standing aside after a recent trend breakout`;
+  const closes = bars.map((b) => b.c);
+  const sd = stdev(closes, n), mid = sma(closes, n);
+  const z = sd > 0 ? (last(closes) - mid) / sd : 0;
+  const r = rsi(closes, 14), x = adx(bars, 14);
+  const parts = [`z ${z >= 0 ? "+" : ""}${z.toFixed(2)} (needs ±${k.toFixed(1)})`, `RSI ${r.toFixed(0)} (needs <${lo} / >${hi})`, `ADX ${x.toFixed(0)}${x >= maxAdx ? ` ≥ ${maxAdx}: trending, stands aside` : ` (< ${maxAdx} ok)`}`];
+  return `Mean-rev: ${parts.join(" · ")}`;
 }

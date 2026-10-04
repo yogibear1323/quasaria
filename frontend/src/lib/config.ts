@@ -34,6 +34,16 @@ export const CONTRACTS = {
   qusdSac: d.qusdSac,
 };
 
+/**
+ * Leverage-vault market key for XLM. The perps-v1 vault trades
+ * `Asset::Stellar(<native XLM SAC>)`, the key the oracle feed refreshes from live prices
+ * (deployment `vault.marketAsset`). Older deployments used `Asset::Other("XLM")`.
+ */
+const vaultMarket = (deployment as { vault?: { marketAsset?: { Stellar?: string; Other?: string } } }).vault?.marketAsset;
+export const VAULT_MARKET: { Stellar: string } | { Other: string } = vaultMarket?.Stellar
+  ? { Stellar: vaultMarket.Stellar }
+  : { Other: vaultMarket?.Other ?? "XLM" };
+
 /** Offline demo mode (no network calls at all) — used for CI / offline screenshots. */
 export const OFFLINE_DEMO = (env.VITE_OFFLINE_DEMO as string) === "1";
 

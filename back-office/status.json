@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-07T13:56:33.000Z",
+ "generatedAt": "2026-10-07T14:01:37.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -24,14 +24,14 @@
  },
  "market": {
   "oraclePrice": 0.22312585,
-  "oracleAgeSec": 226256,
-  "referencePrice": 0.202314,
-  "deviationPct": 10.2869,
+  "oracleAgeSec": 226560,
+  "referencePrice": 0.201617,
+  "deviationPct": 10.6682,
   "oracleLevel": "halt",
   "oracleReasons": [
-   "oracle age 226256s > 90s",
-   "oracle 0.22313 vs reference 0.20231: 10.29% > 1.5%",
-   "oracle flat 600s while reference moved 0.73%"
+   "oracle age 226560s > 90s",
+   "oracle 0.22313 vs reference 0.20162: 10.67% > 1.5%",
+   "oracle flat 600s while reference moved 0.32%"
   ],
   "reserve": 10000.032,
   "longOi": 0,
@@ -118,7 +118,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.21588,
     0.216097,
     0.215536,
     0.21609,
@@ -157,7 +156,8 @@
     0.203684,
     0.203585,
     0.203231,
-    0.202922
+    0.202922,
+    0.202036
    ]
   },
   {
@@ -356,7 +356,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.21588,
     0.216097,
     0.215536,
     0.21609,
@@ -395,7 +394,8 @@
     0.203684,
     0.203585,
     0.203231,
-    0.202922
+    0.202922,
+    0.202036
    ]
   },
   {
@@ -475,7 +475,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.21588,
     0.216097,
     0.215536,
     0.21609,
@@ -514,7 +513,8 @@
     0.203684,
     0.203585,
     0.203231,
-    0.202922
+    0.202922,
+    0.202036
    ]
   },
   {
@@ -594,7 +594,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.206764,
     0.205895,
     0.205849,
     0.20552,
@@ -633,7 +632,8 @@
     0.202922,
     0.202584,
     0.202112,
-    0.201539
+    0.201539,
+    0.20187
    ]
   },
   {
@@ -713,7 +713,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.21588,
     0.216097,
     0.215536,
     0.21609,
@@ -752,7 +751,8 @@
     0.203684,
     0.203585,
     0.203231,
-    0.202922
+    0.202922,
+    0.202036
    ]
   }
  ]

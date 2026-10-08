@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-08T22:29:34.000Z",
+ "generatedAt": "2026-10-08T22:34:42.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1924955,
-  "oracleAgeSec": 7,
-  "referencePrice": 0.192457,
-  "deviationPct": 0.02,
+  "oraclePrice": 0.1926645,
+  "oracleAgeSec": 10,
+  "referencePrice": 0.1927,
+  "deviationPct": 0.0184,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-08T22:00Z",
+   "lastSignal": "no signal @ bar 10-08T22:15Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.198008,
     0.197572,
     0.197654,
     0.19812,
@@ -629,7 +628,8 @@
     0.192284,
     0.192365,
     0.192426,
-    0.192533
+    0.192533,
+    0.19246
    ]
   },
   {
@@ -791,37 +791,57 @@
    },
    "calibrationLive": {
     "regime": {
-     "n": 9,
-     "brier": 0.0403,
+     "n": 10,
+     "brier": 0.0406,
      "climatology": 0
     },
     "direction": {
-     "n": 9,
+     "n": 10,
      "brier": 0.218,
-     "climatology": 0.2469
+     "climatology": 0.25
     },
     "pressure": {
-     "n": 9,
-     "brier": 0.2438,
-     "climatology": 0.2469
+     "n": 10,
+     "brier": 0.2469,
+     "climatology": 0.25
     },
     "setup_long": {
-     "n": 9,
-     "brier": 0.1233,
+     "n": 10,
+     "brier": 0.1294,
      "climatology": 0
     },
     "setup_short": {
-     "n": 9,
-     "brier": 0.3689,
-     "climatology": 0.1728
+     "n": 10,
+     "brier": 0.3807,
+     "climatology": 0.16
     },
     "risk": {
-     "n": 9,
-     "brier": 0.3171,
-     "climatology": 0.2469
+     "n": 10,
+     "brier": 0.291,
+     "climatology": 0.25
     }
    },
    "decisions": [
+    {
+     "t": 1791498600,
+     "barT": 1791497700,
+     "price": 0.19246,
+     "side": "short",
+     "p": {
+      "setup": 0.422,
+      "direction": 0.548,
+      "pressure": 0.582,
+      "regime": 0.238,
+      "risk": 0.764
+     },
+     "score": 0.493,
+     "action": "skip: setup 0.42 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791497700,
      "barT": 1791496800,
@@ -1299,7 +1319,7 @@
      "fired": false,
      "riskPct": 0,
      "sizing": "none",
-     "result": null,
+     "result": "would have lost",
      "pnl": null
     },
     {

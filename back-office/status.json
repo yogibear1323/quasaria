@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-08T14:26:51.000Z",
+ "generatedAt": "2026-10-08T14:32:08.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -24,13 +24,13 @@
  },
  "market": {
   "oraclePrice": 0.22312585,
-  "oracleAgeSec": 314474,
-  "referencePrice": 0.198783,
-  "deviationPct": 12.2459,
+  "oracleAgeSec": 314791,
+  "referencePrice": 0.199053,
+  "deviationPct": 12.0937,
   "oracleLevel": "halt",
   "oracleReasons": [
-   "oracle age 314474s > 90s",
-   "oracle 0.22313 vs reference 0.19878: 12.25% > 1.5%"
+   "oracle age 314791s > 90s",
+   "oracle 0.22313 vs reference 0.19905: 12.09% > 1.5%"
   ],
   "reserve": 10000.032,
   "longOi": 0,
@@ -593,7 +593,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.199059,
     0.197917,
     0.198078,
     0.199068,
@@ -632,7 +631,8 @@
     0.198025,
     0.197029,
     0.197773,
-    0.198789
+    0.198789,
+    0.198783
    ]
   },
   {
@@ -825,6 +825,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791469800,
+     "barT": 1791468900,
+     "price": 0.198783,
+     "side": "short",
+     "p": {
+      "setup": 0.333,
+      "direction": 0.507,
+      "pressure": 0.525,
+      "regime": 0.217,
+      "risk": 0.739
+     },
+     "score": 0.434,
+     "action": "skip: setup 0.33 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791468900,
      "barT": 1791468000,

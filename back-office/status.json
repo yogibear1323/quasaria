@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-08T14:42:41.000Z",
+ "generatedAt": "2026-10-08T14:44:21.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1985025,
-  "oracleAgeSec": 19,
-  "referencePrice": 0.19855,
-  "deviationPct": 0.0239,
+  "oraclePrice": 0.198202,
+  "oracleAgeSec": 14,
+  "referencePrice": 0.198246,
+  "deviationPct": 0.0222,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -756,9 +756,9 @@
   {
    "id": "orion",
    "name": "Orion",
-   "mode": "shadow",
-   "modeNote": "shadow: scores, logs and paper-trades; never sends orders",
-   "label": "Shadow · calibrated scorer · testnet / simulated · no orders (failed strategy gate)",
+   "mode": "paper",
+   "modeNote": "paper · failed gate: simulated fills only (fees, slippage, funding); never sends an on-chain order",
+   "label": "Paper · failed gate · calibrated scorer · testnet / simulated fills · no on-chain orders",
    "timeframeSec": 900,
    "status": "halted",
    "reason": "global kill: oracle unhealthy > 1800s: oracle age 1939s > 90s; oracle flat 600s while reference moved 0.59%",

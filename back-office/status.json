@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-08T22:55:18.000Z",
+ "generatedAt": "2026-10-08T23:00:25.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1926775,
-  "oracleAgeSec": 1,
-  "referencePrice": 0.192696,
-  "deviationPct": 0.0096,
+  "oraclePrice": 0.1928815,
+  "oracleAgeSec": 8,
+  "referencePrice": 0.192889,
+  "deviationPct": 0.0039,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -110,11 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-08T21:00Z",
+   "lastSignal": "no signal @ bar 10-08T22:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.206774,
     0.206312,
     0.204767,
     0.203684,
@@ -153,7 +152,8 @@
     0.189752,
     0.190903,
     0.192725,
-    0.192426
+    0.192426,
+    0.192759
    ]
   },
   {
@@ -348,11 +348,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-08T21:00Z",
+   "lastSignal": "no signal @ bar 10-08T22:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.206774,
     0.206312,
     0.204767,
     0.203684,
@@ -391,7 +390,8 @@
     0.189752,
     0.190903,
     0.192725,
-    0.192426
+    0.192426,
+    0.192759
    ]
   },
   {
@@ -467,11 +467,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-08T21:00Z",
+   "lastSignal": "no signal @ bar 10-08T22:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.206774,
     0.206312,
     0.204767,
     0.203684,
@@ -510,7 +509,8 @@
     0.189752,
     0.190903,
     0.192725,
-    0.192426
+    0.192426,
+    0.192759
    ]
   },
   {
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-08T22:30Z",
+   "lastSignal": "no signal @ bar 10-08T22:45Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.197654,
     0.19812,
     0.198025,
     0.197029,
@@ -629,7 +628,8 @@
     0.192426,
     0.192533,
     0.19246,
-    0.192659
+    0.192659,
+    0.192696
    ]
   },
   {
@@ -705,11 +705,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-08T21:00Z",
+   "lastSignal": "no signal @ bar 10-08T22:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.206774,
     0.206312,
     0.204767,
     0.203684,
@@ -748,7 +747,8 @@
     0.189752,
     0.190903,
     0.192725,
-    0.192426
+    0.192426,
+    0.192759
    ]
   }
  ],
@@ -791,37 +791,57 @@
    },
    "calibrationLive": {
     "regime": {
-     "n": 11,
-     "brier": 0.0408,
-     "climatology": 0
+     "n": 12,
+     "brier": 0.0898,
+     "climatology": 0.0764
     },
     "direction": {
-     "n": 11,
-     "brier": 0.2186,
-     "climatology": 0.2479
+     "n": 12,
+     "brier": 0.2191,
+     "climatology": 0.2431
     },
     "pressure": {
-     "n": 11,
-     "brier": 0.2495,
-     "climatology": 0.2479
+     "n": 12,
+     "brier": 0.2517,
+     "climatology": 0.2431
     },
     "setup_long": {
-     "n": 11,
-     "brier": 0.1344,
+     "n": 12,
+     "brier": 0.1386,
      "climatology": 0
     },
     "setup_short": {
-     "n": 11,
-     "brier": 0.3904,
-     "climatology": 0.1488
+     "n": 12,
+     "brier": 0.3655,
+     "climatology": 0.1875
     },
     "risk": {
-     "n": 11,
-     "brier": 0.2684,
-     "climatology": 0.2479
+     "n": 12,
+     "brier": 0.2495,
+     "climatology": 0.2431
     }
    },
    "decisions": [
+    {
+     "t": 1791500400,
+     "barT": 1791499500,
+     "price": 0.192696,
+     "side": "short",
+     "p": {
+      "setup": 0.479,
+      "direction": 0.534,
+      "pressure": 0.582,
+      "regime": 0.238,
+      "risk": 0.907
+     },
+     "score": 0.527,
+     "action": "skip: setup 0.48 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791499500,
      "barT": 1791498600,
@@ -1299,7 +1319,7 @@
      "fired": false,
      "riskPct": 0,
      "sizing": "none",
-     "result": null,
+     "result": "would have lost",
      "pnl": null
     },
     {

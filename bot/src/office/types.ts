@@ -50,6 +50,21 @@ export interface OfficeConfig {
   oracle: { warnAgeSec: number; haltAgeSec: number; staleFlatSec: number; warnDevPct: number; haltDevPct: number; killAfterBadSec: number };
   limits: LimitsConfig;
   desks: DeskConfig[];
+  /** calibrated three-layer desks (shadow by default; live orders only after the strategy gate passes). */
+  calibrated?: CalibratedDeskConfig[];
+}
+
+/** A calibrated three-layer desk (see calibrated/shadowDesk.ts). */
+export interface CalibratedDeskConfig {
+  id: string;
+  name: string;
+  mode: "shadow" | "desk";
+  timeframeSec: number;
+  model: string; // path relative to bot/
+  capital: number;
+  riskPct: number; // desk target (<= 1 %)
+  maxLeverage: number;
+  label: string;
 }
 
 /** Market snapshot shared by all desks in one loop. */

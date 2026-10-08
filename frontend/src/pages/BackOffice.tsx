@@ -14,6 +14,7 @@ import { useDemo } from "../lib/demo/useDemo";
 import { demoViews, mirrorViews } from "../lib/demo/views";
 import { useSearchParams } from "react-router-dom";
 import { PERPS } from "../lib/perps";
+import { CalibratedSignals } from "../components/CalibratedSignals";
 import "../theme/back-office.css";
 
 const EXPERT_TX = "https://stellar.expert/explorer/testnet/tx/";
@@ -266,8 +267,10 @@ export default function BackOffice() {
         <Panel d={selected} status={status} example={!!ex} tag={tag} driftMode={tag === "demo" && dm.demo ? `${PROFILES[dm.demo.profile ?? "strict"].cfg.driftMode ?? "strict"} (demo ${PROFILES[dm.demo.profile ?? "strict"].label})` : undefined} />
       </div>
 
+      {!tag && <CalibratedSignals desks={status?.calibrated} stale={stale} />}
+
       <RiskWarning>
-        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice. After a walk-forward study in which no setting was reliably profitable out-of-sample, the desks run slower 1h–4h settings, Echo and Nova are paused, and Lyra runs an experimental liquidity-pocket strategy (simulated/testnet only).
+        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice. After a walk-forward study in which no setting was reliably profitable out-of-sample, the desks run slower 1h–4h settings, Echo and Nova are paused, and Lyra runs an experimental liquidity-pocket strategy (simulated/testnet only). Orion, the calibrated scorer desk, failed its out-of-sample strategy gate and runs in shadow mode: it scores and paper-trades but places no orders.
       </RiskWarning>
     </div>
   );

@@ -158,6 +158,44 @@ export interface StatusDoc {
   fleet: { status: "running" | "paused" | "killed"; reason: string; equity: number; startEquity: number; pnlToday: number; pnlTotal: number; riskUsedPct: number; riskCapPct: number; openPositions: number; maxPositions: number; netSide: string; drawdownPct: number; drawdownLimitPct: number };
   market: { oraclePrice: number; oracleAgeSec: number; referencePrice: number | null; deviationPct: number | null; oracleLevel: string; fundingPredictedHourly: number; reserve: number };
   desks: StatusDesk[];
+  /** calibrated three-layer desks (shadow mode = scored + paper only, no orders). */
+  calibrated?: CalibratedStatus[];
+}
+
+export interface CalibratedSignal {
+  t: number; // decision time, unix s
+  price: number;
+  side: "long" | "short";
+  p: { setup: number; direction: number; pressure: number; regime: number; risk: number };
+  score: number;
+  action: string;
+  fired: boolean;
+  riskPct: number;
+  sizing: string;
+  result: string | null;
+  pnl: number | null;
+}
+export interface CalibratedStatus {
+  id: string;
+  name: string;
+  mode: "shadow" | "desk";
+  modeNote: string;
+  label: string;
+  timeframeSec: number;
+  status: "running" | "paused" | "halted";
+  reason: string;
+  equity: number;
+  startEquity: number;
+  paperPnl: number;
+  paperTrades: number;
+  paperWins: number;
+  open: { side: string; entry: number; stop: number; takeProfit: number; notional: number } | null;
+  thresholds: { setup: number; direction: number; regime: number; pressure: number; risk: number };
+  weights: Record<string, number>;
+  sizing: string;
+  model: { trainedAt: string; gatePassed: boolean; gate: string; calibrationNote: string };
+  calibrationLive: Record<string, { n: number; brier: number | null; climatology: number | null }>;
+  decisions: CalibratedSignal[];
 }
 
 export async function fetchStatus(url = BACK_OFFICE.statusUrl, f: typeof fetch = fetch): Promise<StatusDoc> {

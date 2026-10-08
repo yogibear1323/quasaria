@@ -14,6 +14,12 @@ import { reconcile, type DeskState, type FleetStateFile, type JournalOpen, type 
 import { createOfficeStrategy, type OfficeStrategy, type StrategyContext } from "./strategies.js";
 import type { ChainPosition, DeskConfig, DriftMode, OfficeConfig } from "./types.js";
 import type { DeskKeys, OfficeVenue, VaultMarket } from "./venue.js";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { loadModel } from "./calibrated/model.js";
+import { ShadowDesk } from "./calibrated/shadowDesk.js";
+
+const BOT_DIR = fileURLToPath(new URL("../../", import.meta.url));
 
 export type RunMode = "live" | "paper" | "dry-run";
 export interface FleetOptions {
@@ -43,6 +49,8 @@ export function fundingRates(m: VaultMarket, fleetLong: number, fleetShort: numb
 
 export class Fleet {
   readonly strategies: Record<string, OfficeStrategy>;
+  /** calibrated desks: scored + risk-checked every loop; shadow mode never sends orders (see calibrated/shadowDesk.ts). */
+  readonly calibrated: ShadowDesk[];
   lastStatus: Record<string, unknown> | null = null;
   private flattenReq = new Set<string>();
   private readonly log: (m: string) => void;
@@ -59,6 +67,21 @@ export class Fleet {
     this.strategies = Object.fromEntries(cfg.desks.map((d) => [d.id, createOfficeStrategy(d)]));
     this.log = opts.log ?? ((m) => console.log(m));
     this.now = opts.now ?? (() => Math.floor(Date.now() / 1000));
+    this.calibrated = (cfg.calibrated ?? []).map((c) => new ShadowDesk(c, loadModel(resolve(BOT_DIR, c.model)), cfg.limits, store.dir, this.log));
+  }
+
+  /** Step every calibrated desk (independent of the vault read: it decides on public reference candles). */
+  private async stepCalibrated(now: number, f: FleetStateFile, fundingHourly: number | null) {
+    for (const sd of this.calibrated) {
+      try {
+        const bars = await this.ref.closedBars(sd.cfg.timeframeSec, now);
+        const book = this.ref.book ? await this.ref.book().catch(() => null) : null;
+        sd.step({ now, killed: f.killed, killReason: f.killReason, bars, extras: { spreadBps: book?.spreadBps ?? null, bookImbalance: book?.imbalance ?? null, fundingHourly } });
+        sd.save();
+      } catch (e) {
+        this.log(`[${sd.cfg.id}] calibrated desk error: ${(e as Error).message}`);
+      }
+    }
   }
 
   driftMode(now: number): DriftMode {
@@ -133,6 +156,7 @@ export class Fleet {
         continue;
       }
       if (!("desk" in c)) continue;
+      for (const sd of this.calibrated) if (c.desk === sd.cfg.id || c.desk === "all") sd.command(c.cmd);
       const ids = c.desk === "all" ? Object.keys(desks) : [c.desk];
       for (const id of ids) {
         const s = desks[id];
@@ -176,6 +200,7 @@ export class Fleet {
       m = await this.venue.market();
     } catch (e) {
       this.log(`market snapshot failed: ${(e as Error).message}`);
+      await this.stepCalibrated(now, f, null);
       for (const d of this.cfg.desks) this.store.saveDesk(d.id, states[d.id]);
       this.store.saveFleet(f);
       return this.lastStatus;
@@ -202,6 +227,7 @@ export class Fleet {
     let fleetLong = 0, fleetShort = 0;
     for (const v of Object.values(views)) for (const p of v?.positions ?? []) p.side === "long" ? (fleetLong += p.size) : (fleetShort += p.size);
     const fr = fundingRates(m, fleetLong, fleetShort);
+    await this.stepCalibrated(now, f, fr.predictedHourly);
     const lastSample = f.fundingSamples[f.fundingSamples.length - 1];
     if (!lastSample || now - lastSample.t >= 3570) f.fundingSamples.push({ t: now, hourly: fr.extHourly });
 
@@ -486,6 +512,7 @@ export class Fleet {
           spark: tb.slice(-40).map((b) => b.c),
         };
       }),
+      calibrated: this.calibrated.map((sd) => sd.status()),
     };
   }
 }

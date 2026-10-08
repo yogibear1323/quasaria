@@ -16,5 +16,8 @@
     { "id": "nova", "name": "Nova", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "paused": "fast funding-skew strategy was net negative out-of-sample in the walk-forward study", "params": { "minRateHourly": 0.0003 } },
     { "id": "echo", "name": "Echo", "strategy": "meanrev", "timeframeSec": 900, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "paused": "15m mean-reversion was net negative out-of-sample in the walk-forward study", "params": {} },
     { "id": "halo", "name": "Halo", "strategy": "meanrev", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": { "lpSweepBars": 12 } }
+  ],
+  "calibrated": [
+    { "id": "orion", "name": "Orion", "mode": "shadow", "timeframeSec": 900, "model": "office.calibrated.model.json", "capital": 500, "riskPct": 1.0, "maxLeverage": 3, "label": "Shadow · calibrated scorer · testnet / simulated · no orders (failed strategy gate)" }
   ]
 }

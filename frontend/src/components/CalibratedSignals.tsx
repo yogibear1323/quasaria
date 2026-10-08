@@ -12,6 +12,12 @@ const Q: { k: keyof CalibratedStatus["thresholds"]; label: string; title: string
 ];
 
 /** Signal log of the calibrated desk(s): every candle's probabilities, confidence, action and result. Read-only. */
+function modeChip(d: CalibratedStatus) {
+  if (d.mode === "shadow") return "shadow · no orders";
+  if (d.mode === "paper") return d.model.gatePassed ? "paper · simulated fills" : "paper · failed gate";
+  return "desk";
+}
+
 export function CalibratedSignals({ desks, stale }: { desks: CalibratedStatus[] | undefined; stale: boolean }) {
   if (!desks?.length) return null;
   return (
@@ -23,7 +29,7 @@ export function CalibratedSignals({ desks, stale }: { desks: CalibratedStatus[] 
             <div className="bo-cal-h">
               <h2>{d.name} <span className="bo-tf">{tfLabel(d.timeframeSec)}</span></h2>
               <span className="bo-cal-chip">testnet / simulated</span>
-              <span className={`bo-cal-chip ${d.mode === "shadow" ? "sh" : ""}`}>{d.mode === "shadow" ? "shadow · no orders" : "desk"}</span>
+              <span className={`bo-cal-chip ${d.mode === "desk" ? "" : "sh"}`}>{modeChip(d)}</span>
               <span className={`bo-cal-chip st-${d.status}`}>{d.status}{d.reason ? ` · ${d.reason}` : ""}</span>
               {stale && <span className="bo-cal-chip st-halted">feed stale</span>}
             </div>
@@ -59,7 +65,7 @@ export function CalibratedSignals({ desks, stale }: { desks: CalibratedStatus[] 
                 </div>
               ))}
             </div>
-            <p className="bo-fine">Simulated paper trades on public XLM-USD candles with fees, slippage and funding. Shadow mode never places an order. Not a forecast; no expected or guaranteed returns.</p>
+            <p className="bo-fine">Simulated paper trades on public XLM-USD candles with fees, slippage and funding. Paper and shadow modes never place an on-chain order. Not a forecast; no expected or guaranteed returns.</p>
           </div>
         );
       })}

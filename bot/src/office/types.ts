@@ -58,7 +58,7 @@ export interface OfficeConfig {
 export interface CalibratedDeskConfig {
   id: string;
   name: string;
-  mode: "shadow" | "desk";
+  mode: "shadow" | "paper" | "desk"; // paper = simulated fills only, allowed with a failed gate; desk needs gate.passed
   timeframeSec: number;
   model: string; // path relative to bot/
   capital: number;

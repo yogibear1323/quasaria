@@ -270,7 +270,7 @@ export default function BackOffice() {
       {!tag && <CalibratedSignals desks={status?.calibrated} stale={stale} />}
 
       <RiskWarning>
-        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice. After a walk-forward study in which no setting was reliably profitable out-of-sample, the desks run slower 1h–4h settings, Echo and Nova are paused, and Lyra runs an experimental liquidity-pocket strategy (simulated/testnet only). Orion, the calibrated scorer desk, failed its out-of-sample strategy gate and runs in shadow mode: it scores and paper-trades but places no orders.
+        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice. After a walk-forward study in which no setting was reliably profitable out-of-sample, the desks run slower 1h–4h settings, Echo and Nova are paused, and Lyra runs an experimental liquidity-pocket strategy (simulated/testnet only). Orion, the calibrated scorer desk, failed its out-of-sample strategy gate and runs in paper mode: it scores every candle and records simulated fills, but places no on-chain orders.
       </RiskWarning>
     </div>
   );

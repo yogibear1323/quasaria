@@ -1,8 +1,10 @@
 # Orion — calibrated XLM-perp desk · strategy.md
 
-**Status: FAILED GATE — not deployed as a trading desk.** Orion runs in **shadow mode** on the testnet fleet: it scores
-every 15-minute candle, logs every decision and outcome, and paper-trades with simulated fills. It places **no orders**.
-The code refuses live-order ("desk") mode unless the model file records a passed gate.
+**Status: FAILED GATE — not deployed as a trading desk.** Orion runs in **paper mode** ("paper · failed gate") on the
+testnet fleet: it scores every 15-minute candle, logs every decision and outcome, and records simulated fills (fees,
+slippage, funding) at a fixed 0.5 % risk. It places **no on-chain orders**. Paper mode was enabled on Oct 8, 2026 at
+Robert's request after the oracle feed was restored; before that it ran in shadow mode (score and log only). The code
+refuses live-order ("desk") mode unless the model file records a passed gate.
 
 *All figures are simulated backtests on historical Coinbase XLM-USD prices with fees, slippage and funding. They are not
 forecasts and imply no future returns. Testnet / simulated only; no mainnet, no real funds.*
@@ -141,7 +143,7 @@ Calibration logging: every decision (snapshot, probabilities, decision, veto, ac
 
 ## 5. WHAT COULD BLOW UP THIS ACCOUNT?
 
-* **Does paper match the backtest?** Unknown — shadow paper trading started Oct 8, 2026 with zero paper fills. The
+* **Does paper match the backtest?** Unknown — paper trading started Oct 8, 2026 with zero paper fills so far. The
   backtest's own untouched holdout already disagrees with the walk-forward result (3 trades, $-1.43).
   Not clean.
 * **Did the kill switch fire in testing?** Yes. Unit tests: the kill switch flattens the open paper position and halts
@@ -161,7 +163,8 @@ Calibration logging: every decision (snapshot, probabilities, decision, veto, ac
   risks: if the oracle feed stops, the vault refuses trades (max price age 90 s) and the fleet kills itself, which is
   exactly what has happened since Oct 4; the vault's finite reserve caps payouts. Not clean.
 
-**Refusing to go live.** Two of five answers are not clean and the gate failed. Orion stays in shadow mode.
+**Refusing to go live.** Two of five answers are not clean and the gate failed. Orion stays in paper mode (simulated fills,
+no on-chain orders) until a model clears the gate and paper results on its own fills agree with the backtest.
 
 ## 6. Reproduce
 

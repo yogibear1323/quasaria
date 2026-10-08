@@ -4,8 +4,12 @@
  * Risk rules sit ABOVE the model and are evaluated in code on every candle: global kill switch (flatten + halt),
  * max open positions, desk daily loss, desk drawdown halt (flatten), loss-streak pause, entries/day, 2 % hard cap.
  *
- * Modes: "shadow" (default) scores, logs and paper-trades only — it never sends an order. "desk" (live testnet orders)
- * is refused in code unless the model file says it passed the strategy gate; until then the desk is forced to shadow.
+ * Modes (none of them sends an order from this class):
+ *   "shadow" (default) scores and logs every candle; no paper positions.
+ *   "paper"  scores, logs and opens SIMULATED paper fills (fees, slippage, funding); never an on-chain order. Allowed even
+ *            when the model failed the strategy gate (labelled "paper · failed gate"); same risk vetoes and sizing caps.
+ *   "desk"   (live testnet orders) is refused in code unless the model file says it passed the strategy gate; until then
+ *            the desk is forced to shadow.
  * Every decision and every resolved outcome is appended to calibration.jsonl (the nightly review reads it).
  */
 import { appendFileSync, existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -66,7 +70,7 @@ export interface StepInput {
 }
 
 export class ShadowDesk {
-  readonly mode: "shadow" | "desk";
+  readonly mode: "shadow" | "paper" | "desk";
   readonly modeNote: string;
   state: ShadowState;
   constructor(readonly cfg: CalibratedDeskConfig, readonly model: CalibratedModel, readonly limits: LimitsConfig, readonly dir: string, private readonly log: (m: string) => void = () => undefined) {
@@ -76,7 +80,10 @@ export class ShadowDesk {
       log(`[${cfg.id}] ${this.modeNote}`);
     } else {
       this.mode = cfg.mode;
-      this.modeNote = cfg.mode === "shadow" ? "shadow: scores, logs and paper-trades; never sends orders" : "desk";
+      this.modeNote =
+        cfg.mode === "shadow" ? "shadow: scores and logs only; no paper positions, never sends orders"
+        : cfg.mode === "paper" ? `${model.gate.passed ? "paper" : "paper · failed gate"}: simulated fills only (fees, slippage, funding); never sends an on-chain order`
+        : "desk";
     }
     if (model.timeframeSec !== cfg.timeframeSec) throw new Error(`${cfg.id}: model timeframe ${model.timeframeSec} != desk ${cfg.timeframeSec}`);
     this.state = this.load();
@@ -108,7 +115,7 @@ export class ShadowDesk {
     const row = s.decisions.find((d) => d.t === o.decisionT);
     if (row) (row.result = `${reason} ${pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}`), (row.pnl = pnl);
     this.journal({ type: "paper_close", decisionT: o.decisionT, side: o.side, entry: o.entry, exit, reason, pnl, equity: s.equity });
-    this.log(`[${this.cfg.id}] paper ${o.side} closed ${reason} pnl ${pnl.toFixed(2)} (shadow, no order)`);
+    this.log(`[${this.cfg.id}] paper ${o.side} closed ${reason} pnl ${pnl.toFixed(2)} (${this.mode}, no order)`);
     s.open = null;
   }
 
@@ -196,6 +203,7 @@ export class ShadowDesk {
     else if (s.status === "halted") veto = `halted: ${s.statusReason}`;
     else if (gate.action !== "ok") veto = gate.reason;
     else if (s.open) veto = "position already open (max 1)";
+    else if (this.mode === "shadow" && d.fire) veto = "shadow mode: no paper positions";
 
     let action: string, fired = false, riskPct = 0;
     if (!d.fire) action = `skip: ${d.failed.join(", ")}`;
@@ -214,7 +222,7 @@ export class ShadowDesk {
         s.open = { ...openPaper(d.side, snap.price, snap.atr, this.model.geometry, last.t, gran, T, sz.notional, sz.riskAmount, inp.extras.fundingHourly), decisionT: decisionTs };
         s.entryTimes.push(inp.now);
         action = `paper ${d.side} · risk ${d.riskPct.toFixed(2)}% (${d.sizing}) · notional ${sz.notional.toFixed(0)}`;
-        this.log(`[${this.cfg.id}] ${action} (shadow, no order)`);
+        this.log(`[${this.cfg.id}] ${action} (${this.mode}, simulated fill, no order)`);
       }
     }
     const row: DecisionRow = { t: decisionTs, barT: last.t, price: snap.price, side: d.side, p: d.pSide, score: d.score, action, fired, riskPct, sizing: fired ? d.sizing : "none", result: null, pnl: null };

@@ -111,18 +111,29 @@ describe("calibrated desk · risk rules above the model", () => {
   let dir: string;
   beforeEach(() => (dir = mkdtempSync(join(tmpdir(), "cal-"))));
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
-  const cfg: CalibratedDeskConfig = { id: "orion", name: "Orion", mode: "shadow", timeframeSec: fx.gran, model: "", capital: 500, riskPct: 1, maxLeverage: 3, label: "test" };
+  const cfg: CalibratedDeskConfig = { id: "orion", name: "Orion", mode: "paper", timeframeSec: fx.gran, model: "", capital: 500, riskPct: 1, maxLeverage: 3, label: "test" };
   const extras = { spreadBps: null, bookImbalance: null, fundingHourly: 0 };
   const allYes: Probabilities = { regime: 0.9, direction: 0.9, pressure: 0.9, setup_long: 0.9, setup_short: 0.1, risk: 0.9 };
   const endOf = (n: number) => fx.bars[n - 1].t + fx.gran;
 
-  it("opens a paper trade when everything clears, and never sends an order in shadow mode", () => {
-    const desk = new ShadowDesk(cfg, fakeModel(allYes), limits, dir);
+  it("paper mode opens a simulated fill when everything clears, even with a failed gate (labelled), at fixed 0.5 % risk", () => {
+    const desk = new ShadowDesk(cfg, fakeModel(allYes, { gate: { passed: false, summary: "FAILED GATE" } }), limits, dir);
     const row = desk.step({ now: endOf(W + 1), killed: false, bars: fx.bars.slice(0, W + 1), extras })!;
     expect(row.fired).toBe(true);
     expect(row.action).toMatch(/^paper long/);
+    expect(row.riskPct).toBe(0.5);
     expect(desk.state.open).not.toBeNull();
-    expect(desk.mode).toBe("shadow");
+    expect(desk.mode).toBe("paper");
+    expect(desk.modeNote).toMatch(/^paper · failed gate/);
+    expect(desk.status().open!.notional).toBeLessThanOrEqual(500 * limits.maxNotionalX + 1e-9);
+  });
+
+  it("shadow mode scores and logs but opens no paper position", () => {
+    const desk = new ShadowDesk({ ...cfg, mode: "shadow" }, fakeModel(allYes), limits, dir);
+    const row = desk.step({ now: endOf(W + 1), killed: false, bars: fx.bars.slice(0, W + 1), extras })!;
+    expect(row.fired).toBe(false);
+    expect(row.action).toMatch(/^veto: shadow mode/);
+    expect(desk.state.open).toBeNull();
   });
 
   it("kill switch flattens the open position and halts; later signals are vetoed", () => {
@@ -190,12 +201,12 @@ describe("calibrated desk · risk rules above the model", () => {
 });
 
 describe("calibrated desk · fleet integration", () => {
-  it("the fleet steps Orion in shadow mode, publishes its signals, and the global kill halts it without any order", async () => {
+  it("the fleet steps Orion in paper mode, publishes its signals, and the global kill halts it without any order", async () => {
     const { Fleet } = await import("../src/office/fleet.js");
     const { Store } = await import("../src/office/store.js");
     const { PaperOfficeVenue } = await import("../src/office/venue.js");
     const cfgAll = loadOfficeConfig();
-    expect(cfgAll.calibrated?.[0]?.mode).toBe("shadow");
+    expect(cfgAll.calibrated?.[0]?.mode).toBe("paper");
     const dir = mkdtempSync(join(tmpdir(), "cal-fleet-"));
     try {
       const venue = new PaperOfficeVenue();
@@ -212,7 +223,7 @@ describe("calibrated desk · fleet integration", () => {
       const opensBefore = venue.positions.size;
       const st = (await fleet.step()) as { calibrated: { id: string; mode: string; decisions: { action: string }[]; status: string }[] };
       expect(st.calibrated[0].id).toBe("orion");
-      expect(st.calibrated[0].mode).toBe("shadow");
+      expect(st.calibrated[0].mode).toBe("paper");
       expect(st.calibrated[0].decisions.length).toBe(1);
       store.setKillFlag("test kill");
       const st2 = (await fleet.step()) as { calibrated: { status: string; reason: string }[] };

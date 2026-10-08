@@ -158,7 +158,7 @@ export interface StatusDoc {
   fleet: { status: "running" | "paused" | "killed"; reason: string; equity: number; startEquity: number; pnlToday: number; pnlTotal: number; riskUsedPct: number; riskCapPct: number; openPositions: number; maxPositions: number; netSide: string; drawdownPct: number; drawdownLimitPct: number };
   market: { oraclePrice: number; oracleAgeSec: number; referencePrice: number | null; deviationPct: number | null; oracleLevel: string; fundingPredictedHourly: number; reserve: number };
   desks: StatusDesk[];
-  /** calibrated three-layer desks (shadow mode = scored + paper only, no orders). */
+  /** calibrated three-layer desks (shadow = scored + logged; paper = simulated fills; neither sends orders). */
   calibrated?: CalibratedStatus[];
 }
 
@@ -178,7 +178,7 @@ export interface CalibratedSignal {
 export interface CalibratedStatus {
   id: string;
   name: string;
-  mode: "shadow" | "desk";
+  mode: "shadow" | "paper" | "desk";
   modeNote: string;
   label: string;
   timeframeSec: number;

@@ -1,14 +1,14 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-08T14:44:21.000Z",
+ "generatedAt": "2026-10-08T14:49:35.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
  "driftMode": "strict",
  "exampleData": false,
  "fleet": {
-  "status": "killed",
-  "reason": "oracle unhealthy > 1800s: oracle age 1939s > 90s; oracle flat 600s while reference moved 0.59%",
+  "status": "running",
+  "reason": "",
   "equity": 3000,
   "startEquity": 3000,
   "pnlToday": 0,
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.198202,
-  "oracleAgeSec": 14,
-  "referencePrice": 0.198246,
-  "deviationPct": 0.0222,
+  "oraclePrice": 0.198883,
+  "oracleAgeSec": 13,
+  "referencePrice": 0.199004,
+  "deviationPct": 0.0608,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -110,7 +110,7 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T22:00Z",
+   "lastSignal": "no signal @ bar 10-08T13:00Z",
    "trades": [],
    "entries": [],
    "spark": [
@@ -229,7 +229,7 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T16:00Z",
+   "lastSignal": "no signal @ bar 10-08T08:00Z",
    "trades": [],
    "entries": [],
    "spark": [
@@ -348,7 +348,7 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T22:00Z",
+   "lastSignal": "no signal @ bar 10-08T13:00Z",
    "trades": [],
    "entries": [],
    "spark": [
@@ -467,7 +467,7 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T22:00Z",
+   "lastSignal": "no signal @ bar 10-08T13:00Z",
    "trades": [],
    "entries": [],
    "spark": [
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T23:15Z",
+   "lastSignal": "no signal @ bar 10-08T14:30Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.197917,
     0.198078,
     0.199068,
     0.19956,
@@ -629,7 +628,8 @@
     0.197029,
     0.197773,
     0.198789,
-    0.19915
+    0.19915,
+    0.198419
    ]
   },
   {
@@ -705,7 +705,7 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-04T22:00Z",
+   "lastSignal": "no signal @ bar 10-08T13:00Z",
    "trades": [],
    "entries": [],
    "spark": [
@@ -760,8 +760,8 @@
    "modeNote": "paper · failed gate: simulated fills only (fees, slippage, funding); never sends an on-chain order",
    "label": "Paper · failed gate · calibrated scorer · testnet / simulated fills · no on-chain orders",
    "timeframeSec": 900,
-   "status": "halted",
-   "reason": "global kill: oracle unhealthy > 1800s: oracle age 1939s > 90s; oracle flat 600s while reference moved 0.59%",
+   "status": "running",
+   "reason": "",
    "equity": 500,
    "startEquity": 500,
    "paperPnl": 0,
@@ -822,6 +822,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791470700,
+     "barT": 1791469800,
+     "price": 0.198437,
+     "side": "short",
+     "p": {
+      "setup": 0.333,
+      "direction": 0.517,
+      "pressure": 0.525,
+      "regime": 0.217,
+      "risk": 0.739
+     },
+     "score": 0.437,
+     "action": "skip: setup 0.33 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791469800,
      "barT": 1791468900,

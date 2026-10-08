@@ -5,6 +5,7 @@ export interface Candle {
   h: number;
   l: number;
   c: number;
+  v?: number; // base volume (optional; used by the calibrated desk state engine)
 }
 
 export function emaSeries(v: number[], n: number): number[] {
@@ -110,10 +111,10 @@ export function aggregate(bars: Candle[], gran: number, k: number): Candle[] {
     const start = Math.floor(b.t / size) * size;
     if (!cur || cur.t !== start) {
       if (cur && count === k) out.push(cur);
-      cur = { t: start, o: b.o, h: b.h, l: b.l, c: b.c };
+      cur = { t: start, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v ?? 0 };
       count = 1;
     } else {
-      cur.h = Math.max(cur.h, b.h); cur.l = Math.min(cur.l, b.l); cur.c = b.c; count++;
+      cur.h = Math.max(cur.h, b.h); cur.l = Math.min(cur.l, b.l); cur.c = b.c; cur.v = (cur.v ?? 0) + (b.v ?? 0); count++;
     }
   }
   if (cur && count === k) out.push(cur);

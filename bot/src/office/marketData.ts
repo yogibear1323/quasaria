@@ -8,6 +8,8 @@ export interface ReferenceFeed {
   ticker(): Promise<number | null>;
   /** closed bars at `gran` seconds (900, 3600, 14400 supported), oldest -> newest */
   closedBars(gran: number, now: number): Promise<Candle[]>;
+  /** optional: public L2 book summary (spread, depth imbalance within 0.5 % of mid). Logged, not a model input. */
+  book?(): Promise<{ spreadBps: number; imbalance: number } | null>;
 }
 
 async function getJson(f: Fetch, url: string, timeoutMs = 8000): Promise<unknown> {
@@ -48,7 +50,7 @@ export class PublicReferenceFeed implements ReferenceFeed {
     const q = start && end ? `&start=${new Date(start * 1000).toISOString()}&end=${new Date(end * 1000).toISOString()}` : "";
     const rows = (await getJson(this.f, `https://api.exchange.coinbase.com/products/XLM-USD/candles?granularity=${gran}${q}`)) as number[][];
     // [time, low, high, open, close, volume], newest first
-    return rows.map((r) => ({ t: r[0], l: r[1], h: r[2], o: r[3], c: r[4] })).sort((a, b) => a.t - b.t);
+    return rows.map((r) => ({ t: r[0], l: r[1], h: r[2], o: r[3], c: r[4], v: r[5] })).sort((a, b) => a.t - b.t);
   }
 
   async closedBars(gran: number, now: number): Promise<Candle[]> {
@@ -61,6 +63,20 @@ export class PublicReferenceFeed implements ReferenceFeed {
       this.cache.set(key, { at: now, v: bars });
     }
     return bars.filter((b) => b.t + gran <= now);
+  }
+
+  async book(): Promise<{ spreadBps: number; imbalance: number } | null> {
+    try {
+      const j = (await getJson(this.f, "https://api.exchange.coinbase.com/products/XLM-USD/book?level=2")) as { bids?: string[][]; asks?: string[][] };
+      const bids = (j.bids ?? []).map((r) => [Number(r[0]), Number(r[1])]), asks = (j.asks ?? []).map((r) => [Number(r[0]), Number(r[1])]);
+      if (!bids.length || !asks.length) return null;
+      const mid = (bids[0][0] + asks[0][0]) / 2;
+      const bd = bids.filter(([p]) => p >= mid * 0.995).reduce((a, [p, q]) => a + p * q, 0);
+      const ad = asks.filter(([p]) => p <= mid * 1.005).reduce((a, [p, q]) => a + p * q, 0);
+      return { spreadBps: ((asks[0][0] - bids[0][0]) / mid) * 10_000, imbalance: bd + ad > 0 ? (bd - ad) / (bd + ad) : 0 };
+    } catch {
+      return null;
+    }
   }
 
   /** Long history for backtests (paged, 300 bars per request). */

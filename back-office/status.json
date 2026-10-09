@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-09T18:14:34.000Z",
+ "generatedAt": "2026-10-09T18:19:43.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1935915,
-  "oracleAgeSec": 2,
-  "referencePrice": 0.193587,
-  "deviationPct": 0.0023,
+  "oraclePrice": 0.1937715,
+  "oracleAgeSec": 6,
+  "referencePrice": 0.193701,
+  "deviationPct": 0.0364,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-09T17:45Z",
+   "lastSignal": "no signal @ bar 10-09T18:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.195143,
     0.194694,
     0.194656,
     0.194666,
@@ -629,7 +628,8 @@
     0.192608,
     0.192741,
     0.192742,
-    0.19338
+    0.19338,
+    0.193593
    ]
   },
   {
@@ -791,37 +791,57 @@
    },
    "calibrationLive": {
     "regime": {
-     "n": 88,
-     "brier": 0.2387,
-     "climatology": 0.2247
+     "n": 89,
+     "brier": 0.2366,
+     "climatology": 0.2235
     },
     "direction": {
-     "n": 88,
-     "brier": 0.2432,
-     "climatology": 0.2417
+     "n": 89,
+     "brier": 0.2436,
+     "climatology": 0.2429
     },
     "pressure": {
-     "n": 88,
-     "brier": 0.2364,
-     "climatology": 0.2282
+     "n": 89,
+     "brier": 0.2363,
+     "climatology": 0.227
     },
     "setup_long": {
-     "n": 88,
-     "brier": 0.2695,
-     "climatology": 0.2479
+     "n": 89,
+     "brier": 0.2685,
+     "climatology": 0.2474
     },
     "setup_short": {
-     "n": 88,
-     "brier": 0.2448,
-     "climatology": 0.2395
+     "n": 89,
+     "brier": 0.2475,
+     "climatology": 0.2409
     },
     "risk": {
-     "n": 88,
-     "brier": 0.0448,
-     "climatology": 0.0536
+     "n": 89,
+     "brier": 0.0444,
+     "climatology": 0.053
     }
    },
    "decisions": [
+    {
+     "t": 1791569700,
+     "barT": 1791568800,
+     "price": 0.193593,
+     "side": "short",
+     "p": {
+      "setup": 0.333,
+      "direction": 0.507,
+      "pressure": 0.544,
+      "regime": 0.217,
+      "risk": 0.739
+     },
+     "score": 0.437,
+     "action": "skip: setup 0.33 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791568800,
      "barT": 1791567900,
@@ -1299,7 +1319,7 @@
      "fired": false,
      "riskPct": 0,
      "sizing": "none",
-     "result": null,
+     "result": "would have lost",
      "pnl": null
     },
     {
@@ -1600,26 +1620,6 @@
      "riskPct": 0,
      "sizing": "none",
      "result": "would have won",
-     "pnl": null
-    },
-    {
-     "t": 1791533700,
-     "barT": 1791532800,
-     "price": 0.19527,
-     "side": "long",
-     "p": {
-      "setup": 0.429,
-      "direction": 0.526,
-      "pressure": 0.475,
-      "regime": 0.217,
-      "risk": 0.999
-     },
-     "score": 0.496,
-     "action": "skip: setup 0.43 < 0.5, pressure 0.48 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
      "pnl": null
     }
    ]

@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-09T02:56:22.000Z",
+ "generatedAt": "2026-10-09T03:01:33.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1938735,
-  "oracleAgeSec": 5,
-  "referencePrice": 0.193801,
-  "deviationPct": 0.0374,
+  "oraclePrice": 0.193669,
+  "oracleAgeSec": 1,
+  "referencePrice": 0.19366,
+  "deviationPct": 0.0046,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -110,11 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-09T01:00Z",
+   "lastSignal": "no signal @ bar 10-09T02:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.203585,
     0.203231,
     0.202922,
     0.201844,
@@ -153,7 +152,8 @@
     0.192889,
     0.191891,
     0.19238,
-    0.193248
+    0.193248,
+    0.193602
    ]
   },
   {
@@ -348,11 +348,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-09T01:00Z",
+   "lastSignal": "no signal @ bar 10-09T02:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.203585,
     0.203231,
     0.202922,
     0.201844,
@@ -391,7 +390,8 @@
     0.192889,
     0.191891,
     0.19238,
-    0.193248
+    0.193248,
+    0.193602
    ]
   },
   {
@@ -467,11 +467,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-09T01:00Z",
+   "lastSignal": "no signal @ bar 10-09T02:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.203585,
     0.203231,
     0.202922,
     0.201844,
@@ -510,7 +509,8 @@
     0.192889,
     0.191891,
     0.19238,
-    0.193248
+    0.193248,
+    0.193602
    ]
   },
   {
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-09T02:30Z",
+   "lastSignal": "no signal @ bar 10-09T02:45Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.18851,
     0.188517,
     0.186872,
     0.186875,
@@ -629,7 +628,8 @@
     0.193248,
     0.193213,
     0.1929,
-    0.192984
+    0.192984,
+    0.193569
    ]
   },
   {
@@ -705,11 +705,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-09T01:00Z",
+   "lastSignal": "no signal @ bar 10-09T02:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.203585,
     0.203231,
     0.202922,
     0.201844,
@@ -748,7 +747,8 @@
     0.192889,
     0.191891,
     0.19238,
-    0.193248
+    0.193248,
+    0.193602
    ]
   }
  ],
@@ -762,18 +762,12 @@
    "timeframeSec": 900,
    "status": "running",
    "reason": "",
-   "equity": 500,
+   "equity": 497.617,
    "startEquity": 500,
-   "paperPnl": 0,
-   "paperTrades": 0,
+   "paperPnl": -2.383,
+   "paperTrades": 1,
    "paperWins": 0,
-   "open": {
-    "side": "short",
-    "entry": 0.19254767800000003,
-    "stop": 0.194185152,
-    "takeProfit": 0.189561696,
-    "notional": 238.1
-   },
+   "open": null,
    "thresholds": {
     "setup": 0.5,
     "direction": 0.5,
@@ -797,37 +791,57 @@
    },
    "calibrationLive": {
     "regime": {
-     "n": 27,
-     "brier": 0.316,
-     "climatology": 0.2497
+     "n": 28,
+     "brier": 0.3065,
+     "climatology": 0.2487
     },
     "direction": {
-     "n": 27,
-     "brier": 0.2124,
-     "climatology": 0.1509
+     "n": 28,
+     "brier": 0.2128,
+     "climatology": 0.1467
     },
     "pressure": {
-     "n": 27,
-     "brier": 0.2503,
-     "climatology": 0.2469
+     "n": 28,
+     "brier": 0.2487,
+     "climatology": 0.2487
     },
     "setup_long": {
-     "n": 27,
-     "brier": 0.2654,
-     "climatology": 0.2497
+     "n": 28,
+     "brier": 0.2676,
+     "climatology": 0.2487
     },
     "setup_short": {
-     "n": 27,
-     "brier": 0.2146,
-     "climatology": 0.2222
+     "n": 28,
+     "brier": 0.2105,
+     "climatology": 0.2181
     },
     "risk": {
-     "n": 27,
-     "brier": 0.1229,
-     "climatology": 0.1509
+     "n": 28,
+     "brier": 0.1186,
+     "climatology": 0.1467
     }
    },
    "decisions": [
+    {
+     "t": 1791514800,
+     "barT": 1791513900,
+     "price": 0.193569,
+     "side": "long",
+     "p": {
+      "setup": 0.374,
+      "direction": 0.535,
+      "pressure": 0.475,
+      "regime": 0.217,
+      "risk": 0.962
+     },
+     "score": 0.473,
+     "action": "skip: setup 0.37 < 0.5, pressure 0.48 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791513900,
      "barT": 1791513000,
@@ -1045,8 +1059,8 @@
      "fired": true,
      "riskPct": 0.5,
      "sizing": "fixed",
-     "result": null,
-     "pnl": null
+     "result": "stop_loss -2.38",
+     "pnl": -2.382977202887145
     },
     {
      "t": 1791504000,
@@ -1305,7 +1319,7 @@
      "fired": false,
      "riskPct": 0,
      "sizing": "none",
-     "result": null,
+     "result": "would have won",
      "pnl": null
     },
     {
@@ -1601,26 +1615,6 @@
       "risk": 0.889
      },
      "score": 0.486,
-     "action": "skip: setup 0.43 < 0.5, pressure 0.48 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791478800,
-     "barT": 1791477900,
-     "price": 0.189531,
-     "side": "long",
-     "p": {
-      "setup": 0.429,
-      "direction": 0.526,
-      "pressure": 0.475,
-      "regime": 0.207,
-      "risk": 0.795
-     },
-     "score": 0.475,
      "action": "skip: setup 0.43 < 0.5, pressure 0.48 < 0.5",
      "fired": false,
      "riskPct": 0,

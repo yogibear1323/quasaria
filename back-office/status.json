@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-10T14:22:22.000Z",
+ "generatedAt": "2026-10-10T14:37:34.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,12 +23,14 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1974695,
-  "oracleAgeSec": 10,
-  "referencePrice": 0.197505,
-  "deviationPct": 0.018,
-  "oracleLevel": "ok",
-  "oracleReasons": [],
+  "oraclePrice": 0.197733,
+  "oracleAgeSec": 622,
+  "referencePrice": 0.197821,
+  "deviationPct": 0.0445,
+  "oracleLevel": "halt",
+  "oracleReasons": [
+   "oracle age 622s > 90s"
+  ],
   "reserve": 10000.032,
   "longOi": 0,
   "shortOi": 0,
@@ -586,11 +588,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T14:00Z",
+   "lastSignal": "no signal @ bar 10-10T14:15Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.195202,
     0.19566,
     0.195781,
     0.196279,
@@ -629,7 +630,8 @@
     0.197369,
     0.197419,
     0.19743,
-    0.197262
+    0.197262,
+    0.197981
    ]
   },
   {
@@ -822,6 +824,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791642600,
+     "barT": 1791641700,
+     "price": 0.197981,
+     "side": "short",
+     "p": {
+      "setup": 0.302,
+      "direction": 0.517,
+      "pressure": 0.525,
+      "regime": 0.238,
+      "risk": 0.716
+     },
+     "score": 0.424,
+     "action": "skip: setup 0.30 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791641700,
      "barT": 1791640800,
@@ -1596,26 +1618,6 @@
      },
      "score": 0.453,
      "action": "skip: setup 0.38 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791569700,
-     "barT": 1791568800,
-     "price": 0.193593,
-     "side": "short",
-     "p": {
-      "setup": 0.333,
-      "direction": 0.507,
-      "pressure": 0.544,
-      "regime": 0.217,
-      "risk": 0.739
-     },
-     "score": 0.437,
-     "action": "skip: setup 0.33 < 0.5",
      "fired": false,
      "riskPct": 0,
      "sizing": "none",

@@ -1,14 +1,14 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-10T15:24:43.000Z",
+ "generatedAt": "2026-10-10T15:29:56.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
  "driftMode": "strict",
  "exampleData": false,
  "fleet": {
-  "status": "running",
-  "reason": "",
+  "status": "killed",
+  "reason": "oracle unhealthy > 1800s: oracle age 1961s > 90s",
   "equity": 3000,
   "startEquity": 3000,
   "pnlToday": 0,
@@ -24,12 +24,12 @@
  },
  "market": {
   "oraclePrice": 0.1983515,
-  "oracleAgeSec": 1896,
-  "referencePrice": 0.197766,
-  "deviationPct": 0.2961,
+  "oracleAgeSec": 2209,
+  "referencePrice": 0.197833,
+  "deviationPct": 0.2621,
   "oracleLevel": "halt",
   "oracleReasons": [
-   "oracle age 1896s > 90s"
+   "oracle age 2209s > 90s"
   ],
   "reserve": 10000.032,
   "longOi": 0,
@@ -762,8 +762,8 @@
    "modeNote": "paper · failed gate: simulated fills only (fees, slippage, funding); never sends an on-chain order",
    "label": "Paper · failed gate · calibrated scorer · testnet / simulated fills · no on-chain orders",
    "timeframeSec": 900,
-   "status": "running",
-   "reason": "",
+   "status": "halted",
+   "reason": "global kill: oracle unhealthy > 1800s: oracle age 1961s > 90s",
    "equity": 495.2454,
    "startEquity": 500,
    "paperPnl": -4.7546,

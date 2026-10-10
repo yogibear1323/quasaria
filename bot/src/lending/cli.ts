@@ -19,7 +19,7 @@
  * RPC reports the testnet passphrase; anything else is dry-run (and the feed refuses).
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Keypair, Networks, rpc } from "@stellar/stellar-sdk";
@@ -62,6 +62,19 @@ async function main() {
   const mode = process.argv[2];
 
   if (mode === "oracle-feed") {
+    // liveness for scripts/oracle-feed.sh: epoch seconds of the last successful on-chain XLM push (no secrets, no prices)
+    const hbFile = process.env.ORACLE_FEED_HEARTBEAT ?? resolve(root, "bot/state/oracle-feed.heartbeat");
+    const beat = () => {
+      try {
+        mkdirSync(dirname(hbFile), { recursive: true });
+        writeFileSync(hbFile, String(Math.floor(Date.now() / 1000)));
+      } catch { /* best effort */ }
+    };
+    // record why the process ends (a silent exit left no trace on Oct 10, 2026)
+    process.on("exit", (code) => console.error(`oracle-feed: process exiting (code ${code}) at ${new Date().toISOString()}`));
+    for (const sig of ["SIGTERM", "SIGINT", "SIGHUP"] as const)
+      process.on(sig, () => (console.error(`oracle-feed: received ${sig} at ${new Date().toISOString()}`), process.exit(128 + (sig === "SIGHUP" ? 1 : sig === "SIGINT" ? 2 : 15))));
+    process.on("unhandledRejection", (e) => console.error("oracle-feed: unhandled rejection:", e instanceof Error ? e.message : e));
     const kp = keyFrom("QUASARIA_ORACLE_SECRET");
     if (!kp && !flag("dry-run")) throw new Error("oracle-feed needs QUASARIA_ORACLE_SECRET or --identity (oracle admin)");
     const c = new SorobanClient(rpcUrl, kp ?? Keypair.random());
@@ -105,6 +118,7 @@ async function main() {
       if (!flag("dry-run") && batch.length) {
         await pushPrices(c, oracleId, batch.map((p) => ({ sac: p.sac, price: toOracleInt(p.usd) })));
         if (!fast) (lastPushed = r.usdPerXlm), (lastPushAt = Date.now() / 1000);
+        if (!fast || batch.some((p) => p.sac === xlm!.sac)) beat();
         console.log(`oracle-feed: pushed ${batch.length} to ${oracleId} at ${new Date().toISOString()}`);
       }
     };
@@ -134,6 +148,7 @@ async function main() {
             if (d.push && !flag("dry-run")) {
               await pushPrices(c, oracleId, [{ sac: xlm!.sac, price: toOracleInt(x.usd) }]);
               (lastPushed = x.usd), (lastPushAt = now), stats[d.why]++;
+              beat();
               if (flag("verbose") || d.why === "deviation") console.log(`oracle-feed: ${d.why} push XLM $${x.usd.toFixed(5)} (${d.movePct.toFixed(3)}% move; ${x.used.join("+")}) at ${new Date().toISOString()}`);
             } else if (d.push) console.log(`oracle-feed: dry-run would push XLM $${x.usd.toFixed(5)} (${d.why}; ${x.used.join("+")})`);
             // advisory 4th source: mainnet SDEX USDC mid, once a minute (Horizon rate limits)

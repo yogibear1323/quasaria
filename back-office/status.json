@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-10T23:35:14.000Z",
+ "generatedAt": "2026-10-10T23:57:19.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1965255,
-  "oracleAgeSec": 12,
-  "referencePrice": 0.196542,
-  "deviationPct": 0.0084,
+  "oraclePrice": 0.1964565,
+  "oracleAgeSec": 7,
+  "referencePrice": 0.196495,
+  "deviationPct": 0.0196,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T23:15Z",
+   "lastSignal": "no signal @ bar 10-10T23:30Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.197419,
     0.19743,
     0.197262,
     0.197981,
@@ -629,7 +628,8 @@
     0.196788,
     0.196586,
     0.196591,
-    0.19651
+    0.19651,
+    0.196573
    ]
   },
   {
@@ -822,6 +822,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791675900,
+     "barT": 1791675000,
+     "price": 0.196573,
+     "side": "short",
+     "p": {
+      "setup": 0.379,
+      "direction": 0.517,
+      "pressure": 0.525,
+      "regime": 0.217,
+      "risk": 0.962
+     },
+     "score": 0.477,
+     "action": "skip: setup 0.38 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791675000,
      "barT": 1791674100,
@@ -1593,26 +1613,6 @@
       "pressure": 0.544,
       "regime": 0.226,
       "risk": 0.827
-     },
-     "score": 0.468,
-     "action": "skip: setup 0.38 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791580500,
-     "barT": 1791579600,
-     "price": 0.193002,
-     "side": "short",
-     "p": {
-      "setup": 0.379,
-      "direction": 0.517,
-      "pressure": 0.544,
-      "regime": 0.226,
-      "risk": 0.828
      },
      "score": 0.468,
      "action": "skip: setup 0.38 < 0.5",

@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-10T18:26:20.000Z",
+ "generatedAt": "2026-10-10T18:32:20.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -24,12 +24,12 @@
  },
  "market": {
   "oraclePrice": 0.1983515,
-  "oracleAgeSec": 12793,
-  "referencePrice": 0.197,
-  "deviationPct": 0.686,
+  "oracleAgeSec": 13153,
+  "referencePrice": 0.197175,
+  "deviationPct": 0.5967,
   "oracleLevel": "halt",
   "oracleReasons": [
-   "oracle age 12793s > 90s"
+   "oracle age 13153s > 90s"
   ],
   "reserve": 10000.032,
   "longOi": 0,
@@ -592,7 +592,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.196909,
     0.196873,
     0.197303,
     0.19716,
@@ -631,7 +630,8 @@
     0.197618,
     0.197293,
     0.1973,
-    0.197315
+    0.197315,
+    0.197095
    ]
   },
   {
@@ -824,6 +824,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791657000,
+     "barT": 1791656100,
+     "price": 0.197095,
+     "side": "long",
+     "p": {
+      "setup": 0.365,
+      "direction": 0.526,
+      "pressure": 0.456,
+      "regime": 0.228,
+      "risk": 0.909
+     },
+     "score": 0.459,
+     "action": "skip: setup 0.36 < 0.5, pressure 0.46 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791656100,
      "barT": 1791655200,
@@ -1597,26 +1617,6 @@
       "risk": 0.784
      },
      "score": 0.45,
-     "action": "skip: setup 0.36 < 0.5, pressure 0.48 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have won",
-     "pnl": null
-    },
-    {
-     "t": 1791576000,
-     "barT": 1791575100,
-     "price": 0.191434,
-     "side": "long",
-     "p": {
-      "setup": 0.365,
-      "direction": 0.505,
-      "pressure": 0.475,
-      "regime": 0.226,
-      "risk": 0.795
-     },
-     "score": 0.445,
      "action": "skip: setup 0.36 < 0.5, pressure 0.48 < 0.5",
      "fired": false,
      "riskPct": 0,

@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-10T15:29:56.000Z",
+ "generatedAt": "2026-10-10T15:35:18.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -24,12 +24,12 @@
  },
  "market": {
   "oraclePrice": 0.1983515,
-  "oracleAgeSec": 2209,
-  "referencePrice": 0.197833,
-  "deviationPct": 0.2621,
+  "oracleAgeSec": 2531,
+  "referencePrice": 0.198135,
+  "deviationPct": 0.1093,
   "oracleLevel": "halt",
   "oracleReasons": [
-   "oracle age 2209s > 90s"
+   "oracle age 2531s > 90s"
   ],
   "reserve": 10000.032,
   "longOi": 0,
@@ -592,7 +592,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.196006,
     0.196568,
     0.19696,
     0.196708,
@@ -631,7 +630,8 @@
     0.197981,
     0.197879,
     0.198194,
-    0.197797
+    0.197797,
+    0.197806
    ]
   },
   {
@@ -824,6 +824,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791646200,
+     "barT": 1791645300,
+     "price": 0.197893,
+     "side": "short",
+     "p": {
+      "setup": 0.333,
+      "direction": 0.517,
+      "pressure": 0.525,
+      "regime": 0.228,
+      "risk": 0.716
+     },
+     "score": 0.436,
+     "action": "skip: setup 0.33 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791645300,
      "barT": 1791644400,
@@ -1588,26 +1608,6 @@
      "t": 1791574200,
      "barT": 1791573300,
      "price": 0.192469,
-     "side": "long",
-     "p": {
-      "setup": 0.324,
-      "direction": 0.526,
-      "pressure": 0.475,
-      "regime": 0.226,
-      "risk": 0.739
-     },
-     "score": 0.429,
-     "action": "skip: setup 0.32 < 0.5, pressure 0.48 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have won",
-     "pnl": null
-    },
-    {
-     "t": 1791573300,
-     "barT": 1791572400,
-     "price": 0.19256,
      "side": "long",
      "p": {
       "setup": 0.324,

@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-10T18:10:19.000Z",
+ "generatedAt": "2026-10-10T18:15:28.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -24,12 +24,12 @@
  },
  "market": {
   "oraclePrice": 0.1983515,
-  "oracleAgeSec": 11832,
-  "referencePrice": 0.197309,
-  "deviationPct": 0.5284,
+  "oracleAgeSec": 12141,
+  "referencePrice": 0.197292,
+  "deviationPct": 0.537,
   "oracleLevel": "halt",
   "oracleReasons": [
-   "oracle age 11832s > 90s"
+   "oracle age 12141s > 90s"
   ],
   "reserve": 10000.032,
   "longOi": 0,
@@ -592,7 +592,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.197212,
     0.196909,
     0.196873,
     0.197303,
@@ -631,7 +630,8 @@
     0.197661,
     0.197618,
     0.197293,
-    0.1973
+    0.1973,
+    0.197315
    ]
   },
   {
@@ -824,6 +824,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791656100,
+     "barT": 1791655200,
+     "price": 0.197315,
+     "side": "short",
+     "p": {
+      "setup": 0.322,
+      "direction": 0.517,
+      "pressure": 0.544,
+      "regime": 0.228,
+      "risk": 0.909
+     },
+     "score": 0.453,
+     "action": "skip: setup 0.32 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791655200,
      "barT": 1791654300,
@@ -1598,26 +1618,6 @@
      },
      "score": 0.445,
      "action": "skip: setup 0.36 < 0.5, pressure 0.48 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have won",
-     "pnl": null
-    },
-    {
-     "t": 1791575100,
-     "barT": 1791574200,
-     "price": 0.191962,
-     "side": "long",
-     "p": {
-      "setup": 0.324,
-      "direction": 0.505,
-      "pressure": 0.475,
-      "regime": 0.226,
-      "risk": 0.793
-     },
-     "score": 0.429,
-     "action": "skip: setup 0.32 < 0.5, pressure 0.48 < 0.5",
      "fired": false,
      "riskPct": 0,
      "sizing": "none",

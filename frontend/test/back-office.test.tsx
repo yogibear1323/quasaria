@@ -226,3 +226,30 @@ describe("robot desk render", () => {
     for (const s of ["trend", "funding", "meanrev"]) expect(css).toContain(`.bo-desk.${s} { --acc:`);
   });
 });
+
+import { realEventKeys } from "../src/lib/beaconPulse";
+import { BeaconsPreview, BEACON_TIERS } from "../src/components/BeaconsPreview";
+describe("beacons theme", () => {
+  it("preview shows six tiers and empty payout states, no fabricated numbers", () => {
+    const html = renderToStaticMarkup(<BeaconsPreview />);
+    expect(BEACON_TIERS.map((t) => t.name)).toEqual(["Spark", "Flare", "Beacon", "Pulsar", "Quasar", "Singularity"]);
+    expect(html).toContain("Not live yet · testnet preview");
+    expect(html).toContain("no payouts yet");
+    expect(html).not.toMatch(/APY|APR|\d+(\.\d+)?%/);
+  });
+  it("event keys change only on real events", () => {
+    const tr = (tx: string): ChainTrade => ({ kind: "open", id: 1, price: 0.2, ledger: 1, at: "", tx });
+    const a = realEventKeys(100, { vega: [tr("aa")] }, undefined);
+    expect(realEventKeys(100, { vega: [tr("aa")] }, undefined)).toEqual(a);
+    expect(realEventKeys(101, { vega: [tr("aa")] }, undefined).oracle).not.toBe(a.oracle);
+    expect(realEventKeys(100, { vega: [tr("aa"), tr("bb")] }, undefined).fill).not.toBe(a.fill);
+    expect(realEventKeys(null, null, undefined)).toEqual({ oracle: null, fill: null, decision: null });
+  });
+  it("theme css: no gradient text, reduced-motion respected, no idle glow", () => {
+    const css = src("src/theme/beacons.css");
+    expect(css).not.toMatch(/background-clip\s*:\s*text/);
+    expect(css).toMatch(/prefers-reduced-motion/);
+    expect(css).toMatch(/\.bk-pulse \{ animation: bk-pulse var\(--bk-pulse-ms\) ease-out 1; \}/);
+    expect(css).not.toMatch(/infinite/);
+  });
+});

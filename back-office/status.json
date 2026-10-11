@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-11T19:17:52.000Z",
+ "generatedAt": "2026-10-11T19:23:28.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,14 +23,12 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.202143,
-  "oracleAgeSec": 1850,
-  "referencePrice": 0.202802,
-  "deviationPct": 0.3249,
-  "oracleLevel": "halt",
-  "oracleReasons": [
-   "oracle age 1850s > 90s"
-  ],
+  "oraclePrice": 0.202755,
+  "oracleAgeSec": 31,
+  "referencePrice": 0.202773,
+  "deviationPct": 0.0089,
+  "oracleLevel": "ok",
+  "oracleReasons": [],
   "reserve": 10000.032,
   "longOi": 0,
   "shortOi": 0,
@@ -631,7 +629,7 @@
     0.202935,
     0.20246,
     0.202579,
-    0.20258
+    0.202617
    ]
   },
   {
@@ -755,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "trip",
-  "reason": "resume: clock jumped 1888s; need 3 fresh reads",
-  "trippedSince": 1791746272,
-  "freshCount": 0,
-  "lastReadAt": 1791746272,
-  "lastOracleAgeSec": 1850,
-  "lastHeartbeatAgeSec": 0,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1791746608,
+  "lastOracleAgeSec": 31,
+  "lastHeartbeatAgeSec": 31,
   "trips": 14,
-  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 1888s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

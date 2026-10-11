@@ -240,6 +240,9 @@ describe("beacons theme", () => {
     expect(html).toContain("250,000 <small>QFX min.</small>");
     expect(html).toMatch(/1\.10× for 30 days, 1\.25× for 90 days/);
     expect(html).toContain("No per-wallet cap");
+    expect(html).toContain("Blend XLM pool interest");
+    expect(html).toContain("Default Blend pool: the XLM supply pool");
+    expect(html).not.toMatch(/USDC pool/);
   });
   it("event keys change only on real events", () => {
     const tr = (tx: string): ChainTrade => ({ kind: "open", id: 1, price: 0.2, ledger: 1, at: "", tx });

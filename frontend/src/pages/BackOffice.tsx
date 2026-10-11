@@ -231,6 +231,12 @@ export default function BackOffice() {
         </div>
       </section>
 
+      {!tag && status?.staleBreaker?.tripped && !stale && (
+        <div className="bo-stale" role="alert">
+          <b>STALE DATA · entries halted</b>
+          <span>{status.staleBreaker.reason} · new entries and size increases are blocked; closes and stops still run · clears after {status.staleBreaker.clearAfterFresh} consecutive fresh reads</span>
+        </div>
+      )}
       <ModeSwitch mode={mode} setMode={setMode} hasDemo={!!dm.demo} />
       {mode !== "live" && (
         <DemoAccount demo={dm.demo} price={demoPx} note={dm.note} runner={dm.runner} available={dm.available} create={dm.create} close={dm.close} reset={dm.reset} desks={BACK_OFFICE.desks} mode={mode} feed={dm.feed} />
@@ -269,8 +275,18 @@ export default function BackOffice() {
 
       {!tag && <CalibratedSignals desks={status?.calibrated} stale={stale} />}
 
+      {!tag && (
+        <section className="bo-open-items" aria-label="Open items">
+          <h2>Open items</h2>
+          <p>
+            <a href="https://github.com/yogibear1323/quasaria/issues/30" target="_blank" rel="noreferrer">Issue #30</a>: revisit Orion's failed strategy gate before any bigger rollout.
+            Until it is resolved the fleet refuses to raise Orion's testnet slice above $100 or to unpause Echo or Nova.
+          </p>
+        </section>
+      )}
+
       <RiskWarning>
-        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice. After a walk-forward study in which no setting was reliably profitable out-of-sample, the desks run slower 1h–4h settings, Echo and Nova are paused, and Lyra runs an experimental liquidity-pocket strategy (simulated/testnet only). Orion, the calibrated scorer desk, failed its out-of-sample strategy gate and runs in paper mode: it scores every candle and records simulated fills, but places no on-chain orders.
+        These bots trade with test funds on Stellar testnet. They are experiments: unaudited code, simple rule-based strategies, oracle-priced fills, and profits capped by a finite vault reserve. Past or live results say nothing about the future, and nothing here is financial advice. After a walk-forward study in which no setting was reliably profitable out-of-sample, the desks run slower 1h–4h settings, Echo and Nova are paused, and Lyra runs an experimental liquidity-pocket strategy (simulated/testnet only). Orion, the calibrated scorer desk, failed its out-of-sample strategy gate; with an explicit testnet-only override it trades a tiny slice (100 test QUSD, 0.25% risk per trade, at most 2× and one position) with test funds. A stale-data breaker halts new entries as soon as oracle data is 60 seconds old.
       </RiskWarning>
     </div>
   );

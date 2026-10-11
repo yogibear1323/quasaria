@@ -158,8 +158,10 @@ export interface StatusDoc {
   fleet: { status: "running" | "paused" | "killed"; reason: string; equity: number; startEquity: number; pnlToday: number; pnlTotal: number; riskUsedPct: number; riskCapPct: number; openPositions: number; maxPositions: number; netSide: string; drawdownPct: number; drawdownLimitPct: number };
   market: { oraclePrice: number; oracleAgeSec: number; referencePrice: number | null; deviationPct: number | null; oracleLevel: string; fundingPredictedHourly: number; reserve: number };
   desks: StatusDesk[];
-  /** calibrated three-layer desks (shadow = scored + logged; paper = simulated fills; neither sends orders). */
+  /** calibrated three-layer desks (shadow = scored + logged; paper = simulated fills; live = tiny on-chain TESTNET slice). */
   calibrated?: CalibratedStatus[];
+  /** stale-data circuit breaker: entries halted while tripped (closes / reduce-only still allowed). */
+  staleBreaker?: { tripped: boolean; level: "fresh" | "block" | "trip"; reason: string; label: string; lastOracleAgeSec: number | null; lastHeartbeatAgeSec: number | null; freshCount: number; blockAgeSec: number; tripAgeSec: number; clearAfterFresh: number; escalateAfterSec: number; trips: number };
 }
 
 export interface CalibratedSignal {
@@ -178,8 +180,14 @@ export interface CalibratedSignal {
 export interface CalibratedStatus {
   id: string;
   name: string;
-  mode: "shadow" | "paper" | "desk";
+  mode: "shadow" | "paper" | "desk" | "live";
   modeNote: string;
+  live?: {
+    since: number | null; capital: number; riskPct: number; maxLeverage: number; approval: string | null; override: string | null; tradesToday: number;
+    limits: { dailyLossUsd: number; killDrawdownUsd: number; maxEntriesPerDay: number; maxOpen: number } | null;
+    open: { id: number; side: string; entry: number; stop: number; takeProfit: number; margin: number; leverage: number; tx: string } | null;
+    fills: { kind: string; id: number; side: string; price: number; refPrice: number; slippageBps: number; fee: number; pnl: number | null; reason: string; tx: string; at: number }[];
+  } | null;
   label: string;
   timeframeSec: number;
   status: "running" | "paused" | "halted";

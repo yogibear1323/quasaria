@@ -25,7 +25,8 @@ import { fileURLToPath } from "node:url";
 import { Keypair, Networks, rpc } from "@stellar/stellar-sdk";
 import { crossCheck, decideFastPush, decideXlmPush, feedAssetsFrom, fetchUsdPrices, fetchXlmSources, fetchXlmUsdFast, filterFreshPrices, toOracleInt } from "./prices.js";
 import { runLendingKeeperOnce } from "./keeper.js";
-import { SorobanClient, SorobanLending, pushPrices } from "./soroban.js";
+import { DEFAULT_STALE_BREAKER, allowOrder, newBreakerState, observe, readHeartbeat } from "../office/staleBreaker.js";
+import { SorobanClient, SorobanLending, assetStellar, pushPrices } from "./soroban.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const arg = (n: string, d?: string) => {
@@ -192,8 +193,24 @@ async function main() {
     const codes: Record<string, string> = Object.fromEntries(feedAssetsFrom(assetsDoc).map((a) => [a.sac, a.id]));
     const venue = new SorobanLending(c, poolId, oracleId, codes);
     console.log(`lending-keeper: pool ${poolId} · ${dryRun ? "DRY-RUN" : `LIVE testnet as ${kp!.publicKey().slice(0, 6)}…`}`);
+    // stale-data breaker for price-dependent actions (liquidations): fast-path XLM oracle timestamp + feed heartbeat,
+    // block >= 60 s, trip >= 90 s, clear after 3 consecutive fresh reads (same rules as the trading fleet)
+    const xlmSac = feedAssetsFrom(assetsDoc).find((a) => !a.mainnet)?.sac;
+    const sbCfg = { ...DEFAULT_STALE_BREAKER, heartbeatFile: process.env.ORACLE_FEED_HEARTBEAT ?? resolve(root, "bot/state/oracle-feed.heartbeat") };
+    let sb = newBreakerState();
+    const priceGuard = async () => {
+      const ts = xlmSac
+        ? await c.read<{ timestamp: bigint } | null>(oracleId, "lastprice", [assetStellar(xlmSac)]).then((p) => (p ? Number(p.timestamp) : null)).catch(() => null)
+        : null;
+      const r = observe(sb, { now: Math.floor(Date.now() / 1000), oracleTs: ts, heartbeatTs: readHeartbeat(sbCfg.heartbeatFile) }, sbCfg);
+      sb = r.state;
+      if (r.changed) console.log(`lending-keeper: stale-data breaker ${r.changed}: ${sb.reason || "fresh"}`);
+      // liquidations count as price-dependent risk actions: gate them like entries
+      return allowOrder(sb, "entry");
+    };
     for (;;) {
-      const r = await runLendingKeeperOnce(venue, { dryRun }).catch((e) => {
+      await priceGuard(); // one freshness read per sweep keeps the hysteresis counter and clock-jump detection regular
+      const r = await runLendingKeeperOnce(venue, { dryRun, priceGuard }).catch((e) => {
         console.error("lending-keeper: sweep failed:", (e as Error).message);
         return [];
       });

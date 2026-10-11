@@ -306,7 +306,7 @@ describe("fleet (paper venue)", () => {
     ref.bars[900] = ref.bars[900] ?? [];
     const px = closes[closes.length - 1];
     venue.price = px;
-    venue.priceTs = now - 60;
+    venue.priceTs = now - 30;
     ref.price = px;
   };
   const breakout = () => [...flat(80), ...Array.from({ length: 5 }, (_, i) => 0.2 * (1 + 0.012 * (i + 1)))];
@@ -422,6 +422,58 @@ describe("fleet (paper venue)", () => {
     venue.setTriggers = orig;
     expect([...venue.positions.values()].some((x) => x.owner === "OWNER_vega")).toBe(false);
     expect(store.desk("vega").closed.at(-1)!.reason).toBe("no_stop");
+  });
+
+  it("stale-data breaker: a 70 s old oracle blocks the entry at once (no 30-min wait) and shows STALE DATA on the status", async () => {
+    setMarket(breakout());
+    venue.priceTs = now - 70;
+    const st = (await fleet.step()) as { desks: { id: string; open: unknown[]; lastSignal: string }[]; staleBreaker: { tripped: boolean; label: string }; fleet: { status: string } };
+    expect([...venue.positions.values()].length).toBe(0);
+    expect(st.desks.find((d) => d.id === "vega")!.lastSignal).toMatch(/blocked: STALE DATA · entries halted/);
+    expect(st.staleBreaker.tripped).toBe(true);
+    expect(st.staleBreaker.label).toMatch(/^STALE DATA · entries halted/);
+    expect(st.fleet.status).toBe("running"); // not killed: entries halted only
+  });
+
+  it("stale-data breaker: the fresh pre-order read cancels an entry even when the tick read was fresh", async () => {
+    setMarket(breakout());
+    venue.oracleTs = async () => now - 95; // the feed stalls between the tick and the signature
+    const st = (await fleet.step()) as { desks: { id: string; lastSignal: string }[] };
+    expect([...venue.positions.values()].length).toBe(0);
+    expect(st.desks.find((d) => d.id === "vega")!.lastSignal).toMatch(/STALE DATA · entries halted.*pre-order|STALE DATA · entries halted/);
+  });
+
+  it("stale-data breaker: reduce-only still runs while tripped (the stop is executed), then recovers after 3 fresh reads", async () => {
+    setMarket(breakout());
+    await fleet.step();
+    const p = [...venue.positions.values()].find((x) => x.owner === "OWNER_vega")!;
+    expect(p).toBeTruthy();
+    now += 60;
+    venue.price = p.stopLoss * 0.999;
+    ref.price = venue.price;
+    venue.priceTs = now - 75; // stale
+    let st = (await fleet.step()) as { staleBreaker: { tripped: boolean; reason: string } };
+    expect(st.staleBreaker.tripped).toBe(true);
+    expect(venue.positions.has(p.id)).toBe(false); // stop executed despite the breaker
+    for (let i = 1; i <= 3; i++) {
+      now += 60;
+      venue.priceTs = now - 10;
+      st = (await fleet.step()) as { staleBreaker: { tripped: boolean; reason: string } };
+      if (i < 3) expect(st.staleBreaker.tripped).toBe(true);
+    }
+    expect(st.staleBreaker.tripped).toBe(false);
+  });
+
+  it("stale-data breaker: escalates to the existing global kill after 600 s of stale data", async () => {
+    setMarket(flat(85));
+    venue.priceTs = now - 70;
+    await fleet.step();
+    for (let i = 0; i < 10; i++) {
+      now += 60;
+      await fleet.step();
+    }
+    expect(store.fleet().killed).toBe(true);
+    expect(store.fleet().killReason).toMatch(/stale data for >= 600s/);
   });
 
   it("dry-run never sends transactions", async () => {

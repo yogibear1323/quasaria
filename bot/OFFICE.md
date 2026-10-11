@@ -35,3 +35,32 @@ npm run office -- revoke all                   # owners revoke the bot keys on-c
 ```
 
 Local admin page: `http://127.0.0.1:52610/` (127.0.0.1 only). The public Back Office page is read-only: positions/trades come from chain reads; bot state from `back-office/status.json` on the `bot-status` branch, pushed every 5 min with the box's existing git credentials. Pages builds only from `main`, so status commits never trigger a site build.
+
+## Stale-data circuit breaker (testnet)
+
+`src/office/staleBreaker.ts`, wired into `src/office/fleet.ts` and `src/lending/cli.ts` / `src/lending/keeper.ts`.
+
+* Sources: the on-chain oracle timestamp (`lastprice`, what the vault checks; it rejects prices older than 90 s) and the
+  feed heartbeat file `bot/state/oracle-feed.heartbeat` (written by the oracle feed after every successful XLM push;
+  `staleBreaker.heartbeatFile` in `office.config.json`, override with `OFFICE_FEED_HEARTBEAT`, `""` = chain only).
+* Age = the older of the two. `>= 60 s` BLOCK, `>= 90 s` TRIP (hard), latched until 3 consecutive fresh reads,
+  escalates to the existing global kill after 600 s tripped. A wall-clock jump > 180 s between reads (VM resume) trips
+  the breaker and restarts both the fresh-read count and the escalation timer.
+* Read on every fleet tick (`Fleet.step` -> `breakerRead`) AND immediately before every risk-increasing order is signed
+  (`Fleet.preOrder("entry")`, a fresh `venue.oracleTs()` read): fleet desk entries (`processDesk`) and Orion's live
+  entries (`stepCalibratedLive`). There are no resting entry orders (vault opens are atomic market orders), so a
+  stale pre-order read cancels the entry outright; nothing is queued.
+* Tripped: new entries and size increases refused; closes, stop/target execution, time exits, kill/halt flattens and
+  protective trigger updates still run. Status: `staleBreaker` in status.json; Back Office banner
+  "STALE DATA · entries halted". Orion's paper/live decisions log `veto: STALE DATA · entries halted`.
+* Lending keeper: liquidations act on oracle prices, so each one is re-checked right before signing (fast-path XLM
+  timestamp + heartbeat, same thresholds); while tripped the liquidation is skipped and retried next sweep.
+* The Autopay keepers do not read oracle prices (agreement sweeps, TTL extension, demo autopilot only): not gated.
+
+## Orion live testnet slice (issue #30)
+
+`liveOverride: "testnet-tiny"` lets the calibrated desk send real TESTNET orders although its model failed the gate.
+Refused in code on any network other than testnet. Slice: 100 test QUSD, 0.25 % risk per trade, max 2x, 1 open,
+$2 daily loss cap, $5 slice drawdown -> flatten + pause, 4 trades/day; vault minimum margin used when the risk-based
+size is smaller. `office setup --only orion` funds its accounts. Raising the slice above $100 or unpausing Echo/Nova is
+refused unless `--ack-issue-30` is passed (https://github.com/yogibear1323/quasaria/issues/30).

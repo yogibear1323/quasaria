@@ -49,6 +49,8 @@ export interface OfficeConfig {
   strictUntil?: string; // ISO; strict thresholds until then (then standard)
   oracle: { warnAgeSec: number; haltAgeSec: number; staleFlatSec: number; warnDevPct: number; haltDevPct: number; killAfterBadSec: number };
   limits: LimitsConfig;
+  /** stale-data circuit breaker (see staleBreaker.ts); defaults: block 60 s, trip 90 s, 3 fresh reads, escalate 600 s */
+  staleBreaker?: { blockAgeSec?: number; tripAgeSec?: number; clearAfterFresh?: number; escalateAfterSec?: number; clockJumpSec?: number; heartbeatFile?: string };
   desks: DeskConfig[];
   /** calibrated three-layer desks (shadow by default; live orders only after the strategy gate passes). */
   calibrated?: CalibratedDeskConfig[];
@@ -58,7 +60,12 @@ export interface OfficeConfig {
 export interface CalibratedDeskConfig {
   id: string;
   name: string;
-  mode: "shadow" | "paper" | "desk"; // paper = simulated fills only, allowed with a failed gate; desk needs gate.passed
+  mode: "shadow" | "paper" | "desk" | "live"; // paper = simulated fills; desk/live = on-chain TESTNET orders (gate.passed or liveOverride)
+  /** explicit override of the failed-gate block for a tiny TESTNET slice only (never another network) */
+  liveOverride?: "testnet-tiny";
+  liveApproval?: string;
+  /** tiny-slice limits (live mode) */
+  live?: { dailyLossUsd: number; killDrawdownUsd: number; maxEntriesPerDay: number; maxOpen: number };
   timeframeSec: number;
   model: string; // path relative to bot/
   capital: number;

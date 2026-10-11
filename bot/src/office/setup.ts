@@ -48,7 +48,9 @@ export async function setupDesks(cfg: OfficeConfig, opts: { issuerIdentity: stri
     return scValToNative(sim.result.retval);
   };
   const report: Record<string, Record<string, string>> = {};
-  for (const d of cfg.desks) {
+  // on-chain desks: the fleet desks plus calibrated desks running live TESTNET orders (e.g. Orion's tiny slice)
+  const liveCal = (cfg.calibrated ?? []).filter((c) => c.mode === "live" || c.mode === "desk").map((c) => ({ id: c.id, capital: c.capital }));
+  for (const d of [...cfg.desks.map((x) => ({ id: x.id, capital: x.capital })), ...liveCal]) {
     if (opts.only && !opts.only.includes(d.id)) continue;
     const r: Record<string, string> = {};
     report[d.id] = r;

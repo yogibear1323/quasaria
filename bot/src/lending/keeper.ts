@@ -94,7 +94,14 @@ export async function allBorrowers(v: LendingVenue): Promise<string[]> {
 export type SweepResult = { plan: LiquidationPlan; ok: boolean; executed: boolean; repaid?: bigint; seized?: bigint; error?: string };
 
 /** One sweep: scan all borrowers (paged), liquidate HF < 1 (unless dry-run). */
-export async function runLendingKeeperOnce(v: LendingVenue, opts: { dryRun: boolean; log?: (m: string) => void }): Promise<SweepResult[]> {
+/**
+ * `priceGuard` (stale-data breaker): liquidations act on oracle prices, so each one is re-checked immediately before it
+ * is signed; while the guard reports stale data the liquidation is skipped (logged) and retried on a later sweep.
+ */
+export async function runLendingKeeperOnce(
+  v: LendingVenue,
+  opts: { dryRun: boolean; log?: (m: string) => void; priceGuard?: () => Promise<{ ok: true } | { ok: false; reason: string }> },
+): Promise<SweepResult[]> {
   const log = opts.log ?? console.log;
   const borrowers = await allBorrowers(v);
   const reserves = await v.reserves();
@@ -120,6 +127,12 @@ export async function runLendingKeeperOnce(v: LendingVenue, opts: { dryRun: bool
     if (opts.dryRun) {
       log(`lending-keeper (dry-run): would liquidate ${b.slice(0, 6)}…`);
       out.push({ plan, ok: true, executed: false });
+      continue;
+    }
+    const g = opts.priceGuard ? await opts.priceGuard() : { ok: true as const };
+    if (!g.ok) {
+      log(`lending-keeper: liquidation of ${b.slice(0, 6)}… skipped — ${g.reason}`);
+      out.push({ plan, ok: false, executed: false, error: g.reason });
       continue;
     }
     try {

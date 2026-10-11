@@ -58,6 +58,7 @@ export interface FleetStateFile {
   startEquity: number;
   oracleBadSince: number;
   oracleHistory: { t: number; oracle: number; ref: number | null }[];
+  stale?: import("./staleBreaker.js").StaleBreakerState;
   fundingSamples: { t: number; hourly: number }[];
   lastTrendEntry: number;
   fleetPaused: string;

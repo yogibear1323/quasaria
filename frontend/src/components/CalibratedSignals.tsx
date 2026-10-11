@@ -15,6 +15,7 @@ const Q: { k: keyof CalibratedStatus["thresholds"]; label: string; title: string
 function modeChip(d: CalibratedStatus) {
   if (d.mode === "shadow") return "shadow · no orders";
   if (d.mode === "paper") return d.model.gatePassed ? "paper · simulated fills" : "paper · failed gate";
+  if (d.mode === "live") return d.model.gatePassed ? "live testnet" : "live testnet · tiny slice · failed gate";
   return "desk";
 }
 
@@ -48,6 +49,13 @@ export function CalibratedSignals({ desks, stale }: { desks: CalibratedStatus[] 
                 <small>{d.calibrationLive.direction?.n ? `${d.calibrationLive.direction.n} resolved · lower is better; climatology ${d.calibrationLive.direction.climatology}` : "resolves after the outcome horizon"}</small>
               </div>
             </div>
+            {d.live && (
+              <div className="bo-cal-open">
+                Live testnet slice: {d.live.capital} test QUSD · risk {d.live.riskPct}% · max {d.live.maxLeverage}× · {d.live.tradesToday}/{d.live.limits?.maxEntriesPerDay ?? "—"} trades today · daily loss cap {d.live.limits?.dailyLossUsd ?? "—"} · slice kill at −{d.live.limits?.killDrawdownUsd ?? "—"}
+                {d.live.open ? ` · open ${d.live.open.side} #${d.live.open.id} @ ${d.live.open.entry.toFixed(5)} (stop ${d.live.open.stop.toFixed(5)}, target ${d.live.open.takeProfit.toFixed(5)})` : " · flat"}
+                {d.live.fills.length > 0 && ` · last fill: ${d.live.fills[0].kind} ${d.live.fills[0].side} @ ${d.live.fills[0].price.toFixed(5)} (${d.live.fills[0].slippageBps} bps vs oracle${d.live.fills[0].pnl === null ? "" : `, net ${d.live.fills[0].pnl.toFixed(2)}`})`}
+              </div>
+            )}
             {d.open && <div className="bo-cal-open">Open paper {d.open.side} @ {d.open.entry.toFixed(5)} · stop {d.open.stop.toFixed(5)} · target {d.open.takeProfit.toFixed(5)} · notional {d.open.notional}</div>}
             <div className="bo-cal-tbl" role="table" aria-label={`${d.name} signals`}>
               <div className="bo-cal-row hd" role="row">
@@ -65,7 +73,7 @@ export function CalibratedSignals({ desks, stale }: { desks: CalibratedStatus[] 
                 </div>
               ))}
             </div>
-            <p className="bo-fine">Simulated paper trades on public XLM-USD candles with fees, slippage and funding. Paper and shadow modes never place an on-chain order. Not a forecast; no expected or guaranteed returns.</p>
+            <p className="bo-fine">Simulated paper trades on public XLM-USD candles with fees, slippage and funding. Paper and shadow modes never place an on-chain order; live mode places tiny orders with test funds on Stellar testnet only. Not a forecast; no expected or guaranteed returns.</p>
           </div>
         );
       })}

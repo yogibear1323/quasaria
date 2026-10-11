@@ -3,12 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Candle } from "../src/office/indicators.js";
-import { loadOfficeConfig } from "../src/office/config.js";
+import { loadOfficeConfig, parseOfficeConfig } from "../src/office/config.js";
 import { FEATURES, W, snapshotAt } from "../src/office/calibrated/snapshot.js";
 import { QUESTIONS, loadModel, score, type CalibratedModel, type Probabilities } from "../src/office/calibrated/model.js";
 import { decide, riskPctFor } from "../src/office/calibrated/policy.js";
 import { openPaper, stepPaper } from "../src/office/calibrated/outcomes.js";
-import { ShadowDesk, type CalibratedDeskConfig } from "../src/office/calibrated/shadowDesk.js";
+import { ShadowDesk, sliceSize, type CalibratedDeskConfig } from "../src/office/calibrated/shadowDesk.js";
 
 const fx = JSON.parse(readFileSync(new URL("./fixtures/calibrated-parity.json", import.meta.url), "utf8")) as {
   gran: number; bars: Candle[]; cases: { decisionTs: number; features: Record<string, number>; atr: number; probs: Record<string, number> }[];
@@ -200,37 +200,164 @@ describe("calibrated desk · risk rules above the model", () => {
   });
 });
 
-describe("calibrated desk · fleet integration", () => {
-  it("the fleet steps Orion in paper mode, publishes its signals, and the global kill halts it without any order", async () => {
+describe("calibrated desk · fleet integration (live testnet tiny slice)", () => {
+  const allYes: Probabilities = { regime: 0.9, direction: 0.9, pressure: 0.9, setup_long: 0.9, setup_short: 0.1, risk: 0.9 };
+  async function rig(opts: { network?: string; stale?: boolean } = {}) {
     const { Fleet } = await import("../src/office/fleet.js");
     const { Store } = await import("../src/office/store.js");
     const { PaperOfficeVenue } = await import("../src/office/venue.js");
     const cfgAll = loadOfficeConfig();
-    expect(cfgAll.calibrated?.[0]?.mode).toBe("paper");
     const dir = mkdtempSync(join(tmpdir(), "cal-fleet-"));
+    const venue = new PaperOfficeVenue();
+    venue.reserve = 10_000;
+    const ids = [...cfgAll.desks.map((d) => d.id), "orion"];
+    const owners = Object.fromEntries(ids.map((id) => [id, { owner: `OWNER_${id}`, operatorSecret: "" }]));
+    for (const d of cfgAll.desks) venue.deposit(owners[d.id].owner, d.capital);
+    venue.deposit("OWNER_orion", 100);
+    const last = fx.bars[fx.bars.length - 1];
+    let now = last.t + fx.gran + 5;
+    venue.price = last.c;
+    venue.priceTs = opts.stale ? now - 70 : now - 10;
+    const ref = { ticker: async () => venue.price, closedBars: async (g: number, n: number) => (g === fx.gran ? fx.bars.filter((b) => b.t + g <= n) : []) };
+    const store = new Store(dir);
+    const fleet = new Fleet(cfgAll, venue, owners, store, ref, { mode: "live", baselines: {}, log: () => undefined, now: () => now, network: opts.network ?? "testnet" });
+    const orionCfg = cfgAll.calibrated![0];
+    (fleet.calibrated as ShadowDesk[])[0] = new ShadowDesk(orionCfg, fakeModel(allYes), cfgAll.limits, dir, () => undefined, { network: opts.network ?? "testnet" });
+    return { fleet, venue, store, dir, cfgAll, advance: (s: number) => { now += s; venue.priceTs = now - 10; }, get now() { return now; } };
+  }
+  const orionPos = (v: { positions: Map<number, { owner: string; margin: number; size: number; stopLoss: number; takeProfit: number }> }) => [...v.positions.values()].filter((p) => p.owner === "OWNER_orion");
+
+  it("config: Orion is live on testnet via the explicit override, with the tiny-slice limits", () => {
+    const o = loadOfficeConfig().calibrated![0];
+    expect(o).toMatchObject({ mode: "live", liveOverride: "testnet-tiny", capital: 100, riskPct: 0.25, maxLeverage: 2, live: { dailyLossUsd: 2, killDrawdownUsd: 5, maxEntriesPerDay: 4, maxOpen: 1 } });
+  });
+
+  it("routes a real (paper-venue) on-chain order through the breaker: vault-minimum sized, <= 2x, stop + target set on-chain", async () => {
+    const r = await rig();
     try {
-      const venue = new PaperOfficeVenue();
-      venue.reserve = 10_000;
-      const owners = Object.fromEntries(cfgAll.desks.map((d) => [d.id, { owner: `OWNER_${d.id}`, operatorSecret: "" }]));
-      for (const d of cfgAll.desks) venue.deposit(owners[d.id].owner, d.capital);
-      const last = fx.bars[fx.bars.length - 1];
-      const now = last.t + fx.gran + 5;
-      venue.price = last.c;
-      venue.priceTs = now - 30;
-      const ref = { ticker: async () => last.c, closedBars: async (g: number, n: number) => (g === fx.gran ? fx.bars.filter((b) => b.t + g <= n) : []) };
-      const store = new Store(dir);
-      const fleet = new Fleet(cfgAll, venue, owners, store, ref, { mode: "live", baselines: {}, log: () => undefined, now: () => now });
-      const opensBefore = venue.positions.size;
-      const st = (await fleet.step()) as { calibrated: { id: string; mode: string; decisions: { action: string }[]; status: string }[] };
-      expect(st.calibrated[0].id).toBe("orion");
-      expect(st.calibrated[0].mode).toBe("paper");
-      expect(st.calibrated[0].decisions.length).toBe(1);
-      store.setKillFlag("test kill");
-      const st2 = (await fleet.step()) as { calibrated: { status: string; reason: string }[] };
-      expect(st2.calibrated[0].status).toBe("halted");
-      expect(venue.positions.size).toBe(opensBefore); // the calibrated desk never touched the venue
+      const st = (await r.fleet.step()) as { calibrated: { mode: string; modeNote: string; live: { open: { id: number } | null; fills: { kind: string; slippageBps: number }[] } }[] };
+      const o = st.calibrated[0];
+      expect(o.mode).toBe("live");
+      expect(o.modeNote).toMatch(/^live testnet · tiny slice · failed gate/);
+      const ps = orionPos(r.venue);
+      expect(ps.length).toBe(1);
+      expect(ps[0].margin).toBeGreaterThanOrEqual(10); // vault min margin
+      expect(ps[0].size / ps[0].margin).toBeLessThanOrEqual(2 + 1e-9);
+      expect(ps[0].stopLoss).toBeGreaterThan(0);
+      expect(ps[0].takeProfit).toBeGreaterThan(0);
+      expect(o.live.fills[0].kind).toBe("open");
     } finally {
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(r.dir, { recursive: true, force: true });
     }
+  });
+
+  it("stale data: Orion's live entry is refused (STALE DATA), nothing is sent", async () => {
+    const r = await rig({ stale: true });
+    try {
+      const st = (await r.fleet.step()) as { calibrated: { decisions: { action: string }[] }[] };
+      expect(orionPos(r.venue).length).toBe(0);
+      expect(st.calibrated[0].decisions[0].action).toMatch(/veto: STALE DATA · entries halted/);
+    } finally {
+      rmSync(r.dir, { recursive: true, force: true });
+    }
+  });
+
+  it("global kill flattens Orion's on-chain position and halts it", async () => {
+    const r = await rig();
+    try {
+      await r.fleet.step();
+      expect(orionPos(r.venue).length).toBe(1);
+      r.store.setKillFlag("test kill");
+      r.advance(60);
+      const st = (await r.fleet.step()) as { calibrated: { status: string }[] };
+      expect(orionPos(r.venue).length).toBe(0);
+      expect(st.calibrated[0].status).toBe("halted");
+    } finally {
+      rmSync(r.dir, { recursive: true, force: true });
+    }
+  });
+
+  it("live mode is refused on any network other than testnet", async () => {
+    const r = await rig({ network: "mainnet" });
+    try {
+      const st = (await r.fleet.step()) as { calibrated: { mode: string; modeNote: string }[] };
+      expect(st.calibrated[0].mode).toBe("shadow");
+      expect(st.calibrated[0].modeNote).toMatch(/not testnet/);
+      expect(orionPos(r.venue).length).toBe(0);
+    } finally {
+      rmSync(r.dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("calibrated desk · tiny slice rules", () => {
+  let dir: string;
+  beforeEach(() => (dir = mkdtempSync(join(tmpdir(), "slice-"))));
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+  const allYes: Probabilities = { regime: 0.9, direction: 0.9, pressure: 0.9, setup_long: 0.9, setup_short: 0.1, risk: 0.9 };
+  const live = (): CalibratedDeskConfig => ({ ...loadOfficeConfig().calibrated![0] });
+  const extras = { spreadBps: null, bookImbalance: null, fundingHourly: 0 };
+  const endOf = (n: number) => fx.bars[n - 1].t + fx.gran;
+
+  it("sizes at 0.25 % risk, capped at 2x, and bumps to the vault minimum margin when the risk-based size is smaller", () => {
+    const a = sliceSize({ equity: 100, riskPct: 0.25, hardMaxRiskPct: 2, entry: 1, stop: 0.99, maxLeverage: 2, minMargin: 10, openFeeBps: 10, free: 100, mmBps: 50 });
+    expect(a).toMatchObject({ ok: true, margin: 12.5, leverage: 2, bumped: false });
+    const b = sliceSize({ equity: 100, riskPct: 0.25, hardMaxRiskPct: 2, entry: 1, stop: 0.97, maxLeverage: 2, minMargin: 10, openFeeBps: 10, free: 100, mmBps: 50 });
+    expect(b).toMatchObject({ ok: true, margin: 10, leverage: 1, bumped: true });
+    if (b.ok) expect(b.riskAmount).toBeCloseTo(0.3, 9);
+  });
+
+  it("slice drawdown kill: down $5 -> flatten requested and Orion paused (manual resume)", () => {
+    const d = new ShadowDesk(live(), fakeModel(allYes), limits, dir, () => undefined, { network: "testnet" });
+    d.step({ now: endOf(W + 1), killed: false, bars: fx.bars.slice(0, W + 1), extras, liveEquity: 94.9, liveOpenCount: 1 });
+    expect(d.state.flattenReq).toBe(true);
+    expect(d.state.status).toBe("paused");
+    expect(d.state.statusReason).toMatch(/slice drawdown kill/);
+    expect(d.takeIntent()).toBeNull();
+  });
+
+  it("daily loss cap ($2) and 4 trades/day block new live orders", () => {
+    const d = new ShadowDesk(live(), fakeModel(allYes), limits, dir, () => undefined, { network: "testnet" });
+    const now = endOf(W + 1);
+    d.state.dayStart = { day: Math.floor(now / 86400), equity: 100 };
+    let row = d.step({ now, killed: false, bars: fx.bars.slice(0, W + 1), extras, liveEquity: 97.9, liveOpenCount: 0 })!;
+    expect(row.action).toMatch(/veto: slice daily loss/);
+    const d2 = new ShadowDesk(live(), fakeModel(allYes), limits, mkdtempSync(join(tmpdir(), "slice2-")), () => undefined, { network: "testnet" });
+    d2.state.entryTimes = [now - 100, now - 200, now - 300, now - 400];
+    row = d2.step({ now, killed: false, bars: fx.bars.slice(0, W + 1), extras, liveEquity: 100, liveOpenCount: 0 })!;
+    expect(row.action).toMatch(/veto: max 4 trades\/day/);
+  });
+
+  it("live mode without the override is refused while the gate is failed", () => {
+    const { liveOverride: _o, ...noOverride } = live();
+    const d = new ShadowDesk(noOverride as CalibratedDeskConfig, fakeModel(allYes, { gate: { passed: false, summary: "FAILED GATE" } }), limits, dir, () => undefined, { network: "testnet" });
+    expect(d.mode).toBe("shadow");
+  });
+});
+
+describe("issue #30 guard", () => {
+  const raw = () => JSON.parse(readFileSync(new URL("../office.config.json", import.meta.url), "utf8"));
+  it("refuses to raise Orion's live slice above $100 without --ack-issue-30", () => {
+    const c = raw();
+    c.calibrated[0].capital = 150;
+    expect(() => parseOfficeConfig(c)).toThrow(/issue #30/);
+    c.calibrated[0].live.dailyLossUsd = 2;
+    expect(() => parseOfficeConfig(c, { ackIssue30: true })).not.toThrow();
+  });
+  it("refuses to unpause Echo or Nova without --ack-issue-30", () => {
+    for (const id of ["echo", "nova"]) {
+      const c = raw();
+      delete c.desks.find((d: { id: string }) => d.id === id).paused;
+      expect(() => parseOfficeConfig(c)).toThrow(/issue #30/);
+      expect(() => parseOfficeConfig(c, { ackIssue30: true })).not.toThrow();
+    }
+  });
+  it("tiny-slice limits cannot be loosened (risk, leverage)", () => {
+    const c = raw();
+    c.calibrated[0].riskPct = 0.5;
+    expect(() => parseOfficeConfig(c)).toThrow(/riskPct must be <= 0.25/);
+    const c2 = raw();
+    c2.calibrated[0].maxLeverage = 3;
+    expect(() => parseOfficeConfig(c2)).toThrow(/maxLeverage must be <= 2/);
   });
 });

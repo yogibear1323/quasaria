@@ -45,6 +45,8 @@ export interface OfficeVenue {
   close(k: DeskKeys, id: number): Promise<TxResult<{ payout: number }>>;
   executeTrigger(k: DeskKeys, id: number): Promise<TxResult<{ payout: number }>>;
   closeEvents(owner: string): Promise<CloseEvent[]>;
+  /** fresh on-chain oracle timestamp (stale-data breaker pre-order check); cheaper than market() */
+  oracleTs?(): Promise<number>;
 }
 
 const u64 = (n: number) => nativeToScVal(BigInt(n), { type: "u64" });
@@ -100,6 +102,12 @@ export class SorobanOfficeVenue implements OfficeVenue {
 
   private px(v: bigint | number) {
     return Number(v) / 10 ** this.decimals;
+  }
+
+  async oracleTs(): Promise<number> {
+    const pd = await this.read<{ price: bigint; timestamp: bigint } | null>(this.o.oracleId, "lastprice", [this.market_]);
+    if (!pd) throw new Error("oracle has no price for the market");
+    return Number(pd.timestamp);
   }
 
   async market(): Promise<VaultMarket> {
@@ -231,6 +239,9 @@ export class PaperOfficeVenue implements OfficeVenue {
       this.failNext--;
       throw new Error(`${m}: simulated failure`);
     }
+  }
+  async oracleTs() {
+    return this.priceTs;
   }
   deposit(owner: string, amount: number) {
     this.free.set(owner, (this.free.get(owner) ?? 0) + amount);

@@ -1,5 +1,10 @@
 # Orion — calibrated XLM-perp desk · strategy.md
 
+**Update Oct 10, 2026:** at Robert's explicit request Orion trades a **tiny live TESTNET slice** (100 test QUSD,
+0.25 % risk per trade, max 2x, 1 open, $2 daily loss cap, $5 slice drawdown -> flatten + pause, 4 trades/day) via the
+config override `liveOverride: "testnet-tiny"`. The gate result below is unchanged: still FAILED. Test funds only;
+the code refuses live mode on any other network, and issue #30 blocks any larger rollout.
+
 **Status: FAILED GATE — not deployed as a trading desk.** Orion runs in **paper mode** ("paper · failed gate") on the
 testnet fleet: it scores every 15-minute candle, logs every decision and outcome, and records simulated fills (fees,
 slippage, funding) at a fixed 0.5 % risk. It places **no on-chain orders**. Paper mode was enabled on Oct 8, 2026 at

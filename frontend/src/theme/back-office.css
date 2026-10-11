@@ -364,3 +364,10 @@
 .bo-cal-row .g { color: #34d399; }
 .bo-cal-row .r { color: #f87171; }
 @media (max-width: 760px) { .bo-cal-row { grid-template-columns: 1.2fr .6fr repeat(5, .55fr) .55fr; } .bo-cal-row > span:nth-child(9), .bo-cal-row > span:nth-child(10) { display: none; } }
+
+/* stale-data breaker + open items (flat, no gradients) */
+.bo-stale { margin: 0 0 12px; border: 1px solid #fb7185; background: #1a0b10; color: #ffd5dc; border-radius: 10px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; font: 500 12.5px var(--font-body); }
+.bo-stale b { font: 700 12px var(--font-mono); letter-spacing: .08em; color: #fb7185; }
+.bo-open-items { margin: 18px 0 8px; border: 1px solid #3a2f66; background: #0b0a12; border-radius: 12px; padding: 12px 16px; color: #c9c3e6; font-size: .9rem; }
+.bo-open-items h2 { margin: 0 0 6px; font-size: .95rem; color: #b9a8ff; }
+.bo-open-items a { color: #67e8f9; }

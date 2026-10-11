@@ -2,6 +2,7 @@
   "loopSec": 60,
   "driftMode": "standard",
   "strictUntil": "2026-10-18T20:00:00Z",
+  "staleBreaker": { "blockAgeSec": 60, "tripAgeSec": 90, "clearAfterFresh": 3, "escalateAfterSec": 600, "clockJumpSec": 180, "heartbeatFile": "state/oracle-feed.heartbeat" },
   "oracle": { "warnAgeSec": 60, "haltAgeSec": 90, "staleFlatSec": 600, "warnDevPct": 0.75, "haltDevPct": 1.5, "killAfterBadSec": 1800 },
   "limits": {
     "hardMaxRiskPct": 2, "maxMarginPct": 25, "maxNotionalX": 1.5, "maxOpenPerDesk": 2, "minStopPct": 0.8, "maxStopPct": 7.5, "feeBufferPct": 0.25,
@@ -18,6 +19,6 @@
     { "id": "halo", "name": "Halo", "strategy": "meanrev", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": { "lpSweepBars": 12 } }
   ],
   "calibrated": [
-    { "id": "orion", "name": "Orion", "mode": "paper", "timeframeSec": 900, "model": "office.calibrated.model.json", "capital": 500, "riskPct": 1.0, "maxLeverage": 3, "label": "Paper · failed gate · calibrated scorer · testnet / simulated fills · no on-chain orders" }
+    { "id": "orion", "name": "Orion", "mode": "live", "liveOverride": "testnet-tiny", "liveApproval": "Robert Walker, Oct 10 2026 (testnet tiny slice; overrides the failed gate on testnet only)", "timeframeSec": 900, "model": "office.calibrated.model.json", "capital": 100, "riskPct": 0.25, "maxLeverage": 2, "live": { "dailyLossUsd": 2, "killDrawdownUsd": 5, "maxEntriesPerDay": 4, "maxOpen": 1 }, "label": "Live testnet · tiny slice · failed gate · test funds only" }
   ]
 }

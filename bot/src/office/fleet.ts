@@ -17,7 +17,9 @@ import type { DeskKeys, OfficeVenue, VaultMarket } from "./venue.js";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadModel } from "./calibrated/model.js";
-import { ShadowDesk } from "./calibrated/shadowDesk.js";
+import { ShadowDesk, sliceSize, type LiveOpen } from "./calibrated/shadowDesk.js";
+import { stopDist as geomStopDist } from "./calibrated/outcomes.js";
+import { DEFAULT_STALE_BREAKER, allowOrder, breakerLabel, isRiskIncreasing, newBreakerState, observe, readHeartbeat, type OrderKind, type StaleBreakerCfg } from "./staleBreaker.js";
 
 const BOT_DIR = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -29,6 +31,8 @@ export interface FleetOptions {
   now?: () => number;
   vaultId?: string;
   explorer?: string;
+  /** deployment network ("testnet"); calibrated live mode is refused on anything else */
+  network?: string;
 }
 
 const clamp = (v: number, b: number) => Math.max(-Math.abs(b), Math.min(Math.abs(b), v));
@@ -55,6 +59,7 @@ export class Fleet {
   private flattenReq = new Set<string>();
   private readonly log: (m: string) => void;
   private readonly now: () => number;
+  readonly breakerCfg: StaleBreakerCfg;
 
   constructor(
     readonly cfg: OfficeConfig,
@@ -67,20 +72,131 @@ export class Fleet {
     this.strategies = Object.fromEntries(cfg.desks.map((d) => [d.id, createOfficeStrategy(d)]));
     this.log = opts.log ?? ((m) => console.log(m));
     this.now = opts.now ?? (() => Math.floor(Date.now() / 1000));
-    this.calibrated = (cfg.calibrated ?? []).map((c) => new ShadowDesk(c, loadModel(resolve(BOT_DIR, c.model)), cfg.limits, store.dir, this.log));
+    const sb = cfg.staleBreaker ?? {};
+    // OFFICE_FEED_HEARTBEAT overrides the path; set to "" to use the on-chain timestamp only (unit tests with a fake clock)
+    const envHb = process.env.OFFICE_FEED_HEARTBEAT;
+    const hb = envHb !== undefined ? envHb || undefined : sb.heartbeatFile ? resolve(BOT_DIR, sb.heartbeatFile) : undefined;
+    this.breakerCfg = { ...DEFAULT_STALE_BREAKER, ...sb, heartbeatFile: hb };
+    this.calibrated = (cfg.calibrated ?? []).map((c) => new ShadowDesk(c, loadModel(resolve(BOT_DIR, c.model)), cfg.limits, store.dir, this.log, { network: opts.network ?? (venue.kind === "paper" ? "paper" : "unknown") }));
+    for (const sd of this.calibrated) if (sd.isLive && !keys[sd.cfg.id]) throw new Error(`${sd.cfg.id}: live testnet mode needs desk keys (run: office setup --only ${sd.cfg.id})`);
   }
 
   /** Step every calibrated desk (independent of the vault read: it decides on public reference candles). */
-  private async stepCalibrated(now: number, f: FleetStateFile, fundingHourly: number | null) {
+  private async stepCalibrated(now: number, f: FleetStateFile, fundingHourly: number | null, m: VaultMarket | null = null) {
     for (const sd of this.calibrated) {
       try {
         const bars = await this.ref.closedBars(sd.cfg.timeframeSec, now);
         const book = this.ref.book ? await this.ref.book().catch(() => null) : null;
-        sd.step({ now, killed: f.killed, killReason: f.killReason, bars, extras: { spreadBps: book?.spreadBps ?? null, bookImbalance: book?.imbalance ?? null, fundingHourly } });
+        const stale = f.stale ? { tripped: f.stale.tripped, reason: f.stale.reason } : undefined;
+        const extras = { spreadBps: book?.spreadBps ?? null, bookImbalance: book?.imbalance ?? null, fundingHourly };
+        if (sd.isLive) {
+          if (!m) {
+            // no vault read this loop: no live management, and entries are vetoed by the tripped breaker
+            sd.step({ now, killed: f.killed, killReason: f.killReason, bars, extras, stale: stale ?? { tripped: true, reason: "vault read failed" }, liveOpenCount: sd.state.liveOpen ? 1 : 0 });
+          } else await this.stepCalibratedLive(sd, now, f, m, bars, extras, stale);
+        } else sd.step({ now, killed: f.killed, killReason: f.killReason, bars, extras, stale });
         sd.save();
       } catch (e) {
         this.log(`[${sd.cfg.id}] calibrated desk error: ${(e as Error).message}`);
       }
+    }
+  }
+
+  /** Feed one freshness read into the stale-data breaker; logs/journals transitions and escalates to the global kill. */
+  private breakerRead(f: FleetStateFile, now: number, oracleTs: number | null, where: string) {
+    const r = observe(f.stale ?? newBreakerState(), { now, oracleTs, heartbeatTs: readHeartbeat(this.breakerCfg.heartbeatFile) }, this.breakerCfg);
+    f.stale = r.state;
+    if (r.changed === "tripped") {
+      this.log(`STALE DATA · entries halted (${where}): ${r.state.reason}`);
+      this.store.journal({ type: "stale_trip", where, reason: r.state.reason, oracleAgeSec: r.state.lastOracleAgeSec, heartbeatAgeSec: r.state.lastHeartbeatAgeSec });
+    } else if (r.changed === "cleared") {
+      this.log(`stale-data breaker cleared after ${this.breakerCfg.clearAfterFresh} consecutive fresh reads (${where})`);
+      this.store.journal({ type: "stale_clear", where });
+    }
+    if (r.escalate && !f.killed) this.kill(f, `stale data for >= ${this.breakerCfg.escalateAfterSec}s: ${r.state.reason}`);
+    return r;
+  }
+
+  /**
+   * Pre-order check, called immediately before an order is signed/submitted: a FRESH read of the on-chain oracle
+   * timestamp and the feed heartbeat. Risk-increasing orders are refused while the breaker is tripped; reduce-only,
+   * closes and protective trigger updates are always allowed (and skip the extra read).
+   */
+  async preOrder(f: FleetStateFile, kind: OrderKind): Promise<{ ok: true } | { ok: false; reason: string }> {
+    if (!isRiskIncreasing(kind)) return { ok: true };
+    const ts = await (this.venue.oracleTs ? this.venue.oracleTs() : this.venue.market().then((m) => m.oracleTs)).catch(() => null);
+    this.breakerRead(f, this.now(), ts, `pre-order ${kind}`);
+    return allowOrder(f.stale!, kind);
+  }
+
+  /**
+   * Orion live TESTNET slice: manage the on-chain position (reconcile, kill/halt/slice-kill flatten, SL/TP, time exit),
+   * then score the candle and route at most one entry through the stale-data breaker. Closes are always allowed.
+   */
+  private async stepCalibratedLive(sd: ShadowDesk, now: number, f: FleetStateFile, m: VaultMarket, bars: Candle[], extras: { spreadBps: number | null; bookImbalance: number | null; fundingHourly: number | null }, stale?: { tripped: boolean; reason: string }) {
+    const k = this.keys[sd.cfg.id], s = sd.state, price = m.oraclePrice, id = sd.cfg.id;
+    const live = this.opts.mode !== "dry-run";
+    const dummy = this.store.desk(id); // tx bookkeeping only
+    let v = await this.venue.desk(k.owner);
+    const closeAll = async (why: string) => {
+      for (const p of v.positions) {
+        const r = await this.tx(id, dummy, `close #${p.id} (${why})`, () => this.venue.close(k, p.id));
+        if (r && s.liveOpen?.id === p.id) sd.recordLiveClose({ exit: price, refPrice: price, payout: r.value.payout, grossPnl: r.value.payout - p.margin, reason: why, tx: r.hash, at: now });
+        else if (r) this.store.journal({ desk: id, type: "close_unknown", id: p.id, tx: r.hash });
+      }
+      v = await this.venue.desk(k.owner);
+    };
+    // reconcile: our position closed on-chain by a trigger/keeper/liquidation
+    if (s.liveOpen && !v.positions.some((p) => p.id === s.liveOpen!.id)) {
+      const e = (await this.venue.closeEvents(k.owner).catch(() => [])).filter((x) => x.id === s.liveOpen!.id).pop();
+      sd.recordLiveClose({ exit: e?.exitPrice ?? price, refPrice: price, payout: null, grossPnl: e?.pnl ?? 0, reason: e?.reason ?? "closed on-chain (no event)", tx: e?.txHash ?? "", at: now });
+    }
+    const unknown = v.positions.filter((p) => p.id !== s.liveOpen?.id);
+    if (unknown.length) (s.status = "halted"), (s.statusReason = `reconciliation: unknown on-chain position(s) ${unknown.map((p) => `#${p.id}`).join(", ")}`), (s.flattenReq = true);
+    if (live && v.positions.length && (f.killed || s.status === "halted" || s.flattenReq)) await closeAll(f.killed ? "global_kill" : s.status === "halted" ? "halt" : "slice_kill");
+    if (!v.positions.length) s.flattenReq = false;
+    // SL/TP at the oracle price (on-chain triggers; the vault re-checks) and the model's time exit
+    const o = s.liveOpen, p = o ? v.positions.find((x) => x.id === o.id) : undefined;
+    if (live && o && p) {
+      const slHit = o.side === "long" ? price <= o.stop : price >= o.stop;
+      const tpHit = o.takeProfit > 0 && (o.side === "long" ? price >= o.takeProfit : price <= o.takeProfit);
+      const timeUp = now >= o.openedBarT + (sd.model.horizonBars + 1) * sd.cfg.timeframeSec;
+      if (slHit || tpHit) {
+        const r = await this.tx(id, dummy, `execute_trigger #${o.id}`, () => this.venue.executeTrigger(k, o.id));
+        if (r) sd.recordLiveClose({ exit: price, refPrice: price, payout: r.value.payout, grossPnl: r.value.payout - p.margin, reason: slHit ? "stop_loss" : "take_profit", tx: r.hash, at: now });
+      } else if (timeUp) {
+        const r = await this.tx(id, dummy, `close #${o.id} (time exit)`, () => this.venue.close(k, o.id));
+        if (r) sd.recordLiveClose({ exit: price, refPrice: price, payout: r.value.payout, grossPnl: r.value.payout - p.margin, reason: "time", tx: r.hash, at: now });
+      }
+      v = await this.venue.desk(k.owner);
+    }
+    const eq = v.free + v.positions.reduce((a, q) => a + q.margin + pnlAt(q, price) - q.pendingFunding, 0);
+    sd.step({ now, killed: f.killed, killReason: f.killReason, bars, extras, stale, liveEquity: eq, liveOpenCount: v.positions.length });
+    if (s.flattenReq && live && v.positions.length) await closeAll(s.status === "halted" ? "halt" : f.killed ? "global_kill" : "slice_kill");
+    const intent = sd.takeIntent();
+    if (!intent) return;
+    const sl = geomStopDist(intent.atr, price, sd.model.geometry);
+    const sg = intent.side === "long" ? 1 : -1;
+    const stop = price * (1 - sg * sl), tp = price * (1 + (sg * sl * sd.model.geometry.tpAtr) / sd.model.geometry.slAtr);
+    const sz = sliceSize({ equity: eq, riskPct: intent.riskPct, hardMaxRiskPct: this.cfg.limits.hardMaxRiskPct, entry: price, stop, maxLeverage: sd.cfg.maxLeverage, minMargin: m.minMargin, openFeeBps: m.openFeeBps, free: v.free, mmBps: m.mmBps });
+    if (!sz.ok) return sd.recordLiveBlocked(intent.decisionT, `sizing — ${sz.reason}`);
+    if (m.paused) return sd.recordLiveBlocked(intent.decisionT, "vault paused by guardian");
+    if (!live) return sd.recordLiveBlocked(intent.decisionT, `dry-run: would open ${intent.side} margin ${sz.margin.toFixed(2)} × ${sz.leverage}`);
+    const pre = await this.preOrder(f, "entry");
+    if (!pre.ok) return sd.recordLiveBlocked(intent.decisionT, pre.reason);
+    const opened = await this.tx(id, dummy, `open ${intent.side} margin ${sz.margin.toFixed(2)} × ${sz.leverage}`, () => this.venue.open(k, intent.side, sz.margin, sz.leverageBps));
+    if (!opened) return sd.recordLiveBlocked(intent.decisionT, "open transaction failed");
+    const lo: LiveOpen = {
+      id: opened.value.id, side: intent.side, entry: opened.value.entry, decisionPrice: price, stop, takeProfit: tp, size: sz.notional, margin: sz.margin,
+      leverage: sz.leverage, fee: sz.fee, riskAmount: sz.riskAmount, openedAt: now, openedBarT: intent.barT, decisionT: intent.decisionT, tx: opened.hash, minSizeBump: sz.bumped,
+    };
+    sd.recordLiveOpen(lo, now);
+    this.log(`[${id}] LIVE OPEN #${lo.id} ${lo.side} margin ${lo.margin.toFixed(2)} × ${lo.leverage} @ ${lo.entry.toFixed(6)} (oracle ${price.toFixed(6)}) fee ${lo.fee.toFixed(4)}${lo.minSizeBump ? " [vault min size]" : ""} tx ${lo.tx}`);
+    let trig = await this.tx(id, dummy, `set_triggers #${lo.id}`, () => this.venue.setTriggers(k, lo.id, stop, tp));
+    if (!trig) trig = await this.tx(id, dummy, `set_triggers retry #${lo.id}`, () => this.venue.setTriggers(k, lo.id, stop, tp));
+    if (!trig) {
+      const r = await this.tx(id, dummy, `close #${lo.id} (no on-chain stop)`, () => this.venue.close(k, lo.id));
+      if (r) sd.recordLiveClose({ exit: price, refPrice: price, payout: r.value.payout, grossPnl: r.value.payout - lo.margin, reason: "no_stop", tx: r.hash, at: now });
     }
   }
 
@@ -200,6 +316,7 @@ export class Fleet {
       m = await this.venue.market();
     } catch (e) {
       this.log(`market snapshot failed: ${(e as Error).message}`);
+      this.breakerRead(f, now, null, "tick");
       await this.stepCalibrated(now, f, null);
       for (const d of this.cfg.desks) this.store.saveDesk(d.id, states[d.id]);
       this.store.saveFleet(f);
@@ -211,6 +328,7 @@ export class Fleet {
     if (ov.level === "halt") f.oracleBadSince ||= now;
     else f.oracleBadSince = 0;
     if (!f.killed && f.oracleBadSince && now - f.oracleBadSince > this.cfg.oracle.killAfterBadSec) this.kill(f, `oracle unhealthy > ${this.cfg.oracle.killAfterBadSec}s: ${ov.reasons.join("; ")}`);
+    this.breakerRead(f, now, m.oracleTs, "tick");
 
     const bars: Record<number, Candle[]> = {};
     for (const tf of new Set(this.cfg.desks.map((d) => d.timeframeSec))) bars[tf] = await this.ref.closedBars(tf, now).catch(() => []);
@@ -227,7 +345,7 @@ export class Fleet {
     let fleetLong = 0, fleetShort = 0;
     for (const v of Object.values(views)) for (const p of v?.positions ?? []) p.side === "long" ? (fleetLong += p.size) : (fleetShort += p.size);
     const fr = fundingRates(m, fleetLong, fleetShort);
-    await this.stepCalibrated(now, f, fr.predictedHourly);
+    await this.stepCalibrated(now, f, fr.predictedHourly, m);
     const lastSample = f.fundingSamples[f.fundingSamples.length - 1];
     if (!lastSample || now - lastSample.t >= 3570) f.fundingSamples.push({ t: now, hourly: fr.extHourly });
 
@@ -408,6 +526,7 @@ export class Fleet {
     if (f.killed) return block("global kill active");
     if (s.status !== "running") return block(`desk ${s.status}${s.statusReason ? `: ${s.statusReason}` : ""}`);
     if (f.fleetPaused) return block(f.fleetPaused);
+    if (f.stale?.tripped) return block(`STALE DATA · entries halted: ${f.stale.reason}`);
     if (ov.level === "halt") return block(`oracle: ${ov.reasons.join("; ")}`);
     if (m.paused) return block("vault paused by guardian");
     if (gate.action !== "ok") return block(gate.reason);
@@ -433,6 +552,9 @@ export class Fleet {
       this.log(`[${d.id}] ${s.lastSignal}`);
       return;
     }
+    // stale-data breaker: fresh read right before signing (a stale read here cancels this entry; nothing is queued)
+    const pre = await this.preOrder(f, "entry");
+    if (!pre.ok) return block(pre.reason);
     const opened = await this.tx(d.id, s, `open ${label}`, () => this.venue.open(k, sig.side, sz.margin, sz.leverageBps));
     if (!opened) return block("open transaction failed");
     s.entryTimes.push(now);
@@ -512,6 +634,11 @@ export class Fleet {
           spark: tb.slice(-40).map((b) => b.c),
         };
       }),
+      staleBreaker: (() => {
+        const sb = f.stale ?? newBreakerState();
+        const c = this.breakerCfg;
+        return { ...sb, label: breakerLabel(sb), blockAgeSec: c.blockAgeSec, tripAgeSec: c.tripAgeSec, clearAfterFresh: c.clearAfterFresh, escalateAfterSec: c.escalateAfterSec, heartbeat: !!c.heartbeatFile };
+      })(),
       calibrated: this.calibrated.map((sd) => sd.status()),
     };
   }

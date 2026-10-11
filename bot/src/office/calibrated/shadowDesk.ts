@@ -8,8 +8,10 @@
  *   "shadow" (default) scores and logs every candle; no paper positions.
  *   "paper"  scores, logs and opens SIMULATED paper fills (fees, slippage, funding); never an on-chain order. Allowed even
  *            when the model failed the strategy gate (labelled "paper · failed gate"); same risk vetoes and sizing caps.
- *   "desk"   (live testnet orders) is refused in code unless the model file says it passed the strategy gate; until then
- *            the desk is forced to shadow.
+ *   "desk" / "live"  real on-chain TESTNET orders, routed by the fleet (fleet.ts stepCalibratedLive) through the
+ *            stale-data breaker. Refused in code on any network other than testnet, and refused unless the model passed
+ *            the strategy gate OR the config carries the explicit override `liveOverride: "testnet-tiny"` (Robert,
+ *            Oct 10 2026) with tiny-slice limits (daily loss $, slice drawdown kill $, entries/day, 1 open).
  * Every decision and every resolved outcome is appended to calibration.jsonl (the nightly review reads it).
  */
 import { appendFileSync, existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -54,6 +56,41 @@ export interface ShadowState {
   decisions: DecisionRow[];
   closed: { side: string; pnl: number; reason: string; openedBarT: number; exitBarT: number; r: number }[];
   cal: Record<Question, { n: number; brierSum: number; hits: number }>;
+  /** live testnet slice */
+  liveSince?: number;
+  liveOpen?: LiveOpen | null;
+  liveFills?: LiveFill[];
+  flattenReq?: boolean;
+  paperClosed?: ShadowState["closed"];
+}
+export interface LiveOpen {
+  id: number; side: "long" | "short"; entry: number; decisionPrice: number; stop: number; takeProfit: number; size: number; margin: number;
+  leverage: number; fee: number; riskAmount: number; openedAt: number; openedBarT: number; decisionT: number; tx: string; minSizeBump: boolean;
+}
+export interface LiveFill {
+  kind: "open" | "close"; id: number; side: "long" | "short"; price: number; refPrice: number; slippageBps: number; fee: number;
+  pnl: number | null; reason: string; tx: string; at: number;
+}
+export interface LiveIntent { side: "long" | "short"; riskPct: number; decisionT: number; barT: number; price: number; atr: number }
+
+/** Size a tiny-slice order: risk-based, capped leverage, bumped to the vault's minimum margin if needed (reported). */
+export function sliceSize(a: { equity: number; riskPct: number; hardMaxRiskPct: number; entry: number; stop: number; maxLeverage: number; minMargin: number; openFeeBps: number; free: number; mmBps: number }) {
+  const stopDist = Math.abs(a.entry - a.stop) / a.entry;
+  if (!(stopDist > 0)) return { ok: false as const, reason: "zero stop distance" };
+  const target = (a.equity * Math.min(a.riskPct, a.hardMaxRiskPct)) / 100;
+  let notional = target / stopDist;
+  let margin = notional / a.maxLeverage;
+  let bumped = false;
+  if (margin < a.minMargin) (margin = a.minMargin), (bumped = true);
+  let lev = Math.min(a.maxLeverage, Math.max(1, notional / margin));
+  notional = margin * lev;
+  const riskAmount = notional * stopDist;
+  const fee = (notional * a.openFeeBps) / 10_000;
+  if (riskAmount > (a.equity * a.hardMaxRiskPct) / 100) return { ok: false as const, reason: `min-size order risks ${riskAmount.toFixed(2)} > ${a.hardMaxRiskPct}% hard cap` };
+  if (stopDist > (1 / lev - a.mmBps / 10_000) / 2) return { ok: false as const, reason: "stop too wide for leverage (liquidation rule)" };
+  if (margin + fee > a.free) return { ok: false as const, reason: `free collateral ${a.free.toFixed(2)} < margin+fee ${(margin + fee).toFixed(2)}` };
+  lev = Math.round(lev * 100) / 100;
+  return { ok: true as const, margin: Math.round(margin * 1e4) / 1e4, leverage: lev, leverageBps: Math.round(lev * 10_000), notional: margin * lev, riskAmount: margin * lev * stopDist, targetRisk: target, fee, bumped };
 }
 const emptyCal = () => Object.fromEntries(QUESTIONS.map((q) => [q, { n: 0, brierSum: 0, hits: 0 }])) as ShadowState["cal"];
 export const newShadowState = (capital: number): ShadowState => ({
@@ -67,17 +104,35 @@ export interface StepInput {
   killReason?: string;
   bars: Candle[]; // closed or not; the desk filters to closed bars itself
   extras: LiveExtras;
+  /** stale-data breaker state: entries halted while tripped (reduce-only/closes still allowed) */
+  stale?: { tripped: boolean; reason: string };
+  /** live mode: chain equity (free + margin + uPnL) and open position count from the fleet */
+  liveEquity?: number;
+  liveOpenCount?: number;
 }
 
 export class ShadowDesk {
-  readonly mode: "shadow" | "paper" | "desk";
+  readonly mode: "shadow" | "paper" | "desk" | "live";
+  private intent: LiveIntent | null = null;
   readonly modeNote: string;
   state: ShadowState;
-  constructor(readonly cfg: CalibratedDeskConfig, readonly model: CalibratedModel, readonly limits: LimitsConfig, readonly dir: string, private readonly log: (m: string) => void = () => undefined) {
-    if (cfg.mode === "desk" && !model.gate.passed) {
+  constructor(
+    readonly cfg: CalibratedDeskConfig, readonly model: CalibratedModel, readonly limits: LimitsConfig, readonly dir: string,
+    private readonly log: (m: string) => void = () => undefined, readonly env: { network: string } = { network: "paper" },
+  ) {
+    if ((cfg.mode === "desk" || cfg.mode === "live") && env.network !== "testnet") {
+      this.mode = "shadow";
+      this.modeNote = `live mode refused: network "${env.network}" is not testnet — running in shadow (no orders)`;
+      log(`[${cfg.id}] ${this.modeNote}`);
+    } else if ((cfg.mode === "desk" || cfg.mode === "live") && !model.gate.passed && cfg.liveOverride !== "testnet-tiny") {
       this.mode = "shadow";
       this.modeNote = "desk mode refused: model did not pass the strategy gate — running in shadow (no orders)";
       log(`[${cfg.id}] ${this.modeNote}`);
+    } else if (cfg.mode === "desk" || cfg.mode === "live") {
+      this.mode = "live";
+      this.modeNote = model.gate.passed
+        ? "live testnet: on-chain testnet orders (test funds only)"
+        : `live testnet · tiny slice · failed gate: on-chain testnet orders, test funds only (override approved: ${cfg.liveApproval ?? "?"})`;
     } else {
       this.mode = cfg.mode;
       this.modeNote =
@@ -87,6 +142,49 @@ export class ShadowDesk {
     }
     if (model.timeframeSec !== cfg.timeframeSec) throw new Error(`${cfg.id}: model timeframe ${model.timeframeSec} != desk ${cfg.timeframeSec}`);
     this.state = this.load();
+    if (this.mode === "live" && !this.state.liveSince) {
+      // fresh slice accounting: paper history is kept separately, equity re-based to the live allocation
+      const s = this.state;
+      s.paperClosed = s.closed;
+      Object.assign(s, { closed: [], entryTimes: [], equity: cfg.capital, startEquity: cfg.capital, peakEquity: cfg.capital, dayStart: { day: -1, equity: cfg.capital }, lossStreak: 0, liveOpen: null, liveFills: [], flattenReq: false, open: null });
+      s.liveSince = Math.floor(Date.now() / 1000);
+      if (s.status === "halted") (s.status = "running"), (s.statusReason = "");
+    }
+  }
+  get isLive() { return this.mode === "live"; }
+  takeIntent() { const i = this.intent; this.intent = null; return i; }
+  private row(t: number) { return this.state.decisions.find((d) => d.t === t); }
+  recordLiveBlocked(t: number, reason: string) {
+    const r = this.row(t);
+    if (r) (r.action = `veto: ${reason}`), (r.fired = false);
+    this.journal({ type: "live_blocked", t, reason });
+    this.log(`[${this.cfg.id}] live order blocked: ${reason}`);
+  }
+  recordLiveOpen(o: LiveOpen, at: number) {
+    const s = this.state;
+    s.liveOpen = o;
+    s.entryTimes.push(at);
+    const slip = ((o.side === "long" ? o.entry - o.decisionPrice : o.decisionPrice - o.entry) / o.decisionPrice) * 10_000;
+    (s.liveFills ??= []).push({ kind: "open", id: o.id, side: o.side, price: o.entry, refPrice: o.decisionPrice, slippageBps: Math.round(slip * 10) / 10, fee: o.fee, pnl: null, reason: "entry", tx: o.tx, at });
+    s.liveFills = s.liveFills.slice(-50);
+    const r = this.row(o.decisionT);
+    if (r) (r.action = `LIVE ${o.side} #${o.id} · margin ${o.margin.toFixed(2)} × ${o.leverage}${o.minSizeBump ? " (vault min size)" : ""} · risk ${o.riskAmount.toFixed(2)}`), (r.fired = true);
+    this.journal({ type: "live_open", ...o, slippageBps: slip });
+  }
+  recordLiveClose(c: { exit: number; refPrice: number; payout: number | null; grossPnl: number; reason: string; tx: string; at: number }) {
+    const s = this.state, o = s.liveOpen;
+    if (!o) return;
+    const net = c.grossPnl - o.fee;
+    s.closed.push({ side: o.side, pnl: net, reason: c.reason, openedBarT: o.openedBarT, exitBarT: c.at, r: o.riskAmount ? net / o.riskAmount : 0 });
+    s.lossStreak = net > 0 ? 0 : s.lossStreak + 1;
+    const slip = ((o.side === "long" ? c.refPrice - c.exit : c.exit - c.refPrice) / c.refPrice) * 10_000;
+    (s.liveFills ??= []).push({ kind: "close", id: o.id, side: o.side, price: c.exit, refPrice: c.refPrice, slippageBps: Math.round(slip * 10) / 10, fee: 0, pnl: net, reason: c.reason, tx: c.tx, at: c.at });
+    s.liveFills = s.liveFills.slice(-50);
+    const r = this.row(o.decisionT);
+    if (r) (r.result = `${c.reason} ${net >= 0 ? "+" : ""}${net.toFixed(2)}`), (r.pnl = net);
+    this.journal({ type: "live_close", id: o.id, ...c, netPnl: net, fee: o.fee });
+    this.log(`[${this.cfg.id}] LIVE close #${o.id} ${c.reason} net ${net.toFixed(4)} (fee ${o.fee.toFixed(4)}) tx ${c.tx}`);
+    s.liveOpen = null;
   }
 
   private file() { return join(this.dir, `calibrated-${this.cfg.id}.json`); }
@@ -146,6 +244,7 @@ export class ShadowDesk {
 
     // RULE 0 — global kill switch: flatten and halt, before anything else
     if (inp.killed) {
+      if (this.isLive) s.flattenReq = true;
       if (s.open && last) this.closePaper(last.t, last.c, "global_kill", mark());
       this.halt(`global kill: ${inp.killReason ?? "kill switch"}`);
     }
@@ -174,7 +273,9 @@ export class ShadowDesk {
     s.lastBarT = last.t;
 
     // equity / day bookkeeping (paper)
-    const eqNow = s.equity + mark();
+    const live = this.isLive;
+    if (live && inp.liveEquity !== undefined) s.equity = inp.liveEquity;
+    const eqNow = live ? s.equity : s.equity + mark();
     const day = Math.floor(inp.now / 86_400);
     if (s.dayStart.day !== day) s.dayStart = { day, equity: eqNow };
     s.peakEquity = Math.max(s.peakEquity, eqNow);
@@ -190,9 +291,27 @@ export class ShadowDesk {
 
     // risk vetoes (code, above the model)
     let veto = "";
-    const gate = deskGate({ equity: eqNow, dayStartEquity: s.dayStart.equity, peakEquity: s.peakEquity, lossStreak: s.lossStreak, pausedUntil: s.pausedUntil, entryTimes: s.entryTimes }, s.open ? 1 : 0, { ...this.limits, maxOpenPerDesk: 1 }, inp.now);
+    const openN = live ? (inp.liveOpenCount ?? (s.liveOpen ? 1 : 0)) : s.open ? 1 : 0;
+    const L = this.cfg.live;
+    let sliceVeto = "";
+    if (live && L) {
+      const dd = s.startEquity - eqNow, dayLoss = s.dayStart.equity - eqNow;
+      if (dd >= L.killDrawdownUsd && s.status !== "halted" && !(s.status === "paused" && s.pausedUntil >= 4_102_444_800)) {
+        s.status = "paused";
+        s.pausedUntil = 4_102_444_800;
+        s.statusReason = `slice drawdown kill: down ${dd.toFixed(2)} >= ${L.killDrawdownUsd} — flattened and paused (resume manually)`;
+        s.flattenReq = true;
+        this.journal({ type: "slice_kill", drawdown: dd });
+        this.log(`[${this.cfg.id}] ${s.statusReason}`);
+      }
+      if (dayLoss >= L.dailyLossUsd) sliceVeto = `slice daily loss ${dayLoss.toFixed(2)} >= ${L.dailyLossUsd}`;
+      else if (s.entryTimes.filter((t) => t > inp.now - 86_400).length >= L.maxEntriesPerDay) sliceVeto = `max ${L.maxEntriesPerDay} trades/day`;
+      else if (openN >= L.maxOpen) sliceVeto = `max ${L.maxOpen} open position`;
+    }
+    const gate = deskGate({ equity: eqNow, dayStartEquity: s.dayStart.equity, peakEquity: s.peakEquity, lossStreak: s.lossStreak, pausedUntil: s.pausedUntil, entryTimes: s.entryTimes }, openN, { ...this.limits, maxOpenPerDesk: 1 }, inp.now);
     if (gate.action === "halt") {
       if (s.open) this.closePaper(last.t, last.c, "drawdown_halt", mark());
+      if (live) s.flattenReq = true;
       this.halt(gate.reason);
     } else if (gate.action === "pause") {
       s.pausedUntil = gate.until;
@@ -200,15 +319,23 @@ export class ShadowDesk {
     }
     if (s.status !== "halted") s.status = s.pausedUntil > inp.now ? "paused" : "running";
     if (inp.killed) veto = "global kill active";
+    else if (inp.stale?.tripped) veto = `STALE DATA · entries halted: ${inp.stale.reason}`;
     else if (s.status === "halted") veto = `halted: ${s.statusReason}`;
+    else if (s.status === "paused" && s.pausedUntil > inp.now) veto = `paused: ${s.statusReason}`;
     else if (gate.action !== "ok") veto = gate.reason;
-    else if (s.open) veto = "position already open (max 1)";
+    else if (sliceVeto) veto = sliceVeto;
+    else if (openN) veto = "position already open (max 1)";
     else if (this.mode === "shadow" && d.fire) veto = "shadow mode: no paper positions";
 
     let action: string, fired = false, riskPct = 0;
     if (!d.fire) action = `skip: ${d.failed.join(", ")}`;
     else if (veto) action = `veto: ${veto}`;
-    else {
+    else if (live) {
+      // the fleet sizes and routes the on-chain order (pre-order stale check, vault minimums, triggers)
+      this.intent = { side: d.side, riskPct: d.riskPct, decisionT: decisionTs, barT: last.t, price: snap.price, atr: snap.atr };
+      action = `order: ${d.side} · risk ${d.riskPct.toFixed(2)}% (${d.sizing}) · routing on-chain`;
+      riskPct = d.riskPct;
+    } else {
       const stopPx = d.side === "long" ? snap.price * (1 - Math.max(0.008, Math.min(0.075, (this.model.geometry.slAtr * snap.atr) / snap.price))) : snap.price * (1 + Math.max(0.008, Math.min(0.075, (this.model.geometry.slAtr * snap.atr) / snap.price)));
       const L = this.limits;
       const sz = sizePosition({
@@ -246,6 +373,13 @@ export class ShadowDesk {
       paperTrades: s.closed.length, paperWins: wins, open: s.open ? { side: s.open.side, entry: s.open.entry, stop: s.open.stop, takeProfit: s.open.takeProfit, notional: +s.open.notional.toFixed(2) } : null,
       thresholds: this.model.thresholds, weights: this.model.weights, sizing: this.model.calibration.verified ? "quarter-Kelly (calibration verified)" : `fixed ${this.model.sizing.fixedRiskPct}% (calibration not verified)`,
       model: { trainedAt: this.model.trainedAt, gatePassed: this.model.gate.passed, gate: this.model.gate.summary, calibrationNote: this.model.calibration.note },
+      live: this.isLive ? {
+        since: s.liveSince ?? null, capital: this.cfg.capital, riskPct: this.cfg.riskPct, maxLeverage: this.cfg.maxLeverage, limits: this.cfg.live ?? null,
+        approval: this.cfg.liveApproval ?? null, override: this.cfg.liveOverride ?? null,
+        open: s.liveOpen ? { id: s.liveOpen.id, side: s.liveOpen.side, entry: s.liveOpen.entry, stop: s.liveOpen.stop, takeProfit: s.liveOpen.takeProfit, margin: s.liveOpen.margin, leverage: s.liveOpen.leverage, tx: s.liveOpen.tx } : null,
+        fills: (s.liveFills ?? []).slice(-10).reverse(),
+        tradesToday: s.entryTimes.filter((t) => t > Math.floor(Date.now() / 1000) - 86_400).length,
+      } : null,
       calibrationLive: cal,
       decisions: s.decisions.slice(-40).reverse().map((d) => ({ ...d, score: +d.score.toFixed(3), p: Object.fromEntries(Object.entries(d.p).map(([k, v]) => [k, +v.toFixed(3)])) })),
     };

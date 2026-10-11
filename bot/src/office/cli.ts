@@ -53,7 +53,7 @@ class PaperOnLive extends PaperOfficeVenue {
 }
 
 async function runFleet() {
-  const cfg = loadOfficeConfig(opt("config"));
+  const cfg = loadOfficeConfig(opt("config"), { ackIssue30: flag("ack-issue-30") });
   const dep = loadDeployment();
   const mode: RunMode = flag("paper") ? "paper" : flag("dry-run") ? "dry-run" : "live";
   const live = new SorobanOfficeVenue({ rpcUrl: dep.rpcUrl, vaultId: dep.contracts.vault, oracleId: dep.contracts.oracle, marketAsset: dep.vault.marketAsset });
@@ -63,15 +63,16 @@ async function runFleet() {
   const home = mode === "live" ? officeHome() : join(officeHome(), mode);
   if (mode === "paper") {
     const p = new PaperOnLive(live);
-    keys = Object.fromEntries(cfg.desks.map((d) => [d.id, { owner: `PAPER_${d.id.toUpperCase()}`, operatorSecret: "" }]));
-    for (const d of cfg.desks) p.deposit(keys[d.id].owner, d.capital);
+    const all = [...cfg.desks, ...(cfg.calibrated ?? [])];
+    keys = Object.fromEntries(all.map((d) => [d.id, { owner: `PAPER_${d.id.toUpperCase()}`, operatorSecret: "" }]));
+    for (const d of all) p.deposit(keys[d.id].owner, d.capital);
     venue = p;
   } else {
     const missing = cfg.desks.filter((d) => !keys[d.id]).map((d) => d.id);
     if (missing.length) throw new Error(`no keys for desks: ${missing.join(", ")} (run: office setup)`);
   }
   const store = new Store(join(home, "state"));
-  const fleet = new Fleet(cfg, venue, keys, store, new PublicReferenceFeed(), { mode, baselines: loadBaselines(), log, vaultId: dep.contracts.vault });
+  const fleet = new Fleet(cfg, venue, keys, store, new PublicReferenceFeed(), { mode, baselines: loadBaselines(), log, vaultId: dep.contracts.vault, network: (dep as { network?: string }).network ?? "unknown" });
   log(`Back Office fleet · ${mode.toUpperCase()} · TESTNET · vault ${dep.contracts.vault} · ${cfg.desks.length} desks · drift ${fleet.driftMode(Date.now() / 1000)}`);
   log("Unaudited testnet software, test funds only. No expected or guaranteed returns.");
   const publisher = flag("publish") && mode === "live" ? new StatusPublisher() : null;
@@ -147,7 +148,7 @@ async function main() {
     }
     case "setup": {
       const { setupDesks } = await import("./setup.js");
-      const r = await setupDesks(loadOfficeConfig(opt("config")), { issuerIdentity: opt("issuer", "quasaria-admin")!, only: opt("only")?.split(",") });
+      const r = await setupDesks(loadOfficeConfig(opt("config"), { ackIssue30: flag("ack-issue-30") }), { issuerIdentity: opt("issuer", "quasaria-admin")!, only: opt("only")?.split(",") });
       return console.log(JSON.stringify(r, null, 1));
     }
     case "backtest": {

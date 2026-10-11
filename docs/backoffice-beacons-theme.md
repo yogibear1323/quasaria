@@ -81,6 +81,6 @@ Tints: violet-dim rgba(139,124,255,.14), cyan-dim rgba(34,211,238,.12). No gradi
 | Robot floor + wall board | s1 floor, quieter grid, base board, s2 desks; **floor pulses on a real fill** |
 | Desk panel | s1 panel, tabular figures |
 | Calibrated desk signals (Orion) | s1 card, s2 stats, mono table, cyan rule on fired rows, `paper · failed gate`/`Paused` chips; **pulses on a new real decision** |
-| Beacons (preview) — new | six tier cards on ramp colours with draft min. locks + weights; payout-source table (trading fees by pair, Blend interest, tx link) with "—" and "no payouts yet"; "Not live yet · testnet preview" chip |
+| Beacons (preview) — new | six tier cards on ramp colours with QFX minimums (100 / 500 / 2,500 / 10,000 / 50,000 / 250,000 QFX; 1 QFX = 1 XLM), flat share per QFX for all tiers (tiers give perks only: fee discounts, badges), lock boosts 1.10× 30d / 1.25× 90d open to all, payouts in XLM, no per-wallet cap; payout-source table (trading fees by pair, Blend interest, tx link) with "—" and "no payouts yet"; "Not live yet · testnet preview" chip |
 | Open items | s1 banner, violet rule, cyan link |
 | Risk warning / footer | unchanged (shared component) |

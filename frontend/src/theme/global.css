@@ -688,3 +688,34 @@ main.pg-main > *:not(.pg-orbits) { position: relative; z-index: 1; }
 .card.glow { background: radial-gradient(80% 60% at 0% 0%, rgba(139, 124, 255, 0.12), transparent 60%), radial-gradient(70% 60% at 100% 100%, rgba(34, 211, 238, 0.06), transparent 60%), linear-gradient(180deg, rgba(31, 28, 48, 0.86), rgba(27, 24, 41, 0.86)); }
 .cosmos { background: radial-gradient(1200px 700px at 70% -10%, rgba(124, 92, 255, 0.14), transparent 60%), radial-gradient(900px 600px at -10% 110%, rgba(34, 211, 238, 0.07), transparent 60%), var(--bg); }
 @media (max-width: 760px) { .pg-orbits { width: 260px; height: 260px; right: -80px; } }
+
+/* ---- Lend: Markets table (aligned columns, right-aligned tabular numbers; stacked cards on mobile) ---- */
+.lm-wrap { overflow-x: auto; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.lm-t { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; min-width: 980px; font-variant-numeric: tabular-nums; }
+.lm-t col.c-asset { width: 22%; } .lm-t col.c-amt { width: 11%; } .lm-t col.c-pct { width: 8.5%; } .lm-t col.c-col { width: 12%; } .lm-t col.c-act { width: 8%; }
+.lm-t thead th { position: sticky; top: 0; z-index: 1; background: var(--bg-elev); font: 600 0.66rem var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); padding: 10px 12px; border-bottom: 1px solid var(--line-2); text-align: left; white-space: nowrap; }
+.lm-t th.num, .lm-t td.num { text-align: right; }
+.lm-t td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.lm-t tbody tr { cursor: pointer; transition: background-color var(--t-fast) var(--ease); }
+.lm-t tbody tr:hover { background: rgba(139, 124, 255, 0.06); }
+.lm-t tbody tr:last-child td { border-bottom: 0; }
+.lm-t tr.lm-sel { background: rgba(34, 211, 238, 0.07); box-shadow: inset 3px 0 0 var(--cyan); }
+.lm-t td.lm-asset { overflow: hidden; text-overflow: ellipsis; }
+.lm-t td.lm-act { text-align: right; }
+@media (max-width: 760px) {
+  .lm-wrap { border: 0; overflow: visible; }
+  .lm-t, .lm-t tbody { display: block; min-width: 0; }
+  .lm-t colgroup, .lm-t thead { display: none; }
+  .lm-t tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+  .lm-t td { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0; border: 0; text-align: right; }
+  .lm-t td::before { content: attr(data-label); font: 600 0.6rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); text-align: left; }
+  .lm-t td.lm-asset { grid-column: 1 / -1; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .lm-t td.lm-asset::before, .lm-t td.lm-act::before { content: none; }
+  .lm-t td.lm-act { grid-column: 1 / -1; justify-content: flex-end; }
+  .lm-t td.lm-act .btn { width: 100%; }
+}
+@media (max-width: 760px) {
+  .lm-t.t td, .lm-t.t tr { border-bottom: 0 !important; }
+  .lm-t.t td.lm-asset { justify-content: flex-start; text-align: left; border-bottom: 1px solid var(--line) !important; }
+  .lm-t td.num > div { margin-left: 6px; }
+}

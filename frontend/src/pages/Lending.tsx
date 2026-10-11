@@ -308,7 +308,7 @@ export default function Lending() {
 
       <TxStatus status={tx.status} />
 
-      <div className="card" style={{ marginTop: 18 }} data-testid="lending-markets">
+      <div className="card lm" style={{ marginTop: 18 }} data-testid="lending-markets">
         <div className="row between" style={{ flexWrap: "wrap", gap: 8 }}>
           <h2 style={{ margin: 0 }}>Markets <span className="muted" style={{ fontSize: "0.8rem" }}>({LENDING.reserves.length})</span></h2>
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
@@ -316,23 +316,24 @@ export default function Lending() {
             <input className="input" style={{ width: 150 }} placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} aria-label="search markets" />
           </div>
         </div>
-        <div style={{ overflowX: "auto" }}>
-          <table className="t" style={{ marginTop: 8 }}>
-            <thead><tr><th>Asset</th><th>Total supplied</th><th>Total borrowed</th><th>Supply APY</th><th>Borrow APY</th><th>Utilization</th><th>LTV</th><th>Collateral</th><th /></tr></thead>
+        <div className="lm-wrap">
+          <table className="t lm-t">
+            <colgroup><col className="c-asset" /><col className="c-amt" /><col className="c-amt" /><col className="c-pct" /><col className="c-pct" /><col className="c-pct" /><col className="c-pct" /><col className="c-col" /><col className="c-act" /></colgroup>
+            <thead><tr><th>Asset</th><th className="num">Total supplied</th><th className="num">Total borrowed</th><th className="num">Supply APY</th><th className="num">Borrow APY</th><th className="num">Utilization</th><th className="num">LTV</th><th>Collateral</th><th /></tr></thead>
             <tbody>
               {list.map((x) => {
                 const ts = x.live ? toTok(x.live.total_supply) : null, tb = x.live ? toTok(x.live.total_debt) : null;
                 return (
-                  <tr key={x.sac} onClick={() => pick(x.sac)} style={{ cursor: "pointer", outline: x.sac === sel ? "1px solid var(--quasar)" : undefined }}>
-                    <td title={hoverOf(x)}><span className="row" style={{ gap: 8 }}><AssetLogo code={x.code} logo={x.logo} size={22} /><span><b>{x.code}</b> <KindBadge a={x} />{x.offPeg && <span className="pill gold" style={{ fontSize: "0.6rem", padding: "1px 5px", marginLeft: 4 }} title="Mainnet price is far from its peg; priced at market">off-peg</span>}<div className="muted" style={{ fontSize: "0.66rem" }}>{x.homeDomain ?? (x.testnetKind === "native" ? "native" : "")}</div></span></span></td>
-                    <td className="mono">{ts === null ? "—" : <>{tokFmt(ts)}<div className="muted" style={{ fontSize: "0.66rem" }}>{usdFmt(ts * x.price)}</div></>}</td>
-                    <td className="mono">{tb === null ? "—" : <>{tokFmt(tb)}<div className="muted" style={{ fontSize: "0.66rem" }}>{usdFmt(tb * x.price)}</div></>}</td>
-                    <td className="mono pos">{x.live ? `${fmt(aprToApy(Number(x.live.supply_rate_bps)) * 100, 2)}%` : "—"}</td>
-                    <td className="mono">{x.config.borrowable ? (x.live ? `${fmt(aprToApy(Number(x.live.borrow_rate_bps)) * 100, 2)}%` : "—") : <span className="muted">n/a</span>}</td>
-                    <td className="mono">{x.live ? pctBps(Number(x.live.utilization_bps)) : "—"}</td>
-                    <td className="mono">{x.config.collateral_enabled ? pctBps(x.config.ltv_bps) : "0%"}</td>
-                    <td>{x.config.collateral_enabled ? <span className="pill cyan" style={{ fontSize: "0.6rem", padding: "1px 6px" }}>can be collateral</span> : <span className="muted" style={{ fontSize: "0.72rem" }}>{x.offPeg ? "off-peg: no" : "no"}</span>}</td>
-                    <td><button className="btn small ghost" onClick={(e) => { e.stopPropagation(); pick(x.sac); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Select</button></td>
+                  <tr key={x.sac} onClick={() => pick(x.sac)} className={x.sac === sel ? "lm-sel" : undefined}>
+                    <td className="lm-asset" title={hoverOf(x)}><span className="row" style={{ gap: 8 }}><AssetLogo code={x.code} logo={x.logo} size={22} /><span><b>{x.code}</b> <KindBadge a={x} />{x.offPeg && <span className="pill gold" style={{ fontSize: "0.6rem", padding: "1px 5px", marginLeft: 4 }} title="Mainnet price is far from its peg; priced at market">off-peg</span>}<div className="muted" style={{ fontSize: "0.66rem" }}>{x.homeDomain ?? (x.testnetKind === "native" ? "native" : "")}</div></span></span></td>
+                    <td className="mono num" data-label="Total supplied">{ts === null ? "—" : <>{tokFmt(ts)}<div className="muted" style={{ fontSize: "0.66rem" }}>{usdFmt(ts * x.price)}</div></>}</td>
+                    <td className="mono num" data-label="Total borrowed">{tb === null ? "—" : <>{tokFmt(tb)}<div className="muted" style={{ fontSize: "0.66rem" }}>{usdFmt(tb * x.price)}</div></>}</td>
+                    <td className="mono num pos" data-label="Supply APY">{x.live ? `${fmt(aprToApy(Number(x.live.supply_rate_bps)) * 100, 2)}%` : "—"}</td>
+                    <td className="mono num" data-label="Borrow APY">{x.config.borrowable ? (x.live ? `${fmt(aprToApy(Number(x.live.borrow_rate_bps)) * 100, 2)}%` : "—") : <span className="muted">n/a</span>}</td>
+                    <td className="mono num" data-label="Utilization">{x.live ? pctBps(Number(x.live.utilization_bps)) : "—"}</td>
+                    <td className="mono num" data-label="LTV">{x.config.collateral_enabled ? pctBps(x.config.ltv_bps) : "0%"}</td>
+                    <td data-label="Collateral">{x.config.collateral_enabled ? <span className="pill cyan" style={{ fontSize: "0.6rem", padding: "1px 6px" }}>can be collateral</span> : <span className="muted" style={{ fontSize: "0.72rem" }}>{x.offPeg ? "off-peg: no" : "no"}</span>}</td>
+                    <td className="lm-act"><button className="btn small ghost" onClick={(e) => { e.stopPropagation(); pick(x.sac); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Select</button></td>
                   </tr>
                 );
               })}

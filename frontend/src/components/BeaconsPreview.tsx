@@ -48,7 +48,7 @@ export function BeaconsPreview() {
         </div>
         <p className="bk-empty">No payout cycles have run. When Beacons go live on testnet, every cycle will appear here with its source split and a link to each transaction, and its Beacon will pulse once when the payout lands.</p>
       </div>
-      <p className="bo-fine">Proposed design, not an offer. Tier amounts are a draft. No expected or guaranteed returns.</p>
+      <p className="bo-fine">Proposed design, not an offer. Tier amounts set Oct 11 · not live yet. No expected or guaranteed returns.</p>
     </section>
   );
 }

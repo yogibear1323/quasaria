@@ -8,7 +8,7 @@ export const BEACON_TIERS = [
   { id: "singularity", name: "Singularity", lock: 250_000 },
 ] as const;
 
-export const PAYOUT_SOURCES = ["Trading fees · XLM/USDC", "Trading fees · other pairs", "Blend lending interest"] as const;
+export const PAYOUT_SOURCES = ["Trading fees · XLM/USDC", "Trading fees · other pairs", "Blend XLM pool interest"] as const;
 
 export function BeaconsPreview() {
   return (
@@ -19,7 +19,7 @@ export function BeaconsPreview() {
       </div>
       <p className="bk-tagline">Real light, not promised light.</p>
       <p className="bk-sub">
-        Fee-share staking, planned. A Beacon will earn a share of real Quasaria trading fees plus Blend lending interest. The rate will be variable and shown as
+        Fee-share staking, planned. A Beacon will earn a share of real Quasaria trading fees plus interest from Blend's XLM supply pool, the default pool. The rate will be variable and shown as
         it happened, never promised. Nothing can be locked yet, so this panel has no balances and no rate.
       </p>
       <ul className="bk-rules" aria-label="Beacon rules">
@@ -27,6 +27,7 @@ export function BeaconsPreview() {
         <li>Flat share per QFX locked: every tier earns at the same rate. Tiers add perks only (fee discounts, badges).</li>
         <li>Optional lock boost for everyone: 1.10× for 30 days, 1.25× for 90 days.</li>
         <li>Payouts in XLM. No per-wallet cap.</li>
+        <li>Default Blend pool: the XLM supply pool, the same asset as payouts. Its supply rate varies.</li>
       </ul>
       <div className="bk-tiers" role="list" aria-label="Beacon tiers (proposed)">
         {BEACON_TIERS.map((t, i) => (

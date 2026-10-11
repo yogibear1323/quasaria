@@ -69,7 +69,7 @@ Tints: violet-dim rgba(139,124,255,.14), cyan-dim rgba(34,211,238,.12). No gradi
 - Empty is honest: "—", "No payouts yet", "Not live yet · testnet preview". Never fabricate a balance, rate or holder count.
 - Label every non-real thing: testnet, test funds, simulated, example, illustrative.
 - Short labels in sentence case; status chips lower-case mono.
-- Never use the words bank or banking.
+- Never use the banned b-word terms (b*nk, b*nking) anywhere in UI or docs.
 
 ## 6. Screen-by-screen mapping
 | Screen | Theme application |

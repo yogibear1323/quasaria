@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-10T23:57:19.000Z",
+ "generatedAt": "2026-10-11T00:01:55.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1964565,
-  "oracleAgeSec": 7,
-  "referencePrice": 0.196495,
-  "deviationPct": 0.0196,
+  "oraclePrice": 0.1964675,
+  "oracleAgeSec": 13,
+  "referencePrice": 0.196485,
+  "deviationPct": 0.0089,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.032,
@@ -110,11 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T22:00Z",
+   "lastSignal": "no signal @ bar 10-10T23:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.195289,
     0.194666,
     0.194019,
     0.19272,
@@ -153,7 +152,8 @@
     0.196869,
     0.196835,
     0.196977,
-    0.196586
+    0.196586,
+    0.196454
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T16:00Z",
+   "lastSignal": "no signal @ bar 10-10T20:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.216843,
     0.215755,
     0.218499,
     0.219388,
@@ -272,7 +271,8 @@
     0.196795,
     0.196775,
     0.197929,
-    0.196869
+    0.196869,
+    0.196454
    ]
   },
   {
@@ -348,11 +348,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T22:00Z",
+   "lastSignal": "no signal @ bar 10-10T23:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.195289,
     0.194666,
     0.194019,
     0.19272,
@@ -391,7 +390,8 @@
     0.196869,
     0.196835,
     0.196977,
-    0.196586
+    0.196586,
+    0.196454
    ]
   },
   {
@@ -467,11 +467,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T22:00Z",
+   "lastSignal": "no signal @ bar 10-10T23:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.195289,
     0.194666,
     0.194019,
     0.19272,
@@ -510,7 +509,8 @@
     0.196869,
     0.196835,
     0.196977,
-    0.196586
+    0.196586,
+    0.196454
    ]
   },
   {
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T23:30Z",
+   "lastSignal": "no signal @ bar 10-10T23:45Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.19743,
     0.197262,
     0.197981,
     0.197879,
@@ -629,7 +628,8 @@
     0.196586,
     0.196591,
     0.19651,
-    0.196573
+    0.196573,
+    0.19642
    ]
   },
   {
@@ -705,11 +705,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-10T22:00Z",
+   "lastSignal": "no signal @ bar 10-10T23:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.195289,
     0.194666,
     0.194019,
     0.19272,
@@ -748,24 +747,42 @@
     0.196869,
     0.196835,
     0.196977,
-    0.196586
+    0.196586,
+    0.196454
    ]
   }
  ],
+ "staleBreaker": {
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 1,
+  "lastReadAt": 1791676915,
+  "lastOracleAgeSec": 13,
+  "lastHeartbeatAgeSec": 13,
+  "trips": 0,
+  "label": "fresh",
+  "blockAgeSec": 60,
+  "tripAgeSec": 90,
+  "clearAfterFresh": 3,
+  "escalateAfterSec": 600,
+  "heartbeat": true
+ },
  "calibrated": [
   {
    "id": "orion",
    "name": "Orion",
-   "mode": "paper",
-   "modeNote": "paper · failed gate: simulated fills only (fees, slippage, funding); never sends an on-chain order",
-   "label": "Paper · failed gate · calibrated scorer · testnet / simulated fills · no on-chain orders",
+   "mode": "live",
+   "modeNote": "live testnet · tiny slice · failed gate: on-chain testnet orders, test funds only (override approved: Robert Walker, Oct 10 2026 (testnet tiny slice; overrides the failed gate on testnet only))",
+   "label": "Live testnet · tiny slice · failed gate · test funds only",
    "timeframeSec": 900,
    "status": "running",
    "reason": "",
-   "equity": 495.2454,
-   "startEquity": 500,
-   "paperPnl": -4.7546,
-   "paperTrades": 2,
+   "equity": 100,
+   "startEquity": 100,
+   "paperPnl": 0,
+   "paperTrades": 0,
    "paperWins": 0,
    "open": null,
    "thresholds": {
@@ -789,39 +806,76 @@
     "gate": "FAILED GATE: OOS Sharpe 1.80, max DD 3.8%, hit 54.3%, t 1.99, DSR 0.01, random p 0.00, holdout -1.4 USD",
     "calibrationNote": "NOT verified on walk-forward OOS -> fixed 0.5 % risk, Kelly disabled; must be re-verified on the desk's own fills"
    },
+   "live": {
+    "since": 1791676915,
+    "capital": 100,
+    "riskPct": 0.25,
+    "maxLeverage": 2,
+    "limits": {
+     "dailyLossUsd": 2,
+     "killDrawdownUsd": 5,
+     "maxEntriesPerDay": 4,
+     "maxOpen": 1
+    },
+    "approval": "Robert Walker, Oct 10 2026 (testnet tiny slice; overrides the failed gate on testnet only)",
+    "override": "testnet-tiny",
+    "open": null,
+    "fills": [],
+    "tradesToday": 0
+   },
    "calibrationLive": {
     "regime": {
-     "n": 157,
-     "brier": 0.2088,
-     "climatology": 0.2045
+     "n": 158,
+     "brier": 0.2078,
+     "climatology": 0.2037
     },
     "direction": {
-     "n": 157,
-     "brier": 0.2518,
-     "climatology": 0.2236
+     "n": 158,
+     "brier": 0.2517,
+     "climatology": 0.225
     },
     "pressure": {
-     "n": 157,
-     "brier": 0.2394,
-     "climatology": 0.233
+     "n": 158,
+     "brier": 0.2392,
+     "climatology": 0.2323
     },
     "setup_long": {
-     "n": 157,
-     "brier": 0.2987,
-     "climatology": 0.2477
+     "n": 158,
+     "brier": 0.2975,
+     "climatology": 0.248
     },
     "setup_short": {
-     "n": 157,
-     "brier": 0.2244,
-     "climatology": 0.2123
+     "n": 158,
+     "brier": 0.2259,
+     "climatology": 0.2139
     },
     "risk": {
-     "n": 157,
-     "brier": 0.0471,
-     "climatology": 0.0308
+     "n": 158,
+     "brier": 0.047,
+     "climatology": 0.0306
     }
    },
    "decisions": [
+    {
+     "t": 1791676800,
+     "barT": 1791675900,
+     "price": 0.196495,
+     "side": "short",
+     "p": {
+      "setup": 0.422,
+      "direction": 0.534,
+      "pressure": 0.525,
+      "regime": 0.217,
+      "risk": 0.922
+     },
+     "score": 0.495,
+     "action": "skip: setup 0.42 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791675900,
      "barT": 1791675000,
@@ -979,7 +1033,7 @@
      "fired": false,
      "riskPct": 0,
      "sizing": "none",
-     "result": null,
+     "result": "would have won",
      "pnl": null
     },
     {
@@ -1596,26 +1650,6 @@
      },
      "score": 0.476,
      "action": "skip: setup 0.40 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791581400,
-     "barT": 1791580500,
-     "price": 0.19357,
-     "side": "short",
-     "p": {
-      "setup": 0.379,
-      "direction": 0.517,
-      "pressure": 0.544,
-      "regime": 0.226,
-      "risk": 0.827
-     },
-     "score": 0.468,
-     "action": "skip: setup 0.38 < 0.5",
      "fired": false,
      "riskPct": 0,
      "sizing": "none",

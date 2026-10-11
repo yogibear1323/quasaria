@@ -1,11 +1,11 @@
 /** Quasaria Beacons — testnet preview. Layout only: no balances, rates or payouts exist yet, so none are shown. */
 export const BEACON_TIERS = [
-  { id: "spark", name: "Spark", lock: 100, weight: 1.0 },
-  { id: "flare", name: "Flare", lock: 500, weight: 1.05 },
-  { id: "beacon", name: "Beacon", lock: 2_500, weight: 1.1 },
-  { id: "pulsar", name: "Pulsar", lock: 10_000, weight: 1.15 },
-  { id: "quasar", name: "Quasar", lock: 50_000, weight: 1.2 },
-  { id: "singularity", name: "Singularity", lock: 250_000, weight: 1.25 },
+  { id: "spark", name: "Spark", lock: 100 },
+  { id: "flare", name: "Flare", lock: 500 },
+  { id: "beacon", name: "Beacon", lock: 2_500 },
+  { id: "pulsar", name: "Pulsar", lock: 10_000 },
+  { id: "quasar", name: "Quasar", lock: 50_000 },
+  { id: "singularity", name: "Singularity", lock: 250_000 },
 ] as const;
 
 export const PAYOUT_SOURCES = ["Trading fees · XLM/USDC", "Trading fees · other pairs", "Blend lending interest"] as const;
@@ -22,12 +22,18 @@ export function BeaconsPreview() {
         Fee-share staking, planned. A Beacon will earn a share of real Quasaria trading fees plus Blend lending interest. The rate will be variable and shown as
         it happened, never promised. Nothing can be locked yet, so this panel has no balances and no rate.
       </p>
+      <ul className="bk-rules" aria-label="Beacon rules">
+        <li>Minimums in QFX (1 QFX = 1 XLM).</li>
+        <li>Flat share per QFX locked: every tier earns at the same rate. Tiers add perks only (fee discounts, badges).</li>
+        <li>Optional lock boost for everyone: 1.10× for 30 days, 1.25× for 90 days.</li>
+        <li>Payouts in XLM. No per-wallet cap.</li>
+      </ul>
       <div className="bk-tiers" role="list" aria-label="Beacon tiers (proposed)">
         {BEACON_TIERS.map((t, i) => (
           <div key={t.id} role="listitem" className={`bk-tier t${i + 1}`}>
             <span className={`bk-tier-badge t${i + 1}`}><i aria-hidden="true" />{t.name}</span>
-            <b>{t.lock.toLocaleString("en-US")} <small>XLM / QFX min.</small></b>
-            <span className="bk-mut">share weight {t.weight.toFixed(2)}×</span>
+            <b>{t.lock.toLocaleString("en-US")} <small>QFX min.</small></b>
+            <span className="bk-mut">perks: fee discount · badge</span>
             <span className="bk-mut">Holders: —</span>
           </div>
         ))}

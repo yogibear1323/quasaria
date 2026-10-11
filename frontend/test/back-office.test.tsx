@@ -236,6 +236,10 @@ describe("beacons theme", () => {
     expect(html).toContain("Not live yet · testnet preview");
     expect(html).toContain("no payouts yet");
     expect(html).not.toMatch(/APY|APR|\d+(\.\d+)?%/);
+    expect(html).not.toMatch(/share weight|1\.05×/);
+    expect(html).toContain("250,000 <small>QFX min.</small>");
+    expect(html).toMatch(/1\.10× for 30 days, 1\.25× for 90 days/);
+    expect(html).toContain("No per-wallet cap");
   });
   it("event keys change only on real events", () => {
     const tr = (tx: string): ChainTrade => ({ kind: "open", id: 1, price: 0.2, ledger: 1, at: "", tx });

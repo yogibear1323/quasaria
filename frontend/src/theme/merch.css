@@ -31,7 +31,7 @@
 .m-card-img:focus-visible { outline: none; box-shadow: inset 0 0 0 3px rgba(167, 139, 250, 0.9); }
 .m-badge, .m-soon { position: absolute; top: 12px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; backdrop-filter: blur(8px); }
 .m-badge { left: 12px; color: #fff; background: rgba(109, 74, 255, 0.75); box-shadow: 0 0 0 1px rgba(196, 181, 253, 0.4); }
-.m-soon { right: 12px; color: var(--cyan-hi); background: rgba(6, 7, 13, 0.7); box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35); }
+.m-soon { right: 12px; color: var(--cyan-hi); background: rgba(20, 18, 31, 0.7); box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35); }
 .m-card-body { padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .m-card-body h3 { font-family: var(--font-display); font-size: 1.12rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
 .m-card-body > p { font-size: 0.87rem; margin: 0; min-height: 2.5em; }
@@ -70,7 +70,7 @@
 .m-main.art { background: repeating-conic-gradient(#171a2b 0 25%, #11131f 0 50%) 0 0 / 28px 28px; }
 .m-main img { width: 100%; height: 100%; object-fit: contain; display: block; animation: m-fade 0.25s ease; }
 .m-main.art img { padding: 6%; }
-.m-nav { position: absolute; top: 50%; translate: 0 -50%; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(6, 7, 13, 0.65); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14); }
+.m-nav { position: absolute; top: 50%; translate: 0 -50%; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(20, 18, 31, 0.65); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14); }
 .m-nav:hover { background: rgba(109, 74, 255, 0.8); }
 .m-nav.prev { left: 10px; } .m-nav.next { right: 10px; }
 .m-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 2px; }

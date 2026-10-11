@@ -94,7 +94,7 @@
 .rank-ladder li.on .rl-dot { background: var(--violet); box-shadow: 0 0 8px var(--violet); }
 .rank-ladder li.cur .rl-dot { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
 .q-streak { display: flex; flex-direction: column; }
-.q-streak-n { font-family: var(--font-display); font-weight: 700; font-size: 3rem; line-height: 1; letter-spacing: -0.04em; background: linear-gradient(90deg, #fde68a, #fb923c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.q-streak-n { font-family: var(--font-display); font-weight: 700; font-size: 3rem; line-height: 1; letter-spacing: -0.04em; color: #fdba74; }
 .q-streak-n small { font-size: 1rem; margin-left: 6px; -webkit-text-fill-color: var(--text-2); }
 .q-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 14px 0 10px; }
 .q-week span { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); }

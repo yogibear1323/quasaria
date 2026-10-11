@@ -1,5 +1,5 @@
 /* =====================================================================
-   Quasaria design tokens — v2 "event horizon"
+   Quasaria design tokens — v3 "Beacons charcoal" (lighter #14121F base; AA-checked)
    Deep near-black navy, one signature accent (cosmic violet → cyan),
    glass surfaces with hairline borders. Text/background pairs meet WCAG AA.
    ===================================================================== */
@@ -7,19 +7,19 @@
   color-scheme: dark;
 
   /* ---- base surfaces */
-  --bg: #06070d;             /* page */
-  --bg-elev: #0b0d18;        /* raised solid */
-  --bg-sunken: rgba(4, 5, 10, 0.55); /* inputs, wells */
-  --surface: rgba(16, 19, 35, 0.72);   /* glass card */
-  --surface-2: rgba(24, 28, 52, 0.66); /* nested / hover */
-  --line: rgba(255, 255, 255, 0.07);
-  --line-2: rgba(255, 255, 255, 0.12);
+  --bg: #14121f;             /* page */
+  --bg-elev: #1b1829;        /* raised solid */
+  --bg-sunken: rgba(14, 12, 23, 0.6); /* inputs, wells */
+  --surface: rgba(27, 24, 41, 0.86);   /* glass card */
+  --surface-2: rgba(34, 30, 51, 0.82); /* nested / hover */
+  --line: #342d52;
+  --line-2: #40386a;
   --line-accent: rgba(139, 124, 255, 0.45);
 
   /* ---- text (contrast on --bg-elev: 15.1 / 8.3 / 5.3) */
-  --text: #eef0fa;
-  --text-2: #a3a9c6;
-  --text-3: #7d84a6;
+  --text: #ecebf5;
+  --text-2: #a9a4c4;
+  --text-3: #948eb4;
 
   /* ---- signature accent: cosmic violet → cyan */
   --violet: #8b7cff;

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import AccountModal from "./AccountModal";
 import { PerpsNav } from "./PerpsNav";
 import logo from "../assets/logo.svg";
+import { Orbits } from "./Quasar";
 import CosmicBackground, { type Scene } from "./CosmicBackground";
 import { useWallet } from "../lib/wallet";
 import { short } from "../lib/format";
@@ -123,7 +124,8 @@ export default function Layout() {
         </header>
         {w.error && !w.modalOpen && <div className="demo-banner">{w.error}</div>}
         {w.modalOpen && <AccountModal />}
-        <main>
+        <main className="pg-main">
+          {loc.pathname !== "/" && !loc.pathname.startsWith("/back-office") && <Orbits className="pg-orbits" />}
           <Outlet />
         </main>
         <footer>

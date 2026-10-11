@@ -16,6 +16,9 @@ import { useSearchParams } from "react-router-dom";
 import { PERPS } from "../lib/perps";
 import { CalibratedSignals } from "../components/CalibratedSignals";
 import "../theme/back-office.css";
+import "../theme/beacons.css";
+import { BeaconsPreview } from "../components/BeaconsPreview";
+import { realEventKeys, useEventPulse } from "../lib/beaconPulse";
 
 const EXPERT_TX = "https://stellar.expert/explorer/testnet/tx/";
 const EXPERT_ACCT = "https://stellar.expert/explorer/testnet/account/";
@@ -199,10 +202,14 @@ export default function BackOffice() {
   const fleetPnl = totalEq === null ? null : totalEq - startEq;
   const openCount = chain.data ? desks.reduce((a, d) => a + d.positions.length, 0) : status?.fleet.openPositions ?? 0;
   const killed = status?.fleet.status === "killed" && !stale;
+  const evKeys = realEventKeys(chain.data?.priceTs, trades, status?.calibrated);
+  const oraclePulse = useEventPulse(evKeys.oracle);
+  const fillPulse = useEventPulse(evKeys.fill);
+  const decisionPulse = useEventPulse(evKeys.decision);
   const feedLabel = status ? `status feed ${ago(age)} ago${stale ? " · stale" : ""}` : statusErr ? "status feed unavailable" : "loading status…";
 
   return (
-    <div className="bo">
+    <div className="bo bk">
       <PageHead
         kicker="Testnet · live bots · test funds"
         title="Back Office"
@@ -222,7 +229,7 @@ export default function BackOffice() {
         <div className="bo-t"><span className="bo-lbl">Fleet PnL · since start</span><b className={(fleetPnl ?? 0) >= 0 ? "g" : "r"}>{fleetPnl === null ? "—" : fmtPnl(fleetPnl)} <small>QUSD</small></b><span>{totalEq === null ? "—" : `${totalEq.toFixed(2)} of ${startEq.toFixed(0)} test QUSD`}{status ? ` · today ${fmtPnl(status.fleet.pnlToday)}` : ""}</span></div>
         <div className="bo-t"><span className="bo-lbl">Risk used</span><b>{status ? `${status.fleet.riskUsedPct.toFixed(1)}%` : "—"} <small>/ {BACK_OFFICE.limits.fleetOpenRiskPct.toFixed(1)}%</small></b><div className="bo-bar"><i style={{ width: `${Math.min(100, ((status?.fleet.riskUsedPct ?? 0) / BACK_OFFICE.limits.fleetOpenRiskPct) * 100)}%` }} /></div></div>
         <div className="bo-t"><span className="bo-lbl">Open positions</span><b>{openCount} <small>/ {BACK_OFFICE.desks.length * BACK_OFFICE.limits.maxOpenPerDesk}</small></b><span>{status ? `net ${status.fleet.netSide} · same-side cap ${BACK_OFFICE.limits.fleetSameDirRiskPct}%` : "—"}</span></div>
-        <div className="bo-t"><span className="bo-lbl">Oracle · XLM</span><b className={status?.market.oracleLevel === "halt" ? "r" : "c"}>{chain.data?.price ? chain.data.price.toFixed(4) : status ? status.market.oraclePrice.toFixed(4) : "—"}</b><span>{status ? `age ${status.market.oracleAgeSec}s · vs ref ${status.market.deviationPct === null ? "—" : `${status.market.deviationPct.toFixed(2)}%`} · ${status.market.oracleLevel}` : "independent check: —"}</span></div>
+        <div className={`bo-t ${oraclePulse && !tag ? "bk-pulse" : ""}`} data-event="oracle"><span className="bo-lbl">Oracle · XLM</span><b className={status?.market.oracleLevel === "halt" ? "r" : "c"}>{chain.data?.price ? chain.data.price.toFixed(4) : status ? status.market.oraclePrice.toFixed(4) : "—"}</b><span>{status ? `age ${status.market.oracleAgeSec}s · vs ref ${status.market.deviationPct === null ? "—" : `${status.market.deviationPct.toFixed(2)}%`} · ${status.market.oracleLevel}` : "independent check: —"}</span></div>
         <div className="bo-t"><span className="bo-lbl">Funding · 1h</span><b>{status ? `${(status.market.fundingPredictedHourly * 100).toFixed(4)}%` : "—"}</b><span>{status ? `${status.market.fundingPredictedHourly > 0 ? "longs pay" : status.market.fundingPredictedHourly < 0 ? "shorts pay" : "balanced"} · cap 0.05%/h` : "—"}</span></div>
         <div className={`bo-kill ${killed ? "on" : ""}`} role="status" title="The kill switch is operated on the ops box (CLI / local admin page). The public page is read-only.">
           <span className="bo-kdot" />
@@ -243,7 +250,7 @@ export default function BackOffice() {
       )}
       {tag && <div className="bo-demobanner" role="status">{tag === "demo" ? "DEMO · simulated · not real money" : `MIRROR · live testnet fleet scaled to $${(dm.demo?.balance ?? 1000).toLocaleString("en-US")} · display only · not real money`}</div>}
       <div className={`bo-grid ${tag ? `m-${tag}` : ""}`}>
-        <section className="bo-floor" aria-label="Trading floor">
+        <section className={`bo-floor ${fillPulse && !tag && !ex ? "bk-pulse" : ""}`} aria-label="Trading floor" data-event="fill">
           <div className="bo-floor-h">
             <h2>Trading floor</h2>
             <button className={`bo-exbtn ${ex ? "on" : ""}`} onClick={() => setEx(ex ? null : exampleInit())} aria-pressed={!!ex} title="Plays a scripted, clearly labelled example of the animations. Not real trades.">
@@ -273,7 +280,9 @@ export default function BackOffice() {
         <Panel d={selected} status={status} example={!!ex} tag={tag} driftMode={tag === "demo" && dm.demo ? `${PROFILES[dm.demo.profile ?? "strict"].cfg.driftMode ?? "strict"} (demo ${PROFILES[dm.demo.profile ?? "strict"].label})` : undefined} />
       </div>
 
-      {!tag && <CalibratedSignals desks={status?.calibrated} stale={stale} />}
+      {!tag && <div className={decisionPulse ? "bk-pulse-wrap bk-pulse" : "bk-pulse-wrap"} data-event="decision"><CalibratedSignals desks={status?.calibrated} stale={stale} /></div>}
+
+      {!tag && <BeaconsPreview />}
 
       {!tag && (
         <section className="bo-open-items" aria-label="Open items">

@@ -138,3 +138,17 @@
 /* lighter Back Office page backdrop (Back Office only) */
 .cosmos:has(+ .app .bo.bk) { background: radial-gradient(1200px 700px at 70% -10%, rgba(124,92,255,.10), transparent 60%), #14121f; }
 .cosmos:has(+ .app .bo.bk) canvas { opacity: .5; }
+
+/* ---- Quasar hero (Back Office information dashboard) ---- */
+.bk-hero { position: relative; margin: -8px -16px 16px; padding: 18px 16px 4px; border-radius: 22px; overflow: hidden; isolation: isolate; border: 1px solid rgba(139,124,255,.18); background: #14121f; }
+.bk-hero-in { position: relative; z-index: 1; }
+.bk-hero .bo-ticker { margin-bottom: 14px; background: rgba(52,45,82,.7); }
+.bo.bk .bk-hero .bo-t { background: radial-gradient(120% 90% at 0% 0%, rgba(139,124,255,.10), transparent 60%), rgba(27,24,41,.92); }
+.bo.bk .bk-hero .bo-t:nth-child(4) { background: radial-gradient(120% 90% at 0% 0%, rgba(34,211,238,.10), transparent 60%), rgba(27,24,41,.92); }
+.bo.bk .bo-floor { background: radial-gradient(60% 40% at 100% 0%, rgba(139,124,255,.08), transparent 70%), var(--bk-s1); }
+.bk-preview { background: radial-gradient(50% 60% at 100% 0%, rgba(34,211,238,.07), transparent 70%), var(--bk-s1); }
+@media (max-width: 760px) { .bk-hero { margin: -4px -8px 12px; padding: 14px 10px 2px; border-radius: 16px; } }
+.bk-hero .qz-obj { top: 30%; right: 6%; width: min(40vw, 480px); }
+.bo.bk .bk-hero .bo-b { background-color: #1b1829; }
+.bo.bk .bk-hero .bo-b.ok { background: linear-gradient(rgba(34,211,238,.12), rgba(34,211,238,.12)), #1b1829; }
+@media (max-width: 760px) { .bk-hero .qz-obj { top: 22%; right: -34vw; width: 96vw; } }

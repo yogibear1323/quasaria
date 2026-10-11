@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-11T23:28:08.000Z",
+ "generatedAt": "2026-10-11T23:33:25.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,18 +23,18 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.2029325,
-  "oracleAgeSec": 11,
-  "referencePrice": 0.20296,
-  "deviationPct": 0.0135,
+  "oraclePrice": 0.202932,
+  "oracleAgeSec": 3,
+  "referencePrice": 0.202978,
+  "deviationPct": 0.0227,
   "oracleLevel": "ok",
   "oracleReasons": [],
-  "reserve": 10000.032,
+  "reserve": 10000.0632,
   "longOi": 0,
-  "shortOi": 0,
-  "fundingPredictedHourly": 0,
-  "fundingExternalHourly": 0,
-  "externalSkew": 0
+  "shortOi": 31.25,
+  "fundingPredictedHourly": -6.25e-8,
+  "fundingExternalHourly": -6.25e-8,
+  "externalSkew": -31.25
  },
  "desks": [
   {
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-11T23:00Z",
+   "lastSignal": "no signal @ bar 10-11T23:15Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.197943,
     0.19816,
     0.198017,
     0.197719,
@@ -629,7 +628,8 @@
     0.202343,
     0.202792,
     0.202612,
-    0.202815
+    0.202815,
+    0.202813
    ]
   },
   {
@@ -758,9 +758,9 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1791761288,
-  "lastOracleAgeSec": 11,
-  "lastHeartbeatAgeSec": 11,
+  "lastReadAt": 1791761605,
+  "lastOracleAgeSec": 3,
+  "lastHeartbeatAgeSec": 3,
   "trips": 18,
   "label": "fresh",
   "blockAgeSec": 60,
@@ -819,9 +819,32 @@
     },
     "approval": "Robert Walker, Oct 10 2026 (testnet tiny slice; overrides the failed gate on testnet only)",
     "override": "testnet-tiny",
-    "open": null,
-    "fills": [],
-    "tradesToday": 0
+    "open": {
+     "id": 3,
+     "side": "short",
+     "entry": 0.202892,
+     "stop": 0.204460704,
+     "takeProfit": 0.19959259199999999,
+     "margin": 15.625,
+     "leverage": 2,
+     "tx": "a5dfb4c29cbcaf9b0d7d37b6fbb62eea096a228f40acd614bf901ccc114f8dd8"
+    },
+    "fills": [
+     {
+      "kind": "open",
+      "id": 3,
+      "side": "short",
+      "price": 0.202892,
+      "refPrice": 0.202838,
+      "slippageBps": -2.7,
+      "fee": 0.031249999999999948,
+      "pnl": null,
+      "reason": "entry",
+      "tx": "a5dfb4c29cbcaf9b0d7d37b6fbb62eea096a228f40acd614bf901ccc114f8dd8",
+      "at": 1791761412
+     }
+    ],
+    "tradesToday": 1
    },
    "calibrationLive": {
     "regime": {
@@ -856,6 +879,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791761400,
+     "barT": 1791760500,
+     "price": 0.202813,
+     "side": "short",
+     "p": {
+      "setup": 0.611,
+      "direction": 0.534,
+      "pressure": 0.544,
+      "regime": 0.238,
+      "risk": 0.907
+     },
+     "score": 0.574,
+     "action": "LIVE short #3 · margin 15.63 × 2 · risk 0.25",
+     "fired": true,
+     "riskPct": 0.25,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791760500,
      "barT": 1791759600,
@@ -1630,26 +1673,6 @@
      },
      "score": 0.464,
      "action": "skip: setup 0.38 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791602100,
-     "barT": 1791601200,
-     "price": 0.196107,
-     "side": "short",
-     "p": {
-      "setup": 0.333,
-      "direction": 0.517,
-      "pressure": 0.525,
-      "regime": 0.296,
-      "risk": 0.739
-     },
-     "score": 0.445,
-     "action": "skip: setup 0.33 < 0.5",
      "fired": false,
      "riskPct": 0,
      "sizing": "none",

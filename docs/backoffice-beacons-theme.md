@@ -9,15 +9,15 @@ Implementation: `frontend/src/theme/beacons.css` (scoped to `.bo.bk`, Back Offic
 ### Colour
 | Token | Hex | Use |
 |---|---|---|
-| `--bk-bg` | #07060D | near-black base, wells, chart canvas |
-| `--bk-s1` | #0D0B16 | card surface |
-| `--bk-s2` | #13101F | nested surface, table header |
-| `--bk-s3` | #1A1630 | hover / selected / bar track |
-| `--bk-line` | #221D38 | hairline |
-| `--bk-line-2` | #2F2850 | card border |
+| `--bk-bg` | #14121F | base (lifted near-black), page backdrop, wells, chart canvas |
+| `--bk-s1` | #1B1829 | card surface |
+| `--bk-s2` | #221E33 | nested surface, table header |
+| `--bk-s3` | #2A2540 | hover / selected / bar track |
+| `--bk-line` | #342D52 | hairline |
+| `--bk-line-2` | #40386A | card border |
 | `--bk-text` | #ECEBF5 | primary text |
 | `--bk-text-2` | #A9A4C4 | secondary |
-| `--bk-text-3` | #807A9E | labels, captions (≥4.5:1 on s1) |
+| `--bk-text-3` | #948EB4 | labels, captions (≥4.7:1 on every surface) |
 | `--bk-violet` | #8B7CFF | primary accent, bars, focus |
 | `--bk-violet-hi` | #C4B5FD | primary text-on-dark, chips |
 | `--bk-cyan` | #22D3EE | secondary accent, live/OK, pulse |
@@ -26,7 +26,9 @@ Implementation: `frontend/src/theme/beacons.css` (scoped to `.bo.bk`, Back Offic
 | `--bk-warn` | #FBBF24 | paused, testnet, not live, example |
 | `--bk-danger` | #FB7185 | loss, halted, STALE DATA, kill |
 
-Tier ramp (violet → cyan, rising luminance): Spark #6F5CF0 · Flare #8A7DFF · Beacon #8FA0FF · Pulsar #66B8F7 · Quasar #3FD3EE · Singularity #A5F3FC.
+Tier ramp (violet → cyan, rising luminance): Spark #8573F7 · Flare #9A8CFF · Beacon #9AAAFF · Pulsar #66B8F7 · Quasar #3FD3EE · Singularity #A5F3FC.
+
+Contrast (Oct 11 lighter pass): text 12.4–14.7:1, text-2 6.1–7.3:1, text-3 4.7–5.6:1, cyan/success/warn/danger ≥5.4:1, violet #8B7CFF 4.5–5.3:1 across s1–s3; tier labels ≥4.5:1 on s1/s2. STALE DATA fill #2A1520; table row rules #2B2643.
 
 Tints: violet-dim rgba(139,124,255,.14), cyan-dim rgba(34,211,238,.12). No gradients on surfaces; **no gradient text (`background-clip:text` banned).**
 

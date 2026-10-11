@@ -17,6 +17,7 @@ import { PERPS } from "../lib/perps";
 import { CalibratedSignals } from "../components/CalibratedSignals";
 import "../theme/back-office.css";
 import "../theme/beacons.css";
+import { Quasar } from "../components/Quasar";
 import { BeaconsPreview } from "../components/BeaconsPreview";
 import { realEventKeys, useEventPulse } from "../lib/beaconPulse";
 
@@ -210,6 +211,10 @@ export default function BackOffice() {
 
   return (
     <div className="bo bk">
+      <div className="bk-hero">
+      <Quasar />
+      <div className="qz-scrim" />
+      <div className="bk-hero-in">
       <PageHead
         kicker="Testnet · live bots · test funds"
         title="Back Office"
@@ -237,6 +242,8 @@ export default function BackOffice() {
           <small>{killed ? status!.fleet.reason : "armed · admin-only, on the ops box"}</small>
         </div>
       </section>
+      </div>
+      </div>
 
       {!tag && status?.staleBreaker?.tripped && !stale && (
         <div className="bo-stale" role="alert">

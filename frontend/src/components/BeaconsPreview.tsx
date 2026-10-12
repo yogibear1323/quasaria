@@ -1,4 +1,6 @@
 /** Quasaria Beacons — testnet preview. Layout only: no balances, rates or payouts exist yet, so none are shown. */
+import { Link } from "react-router-dom";
+
 export const BEACON_TIERS = [
   { id: "spark", name: "Spark", lock: 100 },
   { id: "flare", name: "Flare", lock: 500 },
@@ -49,6 +51,7 @@ export function BeaconsPreview() {
         </div>
         <p className="bk-empty">No payout cycles have run. When Beacons go live on testnet, every cycle will appear here with its source split and a link to each transaction, and its Beacon will pulse once when the payout lands.</p>
       </div>
+      <p className="bo-fine"><Link to="/beacons">Open the Beacons preview page and simulator →</Link></p>
       <p className="bo-fine">Proposed design, not an offer. Tier amounts set Oct 11 · not live yet. No expected or guaranteed returns.</p>
     </section>
   );

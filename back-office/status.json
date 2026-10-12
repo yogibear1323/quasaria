@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-12T03:02:13.000Z",
+ "generatedAt": "2026-10-12T03:05:31.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -24,11 +24,13 @@
  },
  "market": {
   "oraclePrice": 0.2009265,
-  "oracleAgeSec": 46,
-  "referencePrice": 0.200918,
-  "deviationPct": 0.0042,
-  "oracleLevel": "ok",
-  "oracleReasons": [],
+  "oracleAgeSec": 244,
+  "referencePrice": 0.201104,
+  "deviationPct": 0.0883,
+  "oracleLevel": "halt",
+  "oracleReasons": [
+   "oracle age 244s > 90s"
+  ],
   "reserve": 10000.0632,
   "longOi": 0,
   "shortOi": 31.25,
@@ -153,7 +155,7 @@
     0.202816,
     0.202949,
     0.201111,
-    0.201429
+    0.201275
    ]
   },
   {
@@ -391,7 +393,7 @@
     0.202816,
     0.202949,
     0.201111,
-    0.201429
+    0.201275
    ]
   },
   {
@@ -510,7 +512,7 @@
     0.202816,
     0.202949,
     0.201111,
-    0.201429
+    0.201275
    ]
   },
   {
@@ -629,7 +631,7 @@
     0.201438,
     0.201543,
     0.20172,
-    0.201236
+    0.201275
    ]
   },
   {
@@ -748,21 +750,21 @@
     0.202816,
     0.202949,
     0.201111,
-    0.201429
+    0.201275
    ]
   }
  ],
  "staleBreaker": {
-  "tripped": false,
-  "level": "fresh",
-  "reason": "",
-  "trippedSince": 0,
-  "freshCount": 3,
-  "lastReadAt": 1791774133,
-  "lastOracleAgeSec": 46,
-  "lastHeartbeatAgeSec": 45,
-  "trips": 24,
-  "label": "fresh",
+  "tripped": true,
+  "level": "trip",
+  "reason": "resume: clock jumped 258s; need 3 fresh reads",
+  "trippedSince": 1791774331,
+  "freshCount": 0,
+  "lastReadAt": 1791774331,
+  "lastOracleAgeSec": 244,
+  "lastHeartbeatAgeSec": 243,
+  "trips": 25,
+  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 258s; need 3 fresh reads",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

@@ -1,5 +1,5 @@
 /** Full Beacons documents (yogibear1323/quasaria-beacons), rendered from the bundled markdown at build time.
- *  One <details> per document, a table of contents, and nested <details> per h2 / h3. Preview · not deployed. */
+ *  One <details> per document, a table of contents, and nested <details> per h2 / h3. Testnet · unaudited. */
 import type { MouseEvent } from "react";
 import readme from "../content/beacons-docs/README.md?beacons-doc";
 import concept from "../content/beacons-docs/concept.md?beacons-doc";
@@ -31,10 +31,10 @@ export default function BeaconsDocs() {
   return (
     <section className="bp-sec bd" aria-labelledby="bd-h" id="beacons-docs">
       <h2 id="bd-h">Full Beacons documents</h2>
-      <p className="muted">The complete write-ups from <a href="https://github.com/yogibear1323/quasaria-beacons" target="_blank" rel="noreferrer">quasaria-beacons</a>, word for word. <b>Preview · not deployed · illustrative</b>; not a guaranteed return.</p>
+      <p className="muted">The complete write-ups from <a href="https://github.com/yogibear1323/quasaria-beacons" target="_blank" rel="noreferrer">quasaria-beacons</a>, word for word. <b>Design documents · contracts live on testnet only, unaudited</b>; not a guaranteed return.</p>
       {DOCS.map(({ key, label, doc }) => (
         <details key={key} className="bd-doc card" id={`doc-${key}`}>
-          <summary><span className="bd-doc-t"><small>{label}</small><H html={doc.title} /></span><span className="pill gold">Preview · not deployed</span><span className="bd-chev" aria-hidden="true">▾</span></summary>
+          <summary><span className="bd-doc-t"><small>{label}</small><H html={doc.title} /></span><span className="pill gold">Testnet · unaudited</span><span className="bd-chev" aria-hidden="true">▾</span></summary>
           <div className="bd-body">
             <nav className="bd-toc" aria-label={`Contents: ${label}`}><b>Contents</b>
               <ol>{doc.sections.map((s) => (

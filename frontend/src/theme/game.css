@@ -150,3 +150,5 @@
   .xp-bar > div, .xp-bar.big > div::after, .game-toast, .lvl-pop, .q-item.done .q-check, .notice.tx-ok, .tx-ok-ico circle, .tx-ok-ico path, .badge-cell.on .badge-icon { animation: none; transition: none; }
   .tx-ok-ico circle, .tx-ok-ico path { stroke-dashoffset: 0; }
 }
+/* phones: keep toasts slim and out of the way of page content */
+@media (max-width: 720px) { .game-toasts { left: auto; width: min(260px, calc(100vw - 28px)); } .game-toast { padding: 8px 12px; } }

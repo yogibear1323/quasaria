@@ -56,3 +56,5 @@
 .bp-fit-table tr:last-child > * { border-bottom: 0; }
 .bp-fit-cols { columns: 2 260px; column-gap: 28px; }
 @media (prefers-reduced-motion: reduce) { .bp-fit-chev { transition: none; } }
+.bp-fit { scroll-margin-top: 90px; border-width: 1.5px; }
+.bp-fit > summary { background: linear-gradient(90deg, rgba(242, 184, 75, 0.14), transparent 70%); }

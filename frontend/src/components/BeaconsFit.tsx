@@ -1,3 +1,4 @@
+import { useState } from "react";
 /** "How Beacons fits into Quasaria": the DEX integration plan (quasaria-beacons/dex-integration-plan.md) as a collapsed
  *  accordion on /beacons. Copy only; preview, nothing deployed. Native <details>/<summary> = keyboard + screen-reader accessible. */
 const ROWS: [string, string, string, string][] = [
@@ -13,9 +14,17 @@ const ROWS: [string, string, string, string][] = [
 ];
 const BUILD = ["Protocol fee in the AMM (new pool wasm, timelocked)", "Fee router: 40 stakers / 10 insurance / 50 ops, multisig + timelock", "Insurance fund (10% of router + overflow)", "Beacon staking vault: tiers, lock boosts, 7-day unbonding, 2%/cycle exit cap, FIFO, warm-up", "Reward reserve / distributor: 1/42 per 4 h, 25% cap, 30-day overflow", "Blend adapter: XLM pool, 40% target (30–50%), emergency withdraw", "Peg monitor: pauses new stakes above 1% drift", "Keeper on an always-on host", "Indexer for payouts (/beacons and Back Office)", "Frontend wiring: live reads, stake / unbond / claim"];
 
+const SEEN = "qz.beacons-fit-seen";
+/** Open on a visitor's first visit so the section is noticed; remembers the user's own open/closed choice after that. */
+function initialOpen(): boolean {
+  try { const v = localStorage.getItem(SEEN); return v === null ? true : v === "open"; } catch { return true; }
+}
+
 export default function BeaconsFit() {
+  const [open] = useState(initialOpen);
   return (
-    <details className="bp-fit card">
+    <details id="how-beacons-fits" className="bp-fit card" open={open}
+      onToggle={(e) => { try { localStorage.setItem(SEEN, (e.currentTarget as HTMLDetailsElement).open ? "open" : "closed"); } catch { /* private mode */ } }}>
       <summary><span className="bp-fit-t">How Beacons fits into Quasaria</span><span className="pill gold">Preview · not deployed</span><span className="bp-fit-chev" aria-hidden="true">▾</span></summary>
       <div className="bp-fit-body">
         <p className="bp-fit-note" role="note">Preview · not deployed · illustrative. Testnet planning only. No contracts deployed, <b>no change to the QFX contract</b>, nothing here is a guaranteed return.</p>

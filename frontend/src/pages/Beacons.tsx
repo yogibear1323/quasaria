@@ -78,7 +78,7 @@ export default function Beacons() {
   const drift = Math.abs(peg - 1) * 100;
   return (
     <>
-      <PageHead kicker="Preview · not deployed · illustrative" title="Beacons" right={<div className="row"><span className="pill gold">Preview</span><Link className="pill cyan" to="/back-office">Back Office panel</Link></div>}>
+      <PageHead kicker="Preview · not deployed · illustrative" title="Beacons" right={<div className="row"><span className="pill gold">Preview</span><a className="pill gold" href="#how-beacons-fits">How Beacons fits ↓</a><Link className="pill cyan" to="/back-office">Back Office panel</Link></div>}>
         Lock QFX into one of six tiers and share real protocol revenue, paid in XLM every 4 hours. Every QFX earns the same share; tiers add perks. This is a design preview: no contract is deployed and nothing here is a guaranteed return.
       </PageHead>
       <div className="bp-banner" role="note">Preview · not deployed · illustrative. Rates are variable. No wallet action on this page sends a transaction.</div>

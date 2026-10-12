@@ -96,4 +96,6 @@
   --neon-violet: #8b5cf6;
   --neon-cyan: #06b6d4;
   --neon-magenta: #e879f9;
+  --gold: #E8A33D;        /* warm amber accent (decorative only) */
+  --gold-honey: #F2B84B;  /* honey accent (decorative only) */
 }

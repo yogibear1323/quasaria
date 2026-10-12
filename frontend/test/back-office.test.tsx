@@ -231,10 +231,11 @@ import { realEventKeys } from "../src/lib/beaconPulse";
 import { BeaconsPreview, BEACON_TIERS } from "../src/components/BeaconsPreview";
 describe("beacons theme", () => {
   it("preview shows six tiers and empty payout states, no fabricated numbers", () => {
-    const html = renderToStaticMarkup(<BeaconsPreview />);
+    const html = renderToStaticMarkup(<MemoryRouter><BeaconsPreview /></MemoryRouter>);
     expect(BEACON_TIERS.map((t) => t.name)).toEqual(["Spark", "Flare", "Beacon", "Pulsar", "Quasar", "Singularity"]);
     expect(html).toContain("Not live yet · testnet preview");
     expect(html).toContain("no payouts yet");
+    expect(html).toContain("href=\"/beacons\"");
     expect(html).not.toMatch(/APY|APR|\d+(\.\d+)?%/);
     expect(html).not.toMatch(/share weight|1\.05×/);
     expect(html).toContain("250,000 <small>QFX min.</small>");

@@ -1,0 +1,25 @@
+/* Beacons preview page (/beacons). Quasar charcoal tokens; no gradient text; motion-free. */
+.bp-banner { border: 1px solid var(--line-accent); background: var(--surface-2); color: var(--amber); border-radius: 12px; padding: 8px 14px; font-size: .85rem; margin-bottom: 16px; }
+.bp-sec { position: relative; margin-top: 26px; }
+.bp-sec > h2 { margin: 0 0 4px; }
+.bp-sec > .muted { margin: 0 0 12px; }
+.bp-tiers { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.bp-tier { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.bp-tier.sel { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+.bp-tier b { display: block; font-size: 1.35rem; color: var(--text); font-family: "JetBrains Mono", ui-monospace, monospace; }
+.bp-split { display: flex; height: 34px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line-2); }
+.bp-split > div { display: flex; align-items: center; justify-content: center; font-size: .82rem; font-weight: 600; color: #0d0b16; }
+.bp-ctrl { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 18px; }
+.bp-ctrl label { display: block; font-size: .82rem; color: var(--text-2); }
+.bp-ctrl output { float: right; color: var(--text); font-family: "JetBrains Mono", ui-monospace, monospace; }
+.bp-ctrl input[type=range] { width: 100%; accent-color: var(--violet); }
+.bp-ctrl input[type=number], .bp-ctrl select { width: 100%; background: var(--bg-sunken); color: var(--text); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px; }
+.bp-check { display: flex; gap: 8px; align-items: center; color: var(--text); font-size: .9rem; }
+.bp-big { font-size: 1.6rem; font-weight: 700; color: var(--text); font-family: "JetBrains Mono", ui-monospace, monospace; }
+.bp-chart { width: 100%; height: 220px; background: var(--bg-sunken); border: 1px solid var(--line); border-radius: 12px; display: block; }
+.bp-flow { width: 100%; height: auto; }
+.bp-good { color: var(--green); } .bp-bad { color: var(--red); }
+.bp-seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; }
+.bp-seg button { background: transparent; color: var(--text-2); border: 0; padding: 8px 14px; cursor: pointer; font: inherit; }
+.bp-seg button[aria-pressed="true"] { background: var(--grad-button); color: #fff; }
+.bp-link-card { border-color: var(--line-accent); }

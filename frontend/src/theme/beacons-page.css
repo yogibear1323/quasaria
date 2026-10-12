@@ -101,3 +101,4 @@
   .md-table table { font-size: .8rem; } .md-table th, .md-table td { padding: 6px 8px; min-width: 7.5em; }
 }
 @media (prefers-reduced-motion: reduce) { .bd-chev, .bd summary::before { transition: none; } }
+.bd-toc ol { list-style: none; padding-left: 0; } .bd-toc ol ol { padding-left: 16px; }

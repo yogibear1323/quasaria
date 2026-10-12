@@ -2,9 +2,11 @@ import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import AccountModal from "./AccountModal";
 import { PerpsNav } from "./PerpsNav";
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo-light.svg";
 import { Orbits } from "./Quasar";
-import CosmicBackground, { type Scene } from "./CosmicBackground";
+import { type Scene } from "./CosmicBackground";
+import WorldBackground from "../world/WorldBackground";
+import WorldNav from "../world/WorldNav";
 import { useWallet } from "../lib/wallet";
 import { short } from "../lib/format";
 import { CONTRACTS_CONFIGURED, OFFLINE_DEMO } from "../lib/config";
@@ -53,6 +55,8 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/news", label: "News", scene: "constellation" },
 ];
 
+const QUICK = new Set(["/markets", "/trade", "/perps", "/pools", "/earn", "/beacons"]);
+
 export function sceneFor(path: string): Scene {
   if (path.startsWith("/calculators")) return "orbits";
   if (path.startsWith("/back-office")) return "warp";
@@ -94,7 +98,7 @@ export default function Layout() {
   const scene = sceneFor(loc.pathname);
   return (
     <>
-      <CosmicBackground scene={scene} />
+      <WorldBackground scene={scene} />
       <div className="app">
         {(!w.address || !CONTRACTS_CONFIGURED) && (
           <div className="demo-banner">
@@ -107,8 +111,10 @@ export default function Layout() {
             <img src={logo} alt="" />
             <span className="word">Quasaria</span>
           </NavLink>
-          <nav className="nav">
-            {NAV.map((n) =>
+          <WorldNav />
+          {/* Quick strip: the busiest districts one click away; the full map lives in WorldNav. */}
+          <nav className="nav quick-nav" aria-label="Quick links">
+            {NAV.filter((n) => QUICK.has(n.to)).map((n) =>
               n.to === "/perps" ? (
                 <PerpsNav key={n.to} pathname={loc.pathname} />
               ) : (

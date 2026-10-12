@@ -21,5 +21,5 @@
 .bp-good { color: var(--green); } .bp-bad { color: var(--red); }
 .bp-seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; }
 .bp-seg button { background: transparent; color: var(--text-2); border: 0; padding: 8px 14px; cursor: pointer; font: inherit; }
-.bp-seg button[aria-pressed="true"] { background: var(--grad-button); color: #fff; }
+.bp-seg button[aria-pressed="true"] { background: var(--grad-button); color: #1b1640; }
 .bp-link-card { border-color: var(--line-accent); }

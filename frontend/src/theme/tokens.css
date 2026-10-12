@@ -1,43 +1,43 @@
 /* =====================================================================
-   Quasaria design tokens — v3 "Beacons charcoal" (lighter #14121F base; AA-checked)
+   Quasaria design tokens — v4 "World light" (pearl base, neon violet/cyan/magenta; AA-checked text)
    Deep near-black navy, one signature accent (cosmic violet → cyan),
    glass surfaces with hairline borders. Text/background pairs meet WCAG AA.
    ===================================================================== */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
   /* ---- base surfaces */
-  --bg: #14121f;             /* page */
-  --bg-elev: #1b1829;        /* raised solid */
-  --bg-sunken: rgba(14, 12, 23, 0.6); /* inputs, wells */
-  --surface: rgba(27, 24, 41, 0.86);   /* glass card */
-  --surface-2: rgba(34, 30, 51, 0.82); /* nested / hover */
-  --line: #342d52;
-  --line-2: #40386a;
-  --line-accent: rgba(139, 124, 255, 0.45);
+  --bg: #f5f6fd;             /* page */
+  --bg-elev: #ffffff;        /* raised solid */
+  --bg-sunken: rgba(238, 236, 252, 0.85); /* inputs, wells */
+  --surface: rgba(255, 255, 255, 0.84);   /* glass card */
+  --surface-2: rgba(246, 244, 255, 0.92); /* nested / hover */
+  --line: #dfdcf3;
+  --line-2: #cdc7ec;
+  --line-accent: rgba(124, 58, 237, 0.45);
 
   /* ---- text (contrast on --bg-elev: 15.1 / 8.3 / 5.3) */
-  --text: #ecebf5;
-  --text-2: #a9a4c4;
-  --text-3: #948eb4;
+  --text: #1b1640;
+  --text-2: #4a4470;
+  --text-3: #5d577f;
 
   /* ---- signature accent: cosmic violet → cyan */
-  --violet: #8b7cff;
-  --violet-hi: #c4b5fd;
+  --violet: #6d28d9;
+  --violet-hi: #5b21b6;
   --violet-strong: #6d4aff;
   --indigo: #4f46e5;
-  --cyan: #22d3ee;
-  --cyan-hi: #a5f3fc;
-  --grad-accent: linear-gradient(135deg, #a78bfa 0%, #7c5cff 40%, #22d3ee 100%);
-  --grad-accent-soft: linear-gradient(135deg, rgba(124, 92, 255, 0.22), rgba(34, 211, 238, 0.14));
-  --grad-button: linear-gradient(135deg, #6d4aff 0%, #4f46e5 100%); /* white text ≥ 5.1:1 */
+  --cyan: #0e7490;
+  --cyan-hi: #155e75;
+  --grad-accent: linear-gradient(135deg, #8b5cf6 0%, #d946ef 45%, #06b6d4 100%);
+  --grad-accent-soft: linear-gradient(135deg, rgba(139, 92, 246, 0.14), rgba(217, 70, 239, 0.08), rgba(6, 182, 212, 0.12));
+  --grad-button: linear-gradient(135deg, #6d28d9 0%, #a21caf 55%, #0e7490 100%); /* white text ≥ 5.1:1 */
   --grad-text: linear-gradient(95deg, #ffffff 0%, #e4e0ff 38%, #a78bfa 68%, #22d3ee 100%);
 
   /* ---- semantic */
-  --green: #34d399;
-  --red: #fb7185;
-  --amber: #fbbf24;
-  --orange: #fb923c;
+  --green: #047857;
+  --red: #be123c;
+  --amber: #b45309;
+  --orange: #c2410c;
 
   /* ---- legacy aliases (used by components / inline styles) */
   --void: var(--bg);
@@ -46,14 +46,14 @@
   --star: var(--text);
   --haze: var(--text-2);
   --quasar: var(--cyan);
-  --plasma: #f472b6;
+  --plasma: #be185d;
   --nebula: var(--violet);
   --solar: var(--amber);
   --flare: var(--orange);
   --aurora: var(--green);
   --redshift: var(--red);
   --grad-brand: var(--grad-accent);
-  --grad-disk: linear-gradient(90deg, #a78bfa, #7c5cff 45%, #22d3ee);
+  --grad-disk: linear-gradient(90deg, #8b5cf6, #d946ef 45%, #06b6d4);
   --glass: var(--surface);
   --glass-border: var(--line-2);
   --glow-cyan: 0 0 0 1px rgba(34, 211, 238, 0.35), 0 8px 28px -10px rgba(34, 211, 238, 0.55);
@@ -61,9 +61,9 @@
   --glow-violet: 0 0 0 1px rgba(139, 124, 255, 0.35), 0 10px 30px -12px rgba(124, 92, 255, 0.7);
 
   /* ---- elevation */
-  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 32px -18px rgba(0, 0, 0, 0.8);
-  --shadow-pop: 0 24px 60px -24px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--line-2);
-  --ring: 0 0 0 2px var(--bg), 0 0 0 4px rgba(167, 139, 250, 0.9);
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(46, 30, 110, 0.08), 0 14px 34px -20px rgba(76, 29, 149, 0.35);
+  --shadow-pop: 0 24px 60px -24px rgba(76, 29, 149, 0.4), 0 0 0 1px var(--line-2);
+  --ring: 0 0 0 2px var(--bg), 0 0 0 4px rgba(109, 40, 217, 0.9);
 
   /* ---- typography */
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
@@ -92,4 +92,8 @@
   --t-med: 240ms;
 
   --topbar-h: 64px;
+  --magenta: #a21caf;
+  --neon-violet: #8b5cf6;
+  --neon-cyan: #06b6d4;
+  --neon-magenta: #e879f9;
 }

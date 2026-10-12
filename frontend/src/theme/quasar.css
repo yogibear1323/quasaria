@@ -19,9 +19,9 @@
 @keyframes qz-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .qz-spin { animation: none; } }
 /* readable text over the hero: a left scrim behind the copy column */
-.qz-scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,18,31,.92) 0%, rgba(20,18,31,.78) 42%, rgba(20,18,31,.15) 70%, transparent 100%); }
+.qz-scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.78) 42%, rgba(255, 255, 255, 0.15) 70%, transparent 100%); }
 @media (max-width: 760px) {
   .qz-obj { width: 92vw; right: -30vw; top: 38%; opacity: .75; }
-  .qz-scrim { background: linear-gradient(180deg, rgba(20,18,31,.55) 0%, rgba(20,18,31,.88) 60%, rgba(20,18,31,.95) 100%); }
+  .qz-scrim { background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.88) 60%, rgba(255, 255, 255, 0.95) 100%); }
 }
 .qz-orbits { position: absolute; pointer-events: none; z-index: 0; }

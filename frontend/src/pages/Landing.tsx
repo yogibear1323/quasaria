@@ -4,13 +4,18 @@
  * generated stablecoin pair list, deployed contract IDs); everything
  * illustrative is labelled as an example / estimate / simulation.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import outlineMd from "../../../docs/landing-outline.md?raw";
 import pairsDoc from "../../../docs/stablecoin-pairs.json";
 import { POOL_LIST, assetById } from "../lib/assets";
-import logo from "../assets/logo.svg";
-import CosmicBackground, { type Scene } from "../components/CosmicBackground";
+import logo from "../assets/logo-light.svg";
+import { type Scene } from "../components/CosmicBackground";
+import WorldBackground from "../world/WorldBackground";
+import WorldList from "../world/WorldList";
+import WorldNav from "../world/WorldNav";
+import { DISTRICTS } from "../lib/world";
+const Globe = lazy(() => import("../world/Globe"));
 import AccountModal from "../components/AccountModal";
 import OrderBook from "../components/OrderBook";
 import WorldMap, { type MapPin } from "../components/WorldMap";
@@ -624,9 +629,7 @@ function FaqVisual() {
 }
 
 // ---------------------------------------------------------------- page
-const NAV = [
-  ["markets", "Markets"], ["news", "News"], ["stablecoins", "Stablecoins"], ["earn", "Earn"], ["bots", "Bots"], ["security", "Security"], ["faq", "FAQ"],
-] as const;
+const QUICK = DISTRICTS.filter((d) => ["markets", "trade", "perps", "pools", "earn", "beacons"].includes(d.id));
 
 export default function Landing() {
   const w = useWallet();
@@ -639,11 +642,12 @@ export default function Landing() {
   const cta = S(14);
   return (
     <>
-      <CosmicBackground scene={scene} />
+      <WorldBackground scene={scene} />
       <div className="app landing">
         <header className="topbar l-top">
           <Link to="/" className="brand" aria-label="Quasaria home"><img src={logo} alt="" /><span className="word">Quasaria</span></Link>
-          <nav className="nav l-nav">{NAV.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav>
+          <WorldNav />
+          <nav className="nav l-nav quick-nav" aria-label="Quick links">{QUICK.map((d) => <Link key={d.id} to={d.to}>{d.label}</Link>)}</nav>
           <Ticker />
           <Link to="/trade" className="btn small">Launch app</Link>
         </header>
@@ -657,24 +661,15 @@ export default function Landing() {
               <CtaButtons />
               <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span></div>
             </div>
-            <div className="l-hero-art" aria-hidden>
-              {/* Animated quasar: glow, tilted accretion disk (back/front halves), bipolar jets, bright core. Pure CSS. */}
-              <div className="q-orb">
-                <div className="q-glow" />
-                <div className="q-orbit o1" />
-                <div className="q-orbit o2" />
-                <div className="q-disk-wrap back"><div className="q-disk" /></div>
-                <div className="q-jet up" />
-                <div className="q-jet down" />
-                <div className="q-jet up core-line" />
-                <div className="q-jet down core-line" />
-                <div className="q-core" />
-                <div className="q-flare" />
-                <div className="q-flare v" />
-                <div className="q-disk-wrap front"><div className="q-disk" /></div>
-                <div className="q-stars"><i /><i /><i /><i /><i /><i /></div>
-              </div>
+            <div className="l-hero-art">
+              <Suspense fallback={<div className="globe-loading" aria-hidden />}><Globe /></Suspense>
             </div>
+          </section>
+
+          <section className="l-world" aria-labelledby="world-h">
+            <h2 id="world-h" className="l-h2">Explore the world of Quasaria</h2>
+            <p className="l-pitch">Every feature is a district on the globe. Spin it, or pick a district below.</p>
+            <WorldList label="All Quasaria districts" />
           </section>
 
           {/* Sizzle reel: not part of the 15-section approved outline, so its copy lives in lib/sizzle.ts */}

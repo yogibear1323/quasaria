@@ -8,6 +8,7 @@ import { breakEvenFees, runSim, type Lock } from "../lib/beaconsSim";
 import "../theme/beacons-page.css";
 import BeaconsFit from "../components/BeaconsFit";
 import BeaconsLive from "../components/BeaconsLive";
+import BeaconsStake from "../components/BeaconsStake";
 import BeaconsDocs from "../components/BeaconsDocs";
 
 const f = (n: number, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
@@ -19,7 +20,7 @@ function WalletQfx() {
   const chain = useChain(() => (w.address ? readQfx(w.address) : Promise.resolve(null)), [w.address]);
   if (!w.address) return <p className="muted">Connect a wallet to see your QFX balance here (read-only).</p>;
   if (!chain.data) return <p className="muted">{chain.error ? "Couldn't read your QFX balance." : "Reading your QFX balance…"}</p>;
-  return <p>Your QFX balance (testnet, read-only): <b className="mono">{f(chain.data.balance, 4)} QFX</b>. Beacons is live on testnet only; this page is read-only.</p>;
+  return <p>Your QFX balance (testnet, read-only): <b className="mono">{f(chain.data.balance, 4)} QFX</b>. Beacons is live on testnet only; stake below.</p>;
 }
 
 function Simulator() {
@@ -83,9 +84,10 @@ export default function Beacons() {
       <PageHead kicker="Testnet · unaudited · live contracts" title="Beacons" right={<div className="row"><a className="pill gold" href="#live-testnet">Live on testnet ↓</a><a className="pill gold" href="#how-beacons-fits">How Beacons fits ↓</a><a className="pill gold" href="#beacons-docs">Full documents ↓</a><Link className="pill cyan" to="/back-office">Back Office panel</Link></div>}>
         Lock QFX into one of six tiers and share real protocol revenue, paid in XLM every 4 hours. Every QFX earns the same share; tiers add perks. The contracts are live on Stellar testnet only (unaudited, testnet XLM, no real value). Nothing here is a guaranteed return.
       </PageHead>
-      <div className="bp-banner" role="note">Testnet · unaudited. Live contracts on Stellar testnet only, not mainnet. Rates are variable and the simulator below is illustrative. No wallet action on this page sends a transaction.</div>
+      <div className="bp-banner" role="note">Testnet · unaudited. Live contracts on Stellar testnet only, not mainnet. Rates are variable and the simulator below is illustrative. The Stake on testnet section signs testnet transactions only.</div>
       <div className="card"><WalletQfx /></div>
       <BeaconsLive />
+      <BeaconsStake />
       <BeaconsFit />
 
       <section className="bp-sec" aria-labelledby="bp-tiers"><h2 id="bp-tiers">Tiers, priced in QFX</h2><p className="muted">Flat reward weight 1.00 in every tier. Lock boost for anyone: none 1.00× · 30 days 1.10× · 90 days 1.25×. No per-wallet cap.</p>

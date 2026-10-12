@@ -123,3 +123,14 @@ html, body { overflow-x: clip; max-width: 100%; }
   .wn-btn { padding: 4px 10px 4px 4px; gap: 6px; }
   .wn-orb { width: 26px; height: 26px; }
 }
+
+/* ---- warm gold accent (subtle): honey #F2B84B / amber #E8A33D. Decorative only; no text uses it. */
+.wb-bands::after { content: ""; position: absolute; left: -10%; width: 120%; height: 16%; top: 54%; border-radius: 50%; transform: rotate(-9deg);
+  background: linear-gradient(90deg, transparent, rgba(242, 184, 75, 0.30), rgba(232, 163, 61, 0.24), transparent); animation: wb-shift 38s ease-in-out -12s infinite alternate; }
+.wb-horizon { background: linear-gradient(90deg, transparent, rgba(232, 121, 249, 0.7), rgba(242, 184, 75, 0.85) 34%, rgba(6, 182, 212, 0.8) 52%, rgba(232, 163, 61, 0.75) 70%, rgba(139, 92, 246, 0.7), transparent);
+  box-shadow: 0 0 24px 4px rgba(139, 92, 246, 0.22), 0 0 18px 2px rgba(242, 184, 75, 0.22); }
+.wb-horizon::before, .wb-horizon::after { content: ""; position: absolute; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: #F2B84B; box-shadow: 0 0 10px 3px rgba(242, 184, 75, 0.55); opacity: 0.8; }
+.wb-horizon::before { left: 31%; } .wb-horizon::after { left: 68%; background: #E8A33D; box-shadow: 0 0 10px 3px rgba(232, 163, 61, 0.5); }
+.world-bg::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(700px 380px at 50% 64%, rgba(242, 184, 75, 0.10), transparent 70%); }
+@media (prefers-reduced-motion: reduce) { .wb-bands::after { animation: none; } }
+.globe-body { filter: drop-shadow(0 20px 40px rgba(109, 40, 217, 0.28)) drop-shadow(0 0 30px rgba(6, 182, 212, 0.25)) drop-shadow(0 0 16px rgba(242, 184, 75, 0.30)); }

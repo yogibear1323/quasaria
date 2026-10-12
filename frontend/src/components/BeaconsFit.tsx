@@ -66,7 +66,7 @@ export default function BeaconsFit() {
           <li>Blend allocation 40%, or lower while Blend's XLM rate is near zero?</li>
           <li>Holder-yield phase-down timing (only after Beacons proves out).</li>
         </ol>
-        <p className="muted">Full plan: <a href="https://github.com/yogibear1323/quasaria-beacons/blob/main/dex-integration-plan.md" target="_blank" rel="noreferrer">dex-integration-plan.md on GitHub</a>.</p>
+        <p className="muted">Full plan, word for word: <a href="#doc-plan">DEX integration plan</a> in Full Beacons documents below, or <a href="https://github.com/yogibear1323/quasaria-beacons/blob/main/docs/dex-integration-plan.md" target="_blank" rel="noreferrer">docs/dex-integration-plan.md on GitHub</a>.</p>
       </div>
     </details>
   );

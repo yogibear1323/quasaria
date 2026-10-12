@@ -30,12 +30,15 @@ export default function BeaconsLive() {
     load(); const t = setInterval(load, 20_000); const c = setInterval(() => setNow(Date.now()), 1000);
     return () => { live = false; clearInterval(t); clearInterval(c); };
   }, [address]);
-  const demo = B.params.demoTiming;
   const next = d ? Math.max(0, Number(d.reserve.next_cycle) - Math.floor(now / 1000)) : 0;
+  const demo = d ? Boolean(d.reserve.demo_timing) : B.params.demoTiming;
+  const cyc = d ? Number(d.reserve.cycle_secs) : B.params.cycleSecs;
+  const unb = d ? Number(d.vault.unbond_secs) : B.params.unbondSecs;
+  const dur = (s: number) => s >= 86400 ? `${s / 86400}-day` : s >= 3600 ? `${s / 3600}-hour` : `${s}s`;
   return (
     <section className="bp-sec bp-live" id="live-testnet" aria-labelledby="bp-live">
-      <h2 id="bp-live">Live on testnet <span className="pill gold">Testnet · unaudited</span>{demo && <span className="pill cyan" style={{ marginLeft: 6 }}>Demo timing: {B.params.cycleSecs}s cycles · {B.params.unbondSecs}s unbonding</span>}</h2>
-      <p className="muted">Read straight from the six Beacons contracts on Stellar testnet, refreshed every 20 s. Testnet XLM only, no real value. {demo ? "Demo timing is on so a full cycle can be watched; production timing is 4-hour cycles and 7-day unbonding." : "Production timing: 4-hour cycles, 7-day unbonding."} Fees come from a labelled <b>test fee source</b>: the DEX has no protocol fee share yet.</p>
+      <h2 id="bp-live">Live on testnet <span className="pill gold">Testnet · unaudited</span><span className="pill cyan" style={{ marginLeft: 6 }}>{demo ? "Demo timing" : "Production timing"}: {dur(cyc)} cycles · {dur(unb)} unbonding</span></h2>
+      <p className="muted">Read straight from the six Beacons contracts on Stellar testnet, refreshed every 20 s. Testnet XLM only, no real value. {demo ? "Demo timing is on so a full cycle can be watched; production timing is 4-hour cycles and 7-day unbonding." : "Production timing: 4-hour cycles, 7-day unbonding. The end-to-end check ran earlier on 2-minute demo cycles."} Fees come from a labelled <b>test fee source</b>: the DEX has no protocol fee share yet.</p>
       {err && <div className="bp-banner">Could not read testnet contracts: {err}</div>}
       {!d ? <div className="card muted">Loading live testnet state…</div> : <>
         <div className="grid g-3">

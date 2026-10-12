@@ -104,3 +104,8 @@
 }
 @media (prefers-reduced-motion: reduce) { .bd-chev, .bd summary::before { transition: none; } }
 .bd-toc ol { list-style: none; padding-left: 0; } .bd-toc ol ol { padding-left: 16px; }
+.bp-err { color: #8a2a12; border-color: rgba(220, 90, 50, .45); background: #fff4ee; }
+.bp-field { display: block; margin: 10px 0; font-size: .85rem; color: var(--text-2); }
+.bp-field input { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font: 500 1rem var(--font-mono, monospace); color: var(--text); }
+.bp-stake .pill { cursor: pointer; }
+.bp-queue { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #fffaf0; border: 1px solid rgba(232, 163, 61, .4); font-size: .88rem; }

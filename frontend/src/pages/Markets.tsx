@@ -209,8 +209,8 @@ export default function Markets() {
                   return (
                     <Fragment key={r.key}>
                     <tr data-testid="market-row" data-source={r.source}>
-                      <td className="mono muted">{r.rank ?? "—"}</td>
-                      <td>
+                      <td data-label="#" className="c-rank mono muted">{r.rank ?? "—"}</td>
+                      <td data-label="Asset" className="c-asset">
                         <div className="row" style={{ gap: 10 }}>
                           <AssetLogo code={r.code} logo={r.logo} />
                           <div style={{ minWidth: 0 }}>
@@ -219,26 +219,26 @@ export default function Markets() {
                           </div>
                         </div>
                       </td>
-                      <td className="mono">
+                      <td data-label="Price (XLM)" className="c-price mono">
                         {r.priceXlm !== null ? priceFmt(r.priceXlm) : <span className="muted">—</span>}
                         {r.priceKind === "book" && <div className="muted" style={{ fontSize: "0.62rem" }}>order-book mid</div>}
                       </td>
-                      <td className="mono">{!snapRow && r.priceXlm !== null && usdPerXlm ? `$${priceFmt(r.priceXlm * usdPerXlm)}` : <span className="muted" title={snapRow ? "not shown for saved-snapshot rows (their XLM prices are from an older time than any XLM/USD rate)" : undefined}>—</span>}</td>
-                      <td className="mono">{chg(r.change1h)}</td>
-                      <td className="mono">{chg(r.change24h)}</td>
-                      <td className="mono">{chg(r.change7d)}</td>
-                      <td className="mono">{r.volumeXlm24h !== null ? fmtCompact(r.volumeXlm24h) : "—"}</td>
-                      <td className="mono">{r.trades24h !== null ? fmtCompact(r.trades24h) : "—"}</td>
-                      <td className="mono">
+                      <td data-label="≈ USD" className="c-usd mono">{!snapRow && r.priceXlm !== null && usdPerXlm ? `$${priceFmt(r.priceXlm * usdPerXlm)}` : <span className="muted" title={snapRow ? "not shown for saved-snapshot rows (their XLM prices are from an older time than any XLM/USD rate)" : undefined}>—</span>}</td>
+                      <td data-label="1h" className="c-1h mono">{chg(r.change1h)}</td>
+                      <td data-label="24h" className="c-24h mono">{chg(r.change24h)}</td>
+                      <td data-label="7d" className="c-7d mono">{chg(r.change7d)}</td>
+                      <td data-label="Vol 24h (XLM)" className="c-vol mono">{r.volumeXlm24h !== null ? fmtCompact(r.volumeXlm24h) : "—"}</td>
+                      <td data-label="Trades" className="c-trades mono">{r.trades24h !== null ? fmtCompact(r.trades24h) : "—"}</td>
+                      <td data-label="Trustlines" className="c-holders mono">
                         {r.holders !== null ? fmtCompact(r.holders) : "—"}
                         {!snapRow && r.snapshotFields.includes("holders") && r.holders !== null && <SnapMark title={`trustlines from the ${snapTip}; live value loading`} />}
                         {r.supply !== null && <div className="muted" style={{ fontSize: "0.62rem" }} title="circulating supply (Horizon /assets)">supply {fmtCompact(r.supply)}</div>}
                       </td>
-                      <td><Sparkline values={r.sparkline} /></td>
-                      <td style={{ fontSize: "0.72rem" }} className="muted" title={snapRow ? snapTip : r.lastTradeAt ? (r.lastTradeExact ? `last trade seen on the live feed: ${new Date(r.lastTradeAt).toLocaleString()}` : `last trade in the hourly candle starting ${new Date(r.lastTradeAt).toLocaleString()}`) : undefined}>
+                      <td data-label="Trend" className="c-trend"><Sparkline values={r.sparkline} /></td>
+                      <td data-label="As of" style={{ fontSize: "0.72rem" }} className="c-asof muted" title={snapRow ? snapTip : r.lastTradeAt ? (r.lastTradeExact ? `last trade seen on the live feed: ${new Date(r.lastTradeAt).toLocaleString()}` : `last trade in the hourly candle starting ${new Date(r.lastTradeAt).toLocaleString()}`) : undefined}>
                         {snapRow ? <span style={{ color: "var(--amber)" }} data-testid="row-snapshot">snapshot</span> : r.priceKind === "trade" && r.lastTradeAt ? (r.lastTradeExact ? `last trade ${asOf(new Date(r.lastTradeAt).toISOString())}` : r.lastTradeAt + 3600_000 > live.now ? "traded this hour" : `last trade ≈ ${asOf(new Date(r.lastTradeAt + 3600_000).toISOString())}`) : r.priceKind === "book" ? "live book" : "no trades 24h"}
                       </td>
-                      <td><div className="mk-acts"><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={`Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Trade</button>
+                      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={`Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Trade</button>
                         <button className={`btn small ghost about-btn ${aboutKey === r.key ? "on" : ""}`} aria-expanded={aboutKey === r.key} onClick={() => setAboutKey((k) => (k === r.key ? null : r.key))}>About</button></div></td>
                     </tr>
                     {aboutKey === r.key && <tr className="about-row"><td colSpan={13}><AssetAbout code={r.code} issuer={r.issuer} homeDomain={r.homeDomain} snapshotDesc={(full?.raw.get(r.key)?.tomlInfo as { desc?: string } | undefined)?.desc ?? null} onClose={() => setAboutKey(null)} /></td></tr>}
@@ -277,7 +277,7 @@ export default function Markets() {
           <>
             {data?.source === "snapshot" && <div className="notice" data-testid="snapshot-notice">The live stellarchain.io API isn't reachable from this site, so this table shows the {snapshotLabel(data.snapshotAt)} ({asOf(data.snapshotAt ?? "")}), fetched when the site was last deployed. Testnet prices are still refreshed from Horizon where possible.</div>}
             {data?.error && <div className="notice warn">stellarchain.io unavailable ({data.error}). Showing nothing until it recovers; the Trade page keeps working from Horizon.</div>}
-            <table className="t">
+            <table className="t mk-table">
               <thead>
                 <tr><th>#</th><th>Asset</th><th>Price (XLM)</th><th>≈ USD</th><th>1h</th><th>24h</th><th>7d</th><th>Vol 24h (XLM)</th><th>Trades</th><th>Trustlines</th><th>1h trend</th><th>As of</th><th /></tr>
               </thead>
@@ -285,8 +285,8 @@ export default function Markets() {
                 {!data && <tr><td colSpan={13} className="muted">Loading market data…</td></tr>}
                 {data?.rows.map((r) => (
                   <tr key={r.key} data-testid="market-row">
-                    <td className="mono muted">{r.rank ?? "—"}</td>
-                    <td>
+                    <td data-label="#" className="c-rank mono muted">{r.rank ?? "—"}</td>
+                    <td data-label="Asset" className="c-asset">
                       <div className="row" style={{ gap: 10 }}>
                         <AssetLogo code={r.code} logo={r.logo} />
                         <div style={{ minWidth: 0 }}>
@@ -295,17 +295,17 @@ export default function Markets() {
                         </div>
                       </div>
                     </td>
-                    <td className="mono">{r.priceXlm !== null ? priceFmt(r.priceXlm) : <span className="muted">—</span>}{r.priceSource === "horizon" && <div className="muted" style={{ fontSize: "0.62rem" }}>Horizon book</div>}</td>
-                    <td className="mono"><span className="muted">—</span></td>
-                    <td className="mono">{chg(r.change1h)}</td>
-                    <td className="mono">{chg(r.change24h)}</td>
-                    <td className="mono">{chg(r.change7d)}</td>
-                    <td className="mono">{r.volumeXlm24h !== null ? fmtCompact(r.volumeXlm24h) : "—"}</td>
-                    <td className="mono">{r.trades24h !== null ? fmtCompact(r.trades24h) : "—"}</td>
-                    <td className="mono">{r.trustlines !== null ? fmtCompact(r.trustlines) : "—"}</td>
-                    <td><Sparkline values={r.sparkline} /></td>
-                    <td style={{ fontSize: "0.72rem" }} className={r.stale ? "neg" : "muted"} title={r.priceAsOf ?? r.updatedAt}>{asOf(r.priceAsOf ?? r.updatedAt)}{r.stale ? " · stale" : ""}</td>
-                    <td><button className="btn small ghost" onClick={() => trade(r)}>Trade</button></td>
+                    <td data-label="Price (XLM)" className="c-price mono">{r.priceXlm !== null ? priceFmt(r.priceXlm) : <span className="muted">—</span>}{r.priceSource === "horizon" && <div className="muted" style={{ fontSize: "0.62rem" }}>Horizon book</div>}</td>
+                    <td data-label="≈ USD" className="c-usd mono"><span className="muted">—</span></td>
+                    <td data-label="1h" className="c-1h mono">{chg(r.change1h)}</td>
+                    <td data-label="24h" className="c-24h mono">{chg(r.change24h)}</td>
+                    <td data-label="7d" className="c-7d mono">{chg(r.change7d)}</td>
+                    <td data-label="Vol 24h (XLM)" className="c-vol mono">{r.volumeXlm24h !== null ? fmtCompact(r.volumeXlm24h) : "—"}</td>
+                    <td data-label="Trades" className="c-trades mono">{r.trades24h !== null ? fmtCompact(r.trades24h) : "—"}</td>
+                    <td data-label="Trustlines" className="c-holders mono">{r.trustlines !== null ? fmtCompact(r.trustlines) : "—"}</td>
+                    <td data-label="Trend" className="c-trend"><Sparkline values={r.sparkline} /></td>
+                    <td data-label="As of" style={{ fontSize: "0.72rem" }} className={`c-asof ${r.stale ? "neg" : "muted"}`} title={r.priceAsOf ?? r.updatedAt}>{asOf(r.priceAsOf ?? r.updatedAt)}{r.stale ? " · stale" : ""}</td>
+                    <td data-label="" className="c-act"><button className="btn small ghost" onClick={() => trade(r)}>Trade</button></td>
                   </tr>
                 ))}
                 {data && !data.rows.length && !data.error && <tr><td colSpan={13} className="muted">No assets match.</td></tr>}

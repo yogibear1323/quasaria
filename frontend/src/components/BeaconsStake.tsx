@@ -100,7 +100,7 @@ export default function BeaconsStake() {
             <h3 style={{ marginTop: 0 }}>Your position</h3>
             {!pos ? <p className="muted">No active Beacons position.</p> : <>
               <p style={{ margin: "0 0 6px" }}><b className="mono">{n(X(pos.amount))} QFX</b> · {TIERS[Number(pos.tier) - 1]?.[0] ?? "—"} · {pos.lock_days ? `${pos.lock_days}-day lock` : "no lock"} · <b>{status(pos.status)}</b></p>
-              {Number(pos.act_cycle) > Number(d?.vault.cycle ?? 0) && <p className="muted" style={{ margin: "0 0 6px" }}>Warming up: earns from cycle {pos.act_cycle}.</p>}
+              {active && Number(pos.act_cycle) > Number(d?.vault.cycle ?? 0) && <p className="muted" style={{ margin: "0 0 6px" }}>Warming up: earns from cycle {pos.act_cycle}.</p>}
               {pendW > 0 && <p className="muted" style={{ margin: "0 0 6px" }}>Top-up warming up: {n(pendW)} weight starts earning at cycle {String(d?.pend[1])}.</p>}
               {stillLocked && active && <p className="muted" style={{ margin: "0 0 6px" }}>Locked until {new Date(lockedUntil).toLocaleString()}.</p>}
               <p style={{ margin: "0 0 10px" }}>Claimable: <b className="mono">{n(X(pos.claimable), 7)} XLM</b></p>

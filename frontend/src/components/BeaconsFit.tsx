@@ -25,9 +25,9 @@ export default function BeaconsFit() {
   return (
     <details id="how-beacons-fits" className="bp-fit card" open={open}
       onToggle={(e) => { try { localStorage.setItem(SEEN, (e.currentTarget as HTMLDetailsElement).open ? "open" : "closed"); } catch { /* private mode */ } }}>
-      <summary><span className="bp-fit-t">How Beacons fits into Quasaria</span><span className="pill gold">Preview · not deployed</span><span className="bp-fit-chev" aria-hidden="true">▾</span></summary>
+      <summary><span className="bp-fit-t">How Beacons fits into Quasaria</span><span className="pill gold">Testnet · unaudited</span><span className="bp-fit-chev" aria-hidden="true">▾</span></summary>
       <div className="bp-fit-body">
-        <p className="bp-fit-note" role="note">Preview · not deployed · illustrative. Testnet planning only. No contracts deployed, <b>no change to the QFX contract</b>, nothing here is a guaranteed return.</p>
+        <p className="bp-fit-note" role="note">Testnet · unaudited. The six contracts are deployed on Stellar testnet only (see Live on testnet above), with <b>no change to the QFX contract</b>. Nothing here is a guaranteed return.</p>
 
         <h3>Key finding: no protocol fee share yet</h3>
         <p>Today the DEX's 0.3% swap fee goes entirely to liquidity providers (minus an optional referral cut). There is no protocol share, so the "40% of fees to stakers" has no source until one is added. Recommended: add a small protocol share (e.g. about 5 of the 30 bps) to <i>new</i> testnet pools and point it at the fee router; existing pools stay 100% to LPs. Lending treasury and a slice of leverage open fees can also flow to the router. Not recommended: taking 40% of gross swap fees from LPs.</p>

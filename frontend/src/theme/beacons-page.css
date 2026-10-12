@@ -58,3 +58,5 @@
 @media (prefers-reduced-motion: reduce) { .bp-fit-chev { transition: none; } }
 .bp-fit { scroll-margin-top: 90px; border-width: 1.5px; }
 .bp-fit > summary { background: linear-gradient(90deg, rgba(242, 184, 75, 0.14), transparent 70%); }
+.bp-live .bp-big { display: block; font-size: 1.4rem; margin: 2px 0; }
+.bp-live h2 .pill { margin-left: 8px; font-size: .72rem; vertical-align: middle; }

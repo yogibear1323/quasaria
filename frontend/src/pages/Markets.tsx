@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import AssetAbout from "../components/AssetAbout";
+import { clampPage, filterRows, loadFullList, pageCount, PAGE_SIZE, searchBeyond, sortRows, type BeyondHit, type FullList, type SortKey } from "../lib/marketsFull";
 import { FeedBadge, PageHead, Stat, Tabs } from "../components/ui";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
-import { hms, MAINNET_USDC_ISSUER, REFRESH_MS, useLiveMarkets, type LiveRow } from "../lib/liveMarkets";
+import { hms, LIVE_ASSET_COUNT as LIVE_N, MAINNET_USDC_ISSUER, REFRESH_MS, snapshotRow, useLiveMarkets, type LiveRow } from "../lib/liveMarkets";
 import { OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
 
@@ -18,8 +20,20 @@ const SnapMark = ({ title }: { title: string }) => (
 export default function Markets() {
   const nav = useNavigate();
   const [network, setNetwork] = useState<ScNetwork>("mainnet");
-  const [search, setSearch] = useState("");
-  const [q, setQ] = useState("");
+  const [params, setParams] = useSearchParams();
+  const [search, setSearch] = useState(() => params.get("q") ?? "");
+  const [q, setQ] = useState(() => (params.get("q") ?? "").trim());
+  const [full, setFull] = useState<FullList | null>(null);
+  const [aboutKey, setAboutKey] = useState<string | null>(null);
+  const [beyond, setBeyond] = useState<{ q: string; hits: BeyondHit[]; loading: boolean }>({ q: "", hits: [], loading: false });
+  const sortKey = (["rank", "code", "price", "change24h", "change7d", "volume", "trades", "holders"].includes(params.get("sort") ?? "") ? params.get("sort") : "rank") as SortKey;
+  const dir: "asc" | "desc" = params.get("dir") === "desc" ? "desc" : params.get("dir") === "asc" ? "asc" : sortKey === "rank" || sortKey === "code" ? "asc" : "desc";
+  /** Update URL params (page/sort/q are shareable); search or sort changes go back to page 1. */
+  const setUrl = (u: Record<string, string | null>) => {
+    const n = new URLSearchParams(params);
+    for (const [k, v] of Object.entries(u)) (v === null || v === "" ? n.delete(k) : n.set(k, v));
+    setParams(n, { replace: true });
+  };
   const [data, setData] = useState<MarketsResult | null>(null);
   const [overview, setOverview] = useState<MarketOverview | null>(null);
   const [testnetByCode, setTestnetByCode] = useState<Map<string, string>>(new Map());
@@ -31,6 +45,16 @@ export default function Markets() {
     const t = setTimeout(() => setQ(search.trim()), 350);
     return () => clearTimeout(t);
   }, [search]);
+  const firstQ = useRef(true);
+  useEffect(() => {
+    if (firstQ.current) { firstQ.current = false; return; }
+    setUrl({ q: q || null, page: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+  useEffect(() => {
+    if (OFFLINE_DEMO) return;
+    loadFullList().then(setFull);
+  }, []);
   useEffect(() => {
     if (OFFLINE_DEMO || network !== "testnet") return;
     let alive = true;
@@ -61,10 +85,47 @@ export default function Markets() {
     nav(k ? `/trade?base=${encodeURIComponent(k)}&quote=XLM` : "/trade");
   };
 
-  const liveRows = useMemo(() => {
-    const s = q.toLowerCase();
-    return s ? live.rows.filter((r) => [r.code, r.issuer, r.key, r.orgName ?? "", r.homeDomain ?? ""].some((f) => f.toLowerCase().includes(s))) : live.rows;
-  }, [live.rows, q]);
+  /** Top 1,000: live Horizon values for the live-tracked top rows, saved list (30-min refresh) for the rest. */
+  const allRows = useMemo(() => {
+    if (!full?.assets.length) return live.rows;
+    const byKey = new Map(live.rows.map((r) => [r.key, r]));
+    const rows = full.assets.map((a) => byKey.get(a.key) ?? snapshotRow(a));
+    const have = new Set(rows.map((r) => r.key));
+    for (const r of live.rows) if (!have.has(r.key)) rows.push(r);
+    return rows;
+  }, [full, live.rows]);
+  const sorted = useMemo(() => sortRows(filterRows(allRows, q), sortKey, dir), [allRows, q, sortKey, dir]);
+  const pages = pageCount(sorted.length);
+  const page = clampPage(Number(params.get("page") ?? 1), sorted.length);
+  const liveRows = useMemo(() => sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [sorted, page]);
+  const goPage = (p: number) => { setUrl({ page: p > 1 ? String(p) : null }); setAboutKey(null); document.getElementById("mk-table")?.scrollIntoView({ block: "start", behavior: "smooth" }); };
+  const sortBy = (k: SortKey) => {
+    const nextDir = sortKey === k ? (dir === "asc" ? "desc" : "asc") : k === "rank" || k === "code" ? "asc" : "desc";
+    setUrl({ sort: k === "rank" && nextDir === "asc" ? null : k, dir: k === "rank" && nextDir === "asc" ? null : nextDir, page: null });
+  };
+  const keys = useMemo(() => new Set(allRows.map((r) => r.key)), [allRows]);
+  useEffect(() => {
+    if (network !== "mainnet" || OFFLINE_DEMO || q.length < 2) { setBeyond({ q: "", hits: [], loading: false }); return; }
+    let alive = true;
+    setBeyond({ q, hits: [], loading: true });
+    const t = setTimeout(() => searchBeyond(q, keys).then((hits) => alive && setBeyond({ q, hits, loading: false })), 250);
+    return () => { alive = false; clearTimeout(t); };
+  }, [q, network, keys]);
+  const Th = ({ k, children }: { k: SortKey; children: React.ReactNode }) => (
+    <th aria-sort={sortKey === k ? (dir === "asc" ? "ascending" : "descending") : "none"}>
+      <button type="button" className={`th-sort ${sortKey === k ? "on" : ""}`} onClick={() => sortBy(k)}>{children}{sortKey === k ? (dir === "asc" ? " ▲" : " ▼") : ""}</button>
+    </th>
+  );
+  const Pager = ({ where }: { where: string }) => pages > 1 ? (
+    <nav className="mk-pager" aria-label={`Market pages (${where})`} data-testid={`pager-${where}`}>
+      <button type="button" className="pg-btn" onClick={() => goPage(page - 1)} disabled={page <= 1}>‹ Prev</button>
+      {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+        <button type="button" key={n} className={`pg-btn num ${n === page ? "on" : ""}`} aria-current={n === page ? "page" : undefined} aria-label={`Page ${n}, ranks ${(n - 1) * PAGE_SIZE + 1} to ${Math.min(n * PAGE_SIZE, sorted.length)}`} onClick={() => goPage(n)}>{n}</button>
+      ))}
+      <button type="button" className="pg-btn" onClick={() => goPage(page + 1)} disabled={page >= pages}>Next ›</button>
+      <span className="muted mk-count" data-testid={`count-${where}`}>{sorted.length ? `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, sorted.length)} of ${sorted.length.toLocaleString()}` : "0"}{q ? " matches" : " assets"}</span>
+    </nav>
+  ) : <p className="muted mk-count" data-testid={`count-${where}`}>{sorted.length.toLocaleString()} {q ? "matches" : "assets"}</p>;
 
   const liveXlm = network === "mainnet" && live.mode === "live" && live.xlmUsd?.price ? live.xlmUsd : null;
   // Mainnet: live XLM/USD, else the snapshot's mainnet reference price (never the testnet book). Testnet tab: unchanged source.
@@ -133,18 +194,21 @@ export default function Markets() {
                 {live.snapshotRows} of {live.rows.length} assets couldn't be loaded live this round; those rows show saved snapshot values (marked <span style={{ color: "var(--amber)" }}>snapshot</span>) and are retried every refresh.
               </div>
             )}
-            <table className="t">
+            <Pager where="top" />
+            <div className="mk-scroll" id="mk-table">
+            <table className="t mk-table">
               <thead>
-                <tr><th>#</th><th>Asset</th><th>Price (XLM)</th><th>≈ USD</th><th>1h</th><th>24h</th><th>7d</th><th>Vol 24h (XLM)</th><th>Trades</th><th>Trustlines</th><th>24h trend</th><th>As of</th><th /></tr>
+                <tr><Th k="rank">#</Th><Th k="code">Asset</Th><Th k="price">Price (XLM)</Th><th>≈ USD</th><th>1h</th><Th k="change24h">24h</Th><Th k="change7d">7d</Th><Th k="volume">Vol 24h (XLM)</Th><Th k="trades">Trades</Th><Th k="holders">Trustlines</Th><th>24h trend</th><th>As of</th><th /></tr>
               </thead>
               <tbody>
-                {live.mode === "loading" && <tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>}
-                {live.mode !== "loading" && !live.rows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
+                {live.mode === "loading" && !allRows.length && <tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>}
+                {live.mode !== "loading" && !allRows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
                 {liveRows.map((r) => {
                   const snapRow = r.source === "snapshot";
                   const snapTip = `saved snapshot (${snapTime(live.snapshotAt)})`;
                   return (
-                    <tr key={r.key} data-testid="market-row" data-source={r.source}>
+                    <Fragment key={r.key}>
+                    <tr data-testid="market-row" data-source={r.source}>
                       <td className="mono muted">{r.rank ?? "—"}</td>
                       <td>
                         <div className="row" style={{ gap: 10 }}>
@@ -174,15 +238,39 @@ export default function Markets() {
                       <td style={{ fontSize: "0.72rem" }} className="muted" title={snapRow ? snapTip : r.lastTradeAt ? (r.lastTradeExact ? `last trade seen on the live feed: ${new Date(r.lastTradeAt).toLocaleString()}` : `last trade in the hourly candle starting ${new Date(r.lastTradeAt).toLocaleString()}`) : undefined}>
                         {snapRow ? <span style={{ color: "var(--amber)" }} data-testid="row-snapshot">snapshot</span> : r.priceKind === "trade" && r.lastTradeAt ? (r.lastTradeExact ? `last trade ${asOf(new Date(r.lastTradeAt).toISOString())}` : r.lastTradeAt + 3600_000 > live.now ? "traded this hour" : `last trade ≈ ${asOf(new Date(r.lastTradeAt + 3600_000).toISOString())}`) : r.priceKind === "book" ? "live book" : "no trades 24h"}
                       </td>
-                      <td><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={`Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Trade</button></td>
+                      <td><div className="mk-acts"><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={`Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Trade</button>
+                        <button className={`btn small ghost about-btn ${aboutKey === r.key ? "on" : ""}`} aria-expanded={aboutKey === r.key} onClick={() => setAboutKey((k) => (k === r.key ? null : r.key))}>About</button></div></td>
                     </tr>
+                    {aboutKey === r.key && <tr className="about-row"><td colSpan={13}><AssetAbout code={r.code} issuer={r.issuer} homeDomain={r.homeDomain} snapshotDesc={(full?.raw.get(r.key)?.tomlInfo as { desc?: string } | undefined)?.desc ?? null} onClose={() => setAboutKey(null)} /></td></tr>}
+                    </Fragment>
                   );
                 })}
-                {live.rows.length > 0 && !liveRows.length && <tr><td colSpan={13} className="muted">No assets match.</td></tr>}
+                {allRows.length > 0 && !liveRows.length && <tr><td colSpan={13} className="muted">No assets in the top {allRows.length.toLocaleString()} match.</td></tr>}
               </tbody>
             </table>
+            </div>
+            <Pager where="bottom" />
+            {q.length >= 2 && (
+              <div className="mk-beyond" data-testid="beyond">
+                <h3>Beyond the top {allRows.length.toLocaleString()}: any Stellar asset</h3>
+                <p className="muted" style={{ fontSize: "0.75rem", marginTop: 0 }}>Searched live on stellar.expert (code, name, domain) and Horizon (exact code or G… issuer). Not ranked by Quasaria; anyone can issue an asset with any code, so check the issuer.</p>
+                {beyond.loading && <p className="muted">Searching the whole Stellar network…</p>}
+                {!beyond.loading && !beyond.hits.length && <p className="muted">No other assets found for "{q}".</p>}
+                <ul className="mk-beyond-list">
+                  {beyond.hits.map((h) => (
+                    <li key={h.key}>
+                      <div className="row between" style={{ gap: 8, flexWrap: "wrap" }}>
+                        <span><b>{h.code}</b> <span className="muted mono" style={{ fontSize: "0.72rem" }}>{h.issuer.slice(0, 6)}…{h.issuer.slice(-6)}</span>{h.homeDomain && <span className="muted"> · {h.homeDomain}</span>}{h.holders !== null && <span className="muted"> · {fmtCompact(h.holders)} trustlines</span>}</span>
+                        <button className={`btn small ghost about-btn ${aboutKey === h.key ? "on" : ""}`} aria-expanded={aboutKey === h.key} onClick={() => setAboutKey((k) => (k === h.key ? null : h.key))}>About</button>
+                      </div>
+                      {aboutKey === h.key && <AssetAbout code={h.code} issuer={h.issuer} homeDomain={h.homeDomain} onClose={() => setAboutKey(null)} />}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <p className="muted" style={{ fontSize: "0.75rem", marginTop: 10 }}>
-              Live data: Stellar <b>mainnet</b> public Horizon (<a href="https://horizon.stellar.org" target="_blank" rel="noreferrer">horizon.stellar.org</a>), refreshed every ~{REFRESH_MS / 1000}s while this tab is visible (paused when hidden). Price = last trade vs XLM (order-book mid when there was no trade in 24h); live price from the network-wide trade feed (polled every ~30s); 1h / 24h / 7d change, 24h volume, trades and the 24h trend from Horizon hourly trade aggregations (refreshed every ~10 min per asset to respect Horizon's rate limits); trustlines (authorized holders) and supply from Horizon /assets; USD via the XLM/USDC pair (Circle issuer {MAINNET_USDC_ISSUER.slice(0, 4)}…{MAINNET_USDC_ISSUER.slice(-4)}). The asset list, rank, logos and org names (from issuers' stellar.toml, via stellarchain.io) come from the snapshot saved at deploy. If Horizon can't be reached, the saved snapshot is shown and labelled with its time. Mainnet rows are reference-only — Quasaria trades on TESTNET. Listing ≠ endorsement: always verify the issuer.
+              Live data: Stellar <b>mainnet</b> public Horizon (<a href="https://horizon.stellar.org" target="_blank" rel="noreferrer">horizon.stellar.org</a>), refreshed every ~{REFRESH_MS / 1000}s while this tab is visible (paused when hidden). Price = last trade vs XLM (order-book mid when there was no trade in 24h); live price from the network-wide trade feed (polled every ~30s); 1h / 24h / 7d change, 24h volume, trades and the 24h trend from Horizon hourly trade aggregations (refreshed every ~10 min per asset to respect Horizon's rate limits); trustlines (authorized holders) and supply from Horizon /assets; USD via the XLM/USDC pair (Circle issuer {MAINNET_USDC_ISSUER.slice(0, 4)}…{MAINNET_USDC_ISSUER.slice(-4)}). The asset list (top {allRows.length.toLocaleString()}: stellarchain.io rank{full?.sources?.stellarExpert ? `, topped up with ${full.sources.stellarExpert} from stellar.expert's rating` : ""}), rank, logos and org names (from issuers' stellar.toml) come from the list saved at every deploy and 30-minute refresh{full?.at ? ` (${snapTime(full.at)})` : ""}; the top {LIVE_N} update live from Horizon and the rest show the saved values (marked snapshot). If Horizon can't be reached, the saved snapshot is shown and labelled with its time. Mainnet rows are reference-only — Quasaria trades on TESTNET. Listing ≠ endorsement: always verify the issuer.
             </p>
           </>
         ) : (

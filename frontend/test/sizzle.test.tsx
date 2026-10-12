@@ -10,11 +10,11 @@ describe("landing sizzle reel", () => {
   it("references both cuts by their public promo URLs (mp4s are not committed)", () => {
     const cuts = sizzleCuts("/quasaria/");
     expect(cuts.map((c) => c.src)).toEqual([
-      "https://yogibear1323.github.io/promo/quasaria-sizzle-16x9.mp4",
-      "https://yogibear1323.github.io/promo/quasaria-sizzle-9x16.mp4",
+      "https://yogibear1323.github.io/promo/quasaria-sizzle-16x9-light.mp4",
+      "https://yogibear1323.github.io/promo/quasaria-sizzle-9x16-light.mp4",
     ]);
-    expect(cuts.map((c) => c.poster)).toEqual(["/quasaria/media/quasaria-sizzle-16x9-poster.jpg", "/quasaria/media/quasaria-sizzle-9x16-poster.jpg"]);
-    expect(existsSync(new URL("../public/media/quasaria-sizzle-16x9.mp4", import.meta.url))).toBe(false);
+    expect(cuts.map((c) => c.poster)).toEqual(["/quasaria/media/quasaria-sizzle-16x9-light-poster.jpg", "/quasaria/media/quasaria-sizzle-9x16-light-poster.jpg"]);
+    expect(existsSync(new URL("../public/media/quasaria-sizzle-16x9-light.mp4", import.meta.url))).toBe(false);
   });
   it("ships small poster frames in public/media", () => {
     for (const c of sizzleCuts("/")) {
@@ -29,8 +29,8 @@ describe("landing sizzle reel", () => {
     expect(html).toContain('preload="metadata"');
     expect(html).toMatch(/<video [^>]*playsinline/i);
     expect(html).toContain("controls");
-    expect(html).toMatch(/poster="[^"]*quasaria-sizzle-16x9-poster\.jpg"/);
-    expect(html).toMatch(/poster="[^"]*quasaria-sizzle-9x16-poster\.jpg"/);
+    expect(html).toMatch(/poster="[^"]*quasaria-sizzle-16x9-light-poster\.jpg"/);
+    expect(html).toMatch(/poster="[^"]*quasaria-sizzle-9x16-light-poster\.jpg"/);
     expect(html).not.toMatch(/autoplay/i);
     expect(html).toContain(`href="${PROMO_PAGE_URL}"`);
     expect(html).toContain("Watch on the promo page");

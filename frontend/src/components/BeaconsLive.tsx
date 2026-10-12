@@ -43,7 +43,7 @@ export default function BeaconsLive() {
           <div className="card"><div className="muted">Rewards paid to stakers (XLM)</div><b className="mono bp-big">{n(X(d.reserve.total_paid), 4)}</b><div className="muted">Reserve {n(X(d.reserve.balance))} XLM · next payout ≈ {n(X(d.reserve.next_payout), 4)} in {next}s</div></div>
           <div className="card"><div className="muted">Peg monitor</div><b className={"bp-big " + (d.peg.healthy ? "bp-good" : "bp-bad")}>{d.peg.healthy ? "Open" : "Paused"}</b><div className="muted">Backing {n(X(d.peg.backing), 4)} XLM per QFX · trips at {d.peg.threshold_bps / 100}% drift</div></div>
           <div className="card"><div className="muted">Blend XLM pool ({d.adapter.cash_only ? "cash-only mode" : "lending"})</div><b className="mono bp-big">{n(X(d.vault.lent))}</b><div className="muted">XLM supplied · cash buffer {n(X(d.vault.cash))} XLM</div></div>
-          <div className="card"><div className="muted">Fee router (test fee source)</div><b className="mono bp-big">{n(X(d.routed))}</b><div className="muted">XLM routed 40 / 10 / 50 · insurance fund {n(d.ins)} XLM</div></div>
+          <div className="card"><div className="muted">Fee router (test fee source)</div><b className="mono bp-big">{n(d.routed)}</b><div className="muted">XLM routed 40 / 10 / 50 · insurance fund {n(d.ins)} XLM</div></div>
           <div className="card"><div className="muted">Exit queue (FIFO, 2% per cycle)</div><b className="mono bp-big">{d.vault.queue_len}</b><div className="muted">{n(X(d.vault.queued_amount))} QFX waiting · budget left {n(X(d.vault.exit_budget_left))}</div></div>
         </div>
         <div className="card" style={{ marginTop: 12 }}>

@@ -8,6 +8,7 @@ import { breakEvenFees, runSim, type Lock } from "../lib/beaconsSim";
 import "../theme/beacons-page.css";
 import BeaconsFit from "../components/BeaconsFit";
 import BeaconsLive from "../components/BeaconsLive";
+import BeaconsDocs from "../components/BeaconsDocs";
 
 const f = (n: number, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
 const PERKS = [0, 5, 10, 15, 20, 25];
@@ -79,7 +80,7 @@ export default function Beacons() {
   const drift = Math.abs(peg - 1) * 100;
   return (
     <>
-      <PageHead kicker="Testnet · unaudited · live contracts" title="Beacons" right={<div className="row"><a className="pill gold" href="#live-testnet">Live on testnet ↓</a><a className="pill gold" href="#how-beacons-fits">How Beacons fits ↓</a><Link className="pill cyan" to="/back-office">Back Office panel</Link></div>}>
+      <PageHead kicker="Testnet · unaudited · live contracts" title="Beacons" right={<div className="row"><a className="pill gold" href="#live-testnet">Live on testnet ↓</a><a className="pill gold" href="#how-beacons-fits">How Beacons fits ↓</a><a className="pill gold" href="#beacons-docs">Full documents ↓</a><Link className="pill cyan" to="/back-office">Back Office panel</Link></div>}>
         Lock QFX into one of six tiers and share real protocol revenue, paid in XLM every 4 hours. Every QFX earns the same share; tiers add perks. The contracts are live on Stellar testnet only (unaudited, testnet XLM, no real value). Nothing here is a guaranteed return.
       </PageHead>
       <div className="bp-banner" role="note">Testnet · unaudited. Live contracts on Stellar testnet only, not mainnet. Rates are variable and the simulator below is illustrative. No wallet action on this page sends a transaction.</div>
@@ -124,6 +125,7 @@ export default function Beacons() {
           <g stroke="#4a4470" fill="none" markerEnd="url(#bpar)"><path d="M150 112H205" /><path d="M380 100L445 50" /><path d="M380 125L445 175" /><path d="M640 45L700 95" /></g></svg></div></section>
 
       <section className="bp-sec" aria-labelledby="bp-sim"><h2 id="bp-sim">Simulator</h2><p className="muted">Same formulas as the Beacons simulations (sim.py). Other stakers assumed at weight 1.00. Illustrative only, not a guaranteed return.</p><Simulator /></section>
+      <BeaconsDocs />
       <p className="muted" style={{ marginTop: 20 }}>Full write-up, deployment scope and integration plan: <a href="https://github.com/yogibear1323/quasaria-beacons" target="_blank" rel="noreferrer">quasaria-beacons on GitHub</a> · standalone playground: <a href="https://yogibear1323.github.io/quasaria-beacons/" target="_blank" rel="noreferrer">yogibear1323.github.io/quasaria-beacons</a></p>
     </>
   );

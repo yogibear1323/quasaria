@@ -65,7 +65,7 @@ export default function AssetSelect({ value, onChange, exclude, label, testId }:
         </div>
       )}
       {open && (
-        <div className="card" style={{ position: "absolute", zIndex: 40, top: "100%", left: 0, width: 360, maxWidth: "90vw", padding: 8, marginTop: 4, background: "#0b0e1c", boxShadow: "0 18px 50px rgba(0,0,0,.6)" }}>
+        <div className="card" style={{ position: "absolute", zIndex: 40, top: "100%", left: 0, width: 360, maxWidth: "90vw", padding: 8, marginTop: 4, background: "#ffffff", boxShadow: "0 18px 50px rgba(76,29,149,.22)" }}>
           <input className="input" autoFocus placeholder="Search code, issuer org, domain, peg…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search assets" data-testid="asset-search" />
           <div className="row" style={{ gap: 4, margin: "8px 0 4px", flexWrap: "wrap" }}>
             {CATS.map((c) => <button type="button" key={c.v} className={`btn small ${cat === c.v ? "" : "ghost"}`} onClick={() => setCat(c.v)} data-testid={`asset-cat-${c.v}`}>{c.label}</button>)}

@@ -13,6 +13,8 @@ import logo from "../assets/logo-light.svg";
 import { type Scene } from "../components/CosmicBackground";
 import WorldBackground from "../world/WorldBackground";
 import WorldList from "../world/WorldList";
+import WorldNav from "../world/WorldNav";
+import { DISTRICTS } from "../lib/world";
 const Globe = lazy(() => import("../world/Globe"));
 import AccountModal from "../components/AccountModal";
 import OrderBook from "../components/OrderBook";
@@ -627,9 +629,7 @@ function FaqVisual() {
 }
 
 // ---------------------------------------------------------------- page
-const NAV = [
-  ["markets", "Markets"], ["news", "News"], ["stablecoins", "Stablecoins"], ["earn", "Earn"], ["bots", "Bots"], ["security", "Security"], ["faq", "FAQ"],
-] as const;
+const QUICK = DISTRICTS.filter((d) => ["markets", "trade", "perps", "pools", "earn", "beacons"].includes(d.id));
 
 export default function Landing() {
   const w = useWallet();
@@ -646,7 +646,8 @@ export default function Landing() {
       <div className="app landing">
         <header className="topbar l-top">
           <Link to="/" className="brand" aria-label="Quasaria home"><img src={logo} alt="" /><span className="word">Quasaria</span></Link>
-          <nav className="nav l-nav">{NAV.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav>
+          <WorldNav />
+          <nav className="nav l-nav quick-nav" aria-label="Quick links">{QUICK.map((d) => <Link key={d.id} to={d.to}>{d.label}</Link>)}</nav>
           <Ticker />
           <Link to="/trade" className="btn small">Launch app</Link>
         </header>

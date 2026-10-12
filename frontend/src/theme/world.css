@@ -117,3 +117,10 @@ footer, .l-footer { background: rgba(255, 255, 255, 0.6); }
 .nav a.active, .tabs button.on, .chip.on, .l-step-i, .brand:hover { color: var(--violet-hi) !important; }
 .nav a.active { background: rgba(139, 92, 246, 0.12); }
 .tabs button.on, .chip.on { background: #fff; box-shadow: inset 0 0 0 1.5px var(--violet), 0 4px 14px -8px rgba(139, 92, 246, 0.6); }
+html, body { overflow-x: clip; max-width: 100%; }
+@media (max-width: 520px) {
+  .landing .l-top { flex-wrap: nowrap; gap: 8px; }
+  .landing .l-top .brand .word { display: none; }
+  .wn-btn { padding: 4px 10px 4px 4px; gap: 6px; }
+  .wn-orb { width: 26px; height: 26px; }
+}

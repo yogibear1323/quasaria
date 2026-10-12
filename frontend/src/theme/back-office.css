@@ -43,11 +43,11 @@
 
 /* ---- robot trading floor ---- */
 .bo { --acc: var(--violet-hi); }
-.bo-desk.trend { --acc: #a78bfa; --acc-d: rgba(167,139,250,.35); }
-.bo-desk.funding { --acc: #22d3ee; --acc-d: rgba(34,211,238,.32); }
-.bo-desk.meanrev { --acc: #fbbf24; --acc-d: rgba(251,191,36,.3); }
-.bo-desk.supertrend { --acc: #c4b5fd; --acc-d: rgba(196,181,253,.35); }
-.bo-desk.liqpocket { --acc: #f9a8d4; --acc-d: rgba(249,168,212,.32); }
+.bo-desk.trend { --acc: #6d28d9; --acc-d: rgba(109,40,217,.45); }
+.bo-desk.funding { --acc: #0e7490; --acc-d: rgba(14,116,144,.45); }
+.bo-desk.meanrev { --acc: #92400e; --acc-d: rgba(180,83,9,.45); }
+.bo-desk.supertrend { --acc: #4338ca; --acc-d: rgba(67,56,202,.45); }
+.bo-desk.liqpocket { --acc: #be185d; --acc-d: rgba(190,24,93,.42); }
 .bo-note { display: block; font: 500 9.5px var(--font-mono); color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: -1px 0 3px; text-align: left; }
 .bo-note.paused { color: var(--amber); }
 .bo-note.exp { color: #be185d; }
@@ -85,7 +85,7 @@
 .bo-desk.st-halted { border-color: rgba(251,113,133,.5); background: linear-gradient(180deg, rgba(251,113,133,.08), rgba(255, 255, 255, 0.9) 60%); }
 .bo-top { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; min-width: 0; }
 .bo-top .bo-nm { margin-right: auto; }
-.bo-desk .bo-tag { color: var(--acc); border-color: var(--acc-d); background: transparent; }
+.bo-desk .bo-tag { color: var(--acc); border-color: var(--acc-d); background: #fff; }
 .bo-nm { font: 650 15px var(--font-display); color: var(--text); }
 
 .bo-scene { position: relative; display: block; }

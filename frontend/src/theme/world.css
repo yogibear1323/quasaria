@@ -170,3 +170,4 @@ html, body { overflow-x: clip; max-width: 100%; }
   .mk-count { margin-left: 0; width: 100%; }
 }
 @media (max-width: 520px) { .grid.g-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) and (min-width: 521px) { .topbar [data-testid="xlm-ticker"] { display: none; } .topbar { gap: 8px; } }

@@ -87,7 +87,7 @@ describe("fetch-market-snapshot.mjs", () => {
   it("trims assets to the fields the app reads", () => {
     const t = trimAsset({ ...asset("X", 1), tomlInfo: { image: "https://x/y.png", desc: "long…", documentation: { ORG_NAME: "Org", ORG_DBA: "drop" } }, extra: "drop" });
     expect(t.extra).toBeUndefined();
-    expect(t.tomlInfo).toEqual({ image: "https://x/y.png", documentation: { ORG_NAME: "Org" } });
+    expect(t.tomlInfo).toEqual({ image: "https://x/y.png", desc: "long…", documentation: { ORG_NAME: "Org" } }); // desc kept verbatim for the About tab
     expect(t.code).toBe("X");
   });
   it("never fails the build and keeps the previous snapshot when the API is unreachable", () => {

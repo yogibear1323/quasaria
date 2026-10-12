@@ -209,6 +209,8 @@ export interface ClientOptions {
   timeoutMs?: number;
   storage?: StorageLike | null;
   now?: () => number;
+  /** false = never call the live API from this client (snapshot only). The API sends no CORS headers for github.io. */
+  live?: boolean;
 }
 
 export class StellarchainError extends Error {
@@ -229,6 +231,7 @@ export class StellarchainClient {
   private readonly inflight = new Map<string, Promise<unknown>>();
   private readonly snapshotSrc: ClientOptions["snapshot"];
   private snapshotP: Promise<MarketSnapshot | null> | null = null;
+  private readonly live: boolean;
 
   constructor(o: ClientOptions = {}) {
     this.base = (o.baseUrl ?? STELLARCHAIN_BASE).replace(/\/$/, "");
@@ -238,6 +241,7 @@ export class StellarchainClient {
     this.storage = o.storage === undefined ? (typeof localStorage !== "undefined" ? localStorage : null) : o.storage;
     this.now = o.now ?? Date.now;
     this.snapshotSrc = o.snapshot ?? null;
+    this.live = o.live ?? true;
   }
 
   /** GET a path (relative to /v1) with the required JSON-LD Accept header, cached. */
@@ -326,6 +330,7 @@ export class StellarchainClient {
   }
 
   private async fetchJson<T>(url: string): Promise<T> {
+    if (!this.live) throw new StellarchainError("live API disabled in this browser (no CORS); using the build-time snapshot");
     const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
     const timer = ctl ? setTimeout(() => ctl.abort(), this.timeout) : null;
     try {
@@ -394,4 +399,8 @@ const BASE_URL: string = import.meta.env?.BASE_URL ?? "/";
 export const SNAPSHOT_URL = `${BASE_URL.replace(/\/?$/, "/")}data/stellarchain-snapshot.json`;
 
 /** Shared browser instance: live API first, build-time snapshot as fallback. */
-export const stellarchain = new StellarchainClient({ snapshot: typeof window !== "undefined" ? SNAPSHOT_URL : null });
+/** On GitHub Pages the API blocks browsers (no CORS), so the site reads only the snapshot that the build/30-min refresh writes. */
+const BROWSER_LIVE = typeof window === "undefined" || !/\.github\.io$/.test(window.location.hostname);
+export const stellarchain = new StellarchainClient({ snapshot: typeof window !== "undefined" ? SNAPSHOT_URL : null, live: BROWSER_LIVE });
+/** Full mainnet list (top 1,000) written by scripts/fetch-market-snapshot.mjs; loaded only by the Markets tab. */
+export const MARKETS_FULL_URL = `${BASE_URL.replace(/\/?$/, "/")}data/markets-mainnet.json`;

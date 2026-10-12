@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-12T03:28:57.000Z",
+ "generatedAt": "2026-10-12T03:34:13.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.200959,
-  "oracleAgeSec": 10,
-  "referencePrice": 0.20099,
-  "deviationPct": 0.0154,
+  "oraclePrice": 0.2010525,
+  "oracleAgeSec": 16,
+  "referencePrice": 0.201077,
+  "deviationPct": 0.0122,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 10000.0632,
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-12T03:00Z",
+   "lastSignal": "no signal @ bar 10-12T03:15Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.204711,
     0.203838,
     0.203149,
     0.202691,
@@ -629,7 +628,8 @@
     0.201543,
     0.20172,
     0.201275,
-    0.201042
+    0.201042,
+    0.20097
    ]
   },
   {
@@ -753,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "block",
-  "reason": "resume: clock jumped 715s; need 3 fresh reads",
-  "trippedSince": 1791775737,
-  "freshCount": 1,
-  "lastReadAt": 1791775737,
-  "lastOracleAgeSec": 10,
-  "lastHeartbeatAgeSec": 10,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1791776053,
+  "lastOracleAgeSec": 16,
+  "lastHeartbeatAgeSec": 16,
   "trips": 26,
-  "label": "STALE DATA · entries halted (block) — resume: clock jumped 715s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,
@@ -779,9 +779,9 @@
    "timeframeSec": 900,
    "status": "running",
    "reason": "",
-   "equity": 100.2277,
+   "equity": 100.2608,
    "startEquity": 100,
-   "paperPnl": 0.2277,
+   "paperPnl": 0.2608,
    "paperTrades": 0,
    "paperWins": 0,
    "open": null,
@@ -879,6 +879,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791775800,
+     "barT": 1791774900,
+     "price": 0.200933,
+     "side": "short",
+     "p": {
+      "setup": 0.302,
+      "direction": 0.517,
+      "pressure": 0.525,
+      "regime": 0.226,
+      "risk": 0.922
+     },
+     "score": 0.444,
+     "action": "skip: setup 0.30 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791774900,
      "barT": 1791774000,
@@ -1653,26 +1673,6 @@
      },
      "score": 0.495,
      "action": "skip: setup 0.42 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have won",
-     "pnl": null
-    },
-    {
-     "t": 1791675900,
-     "barT": 1791675000,
-     "price": 0.196573,
-     "side": "short",
-     "p": {
-      "setup": 0.379,
-      "direction": 0.517,
-      "pressure": 0.525,
-      "regime": 0.217,
-      "risk": 0.962
-     },
-     "score": 0.477,
-     "action": "skip: setup 0.38 < 0.5",
      "fired": false,
      "riskPct": 0,
      "sizing": "none",

@@ -47,30 +47,6 @@ h3 { font-family: var(--font-body); font-size: 0.72rem; font-weight: 600; text-t
 ::-webkit-scrollbar-thumb:hover { background-color: rgba(76, 29, 149, 0.218); }
 
 /* =====================================================================
-   Background (canvas scenes are dimmed: atmosphere, not decoration)
-   ===================================================================== */
-.cosmos { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: radial-gradient(1200px 700px at 70% -10%, rgba(124, 92, 255, 0.16), transparent 60%), radial-gradient(900px 600px at -10% 110%, rgba(34, 211, 238, 0.08), transparent 60%), var(--bg); }
-.cosmos canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.42; }
-.cosmos:has(+ .app.landing) canvas { opacity: 0.32; }
-.cosmos .nebula-layer { position: absolute; inset: -10%; filter: blur(40px); opacity: 0.55; animation: drift 44s ease-in-out infinite alternate; }
-.cosmos .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, transparent 35%, rgba(255, 255, 255, 0.85) 100%), linear-gradient(180deg, transparent 60%, rgba(255, 255, 255, 0.72)); }
-.cosmos::after { /* faint engineering grid, fades out towards the bottom */
-  content: ""; position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(76, 29, 149, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(76, 29, 149, 0.04) 1px, transparent 1px);
-  background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #ffffff 30%, transparent 75%); mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #ffffff 30%, transparent 75%);
-}
-@keyframes drift { from { transform: translate3d(-2%, -1%, 0) scale(1); } to { transform: translate3d(2%, 1.5%, 0) scale(1.05); } }
-
-/* Per-page scene tints (kept subtle and on-palette) */
-.scene-quasar .nebula-layer { background: radial-gradient(ellipse 40% 30% at 78% 18%, rgba(34, 211, 238, 0.22), transparent 70%), radial-gradient(ellipse 45% 35% at 18% 82%, rgba(124, 92, 255, 0.22), transparent 70%); }
-.scene-nebula .nebula-layer { background: radial-gradient(ellipse 50% 40% at 25% 30%, rgba(167, 139, 250, 0.2), transparent 70%), radial-gradient(ellipse 45% 40% at 78% 65%, rgba(124, 92, 255, 0.24), transparent 70%), radial-gradient(ellipse 35% 30% at 55% 12%, rgba(34, 211, 238, 0.14), transparent 70%); }
-.scene-orbits .nebula-layer { background: radial-gradient(ellipse 35% 35% at 70% 55%, rgba(251, 191, 36, 0.1), transparent 70%), radial-gradient(ellipse 50% 40% at 15% 20%, rgba(124, 92, 255, 0.2), transparent 70%), radial-gradient(ellipse 40% 35% at 85% 85%, rgba(34, 211, 238, 0.12), transparent 70%); }
-.scene-supernova .nebula-layer { background: radial-gradient(circle at 50% 40%, rgba(167, 139, 250, 0.18), transparent 38%), radial-gradient(ellipse 60% 50% at 50% 45%, rgba(124, 92, 255, 0.16), transparent 70%), radial-gradient(ellipse 50% 40% at 10% 90%, rgba(34, 211, 238, 0.12), transparent 70%); }
-.scene-constellation .nebula-layer { background: radial-gradient(ellipse 50% 40% at 80% 18%, rgba(34, 211, 238, 0.16), transparent 70%), radial-gradient(ellipse 50% 40% at 20% 75%, rgba(124, 92, 255, 0.16), transparent 70%); }
-.scene-warp .nebula-layer { background: radial-gradient(circle at 50% 50%, rgba(124, 92, 255, 0.18), transparent 42%), radial-gradient(ellipse 40% 30% at 90% 10%, rgba(34, 211, 238, 0.14), transparent 70%); }
-
-/* =====================================================================
    App shell
    ===================================================================== */
 .app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
@@ -276,7 +252,7 @@ table.t tbody tr:last-child td { border-bottom: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .cosmos .nebula-layer, .modal, .modal-backdrop { animation: none; }
+  .modal, .modal-backdrop { animation: none; }
   #splash img { animation: none; }
   .btn, .card, .nav a, .brand img { transition: none; }
   .btn:hover { transform: none; }
@@ -687,7 +663,6 @@ main.pg-main > *:not(.pg-orbits) { position: relative; z-index: 1; }
 .pg-orbits { top: -30px; right: -40px; width: min(460px, 60vw); height: min(460px, 60vw); opacity: .85; }
 .card { background: radial-gradient(80% 60% at 0% 0%, rgba(139, 124, 255, 0.07), transparent 60%), linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.86)); }
 .card.glow { background: radial-gradient(80% 60% at 0% 0%, rgba(139, 124, 255, 0.12), transparent 60%), radial-gradient(70% 60% at 100% 100%, rgba(34, 211, 238, 0.06), transparent 60%), linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.86)); }
-.cosmos { background: radial-gradient(1200px 700px at 70% -10%, rgba(124, 92, 255, 0.14), transparent 60%), radial-gradient(900px 600px at -10% 110%, rgba(34, 211, 238, 0.07), transparent 60%), var(--bg); }
 @media (max-width: 760px) { .pg-orbits { width: 260px; height: 260px; right: -80px; } }
 
 /* ---- Lend: Markets table (aligned columns, right-aligned tabular numbers; stacked cards on mobile) ---- */

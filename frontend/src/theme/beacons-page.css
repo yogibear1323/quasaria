@@ -23,3 +23,36 @@
 .bp-seg button { background: transparent; color: var(--text-2); border: 0; padding: 8px 14px; cursor: pointer; font: inherit; }
 .bp-seg button[aria-pressed="true"] { background: var(--grad-button); color: #1b1640; }
 .bp-link-card { border-color: var(--line-accent); }
+
+/* ---- World light + warm gold pass (pearl panels, honey #F2B84B / amber #E8A33D accents) */
+.bp-banner { background: #fff8eb; border-color: rgba(232, 163, 61, 0.55); color: #8a4b0a; }
+.bp-tier { background: rgba(255, 255, 255, 0.9); border-color: var(--line); box-shadow: var(--shadow-1); }
+.bp-tier.sel { border-color: var(--gold, #E8A33D); box-shadow: 0 0 0 1px rgba(232, 163, 61, 0.45), 0 10px 26px -14px rgba(232, 163, 61, 0.6); }
+.bp-split > div { color: #1b1640; }
+.bp-chart { background: #fff; }
+.bp-seg { background: #fff; }
+.bp-seg button[aria-pressed="true"] { color: #fff; }
+.bp-ctrl input[type=number], .bp-ctrl select { background: #fff; border-color: var(--line); }
+
+/* "How Beacons fits into Quasaria" accordion */
+.bp-fit { margin-top: 16px; padding: 0; overflow: hidden; border-color: rgba(232, 163, 61, 0.45);
+  background: radial-gradient(70% 120% at 100% 0%, rgba(242, 184, 75, 0.12), transparent 60%), rgba(255, 255, 255, 0.92); }
+.bp-fit > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 16px 18px; }
+.bp-fit > summary::-webkit-details-marker { display: none; }
+.bp-fit > summary:focus-visible { outline: 2px solid var(--violet); outline-offset: -2px; border-radius: inherit; }
+.bp-fit-t { font-family: var(--font-display); font-weight: 600; font-size: 1.08rem; color: var(--text); }
+.bp-fit-chev { margin-left: auto; color: #8a4b0a; transition: transform var(--t-med) var(--ease); }
+.bp-fit[open] .bp-fit-chev { transform: rotate(180deg); }
+.bp-fit-body { padding: 0 18px 18px; border-top: 1px solid rgba(232, 163, 61, 0.3); color: var(--text); }
+.bp-fit-body h3 { margin: 18px 0 6px; font-size: 1rem; }
+.bp-fit-body p, .bp-fit-body li { line-height: 1.55; }
+.bp-fit-body ol, .bp-fit-body ul { padding-left: 20px; margin: 6px 0; }
+.bp-fit-note { margin: 14px 0 0; padding: 8px 12px; border-radius: 10px; background: #fff8eb; border: 1px solid rgba(232, 163, 61, 0.45); color: #8a4b0a; font-size: .88rem; }
+.bp-fit-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.bp-fit-table { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 640px; }
+.bp-fit-table th, .bp-fit-table td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line-2, #dfdcf3); }
+.bp-fit-table thead th { background: #f6f3ff; color: var(--text-2); font-weight: 600; }
+.bp-fit-table tbody th { color: var(--text); font-weight: 600; white-space: nowrap; }
+.bp-fit-table tr:last-child > * { border-bottom: 0; }
+.bp-fit-cols { columns: 2 260px; column-gap: 28px; }
+@media (prefers-reduced-motion: reduce) { .bp-fit-chev { transition: none; } }

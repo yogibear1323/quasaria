@@ -6,6 +6,7 @@ import { useWallet } from "../lib/wallet";
 import { readQfx, useChain } from "../lib/chain";
 import { breakEvenFees, runSim, type Lock } from "../lib/beaconsSim";
 import "../theme/beacons-page.css";
+import BeaconsFit from "../components/BeaconsFit";
 
 const f = (n: number, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
 const PERKS = [0, 5, 10, 15, 20, 25];
@@ -82,6 +83,7 @@ export default function Beacons() {
       </PageHead>
       <div className="bp-banner" role="note">Preview · not deployed · illustrative. Rates are variable. No wallet action on this page sends a transaction.</div>
       <div className="card"><WalletQfx /></div>
+      <BeaconsFit />
 
       <section className="bp-sec" aria-labelledby="bp-tiers"><h2 id="bp-tiers">Tiers, priced in QFX</h2><p className="muted">Flat reward weight 1.00 in every tier. Lock boost for anyone: none 1.00× · 30 days 1.10× · 90 days 1.25×. No per-wallet cap.</p>
         <div className="bp-tiers">{BEACON_TIERS.map((t, i) => (
@@ -93,7 +95,7 @@ export default function Beacons() {
           <p className="muted" style={{ marginBottom: 0 }}>Live-rate caveat: Blend's XLM supply rate was about 0.02% (30-day average, Oct 11, 2026). The simulator defaults to 0.5%, an illustrative base case.</p></div></section>
 
       <section className="bp-sec"><h2>Fee split</h2>
-        <div className="bp-split" role="img" aria-label="40% stakers, 10% insurance, 50% operations"><div style={{ width: "40%", background: "#22d3ee" }}>40% stakers</div><div style={{ width: "10%", background: "#fbbf24" }}>10%</div><div style={{ width: "50%", background: "#8b7cff" }}>50% operations</div></div>
+        <div className="bp-split" role="img" aria-label="40% stakers, 10% insurance, 50% operations"><div style={{ width: "40%", background: "#67e8f9" }}>40% stakers</div><div style={{ width: "10%", background: "#F2B84B" }}>10%</div><div style={{ width: "50%", background: "#c4b5fd" }}>50% operations</div></div>
         <p className="muted">Of fees entering the fee router. Today the DEX's swap fee goes entirely to liquidity providers (minus referral cuts), so Beacons needs a new protocol fee share on pools first. See the integration plan.</p></section>
 
       <section className="bp-sec"><h2>Reward schedule</h2><div className="grid g-3">

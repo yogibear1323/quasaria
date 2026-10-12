@@ -15,6 +15,7 @@ import { demoViews, mirrorViews } from "../lib/demo/views";
 import { useSearchParams } from "react-router-dom";
 import { PERPS } from "../lib/perps";
 import { CalibratedSignals } from "../components/CalibratedSignals";
+import { DecisionDesk } from "../components/DecisionDesk";
 import "../theme/back-office.css";
 import "../theme/beacons.css";
 import { Quasar } from "../components/Quasar";
@@ -289,6 +290,7 @@ export default function BackOffice() {
 
       {!tag && <div className={decisionPulse ? "bk-pulse-wrap bk-pulse" : "bk-pulse-wrap"} data-event="decision"><CalibratedSignals desks={status?.calibrated} stale={stale} /></div>}
 
+      {!tag && <DecisionDesk />}
       {!tag && <BeaconsPreview />}
 
       {!tag && (

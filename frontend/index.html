@@ -2,6 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Stale-index guard (runs before the bundle): if a cached index.html points at hashed assets a newer deploy
+      // deleted, the page would stay blank. Reload once with a cache-busting query to fetch the current index.
+      addEventListener("error", function (e) {
+        var t = e.target, u = t && (t.src || t.href);
+        if (!u || u.indexOf("/assets/") < 0) return;
+        try { if (sessionStorage.getItem("qz.stale-guard") === location.pathname) return; sessionStorage.setItem("qz.stale-guard", location.pathname); } catch (x) {}
+        var q = new URLSearchParams(location.search); q.set("r", Date.now());
+        location.replace(location.pathname + "?" + q + location.hash);
+      }, true);
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quasaria — Stellar DEX (Testnet)</title>
     <meta name="description" content="Quasaria: a quasar-bright decentralized exchange on Stellar testnet — SDEX order books, Soroban AMM pools, staking, QFX (1 QFX = 1 XLM, fully backed) with reserve-funded holder rewards, referrals and leverage bots." />

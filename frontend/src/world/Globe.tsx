@@ -149,7 +149,7 @@ export default function Globe({ compact = false, current, onNavigate }: { compac
           );
         })}
         <a href={AUTOPAY.href} className="moon" aria-label={`${AUTOPAY.label}: ${AUTOPAY.blurb}`}>
-          <g transform={`translate(${(R * 1.26).toFixed(0)} ${(-R * 0.62).toFixed(0)})`}>
+          <g transform={`translate(${(R * 1.02).toFixed(0)} ${(-R * 0.9).toFixed(0)})`}>
             <circle r={compact ? 11 : 17} className="moon-body" />
             <text y={compact ? 24 : 34} textAnchor="middle" className="moon-text">{AUTOPAY.label} ↗</text>
           </g>

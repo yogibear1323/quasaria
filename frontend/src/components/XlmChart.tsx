@@ -21,8 +21,8 @@ const TICK_MS = 5_000;
 const HISTORY_MS = 60_000;
 const OVERLAY_MS = 30_000;
 const C = {
-  bg: "#07080f", grid: "rgba(255,255,255,0.045)", text: "#7d84a6", up: "#2fae84", down: "#c95a72",
-  upVol: "rgba(47,174,132,0.28)", downVol: "rgba(201,90,114,0.28)", oracle: "#22d3ee", mark: "#a78bfa", cross: "rgba(196,181,253,0.45)",
+  bg: "#ffffff", grid: "rgba(76,29,149,0.07)", text: "#4a4470", up: "#059669", down: "#e11d48",
+  upVol: "rgba(5,150,105,0.22)", downVol: "rgba(225,29,72,0.22)", oracle: "#0891b2", mark: "#7c3aed", cross: "rgba(109,40,217,0.4)",
 };
 const px = (v: number | null | undefined, d = 4) => (v == null || !Number.isFinite(v) ? "—" : `$${v.toFixed(v < 1 ? Math.max(d, 4) : 2)}`);
 const vol = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(1)}K` : v.toFixed(0));
@@ -165,9 +165,9 @@ export default function XlmChart({ compact = false, overlay: overlayProp, defaul
       autoSize: true,
       layout: { background: { type: ColorType.Solid, color: C.bg }, textColor: C.text, fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: compact ? 10 : 11, attributionLogo: true },
       grid: { vertLines: { color: C.grid }, horzLines: { color: C.grid } },
-      crosshair: { mode: CrosshairMode.Normal, vertLine: { color: C.cross, labelBackgroundColor: "#2a2350" }, horzLine: { color: C.cross, labelBackgroundColor: "#2a2350" } },
-      rightPriceScale: { borderColor: "rgba(255,255,255,0.08)", scaleMargins: { top: 0.08, bottom: 0.24 } },
-      timeScale: { borderColor: "rgba(255,255,255,0.08)", timeVisible: true, secondsVisible: false, rightOffset: 4, tickMarkFormatter: (t: Time, type: number) => localTick(Number(t), type) },
+      crosshair: { mode: CrosshairMode.Normal, vertLine: { color: C.cross, labelBackgroundColor: "#5b21b6" }, horzLine: { color: C.cross, labelBackgroundColor: "#5b21b6" } },
+      rightPriceScale: { borderColor: "rgba(76,29,149,0.15)", scaleMargins: { top: 0.08, bottom: 0.24 } },
+      timeScale: { borderColor: "rgba(76,29,149,0.15)", timeVisible: true, secondsVisible: false, rightOffset: 4, tickMarkFormatter: (t: Time, type: number) => localTick(Number(t), type) },
       localization: { priceFormatter: (p: number) => p.toFixed(5), timeFormatter: (t: Time) => localFull(Number(t)) },
     });
     const candle = chart.addSeries(CandlestickSeries, {

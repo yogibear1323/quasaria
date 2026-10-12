@@ -15,7 +15,7 @@
 .lvl-badge:focus-visible { outline: none; box-shadow: var(--ring); }
 .lvl-hex { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(124, 92, 255, 0.55)); }
 .lvl-hex svg { position: absolute; inset: 0; }
-.lvl-hex b { position: relative; font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; color: #fff; line-height: 1; }
+.lvl-hex b { position: relative; font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; color: #1b1640; line-height: 1; }
 .lvl-meta { display: flex; flex-direction: column; gap: 4px; min-width: 64px; text-align: left; }
 .lvl-rank { font-size: 0.72rem; font-weight: 600; line-height: 1; letter-spacing: 0.02em; }
 .lvl-streak { display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--orange); }
@@ -57,7 +57,7 @@
 }
 .game-toast.badge, .game-toast.level { border-color: rgba(251, 191, 36, 0.5); box-shadow: var(--shadow-pop), 0 0 44px -10px rgba(251, 191, 36, 0.55); }
 .game-toast.xp { padding: 8px 12px; }
-.gt-ico { display: inline-grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 12px; background: var(--grad-button); color: #fff; font-weight: 700; box-shadow: 0 0 18px -4px rgba(124, 92, 255, 0.9); }
+.gt-ico { display: inline-grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 12px; background: var(--grad-button); color: #1b1640; font-weight: 700; box-shadow: 0 0 18px -4px rgba(124, 92, 255, 0.9); }
 .game-toast.xp .gt-ico { width: 26px; height: 26px; border-radius: 8px; font-size: 0.8rem; }
 .gt-kicker { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); }
 .game-toast.quest .gt-kicker, .game-toast.xp .gt-kicker { color: var(--violet-hi); }

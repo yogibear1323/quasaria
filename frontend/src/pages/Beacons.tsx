@@ -59,12 +59,12 @@ function Simulator() {
       <div className="card" style={{ marginTop: 12 }}>
         <h3 style={{ marginTop: 0 }}>Reserve, insurance and buyback over 90 days (XLM)</h3>
         <svg className="bp-chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Reserve level chart">
-          {[1, 2, 3].map((i) => <line key={i} x1={0} x2={W} y1={(H * i) / 4} y2={(H * i) / 4} stroke="#342d52" vectorEffect="non-scaling-stroke" />)}
-          <polyline fill="none" stroke="#8b7cff" strokeWidth={2} vectorEffect="non-scaling-stroke" points={pts("buyback")} />
-          <polyline fill="none" stroke="#fbbf24" strokeWidth={2} vectorEffect="non-scaling-stroke" points={pts("insurance")} />
-          <polyline fill="none" stroke="#22d3ee" strokeWidth={2} vectorEffect="non-scaling-stroke" points={pts("reserve")} />
+          {[1, 2, 3].map((i) => <line key={i} x1={0} x2={W} y1={(H * i) / 4} y2={(H * i) / 4} stroke="#dfdcf3" vectorEffect="non-scaling-stroke" />)}
+          <polyline fill="none" stroke="#7c3aed" strokeWidth={2} vectorEffect="non-scaling-stroke" points={pts("buyback")} />
+          <polyline fill="none" stroke="#d97706" strokeWidth={2} vectorEffect="non-scaling-stroke" points={pts("insurance")} />
+          <polyline fill="none" stroke="#0891b2" strokeWidth={2} vectorEffect="non-scaling-stroke" points={pts("reserve")} />
         </svg>
-        <p className="muted"><span style={{ color: "#22d3ee" }}>■</span> reserve · <span style={{ color: "#fbbf24" }}>■</span> insurance · <span style={{ color: "#8b7cff" }}>■</span> buyback/treasury · after 90 days: reserve {f(r.reserveEnd)}, insurance {f(r.insuranceEnd)}, buyback {f(r.buybackEnd)} XLM · pool avg APR {f(r.avgAprPct, 2)}% · cycles at the 25% cap: {r.epochsAtCap}</p>
+        <p className="muted"><span style={{ color: "#0891b2" }}>■</span> reserve · <span style={{ color: "#d97706" }}>■</span> insurance · <span style={{ color: "#7c3aed" }}>■</span> buyback/treasury · after 90 days: reserve {f(r.reserveEnd)}, insurance {f(r.insuranceEnd)}, buyback {f(r.buybackEnd)} XLM · pool avg APR {f(r.avgAprPct, 2)}% · cycles at the 25% cap: {r.epochsAtCap}</p>
         {r.lossInfo && <p className="muted">Blend loss {f(r.lossInfo.loss)} XLM: insurance covered {f(r.lossInfo.covered)}, stakers absorb {f(r.lossInfo.stakerLoss)} XLM ({f(r.lossInfo.haircutPct, 2)}% pro rata on every exit). The QFX peg reserve is untouched.</p>}
       </div>
     </>
@@ -110,14 +110,14 @@ export default function Beacons() {
         <li><b>One-epoch warm-up</b> before new stake earns.</li><li>After an uncovered Blend loss, a pro-rata haircut applies to every exit.</li><li>If QFX minting is paused, exits are paid in XLM until it resumes.</li></ul></div></section>
 
       <section className="bp-sec"><h2>How staked QFX reaches Blend</h2><p className="muted">The vault redeems QFX for XLM 1:1, supplies 40% to Blend's XLM pool, keeps 60% as a buffer, and mints fresh QFX 1:1 on exit. The QFX contract is unchanged and stays fully backed.</p>
-        <div className="card"><svg className="bp-flow" viewBox="0 0 900 230" role="img" aria-label="Routing flow"><defs><marker id="bpar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a9a4c4" /></marker></defs>
-          <g fontSize="14" fill="#ecebf5" textAnchor="middle">
-            <rect x="10" y="80" width="140" height="64" rx="12" fill="#221e33" stroke="#40386a" /><text x="80" y="108">Staker</text><text x="80" y="128" fill="#a9a4c4" fontSize="12">stakes QFX</text>
-            <rect x="210" y="80" width="170" height="64" rx="12" fill="#221e33" stroke="#22d3ee" /><text x="295" y="108">Beacon vault</text><text x="295" y="128" fill="#a9a4c4" fontSize="12">redeem 1:1</text>
-            <rect x="450" y="10" width="190" height="64" rx="12" fill="#221e33" stroke="#8b7cff" /><text x="545" y="38">Blend XLM pool</text><text x="545" y="58" fill="#a9a4c4" fontSize="12">40%</text>
-            <rect x="450" y="150" width="190" height="64" rx="12" fill="#221e33" stroke="#40386a" /><text x="545" y="178">Cash buffer</text><text x="545" y="198" fill="#a9a4c4" fontSize="12">60%, pays exits</text>
-            <rect x="700" y="80" width="190" height="64" rx="12" fill="#221e33" stroke="#fbbf24" /><text x="795" y="108">Insurance fund</text><text x="795" y="128" fill="#a9a4c4" fontSize="12">covers losses first</text></g>
-          <g stroke="#a9a4c4" fill="none" markerEnd="url(#bpar)"><path d="M150 112H205" /><path d="M380 100L445 50" /><path d="M380 125L445 175" /><path d="M640 45L700 95" /></g></svg></div></section>
+        <div className="card"><svg className="bp-flow" viewBox="0 0 900 230" role="img" aria-label="Routing flow"><defs><marker id="bpar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4a4470" /></marker></defs>
+          <g fontSize="14" fill="#1b1640" textAnchor="middle">
+            <rect x="10" y="80" width="140" height="64" rx="12" fill="#ffffff" stroke="#cdc7ec" /><text x="80" y="108">Staker</text><text x="80" y="128" fill="#4a4470" fontSize="12">stakes QFX</text>
+            <rect x="210" y="80" width="170" height="64" rx="12" fill="#ffffff" stroke="#0891b2" /><text x="295" y="108">Beacon vault</text><text x="295" y="128" fill="#4a4470" fontSize="12">redeem 1:1</text>
+            <rect x="450" y="10" width="190" height="64" rx="12" fill="#ffffff" stroke="#7c3aed" /><text x="545" y="38">Blend XLM pool</text><text x="545" y="58" fill="#4a4470" fontSize="12">40%</text>
+            <rect x="450" y="150" width="190" height="64" rx="12" fill="#ffffff" stroke="#cdc7ec" /><text x="545" y="178">Cash buffer</text><text x="545" y="198" fill="#4a4470" fontSize="12">60%, pays exits</text>
+            <rect x="700" y="80" width="190" height="64" rx="12" fill="#ffffff" stroke="#d97706" /><text x="795" y="108">Insurance fund</text><text x="795" y="128" fill="#4a4470" fontSize="12">covers losses first</text></g>
+          <g stroke="#4a4470" fill="none" markerEnd="url(#bpar)"><path d="M150 112H205" /><path d="M380 100L445 50" /><path d="M380 125L445 175" /><path d="M640 45L700 95" /></g></svg></div></section>
 
       <section className="bp-sec" aria-labelledby="bp-sim"><h2 id="bp-sim">Simulator</h2><p className="muted">Same formulas as the Beacons simulations (sim.py). Other stakers assumed at weight 1.00. Illustrative only, not a guaranteed return.</p><Simulator /></section>
       <p className="muted" style={{ marginTop: 20 }}>Full write-up, deployment scope and integration plan: <a href="https://github.com/yogibear1323/quasaria-beacons" target="_blank" rel="noreferrer">quasaria-beacons on GitHub</a> · standalone playground: <a href="https://yogibear1323.github.io/quasaria-beacons/" target="_blank" rel="noreferrer">yogibear1323.github.io/quasaria-beacons</a></p>

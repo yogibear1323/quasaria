@@ -19,13 +19,13 @@ export default function PriceChart({ candles, height = 260 }: { candles: Candle[
         <filter id="pc-glow"><feGaussianBlur stdDeviation="3" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
       </defs>
       {[0.25, 0.5, 0.75].map((f) => (
-        <line key={f} x1={0} x2={W} y1={H * f} y2={H * f} stroke="rgba(255,255,255,0.07)" strokeDasharray="3 6" />
+        <line key={f} x1={0} x2={W} y1={H * f} y2={H * f} stroke="rgba(76,29,149,0.12)" strokeDasharray="3 6" />
       ))}
       <path d={area} fill="url(#pc-area)" />
       {candles.map((c, i) => {
         const up = c.c >= c.o;
         const x = pad + i * cw;
-        const col = up ? "#34d399" : "#fb7185";
+        const col = up ? "#059669" : "#e11d48";
         return (
           <g key={i} opacity={0.9}>
             <line x1={x + cw / 2} x2={x + cw / 2} y1={y(c.h)} y2={y(c.l)} stroke={col} strokeWidth={1} />
@@ -33,7 +33,7 @@ export default function PriceChart({ candles, height = 260 }: { candles: Candle[
           </g>
         );
       })}
-      <path d={line} fill="none" stroke="#22d3ee" strokeWidth={2} filter="url(#pc-glow)" />
+      <path d={line} fill="none" stroke="#0891b2" strokeWidth={2} filter="url(#pc-glow)" />
     </svg>
   );
 }

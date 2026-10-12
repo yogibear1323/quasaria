@@ -8,34 +8,34 @@
 .bo.bk {
   /* base + surfaces */
   --bk-bg: #ffffff;
-  --bk-s1: #1b1829;      /* card */
-  --bk-s2: #221e33;      /* nested / table header */
-  --bk-s3: #2a2540;      /* hover / selected */
+  --bk-s1: rgba(255,255,255,.9);      /* card */
+  --bk-s2: #f4f2ff;      /* nested / table header */
+  --bk-s3: #ebe7ff;      /* hover / selected */
   --bk-line: #dcd7f7;
-  --bk-line-2: #40386a;
+  --bk-line-2: #cdc7ec;
   /* text */
-  --bk-text: #ecebf5;
-  --bk-text-2: #a9a4c4;
-  --bk-text-3: #948eb4;
+  --bk-text: #1b1640;
+  --bk-text-2: #4a4470;
+  --bk-text-3: #5d577f;
   /* accents */
-  --bk-violet: #8b7cff;
-  --bk-violet-hi: #c4b5fd;
+  --bk-violet: #6d28d9;
+  --bk-violet-hi: #5b21b6;
   --bk-violet-dim: rgba(139,124,255,.14);
-  --bk-cyan: #22d3ee;
-  --bk-cyan-hi: #a5f3fc;
+  --bk-cyan: #0e7490;
+  --bk-cyan-hi: #155e75;
   --bk-cyan-dim: rgba(34,211,238,.12);
   /* semantic */
-  --bk-success: #34d399;
-  --bk-warn: #fbbf24;
-  --bk-danger: #fb7185;
+  --bk-success: #047857;
+  --bk-warn: #b45309;
+  --bk-danger: #be123c;
   /* tier ramp: violet -> cyan, rising luminance */
-  --tier-1: #8573f7; --tier-2: #9a8cff; --tier-3: #9aaaff; --tier-4: #66b8f7; --tier-5: #3fd3ee; --tier-6: #a5f3fc;
+  --tier-1: #6d28d9; --tier-2: #7c3aed; --tier-3: #4f46e5; --tier-4: #2563eb; --tier-5: #0891b2; --tier-6: #0e7490;
   /* type, space, radius, elevation, motion */
   --bk-font-ui: "Space Grotesk", Inter, system-ui, sans-serif;
   --bk-font-num: "JetBrains Mono", ui-monospace, monospace;
   --bk-r-sm: 6px; --bk-r-md: 10px; --bk-r-lg: 14px;
   --bk-elev-1: 0 1px 0 rgba(255,255,255,.03) inset;
-  --bk-elev-2: 0 12px 32px -18px rgba(0,0,0,.8);
+  --bk-elev-2: 0 12px 32px -18px rgba(76,29,149,.3);
   --bk-pulse-ms: 1800ms;
 
   /* remap shared tokens inside the Back Office only */

@@ -30,7 +30,7 @@
 .m-card:hover .m-card-img img { transform: scale(1.04); }
 .m-card-img:focus-visible { outline: none; box-shadow: inset 0 0 0 3px rgba(167, 139, 250, 0.9); }
 .m-badge, .m-soon { position: absolute; top: 12px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; backdrop-filter: blur(8px); }
-.m-badge { left: 12px; color: #fff; background: rgba(109, 74, 255, 0.75); box-shadow: 0 0 0 1px rgba(196, 181, 253, 0.4); }
+.m-badge { left: 12px; color: #1b1640; background: rgba(109, 74, 255, 0.75); box-shadow: 0 0 0 1px rgba(196, 181, 253, 0.4); }
 .m-soon { right: 12px; color: var(--cyan-hi); background: rgba(255, 255, 255, 0.72); box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35); }
 .m-card-body { padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .m-card-body h3 { font-family: var(--font-display); font-size: 1.12rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
@@ -70,7 +70,7 @@
 .m-main.art { background: repeating-conic-gradient(#f6f5ff 0 25%, #ffffff 0 50%) 0 0 / 28px 28px; }
 .m-main img { width: 100%; height: 100%; object-fit: contain; display: block; animation: m-fade 0.25s ease; }
 .m-main.art img { padding: 6%; }
-.m-nav { position: absolute; top: 50%; translate: 0 -50%; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.72); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; box-shadow: 0 0 0 1px rgba(76, 29, 149, 0.146); }
+.m-nav { position: absolute; top: 50%; translate: 0 -50%; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.72); color: #1b1640; font-size: 1.6rem; line-height: 1; cursor: pointer; box-shadow: 0 0 0 1px rgba(76, 29, 149, 0.146); }
 .m-nav:hover { background: rgba(109, 74, 255, 0.8); }
 .m-nav.prev { left: 10px; } .m-nav.next { right: 10px; }
 .m-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 2px; }
@@ -91,7 +91,7 @@
 .m-sizes-pick { display: flex; flex-wrap: wrap; gap: 6px; }
 .m-sizes-pick button { min-width: 48px; padding: 8px 12px; border-radius: 10px; border: 0; cursor: pointer; font: inherit; font-size: 0.85rem; color: var(--text); background: rgba(76, 29, 149, 0.056); box-shadow: inset 0 0 0 1px var(--line-2); }
 .m-sizes-pick button:hover { background: rgba(76, 29, 149, 0.092); }
-.m-sizes-pick button.on { background: rgba(139, 124, 255, 0.18); box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.8); color: #fff; }
+.m-sizes-pick button.on { background: rgba(139, 124, 255, 0.18); box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.8); color: #1b1640; }
 .m-details { margin: 4px 0; padding-left: 18px; color: var(--text-2); font-size: 0.88rem; display: grid; gap: 4px; }
 .btn.m-buy:disabled { opacity: 1; cursor: not-allowed; background: rgba(76, 29, 149, 0.074); color: var(--text-2); box-shadow: inset 0 0 0 1px var(--line-2); filter: none; transform: none; }
 .m-notify { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: rgba(34, 211, 238, 0.05); box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.2); }

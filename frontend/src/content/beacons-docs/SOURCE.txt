@@ -1,0 +1,1 @@
+Exact copies of yogibear1323/quasaria-beacons @ 28c38be (README.md + docs/*.md). Rendered at build time by the beacons-docs plugin in vite.config.ts. Re-copy to update; do not edit here.

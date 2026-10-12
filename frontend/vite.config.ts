@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { copyFileSync, existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { beaconsDocs } from "./beaconsDocsPlugin";
 
 // VITE_BASE lets GitHub Pages serve the app under /<repo>/ (e.g. VITE_BASE=/quasaria/).
 // Local dev/builds default to "/".
@@ -37,7 +38,7 @@ const spa404: Plugin = {
 
 export default defineConfig({
   base,
-  plugins: [react(), spa404],
+  plugins: [beaconsDocs(), react(), spa404],
   define: { global: "globalThis" },
   server: { port: 5173, host: "127.0.0.1" },
   preview: { port: 4173, host: "127.0.0.1" },

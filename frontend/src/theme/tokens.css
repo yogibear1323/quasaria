@@ -26,7 +26,7 @@
   --violet-hi: #5b21b6;
   --violet-strong: #6d4aff;
   --indigo: #4f46e5;
-  --cyan: #0e7490;
+  --cyan: #0b5f75;
   --cyan-hi: #155e75;
   --grad-accent: linear-gradient(135deg, #8b5cf6 0%, #d946ef 45%, #06b6d4 100%);
   --grad-accent-soft: linear-gradient(135deg, rgba(139, 92, 246, 0.14), rgba(217, 70, 239, 0.08), rgba(6, 182, 212, 0.12));
@@ -36,7 +36,7 @@
   /* ---- semantic */
   --green: #047857;
   --red: #be123c;
-  --amber: #b45309;
+  --amber: #92400e;
   --orange: #c2410c;
 
   /* ---- legacy aliases (used by components / inline styles) */

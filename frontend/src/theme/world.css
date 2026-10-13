@@ -276,3 +276,5 @@ html, body { overflow-x: clip; max-width: 100%; }
 .wb-floor::before { background: linear-gradient(180deg, rgba(14, 12, 28, 0.36), rgba(22, 20, 40, 0.12) 60%, transparent); }
 .wb-grid { -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.55) 22%, #000 40%, #000 72%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.55) 22%, #000 40%, #000 72%, transparent 100%); }
 @media (max-width: 760px) { .wb-floor::before { background: linear-gradient(180deg, rgba(14, 12, 28, 0.13), transparent); } }
+.moon-text { fill: #0f3d4c; paint-order: stroke; stroke: rgba(255, 255, 255, 0.8); stroke-width: 3px; stroke-linejoin: round; }
+.scene-warp::before { opacity: 0.7; }

@@ -25,7 +25,7 @@ describe("back office config", () => {
   it("six named desks matching the fleet config (Echo/Nova paused, Lyra experimental), public keys only", () => {
     expect(BACK_OFFICE.desks.map((d) => d.name)).toEqual(["Vega", "Regal", "Lyra", "Nova", "Echo", "Halo"]);
     expect(Object.fromEntries(BACK_OFFICE.desks.map((d) => [d.id, `${d.strategy}/${d.timeframeSec}${d.paused ? "/paused" : ""}`]))).toEqual({
-      vega: "supertrend/3600", rigel: "trend/14400", lyra: "liqpocket/3600", nova: "funding/3600/paused", echo: "meanrev/900/paused", halo: "meanrev/3600",
+      vega: "supertrend/60", rigel: "trend/300", lyra: "liqpocket/900", nova: "funding/1800", echo: "meanrev/3600", halo: "meanrev/14400",
     });
     expect(BACK_OFFICE.desks.find((d) => d.id === "lyra")!.label).toBe("Experimental · liquidity pockets · simulated/testnet");
     for (const d of BACK_OFFICE.desks) {
@@ -69,7 +69,7 @@ describe("merge chain + status", () => {
     v = mergeDesks(BACK_OFFICE.desks, chain, st, null, false).find((d) => d.cfg.id === "lyra")!;
     expect(v.cfg.strategy).toBe("liqpocket");
     expect(v.cfg.label).toMatch(/^Experimental/);
-    expect(mergeDesks(BACK_OFFICE.desks, chain, st, null, true).find((d) => d.cfg.id === "echo")!.cfg.paused).toMatch(/15m mean-reversion/); // stale -> config
+    expect(mergeDesks(BACK_OFFICE.desks, chain, st, null, true).find((d) => d.cfg.id === "echo")!.cfg.paused).toBeUndefined(); // stale -> config (Echo unpaused 2026-10-13, owner override)
   });
   it("global kill marks every desk halted with the reason", () => {
     const v = mergeDesks(BACK_OFFICE.desks, chain, status({ status: "killed", reason: "manual" }), null, false);

@@ -347,10 +347,18 @@ describe("issue #30 guard", () => {
   it("refuses to unpause Echo or Nova without --ack-issue-30", () => {
     for (const id of ["echo", "nova"]) {
       const c = raw();
+      delete c.issue30Override;
       delete c.desks.find((d: { id: string }) => d.id === id).paused;
       expect(() => parseOfficeConfig(c)).toThrow(/issue #30/);
       expect(() => parseOfficeConfig(c, { ackIssue30: true })).not.toThrow();
     }
+  });
+  it("recorded owner override (2026-10-13) unpauses only the listed desks", () => {
+    const c = raw();
+    expect(c.issue30Override.desks).toEqual(["echo", "nova"]);
+    expect(() => parseOfficeConfig(c)).not.toThrow();
+    c.issue30Override.desks = ["echo"];
+    expect(() => parseOfficeConfig(c)).toThrow(/nova.*issue #30/);
   });
   it("tiny-slice limits cannot be loosened (risk, leverage)", () => {
     const c = raw();

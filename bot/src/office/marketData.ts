@@ -4,9 +4,15 @@ import { aggregate } from "./indicators.js";
 
 type Fetch = typeof fetch;
 
+/** Supported bar sizes (seconds). Coinbase serves 60/300/900/3600 natively; 1800 = 2×900 and 14400 = 4×3600 are aggregated. */
+export const TIMEFRAMES = [60, 300, 900, 1800, 3600, 14400];
+const AGG: Record<number, [number, number]> = { 1800: [900, 2], 14400: [3600, 4] };
+export const baseGran = (gran: number) => AGG[gran]?.[0] ?? gran;
+const agg = (bars: Candle[], gran: number) => (AGG[gran] ? aggregate(bars, AGG[gran][0], AGG[gran][1]) : bars);
+
 export interface ReferenceFeed {
   ticker(): Promise<number | null>;
-  /** closed bars at `gran` seconds (900, 3600, 14400 supported), oldest -> newest */
+  /** closed bars at `gran` seconds (see TIMEFRAMES), oldest -> newest */
   closedBars(gran: number, now: number): Promise<Candle[]>;
   /** optional: public L2 book summary (spread, depth imbalance within 0.5 % of mid). Logged, not a model input. */
   book?(): Promise<{ spreadBps: number; imbalance: number } | null>;
@@ -59,7 +65,7 @@ export class PublicReferenceFeed implements ReferenceFeed {
     let bars: Candle[];
     if (hit && now - hit.at < this.ttlSec) bars = hit.v;
     else {
-      bars = gran === 14_400 ? aggregate(await this.coinbase(3600), 3600, 4) : await this.coinbase(gran);
+      bars = agg(await this.coinbase(baseGran(gran)), gran);
       this.cache.set(key, { at: now, v: bars });
     }
     return bars.filter((b) => b.t + gran <= now);
@@ -81,7 +87,7 @@ export class PublicReferenceFeed implements ReferenceFeed {
 
   /** Long history for backtests (paged, 300 bars per request). */
   async history(gran: number, from: number, to: number): Promise<Candle[]> {
-    const base = gran === 14_400 ? 3600 : gran;
+    const base = baseGran(gran);
     const out = new Map<number, Candle>();
     for (let s = from; s < to; s += base * 300) {
       const e = Math.min(to, s + base * 300);
@@ -89,6 +95,6 @@ export class PublicReferenceFeed implements ReferenceFeed {
       await new Promise((r) => setTimeout(r, 350));
     }
     const bars = [...out.values()].sort((a, b) => a.t - b.t);
-    return gran === 14_400 ? aggregate(bars, 3600, 4) : bars;
+    return agg(bars, gran);
   }
 }

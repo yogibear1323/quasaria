@@ -37,14 +37,14 @@ const p = (d: DeskConfig, k: string, def: number) => d.params[k] ?? def;
 
 export function trend(d: DeskConfig): OfficeStrategy {
   const fast = p(d, "fast", 20), slow = p(d, "slow", 50), look = p(d, "breakout", 20);
-  const stopAtr = p(d, "stopAtr", 2), trailAtr = p(d, "trailAtr", 3);
+  const stopAtr = p(d, "stopAtr", 2), trailAtr = p(d, "trailAtr", 3), atrN = p(d, "atrPeriod", 14);
   return {
     entry({ bars }) {
       if (bars.length < slow + 2) return null;
       const closes = bars.map((b) => b.c);
       const ef = last(emaSeries(closes, fast)), es = last(emaSeries(closes, slow));
       const { high, low } = donchianPrev(bars, look);
-      const a = atr(bars, 14);
+      const a = atr(bars, atrN);
       const c = last(closes);
       if (!Number.isFinite(a) || !Number.isFinite(ef)) return null;
       if (c > high && ef > es) return { side: "long", stop: c - stopAtr * a, takeProfit: 0, reason: `close ${c.toFixed(5)} > ${look}-bar high ${high.toFixed(5)}, EMA${fast}>EMA${slow}` };
@@ -56,7 +56,7 @@ export function trend(d: DeskConfig): OfficeStrategy {
       const closes = bars.map((b) => b.c);
       const ef = last(emaSeries(closes, fast));
       const c = last(closes);
-      const a = atr(bars, 14);
+      const a = atr(bars, atrN);
       if (pos.side === "long" && c < ef) return { exit: `close below EMA${fast}` };
       if (pos.side === "short" && c > ef) return { exit: `close above EMA${fast}` };
       if (!Number.isFinite(a)) return {};
@@ -75,6 +75,7 @@ export function funding(d: DeskConfig): OfficeStrategy {
   const stopPct = p(d, "stopPct", 1.25) / 100;
   const tpPct = p(d, "takeProfitPct", 1.5) / 100;
   const maxHold = p(d, "maxHoldSec", 86_400);
+  const retBars = p(d, "retBars", 1); // bars spanned by the "calm market" return check
   return {
     entry({ bars, price, fundingSamples, externalSkew, fundingExtHourly }) {
       const s = fundingSamples.slice(-2);
@@ -82,8 +83,8 @@ export function funding(d: DeskConfig): OfficeStrategy {
       const sameSign = Math.sign(s[0]) === Math.sign(s[1]) && Math.sign(s[1]) === Math.sign(fundingExtHourly);
       if (!sameSign || Math.min(Math.abs(s[0]), Math.abs(s[1]), Math.abs(fundingExtHourly)) < minRate) return null;
       if (Math.abs(externalSkew) < minSkew) return null;
-      if (bars.length >= 2) {
-        const r = last(bars.map((b) => b.c)) / bars[bars.length - 2].c - 1;
+      if (bars.length >= retBars + 1) {
+        const r = last(bars.map((b) => b.c)) / bars[bars.length - 1 - retBars].c - 1;
         if (Math.abs(r) >= maxRet) return null;
       }
       // rate > 0: longs pay -> short receives
@@ -104,14 +105,15 @@ export function funding(d: DeskConfig): OfficeStrategy {
 export function meanrev(d: DeskConfig): OfficeStrategy {
   const n = p(d, "bbPeriod", 20), k = p(d, "bbK", 2.2), lo = p(d, "rsiLow", 28), hi = p(d, "rsiHigh", 72);
   const maxAdx = p(d, "maxAdx", 20), stopAtr = p(d, "stopAtr", 1.5), timeBars = p(d, "timeStopBars", 12);
+  const rsiN = p(d, "rsiPeriod", 14), adxN = p(d, "adxPeriod", 14), atrN = p(d, "atrPeriod", 14), warm = p(d, "warmBars", 30);
   return {
     entry({ bars, trendBreakoutRecent }) {
-      if (bars.length < Math.max(n, 30) + 1 || trendBreakoutRecent) return null;
+      if (bars.length < Math.max(n, warm) + 1 || trendBreakoutRecent) return null;
       const closes = bars.map((b) => b.c);
       const bb = bollinger(closes, n, k);
-      const r = rsi(closes, 14);
-      const x = adx(bars, 14);
-      const a = atr(bars, 14);
+      const r = rsi(closes, rsiN);
+      const x = adx(bars, adxN);
+      const a = atr(bars, atrN);
       const c = last(closes);
       if (![bb.mid, r, x, a].every(Number.isFinite) || x >= maxAdx) return null;
       if (c < bb.lower && r < lo) return { side: "long", stop: c - stopAtr * a, takeProfit: bb.mid, reason: `close < BB lower, RSI ${r.toFixed(1)}, ADX ${x.toFixed(1)}` };
@@ -154,12 +156,12 @@ export function supertrend(d: DeskConfig): OfficeStrategy {
 /** EXPERIMENTAL liquidity sweep + reclaim (research family `lpsweep`). src: 0 pivots, 1 equal highs/lows, 2 prior-day, 3 any. */
 export function liqpocket(d: DeskConfig): OfficeStrategy {
   const k = p(d, "k", 2), L = p(d, "L", 50), src = p(d, "src", 1), buf = p(d, "bufAtr", 0.25), R = p(d, "targetR", 3);
-  const align = p(d, "alignEma", 50), timeBars = p(d, "timeStopBars", 48);
+  const align = p(d, "alignEma", 50), timeBars = p(d, "timeStopBars", 48), atrN = p(d, "atrPeriod", 14), warm = p(d, "warmBars", 30);
   return {
     entry({ bars }) {
-      if (bars.length < Math.max(2 * k + 2, align, 30) + 1) return null;
-      const sc = sweepScan(bars, k, L, src);
-      const i = bars.length - 1, c = bars[i].c, a = atrSeries(bars, 14)[i];
+      if (bars.length < Math.max(2 * k + 2, align, warm) + 1) return null;
+      const sc = sweepScan(bars, k, L, src, 0.1, atrN);
+      const i = bars.length - 1, c = bars[i].c, a = atrSeries(bars, atrN)[i];
       if (!Number.isFinite(a)) return null;
       const e = align > 0 ? last(emaSeries(bars.map((b) => b.c), align)) : NaN;
       if (sc.longSweep[i] && (!(align > 0) || c > e)) {
@@ -185,12 +187,12 @@ export function liqpocket(d: DeskConfig): OfficeStrategy {
 export function withLiquidityFilter(inner: OfficeStrategy, d: DeskConfig): OfficeStrategy {
   const N = p(d, "lpSweepBars", 0);
   if (!(N > 0)) return inner;
-  const k = p(d, "lpK", 3), L = p(d, "lpL", 100), src = p(d, "lpSrc", 3);
+  const k = p(d, "lpK", 3), L = p(d, "lpL", 100), src = p(d, "lpSrc", 3), atrN = p(d, "lpAtrPeriod", 14);
   return {
     entry(ctx) {
       const sig = inner.entry(ctx);
       if (!sig) return null;
-      const sc = sweepScan(ctx.bars, k, L, src);
+      const sc = sweepScan(ctx.bars, k, L, src, 0.1, atrN);
       const i = ctx.bars.length - 1;
       const since = sig.side === "long" ? sc.sinceSell[i] : sc.sinceBuy[i];
       if (!(since <= N)) return null;
@@ -216,7 +218,7 @@ export function createOfficeStrategy(d: DeskConfig): OfficeStrategy {
 function lpNote(d: DeskConfig, bars: Candle[]): string {
   const N = p(d, "lpSweepBars", 0);
   if (!(N > 0) || bars.length < 10) return "";
-  const sc = sweepScan(bars, p(d, "lpK", 3), p(d, "lpL", 100), p(d, "lpSrc", 3));
+  const sc = sweepScan(bars, p(d, "lpK", 3), p(d, "lpL", 100), p(d, "lpSrc", 3), 0.1, p(d, "lpAtrPeriod", 14));
   const i = bars.length - 1, f = (x: number) => (x >= 1e8 ? "none recent" : `${x} bars ago`);
   return ` · liquidity filter (≤${N} bars): sell-side sweep ${f(sc.sinceSell[i])}, buy-side ${f(sc.sinceBuy[i])}`;
 }
@@ -254,8 +256,9 @@ function explainBase(d: DeskConfig, ctx: StrategyContext): string {
       : `Supertrend ${n}×${m}: down, line ${fx(line[i])}; a close above it flips long (last close ${fx(c)}, ${(((line[i] - c) / c) * 100).toFixed(2)}% away)`;
   }
   if (d.strategy === "liqpocket") {
-    if (bars.length < 51) return `Liquidity pockets: warming up (${bars.length}/51 bars)`;
-    const sc = sweepScan(bars, p(d, "k", 2), p(d, "L", 50), p(d, "src", 1));
+    const need = Math.max(2 * p(d, "k", 2) + 2, p(d, "alignEma", 50), p(d, "warmBars", 30)) + 1;
+    if (bars.length < need) return `Liquidity pockets: warming up (${bars.length}/${need} bars)`;
+    const sc = sweepScan(bars, p(d, "k", 2), p(d, "L", 50), p(d, "src", 1), 0.1, p(d, "atrPeriod", 14));
     const i = bars.length - 1;
     const up = sc.levelUp[i], dn = sc.levelDown[i];
     return `Liquidity pockets (experimental): nearest resting liquidity above ${Number.isFinite(up) ? fx(up) : "none"}, below ${Number.isFinite(dn) ? fx(dn) : "none"}; waiting for a sweep + reclaim`;
@@ -269,12 +272,26 @@ function explainBase(d: DeskConfig, ctx: StrategyContext): string {
     return `Funding: rate ${(ctx.fundingExtHourly * 100).toFixed(4)}%/h, waiting for a calm bar`;
   }
   const n = p(d, "bbPeriod", 20), k = p(d, "bbK", 2.2), lo = p(d, "rsiLow", 28), hi = p(d, "rsiHigh", 72), maxAdx = p(d, "maxAdx", 20);
-  if (bars.length < Math.max(n, 30) + 1) return `Mean-rev: warming up (${bars.length}/${Math.max(n, 30) + 1} bars)`;
+  const warm = p(d, "warmBars", 30);
+  if (bars.length < Math.max(n, warm) + 1) return `Mean-rev: warming up (${bars.length}/${Math.max(n, warm) + 1} bars)`;
   if (ctx.trendBreakoutRecent) return `Mean-rev: standing aside after a recent trend breakout`;
   const closes = bars.map((b) => b.c);
   const sd = stdev(closes, n), mid = sma(closes, n);
   const z = sd > 0 ? (last(closes) - mid) / sd : 0;
-  const r = rsi(closes, 14), x = adx(bars, 14);
+  const r = rsi(closes, p(d, "rsiPeriod", 14)), x = adx(bars, p(d, "adxPeriod", 14));
   const parts = [`z ${z >= 0 ? "+" : ""}${z.toFixed(2)} (needs ±${k.toFixed(1)})`, `RSI ${r.toFixed(0)} (needs <${lo} / >${hi})`, `ADX ${x.toFixed(0)}${x >= maxAdx ? ` ≥ ${maxAdx}: trending, stands aside` : ` (< ${maxAdx} ok)`}`];
   return `Mean-rev: ${parts.join(" · ")}`;
+}
+
+/** Closed bars a desk needs for its longest lookback (EMAs get 2× their period to settle). Min 300 (one Coinbase page). */
+export function barsNeeded(d: DeskConfig): number {
+  const g = (k: string, def: number) => p(d, k, def);
+  let look = 0, ema = 0;
+  if (d.strategy === "trend") (look = Math.max(g("breakout", 20), g("atrPeriod", 14) * 2)), (ema = g("slow", 50));
+  else if (d.strategy === "supertrend") look = g("n", 10) * 3;
+  else if (d.strategy === "liqpocket") (look = Math.max(g("L", 50), g("warmBars", 30), g("atrPeriod", 14) * 2)), (ema = g("alignEma", 50));
+  else if (d.strategy === "meanrev") look = Math.max(g("bbPeriod", 20), g("warmBars", 30), g("adxPeriod", 14) * 3);
+  else look = g("retBars", 1) + 1;
+  if (d.strategy !== "funding" && g("lpSweepBars", 0) > 0) look = Math.max(look, g("lpL", 100) + g("lpSweepBars", 0));
+  return Math.max(300, Math.ceil(Math.max(look * 1.2, ema * 2)) + 10);
 }

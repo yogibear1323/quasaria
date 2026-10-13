@@ -31,8 +31,8 @@ export interface SweepScan {
 }
 
 /** src: 0 pivots, 1 equal highs/lows only, 2 prior-day high/low only, 3 any. */
-export function sweepScan(bars: Candle[], k = 3, L = 100, src = 3, eqTol = 0.1): SweepScan {
-  const n = bars.length, atr = atrSeries(bars, 14);
+export function sweepScan(bars: Candle[], k = 3, L = 100, src = 3, eqTol = 0.1, atrN = 14): SweepScan {
+  const n = bars.length, atr = atrSeries(bars, atrN);
   const r: SweepScan = { longSweep: Array(n).fill(false), shortSweep: Array(n).fill(false), extreme: Array(n).fill(NaN), levelUp: Array(n).fill(NaN), levelDown: Array(n).fill(NaN), sinceSell: Array(n).fill(1e9), sinceBuy: Array(n).fill(1e9) };
   type Lv = { px: number; bar: number; on: boolean; eq: boolean };
   const highs: Lv[] = [], lows: Lv[] = [];

@@ -318,3 +318,45 @@ html, body { overflow-x: clip; max-width: 100%; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 .world-bg::after { background: radial-gradient(700px 380px at 50% 64%, rgba(242, 184, 75, 0.12), transparent 70%); }
 .moon-text { fill: #2a2118; }
+
+/* ==== earthy world: planet globe (deep moss/umber oceans, clay/moss/stone land, honey atmosphere) ==== */
+#g-body stop:nth-child(1) { stop-color: #8fa58c; }
+#g-body stop:nth-child(2) { stop-color: #5c7a68; }
+#g-body stop:nth-child(3) { stop-color: #3a5546; }
+#g-body stop:nth-child(4) { stop-color: #2b3a2e; }
+#g-atmo stop:nth-child(1) { stop-color: #f2b84b; }
+#g-atmo stop:nth-child(2) { stop-color: #e8a33d; stop-opacity: 0.42; }
+#g-atmo stop:nth-child(3) { stop-color: #c4704a; }
+.globe-body { stroke: rgba(242, 184, 75, 0.6); stroke-width: 1.4;
+  filter: drop-shadow(0 20px 40px rgba(58, 40, 24, 0.32)) drop-shadow(0 0 26px rgba(242, 184, 75, 0.38)); }
+.globe-land path { stroke: rgba(58, 40, 24, 0.35); stroke-width: 0.8; stroke-linejoin: round; }
+.globe-land .land-clay { fill: #b8714a; }
+.globe-land .land-moss { fill: #7c8a52; }
+.globe-land .land-stone { fill: #c9b48f; }
+.globe-land, .globe-tex, .globe-shade { pointer-events: none; }
+.globe-tex { opacity: 0.55; }
+.globe-grid path { stroke: rgba(246, 231, 200, 0.22); }
+.globe-equator { stroke: rgba(242, 184, 75, 0.7); }
+.globe-orbit { stroke: rgba(196, 112, 74, 0.55); }
+.district[style*="#7c3aed"] { --hue: #8a3a1c !important; }
+.district[style*="#0891b2"] { --hue: #2f5a3a !important; }
+.district[style*="#c026d3"] { --hue: #9a6512 !important; }
+.district .d-plate { fill: #fffaf0; }
+.d-label rect { fill: rgba(255, 252, 245, 0.96); }
+.d-label text { fill: #2a2118; }
+.moon-body { fill: #d8c3a0; stroke: #8a6a48; filter: drop-shadow(0 0 8px rgba(242, 184, 75, 0.55)); }
+.globe-tip { background: #fffdf8; }
+.globe-loading { background: radial-gradient(circle at 35% 30%, #8fa58c, #3a5546 60%, #2b3a2e); }
+/* world nav orb + panel */
+.wn-btn { background: #fffdf8; box-shadow: 0 6px 18px -12px rgba(58, 40, 24, 0.5); }
+.wn-btn:hover, .wn-btn[aria-expanded="true"] { border-color: #8a3a1c; box-shadow: 0 0 0 3px rgba(196, 112, 74, 0.16), 0 0 22px -6px rgba(242, 184, 75, 0.6); }
+.wn-orb { background: radial-gradient(circle at 30% 30%, #fff6e0 0 8%, transparent 9%), radial-gradient(circle at 62% 40%, #b8714a 0 18%, transparent 19%), radial-gradient(circle at 34% 64%, #7c8a52 0 20%, transparent 21%), radial-gradient(circle at 35% 30%, #8fa58c, #3a5546 70%, #2b3a2e);
+  box-shadow: inset 0 0 0 1px rgba(58, 40, 24, 0.35), 0 0 8px rgba(242, 184, 75, 0.45); }
+.wn-orb::before { border-color: rgba(246, 231, 200, 0.55); }
+.wn-orb::after { border-color: rgba(242, 184, 75, 0.6); }
+.wn-orb i { border-color: rgba(196, 112, 74, 0.75); }
+.wn-scrim { background: rgba(243, 236, 224, 0.55); }
+.wl-item:hover, .wl-item:focus-visible { background: #fffdf8; box-shadow: 0 0 0 3px rgba(196, 112, 74, 0.12); }
+.wl-item[aria-current="page"] { background: #fffdf8; border-color: #8a3a1c; }
+.wl-item.hue-violet { --dot: #8a3a1c; } .wl-item.hue-cyan { --dot: #2f5a3a; } .wl-item.hue-magenta { --dot: #9a6512; }
+.wn-panel { background: rgba(255, 252, 245, 0.96); }

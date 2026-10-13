@@ -7,19 +7,19 @@
   color-scheme: light;
 
   /* ---- base surfaces */
-  --bg: #eff0f8;             /* page */
+  --bg: #e6e6f0;             /* page */
   --bg-elev: #ffffff;        /* raised solid */
   --bg-sunken: rgba(238, 236, 252, 0.85); /* inputs, wells */
   --surface: rgba(255, 255, 255, 0.84);   /* glass card */
   --surface-2: rgba(246, 244, 255, 0.92); /* nested / hover */
-  --line: #d8d5ea;
-  --line-2: #c4bfdf;
+  --line: #cbc6e0;
+  --line-2: #b3adcf;
   --line-accent: rgba(124, 58, 237, 0.45);
 
   /* ---- text (contrast on --bg-elev: 15.1 / 8.3 / 5.3) */
   --text: #1b1640;
   --text-2: #4a4470;
-  --text-3: #5d577f;
+  --text-3: #534d76;
 
   /* ---- signature accent: cosmic violet → cyan */
   --violet: #6d28d9;
@@ -61,8 +61,8 @@
   --glow-violet: 0 0 0 1px rgba(139, 124, 255, 0.35), 0 10px 30px -12px rgba(124, 92, 255, 0.7);
 
   /* ---- elevation */
-  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(20, 18, 40, 0.12), 0 14px 34px -20px rgba(24, 20, 52, 0.42);
-  --shadow-pop: 0 24px 60px -24px rgba(22, 18, 48, 0.45), 0 0 0 1px var(--line-2);
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(20, 18, 40, 0.20), 0 16px 36px -18px rgba(18, 16, 40, 0.58);
+  --shadow-pop: 0 26px 64px -22px rgba(16, 14, 36, 0.62), 0 0 0 1px var(--line-2);
   --ring: 0 0 0 2px var(--bg), 0 0 0 4px rgba(109, 40, 217, 0.9);
 
   /* ---- typography */

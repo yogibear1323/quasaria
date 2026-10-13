@@ -239,3 +239,34 @@ html, body { overflow-x: clip; max-width: 100%; }
 @keyframes wb-coin { 0% { transform: translate(0, 0) rotate(-8deg); } 50% { transform: translate(28px, -36px) rotate(10deg); } 100% { transform: translate(-22px, 24px) rotate(-4deg); } }
 @media (max-width: 760px) { .wb-coins i:nth-child(n+4) { display: none; } .wb-coins i { --s: 34px !important; opacity: 0.13; } }
 @media (prefers-reduced-motion: reduce) { .wb-coins i { animation: none; } }
+
+/* ---- ink pass v2 (clearly visible ink/charcoal; still a light theme) */
+.world-bg { background: radial-gradient(1100px 600px at 80% -10%, rgba(232, 121, 249, 0.14), transparent 60%),
+  radial-gradient(900px 600px at -10% 20%, rgba(6, 182, 212, 0.12), transparent 60%),
+  linear-gradient(180deg, #e6e6f0 0%, #dddcea 55%, #d4d3e4 100%); }
+.world-bg::before { background: radial-gradient(125% 90% at 50% 42%, transparent 50%, rgba(22, 20, 40, 0.14) 74%, rgba(14, 12, 28, 0.32) 100%); }
+.wb-bands::before { height: 15%; top: 28%; background: linear-gradient(90deg, transparent, rgba(30, 27, 52, 0.38), rgba(17, 15, 33, 0.30), transparent); }
+.wb-coins::before { content: ""; position: absolute; left: -10%; width: 120%; height: 11%; top: 47%; border-radius: 50%; transform: rotate(8deg); filter: blur(34px);
+  background: linear-gradient(90deg, transparent, rgba(20, 18, 38, 0.26), rgba(30, 27, 52, 0.30), transparent); animation: wb-shift 52s ease-in-out -30s infinite alternate; }
+.wb-grid { background-image: linear-gradient(rgba(40, 28, 84, 0.72) 1.6px, transparent 1.6px), linear-gradient(90deg, rgba(10, 64, 84, 0.66) 1.6px, transparent 1.6px); }
+.wb-floor::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 26px; z-index: 1;
+  background: linear-gradient(180deg, rgba(14, 12, 28, 0.55), rgba(22, 20, 40, 0.18) 60%, transparent); }
+.wb-sky-grid { background-image: linear-gradient(rgba(30, 24, 64, 0.11) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 24, 64, 0.11) 1px, transparent 1px); }
+.wb-coins i { opacity: 0.42; filter: drop-shadow(0 8px 14px rgba(20, 18, 40, 0.35)); }
+.wb-coins i:nth-child(1) { left: 3%; top: 16%; --s: 64px; }
+.wb-coins i:nth-child(2) { left: 90%; top: 10%; --s: 56px; }
+.wb-coins i:nth-child(3) { left: 93%; top: 44%; --s: 46px; }
+.wb-coins i:nth-child(4) { left: 6%; top: 74%; --s: 72px; }
+.wb-coins i:nth-child(5) { left: 46%; top: 6%; --s: 40px; opacity: 0.36; }
+.wb-coins i:nth-child(6) { left: 88%; top: 80%; --s: 60px; }
+.wb-coins i:nth-child(7) { left: 2%; top: 46%; --s: 48px; animation-duration: 84s; animation-delay: -40s; }
+.wb-coins i:nth-child(8) { left: 62%; top: 88%; --s: 52px; animation-duration: 72s; animation-delay: -18s; }
+.wb-coins i:nth-child(9) { left: 30%; top: 90%; --s: 44px; animation-duration: 88s; animation-delay: -60s; opacity: 0.36; }
+.wb-coins i:nth-child(10) { left: 72%; top: 4%; --s: 48px; animation-duration: 64s; animation-delay: -8s; }
+@media (max-width: 760px) {
+  .wb-coins i { display: block !important; opacity: 0.38; --s: 44px !important; }
+  .wb-coins i:nth-child(n+6) { display: none !important; }
+  .wb-coins i:nth-child(1) { left: -10px; top: 20%; } .wb-coins i:nth-child(2) { left: auto; right: -8px; top: 34%; }
+  .wb-coins i:nth-child(3) { left: auto; right: -12px; top: 70%; } .wb-coins i:nth-child(4) { left: -12px; top: 58%; }
+  .wb-coins i:nth-child(5) { left: -6px; top: 86%; } }
+@media (prefers-reduced-motion: reduce) { .wb-coins::before, .wb-coins i { animation: none; } }

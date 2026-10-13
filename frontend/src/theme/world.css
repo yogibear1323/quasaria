@@ -270,3 +270,5 @@ html, body { overflow-x: clip; max-width: 100%; }
   .wb-coins i:nth-child(3) { left: auto; right: -12px; top: 70%; } .wb-coins i:nth-child(4) { left: -12px; top: 58%; }
   .wb-coins i:nth-child(5) { left: -6px; top: 86%; } }
 @media (prefers-reduced-motion: reduce) { .wb-coins::before, .wb-coins i { animation: none; } }
+@media (max-width: 760px) { .wb-coins i:nth-child(1), .wb-coins i:nth-child(4), .wb-coins i:nth-child(5) { left: -22px; } .wb-coins i:nth-child(2), .wb-coins i:nth-child(3) { right: -22px; } }
+@media (max-width: 760px) { .wb-floor::before { height: 16px; background: linear-gradient(180deg, rgba(14, 12, 28, 0.13), transparent); } }

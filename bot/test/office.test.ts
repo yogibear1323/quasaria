@@ -20,6 +20,7 @@ import type { DeskConfig, OfficeConfig } from "../src/office/types.js";
 import type { ReferenceFeed } from "../src/office/marketData.js";
 
 const cfg = loadOfficeConfig();
+const LEGACY_TF: Record<string, number> = { vega: 3600, rigel: 14400, lyra: 3600, nova: 3600, echo: 900, halo: 3600 };
 const L = cfg.limits;
 const desk = (id: string) => cfg.desks.find((d) => d.id === id)!;
 
@@ -240,7 +241,7 @@ describe("config + backtest", () => {
   it("validates desks and refuses > 2% risk", () => {
     expect(cfg.desks.map((d) => d.name)).toEqual(["Vega", "Regal", "Lyra", "Nova", "Echo", "Halo"]);
     expect(Object.fromEntries(cfg.desks.map((d) => [d.id, `${d.strategy}/${d.timeframeSec}${d.paused ? "/paused" : ""}`]))).toEqual({
-      vega: "supertrend/3600", rigel: "trend/14400", lyra: "liqpocket/3600", nova: "funding/3600/paused", echo: "meanrev/900/paused", halo: "meanrev/3600",
+      vega: "supertrend/60", rigel: "trend/300", lyra: "liqpocket/900", nova: "funding/1800", echo: "meanrev/3600", halo: "meanrev/14400",
     });
     for (const d of cfg.desks) expect(d.riskPct).toBeLessThanOrEqual(1);
     expect(desk("lyra").label).toMatch(/Experimental · liquidity pockets · simulated\/testnet/);
@@ -284,7 +285,8 @@ describe("fleet (paper venue)", () => {
   const config: OfficeConfig = {
     ...cfg,
     strictUntil: "2999-01-01T00:00:00Z",
-    desks: cfg.desks.map(({ paused: _p, ...d }) => (d.id === "vega" ? { ...d, strategy: "trend" as const, params: {} } : d)),
+    // fleet-mechanics fixture: pre-2026-10-13 bar sizes so the synthetic hourly market drives the desks
+    desks: cfg.desks.map(({ paused: _p, ...d }) => ({ ...d, timeframeSec: LEGACY_TF[d.id] ?? d.timeframeSec })).map((d) => (d.id === "vega" ? { ...d, strategy: "trend" as const, params: {} } : d)),
   };
 
   beforeEach(() => {

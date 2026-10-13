@@ -224,3 +224,18 @@ html, body { overflow-x: clip; max-width: 100%; }
 .wb-grid { background-image: linear-gradient(rgba(58, 42, 112, 0.50) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(14, 92, 116, 0.46) 1.5px, transparent 1.5px); }
 .wb-sky-grid { background-image: linear-gradient(rgba(30, 24, 64, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 24, 64, 0.06) 1px, transparent 1px); }
 @media (prefers-reduced-motion: reduce) { .wb-bands::before { animation: none; } }
+
+/* ---- floating XLM coins: neutral coin glyph (ring + two slanted strokes), decorative, behind all content */
+.wb-coins { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.wb-coins i { position: absolute; width: var(--s, 46px); aspect-ratio: 1; opacity: 0.16; border-radius: 50%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23F2B84B'/%3E%3Cstop offset='1' stop-color='%23E8A33D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='29' fill='%23ffffff' stroke='url(%23g)' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%231e1b34' stroke-opacity='.35' stroke-width='1.5'/%3E%3Cpath d='M17 37 L47 24 M17 42 L47 29' stroke='%231e1b34' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 6px 10px rgba(20, 18, 40, 0.25)); animation: wb-coin 60s ease-in-out infinite alternate; }
+.wb-coins i:nth-child(1) { left: 8%; top: 18%; --s: 52px; }
+.wb-coins i:nth-child(2) { left: 84%; top: 12%; --s: 40px; animation-duration: 74s; animation-delay: -20s; }
+.wb-coins i:nth-child(3) { left: 70%; top: 48%; --s: 34px; animation-duration: 66s; animation-delay: -35s; }
+.wb-coins i:nth-child(4) { left: 22%; top: 70%; --s: 44px; animation-duration: 80s; animation-delay: -12s; }
+.wb-coins i:nth-child(5) { left: 48%; top: 30%; --s: 30px; animation-duration: 90s; animation-delay: -50s; opacity: 0.12; }
+.wb-coins i:nth-child(6) { left: 92%; top: 78%; --s: 48px; animation-duration: 70s; animation-delay: -28s; }
+@keyframes wb-coin { 0% { transform: translate(0, 0) rotate(-8deg); } 50% { transform: translate(28px, -36px) rotate(10deg); } 100% { transform: translate(-22px, 24px) rotate(-4deg); } }
+@media (max-width: 760px) { .wb-coins i:nth-child(n+4) { display: none; } .wb-coins i { --s: 34px !important; opacity: 0.13; } }
+@media (prefers-reduced-motion: reduce) { .wb-coins i { animation: none; } }

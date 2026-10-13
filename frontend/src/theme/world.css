@@ -282,3 +282,39 @@ html, body { overflow-x: clip; max-width: 100%; }
 /* ---- XLM coins: official Stellar mark (unaltered path from stellar.org header logo,
    https://cdn.sanity.io/images/e2r40yh6/production-i18n/8d48eccbfb27a38b4beb307ed3633f2b2744376b-106x26.svg via https://stellar.org/brand), on a light coin disc */
 .wb-coins i { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23F2B84B'/%3E%3Cstop offset='1' stop-color='%23E8A33D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='29.5' fill='%23ffffff' stroke='url(%23g)' stroke-width='3'/%3E%3Cg transform='translate(16.34 19)'%3E%3Cpath fill='%230F0F0F' fill-rule='evenodd' clip-rule='evenodd' d='M26.8975 3.39946L23.1266 5.28446L4.91708 14.3845C4.8555 13.9237 4.82452 13.4595 4.82433 12.9948C4.82682 11.1406 5.32299 9.31916 6.2637 7.71099C7.20441 6.10282 8.55702 4.76368 10.1875 3.82621C11.8181 2.88874 13.6699 2.38547 15.5597 2.36626C17.4494 2.34704 19.3115 2.81255 20.9615 3.71666L23.1199 2.63766L23.4419 2.47646C21.4646 1.06842 19.1291 0.224162 16.6934 0.0370048C14.2577 -0.150153 11.8166 0.327075 9.64006 1.41594C7.46349 2.50481 5.63616 4.16292 4.36001 6.20702C3.08386 8.25111 2.4086 10.6016 2.40885 12.9987C2.40885 13.3297 2.42166 13.6595 2.44728 13.988C2.48315 14.4531 2.37801 14.9183 2.14507 15.3249C1.91213 15.7316 1.5618 16.0616 1.13818 16.2734L0 16.8428V19.4987L3.35093 17.823L4.4361 17.2796L5.50538 16.7453L24.702 7.14866L26.8591 6.07096L31.3177 3.84146V1.18686L26.8975 3.39946ZM31.3177 6.49985L6.59585 18.8499L4.43875 19.9302L0 22.1493V24.8026L4.40828 22.5991L8.17922 20.7141L26.4073 11.6011C26.4689 12.0649 26.4999 12.5321 26.5 12.9999C26.4988 14.8562 26.0028 16.68 25.0612 18.2901C24.1195 19.9002 22.7651 21.2407 21.1322 22.1785C19.4993 23.1162 17.6448 23.6187 15.7529 23.6359C13.8609 23.6531 11.9973 23.1845 10.3469 22.2767L10.2144 22.3456L7.87448 23.5156C9.85128 24.9236 12.1864 25.7681 14.6217 25.9557C17.057 26.1434 19.4978 25.6668 21.6744 24.5786C23.851 23.4905 25.6786 21.8332 26.9553 19.7898C28.232 17.7465 28.9081 15.3966 28.9089 12.9999C28.9089 12.6658 28.8956 12.3317 28.8704 12.0015C28.8346 11.5365 28.9396 11.0715 29.1723 10.6649C29.405 10.2582 29.7549 9.92815 30.1782 9.71605L31.3177 9.14665V6.49985Z'/%3E%3C/g%3E%3C/svg%3E"); }
+
+/* ==== earthy pass: sand / clay / moss / stone / umber, paper grain + topo contours; cosmic hints kept ==== */
+.world-bg { background:
+  radial-gradient(1100px 620px at 82% -12%, rgba(196, 112, 74, 0.20), transparent 60%),
+  radial-gradient(900px 620px at -12% 22%, rgba(110, 124, 74, 0.18), transparent 60%),
+  linear-gradient(180deg, #f3ece0 0%, #ebe1d1 55%, #ddd0bb 100%); }
+.world-bg::before { background: radial-gradient(125% 90% at 50% 42%, transparent 52%, rgba(74, 52, 32, 0.12) 76%, rgba(58, 40, 24, 0.26) 100%); }
+.wb-bands { opacity: 0.5; }
+.wb-bands i:nth-child(1) { background: linear-gradient(90deg, transparent, rgba(196, 112, 74, 0.32), rgba(214, 170, 120, 0.28), transparent); }
+.wb-bands i:nth-child(2) { background: linear-gradient(90deg, transparent, rgba(110, 124, 74, 0.30), rgba(150, 156, 110, 0.22), transparent); }
+.wb-bands i:nth-child(3) { background: linear-gradient(90deg, transparent, rgba(160, 146, 128, 0.30), rgba(196, 112, 74, 0.18), transparent); }
+.wb-bands::before { background: linear-gradient(90deg, transparent, rgba(72, 50, 30, 0.30), rgba(56, 40, 26, 0.24), transparent); }
+.wb-coins::before { background: linear-gradient(90deg, transparent, rgba(84, 70, 48, 0.22), rgba(72, 54, 34, 0.24), transparent); }
+.wb-grid { background-image: linear-gradient(rgba(92, 64, 40, 0.58) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(84, 98, 58, 0.52) 1.5px, transparent 1.5px); }
+.wb-floor::before { background: linear-gradient(180deg, rgba(58, 40, 24, 0.30), rgba(74, 52, 32, 0.10) 60%, transparent); }
+.wb-horizon { background: linear-gradient(90deg, transparent, rgba(196, 112, 74, 0.7), rgba(242, 184, 75, 0.9) 34%, rgba(110, 124, 74, 0.75) 52%, rgba(232, 163, 61, 0.8) 70%, rgba(160, 120, 90, 0.6), transparent);
+  box-shadow: 0 0 22px 3px rgba(196, 140, 80, 0.28); }
+/* sky: soft starfield + faint orbit arcs + topographic contours (replaces the tech grid) */
+.wb-sky-grid { background-size: auto; background-image:
+  radial-gradient(1.2px 1.2px at 12% 18%, rgba(58, 40, 24, 0.55), transparent 60%),
+  radial-gradient(1px 1px at 27% 9%, rgba(58, 40, 24, 0.45), transparent 60%),
+  radial-gradient(1.4px 1.4px at 41% 24%, rgba(140, 90, 40, 0.55), transparent 60%),
+  radial-gradient(1px 1px at 58% 12%, rgba(58, 40, 24, 0.45), transparent 60%),
+  radial-gradient(1.3px 1.3px at 73% 28%, rgba(58, 40, 24, 0.5), transparent 60%),
+  radial-gradient(1px 1px at 86% 8%, rgba(140, 90, 40, 0.5), transparent 60%),
+  radial-gradient(1.2px 1.2px at 93% 34%, rgba(58, 40, 24, 0.45), transparent 60%),
+  radial-gradient(1px 1px at 6% 40%, rgba(58, 40, 24, 0.4), transparent 60%),
+  radial-gradient(ellipse 120% 70% at 50% 120%, transparent 62%, rgba(92, 64, 40, 0.14) 62.2%, transparent 62.6%),
+  radial-gradient(ellipse 150% 85% at 50% 125%, transparent 66%, rgba(92, 64, 40, 0.10) 66.2%, transparent 66.6%),
+  repeating-radial-gradient(ellipse 60% 40% at 18% 30%, transparent 0 22px, rgba(92, 64, 40, 0.07) 22px 23px),
+  repeating-radial-gradient(ellipse 50% 34% at 84% 18%, transparent 0 26px, rgba(84, 98, 58, 0.07) 26px 27px); }
+/* paper grain */
+.wb-coins::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.22; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.world-bg::after { background: radial-gradient(700px 380px at 50% 64%, rgba(242, 184, 75, 0.12), transparent 70%); }
+.moon-text { fill: #2a2118; }

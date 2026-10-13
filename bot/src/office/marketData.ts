@@ -13,7 +13,7 @@ const agg = (bars: Candle[], gran: number) => (AGG[gran] ? aggregate(bars, AGG[g
 export interface ReferenceFeed {
   ticker(): Promise<number | null>;
   /** closed bars at `gran` seconds (see TIMEFRAMES), oldest -> newest */
-  closedBars(gran: number, now: number): Promise<Candle[]>;
+  closedBars(gran: number, now: number, minBars?: number): Promise<Candle[]>;
   /** optional: public L2 book summary (spread, depth imbalance within 0.5 % of mid). Logged, not a model input. */
   book?(): Promise<{ spreadBps: number; imbalance: number } | null>;
 }
@@ -59,13 +59,29 @@ export class PublicReferenceFeed implements ReferenceFeed {
     return rows.map((r) => ({ t: r[0], l: r[1], h: r[2], o: r[3], c: r[4], v: r[5] })).sort((a, b) => a.t - b.t);
   }
 
-  async closedBars(gran: number, now: number): Promise<Candle[]> {
-    const key = String(gran);
+  /** base-granularity bars kept between loops so long lookbacks are paged once, then topped up with the latest page */
+  private store = new Map<number, Map<number, Candle>>();
+
+  async closedBars(gran: number, now: number, minBars = 300): Promise<Candle[]> {
+    const key = `${gran}:${minBars}`;
     const hit = this.cache.get(key);
     let bars: Candle[];
     if (hit && now - hit.at < this.ttlSec) bars = hit.v;
     else {
-      bars = agg(await this.coinbase(baseGran(gran)), gran);
+      const base = baseGran(gran), k = gran / base, needBase = minBars * k;
+      if (needBase <= 300) bars = agg(await this.coinbase(base), gran);
+      else {
+        let m = this.store.get(base);
+        const have = m ? [...m.keys()].sort((a, b) => a - b) : [];
+        if (!m || !have.length || have[0] > now - (needBase - 10) * base) { // coverage by time (1m candles skip no-trade minutes)
+          m = new Map((await this.history(base, now - (needBase + 2 * k) * base, now)).map((c) => [c.t, c]));
+        }
+        for (const c of await this.coinbase(base)) m.set(c.t, c);
+        const cut = now - (needBase + 4 * k) * base;
+        for (const t of m.keys()) if (t < cut) m.delete(t);
+        this.store.set(base, m);
+        bars = agg([...m.values()].sort((a, b) => a.t - b.t), gran);
+      }
       this.cache.set(key, { at: now, v: bars });
     }
     return bars.filter((b) => b.t + gran <= now);

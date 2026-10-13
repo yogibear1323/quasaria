@@ -11,7 +11,7 @@ import type { ReferenceFeed } from "./marketData.js";
 import { deskGate, drawdownPct, dailyLossPct, fleetGate, fleetLevel, fundingGuard, riskToStop, toOpenRisk } from "./risk.js";
 import { clampStop, sizePosition } from "./sizing.js";
 import { reconcile, type DeskState, type FleetStateFile, type JournalOpen, type Store } from "./store.js";
-import { createOfficeStrategy, type OfficeStrategy, type StrategyContext } from "./strategies.js";
+import { barsNeeded, createOfficeStrategy, type OfficeStrategy, type StrategyContext } from "./strategies.js";
 import type { ChainPosition, DeskConfig, DriftMode, OfficeConfig } from "./types.js";
 import type { DeskKeys, OfficeVenue, VaultMarket } from "./venue.js";
 import { resolve } from "node:path";
@@ -331,7 +331,9 @@ export class Fleet {
     this.breakerRead(f, now, m.oracleTs, "tick");
 
     const bars: Record<number, Candle[]> = {};
-    for (const tf of new Set(this.cfg.desks.map((d) => d.timeframeSec))) bars[tf] = await this.ref.closedBars(tf, now).catch(() => []);
+    const need = new Map<number, number>();
+    for (const d of this.cfg.desks) need.set(d.timeframeSec, Math.max(need.get(d.timeframeSec) ?? 300, barsNeeded(d)));
+    for (const [tf, n] of need) bars[tf] = await this.ref.closedBars(tf, now, n).catch(() => []);
 
     // chain views
     const views: Record<string, { free: number; positions: ChainPosition[] } | null> = {};

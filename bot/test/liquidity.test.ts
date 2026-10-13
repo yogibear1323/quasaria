@@ -113,16 +113,17 @@ describe("liquidity pockets: strategy (experimental) and entry filter", () => {
   });
   it("shipped desks: Vega/Regal/Halo carry the filter, funding is never wrapped, Lyra runs liqpocket", () => {
     const by = Object.fromEntries(cfg.desks.map((x) => [x.id, x]));
-    expect(by.vega.params.lpSweepBars).toBe(24);
-    expect(by.rigel.params.lpSweepBars).toBe(12);
-    expect(by.halo.params.lpSweepBars).toBe(12);
+    expect(by.vega.params.lpSweepBars).toBe(1440); // 24h @ 1m
+    expect(by.rigel.params.lpSweepBars).toBe(576); // 48h @ 5m
+    expect(by.halo.params.lpSweepBars).toBe(3); // 12h @ 4h
     expect(by.lyra.strategy).toBe("liqpocket");
     expect(by.lyra.riskPct).toBeLessThanOrEqual(1);
     for (const x of cfg.desks) expect(typeof createOfficeStrategy(x).entry).toBe("function");
     const bars = ramp(120);
-    expect(explainEntry(by.vega, ctx(bars))).toMatch(/^Supertrend 10×3: up.*liquidity filter \(≤24 bars\)/);
+    expect(explainEntry(by.vega, ctx(bars))).toMatch(/^Supertrend: warming up/); // 600-bar ATR needs > 120 bars
+    expect(explainEntry({ ...by.vega, params: { n: 10, m: 3, lpSweepBars: 24 } }, ctx(bars))).toMatch(/^Supertrend 10×3: up.*liquidity filter \(≤24 bars\)/);
     expect(explainEntry(by.echo, ctx(bars))).not.toMatch(/^Paused: /); // owner override 2026-10-13: Echo live on testnet
-    expect(explainEntry(by.lyra, ctx(bars))).toMatch(/^Liquidity pockets \(experimental\)/);
+    expect(explainEntry(by.lyra, ctx(ramp(260)))).toMatch(/^Liquidity pockets \(experimental\)/);
   });
 });
 

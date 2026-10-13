@@ -48,11 +48,15 @@ function series(n: number, seed = 7): Candle[] {
   }
   return out;
 }
+// engine-plumbing fixture: the pre-2026-10-13 frames/params, which the synthetic 15m/1h/4h series is built to exercise
+const LEGACY_TF: Record<string, number> = { vega: 3600, rigel: 14400, lyra: 3600, nova: 3600, echo: 900, halo: 3600 };
+const LEGACY_P: Record<string, Record<string, number>> = { vega: { n: 10, m: 3, lpSweepBars: 24 }, rigel: { lpSweepBars: 12 }, lyra: { k: 2, L: 50, src: 1, bufAtr: 0.25, targetR: 3, alignEma: 50, timeStopBars: 48 }, nova: { minRateHourly: 0.0003 }, echo: {}, halo: { lpSweepBars: 12 } };
+const LEGACY = { ...OFFICE, desks: OFFICE.desks.map((d) => ({ ...d, timeframeSec: LEGACY_TF[d.id], params: LEGACY_P[d.id] })) };
 function run(st: DemoState, m15: Candle[]) {
   const h1 = aggregate(m15, 900, 4), h4 = aggregate(h1, 3600, 4);
   for (const b of m15) {
     const now = b.t + 900;
-    st = step(st, { now, price: b.c, hi: b.h, lo: b.l, bars: { 900: closedBy(m15, 900, now).slice(-300), 3600: closedBy(h1, 3600, now).slice(-300), 14400: closedBy(h4, 14400, now).slice(-300) }, fundingHourly: 0, extSkew: 0 });
+    st = step(st, { now, price: b.c, hi: b.h, lo: b.l, bars: { 900: closedBy(m15, 900, now).slice(-300), 1800: closedBy(aggregate(m15, 900, 2), 1800, now).slice(-300), 3600: closedBy(h1, 3600, now).slice(-300), 14400: closedBy(h4, 14400, now).slice(-300) }, fundingHourly: 0, extSkew: 0 }, LEGACY);
   }
   return st;
 }

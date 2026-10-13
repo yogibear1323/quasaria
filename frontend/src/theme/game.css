@@ -152,3 +152,4 @@
 }
 /* phones: keep toasts slim and out of the way of page content */
 @media (max-width: 720px) { .game-toasts { left: auto; width: min(260px, calc(100vw - 28px)); } .game-toast { padding: 8px 12px; } }
+.gt-ico { color: #fffaf0; box-shadow: 0 0 18px -4px rgba(232, 163, 61, 0.8); }

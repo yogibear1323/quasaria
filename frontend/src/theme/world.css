@@ -212,3 +212,15 @@ html, body { overflow-x: clip; max-width: 100%; }
 }
 @media (max-width: 700px) { .mk-table tbody tr[data-testid="market-row"] { grid-template-columns: repeat(3, minmax(0, 1fr)); } .mk-table .c-rank { grid-column: 1 / 2; } .mk-table .c-asset { grid-column: 2 / -1; } }
 .mk-table thead th { text-overflow: clip; overflow-wrap: anywhere; }
+
+/* ---- ink pass (subtle black/slate-ink hints; still a light theme, not dark mode) */
+.world-bg { background: radial-gradient(1100px 600px at 80% -10%, rgba(232, 121, 249, 0.14), transparent 60%),
+  radial-gradient(900px 600px at -10% 20%, rgba(6, 182, 212, 0.12), transparent 60%),
+  linear-gradient(180deg, #f3f3fa 0%, #ebebf5 55%, #e2e1ef 100%); }
+.world-bg::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: radial-gradient(130% 95% at 50% 42%, transparent 58%, rgba(22, 20, 40, 0.10) 82%, rgba(14, 12, 28, 0.20) 100%); }
+.wb-bands::before { content: ""; position: absolute; left: -10%; width: 120%; height: 13%; top: 31%; border-radius: 50%; transform: rotate(-14deg);
+  background: linear-gradient(90deg, transparent, rgba(30, 27, 52, 0.16), rgba(17, 15, 33, 0.12), transparent); animation: wb-shift 46s ease-in-out -20s infinite alternate; }
+.wb-grid { background-image: linear-gradient(rgba(58, 42, 112, 0.50) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(14, 92, 116, 0.46) 1.5px, transparent 1.5px); }
+.wb-sky-grid { background-image: linear-gradient(rgba(30, 24, 64, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 24, 64, 0.06) 1px, transparent 1px); }
+@media (prefers-reduced-motion: reduce) { .wb-bands::before { animation: none; } }

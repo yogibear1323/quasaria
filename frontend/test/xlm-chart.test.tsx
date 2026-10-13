@@ -25,7 +25,7 @@ function fakeFetch(routes: Route): typeof fetch {
 
 describe("route + nav", () => {
   it("adds 'Live XLM chart' between Perps and Back Office, pointing at /perps/chart", () => {
-    expect(PERPS_MENU.map((m) => m.label)).toEqual(["Perps", "Live XLM chart", "Back Office · robot floor"]);
+    expect(PERPS_MENU.map((m) => m.label)).toEqual(["Perps", "Live XLM chart", "Perps bot traders"]);
     expect(PERPS_MENU[1].to).toBe("/perps/chart");
     expect(isPerpsPath("/perps/chart")).toBe(true);
     // exact matching so "Perps" is not highlighted on /perps/chart

@@ -10,7 +10,7 @@ import { NavLink } from "react-router-dom";
 export const PERPS_MENU = [
   { to: "/perps", label: "Perps", sub: "trade long / short" },
   { to: "/perps/chart", label: "Live XLM chart", sub: "candles · oracle · mark" },
-  { to: "/back-office", label: "Back Office · robot floor", sub: "six bots · demo account" },
+  { to: "/back-office", label: "Perps bot traders", sub: "bot fleet · decision desk · demo" },
 ];
 export const isPerpsPath = (p: string) => p.startsWith("/perps") || p.startsWith("/back-office");
 

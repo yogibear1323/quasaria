@@ -1,0 +1,47 @@
+{
+  "checked_at_local": "2026-10-10 08:14 MST",
+  "status": "ready_for_human_review",
+  "masters": [
+    "quasaria-autopay-people-15-16x9.mp4",
+    "quasaria-autopay-people-15-9x16.mp4",
+    "quasaria-autopay-people-30-16x9.mp4",
+    "quasaria-autopay-people-30-9x16.mp4",
+    "quasaria-autopay-people-55-16x9.mp4",
+    "quasaria-autopay-people-55-9x16.mp4"
+  ],
+  "tech": "pass",
+  "stt": {
+    "clean": [
+      "15-16x9",
+      "15-9x16",
+      "30-16x9",
+      "55-16x9",
+      "55-9x16"
+    ],
+    "listen_pass": {
+      "cut": "30-9x16",
+      "wer": 0.103
+    }
+  },
+  "smallprint_ocr_flags": {
+    "flags": {
+      "15-9x16": [
+        "0001.jpg"
+      ],
+      "30-16x9": [
+        "0009.jpg",
+        "0017.jpg"
+      ],
+      "30-9x16": [
+        "0009.jpg"
+      ]
+    },
+    "human_recheck": "disclaimer present on all flagged frames; OCR failed on faint/tiny type (typos like guarnteed). Treat as pass vs script rule."
+  },
+  "banned_guarantee_hits": "likely false positive from required phrase 'not a guaranteed return' under OCR spacing",
+  "assets": {
+    "contact_sheets": "/workspace/quasaria-video/autopay-people/contact-sheets/",
+    "web_previews": "/workspace/quasaria-video/autopay-people/web/",
+    "verify": "/workspace/quasaria-video/autopay-people/verify.json"
+  }
+}

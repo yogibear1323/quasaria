@@ -1,0 +1,13 @@
+{
+	"input_i" : "-19.31",
+	"input_tp" : "-1.50",
+	"input_lra" : "2.50",
+	"input_thresh" : "-29.61",
+	"output_i" : "-14.00",
+	"output_tp" : "-1.50",
+	"output_lra" : "1.40",
+	"output_thresh" : "-24.18",
+	"normalization_type" : "dynamic",
+	"target_offset" : "0.00"
+}
+[out#0/null @ 0x55ee4985a5c0] video:0KiB audio:37125KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown

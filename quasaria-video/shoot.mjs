@@ -1,0 +1,11 @@
+import { chromium } from "/workspace/stellar-dex/frontend/node_modules/playwright/index.mjs";
+const OUT = "/workspace/quasaria-video/shots";
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+const B = "https://yogibear1323.github.io/quasaria";
+await page.goto(B + "/", { waitUntil: "networkidle" }).catch(e=>console.log(e.message));
+await page.waitForTimeout(6000);
+await page.screenshot({ path: `${OUT}/home.png`, fullPage: true });
+const links = await page.evaluate(() => [...document.querySelectorAll("a")].map(a => a.textContent.trim() + " | " + a.getAttribute("href")));
+console.log(links.join("\n"));
+await browser.close();

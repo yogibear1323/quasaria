@@ -1,0 +1,202 @@
+{
+ "v1-idle-hook-16x9.mp4": {
+  "dur": 15.0,
+  "size_mb": 6.95,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3705,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.6",
+  "faststart": true
+ },
+ "v1-idle-hook-9x16.mp4": {
+  "dur": 15.0,
+  "size_mb": 6.96,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3711,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.6",
+  "faststart": true
+ },
+ "v2-buyer-savings-16x9.mp4": {
+  "dur": 32.5,
+  "size_mb": 12.65,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3113,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.5",
+  "faststart": true
+ },
+ "v2-buyer-savings-9x16.mp4": {
+  "dur": 32.5,
+  "size_mb": 12.53,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3084,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.5",
+  "faststart": true
+ },
+ "v3-seller-lender-16x9.mp4": {
+  "dur": 29.0,
+  "size_mb": 11.49,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3170,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.4",
+  "faststart": true
+ },
+ "v3-seller-lender-9x16.mp4": {
+  "dur": 29.0,
+  "size_mb": 10.44,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2881,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.4",
+  "faststart": true
+ },
+ "v4-walkthrough-16x9.mp4": {
+  "dur": 38.5,
+  "size_mb": 13.9,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2888,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.4",
+  "faststart": true
+ },
+ "v4-walkthrough-9x16.mp4": {
+  "dur": 38.5,
+  "size_mb": 13.49,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2803,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.4",
+  "faststart": true
+ },
+ "v5-anything-16x9.mp4": {
+  "dur": 18.0,
+  "size_mb": 7.91,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3516,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.7",
+  "faststart": true
+ },
+ "v5-anything-9x16.mp4": {
+  "dur": 18.0,
+  "size_mb": 7.91,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3515,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.7",
+  "faststart": true
+ },
+ "v6-family-boat-16x9.mp4": {
+  "dur": 45.0,
+  "size_mb": 14.12,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2511,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.6",
+  "faststart": true
+ },
+ "v6-family-boat-9x16.mp4": {
+  "dur": 45.0,
+  "size_mb": 13.71,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2437,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.6",
+  "faststart": true
+ },
+ "v7-precious-metals-16x9.mp4": {
+  "dur": 44.5,
+  "size_mb": 16.08,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2891,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.5",
+  "faststart": true
+ },
+ "v7-precious-metals-9x16.mp4": {
+  "dur": 44.5,
+  "size_mb": 16.17,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2907,
+  "lufs": "-16.0",
+  "peak_dbfs": "-1.5",
+  "faststart": true
+ },
+ "v8-business-equipment-16x9.mp4": {
+  "dur": 44.5,
+  "size_mb": 14.86,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2671,
+  "lufs": "-16.0",
+  "peak_dbfs": "-2.1",
+  "faststart": true
+ },
+ "v8-business-equipment-9x16.mp4": {
+  "dur": 44.5,
+  "size_mb": 14.53,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2612,
+  "lufs": "-16.0",
+  "peak_dbfs": "-2.1",
+  "faststart": true
+ },
+ "v9-car-dealership-16x9.mp4": {
+  "dur": 50.5,
+  "size_mb": 20.42,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3235,
+  "lufs": "-16.1",
+  "peak_dbfs": "-2.0",
+  "faststart": true
+ },
+ "v9-car-dealership-9x16.mp4": {
+  "dur": 50.5,
+  "size_mb": 19.97,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 3164,
+  "lufs": "-16.1",
+  "peak_dbfs": "-2.0",
+  "faststart": true
+ },
+ "v10-stellar-assets-16x9.mp4": {
+  "dur": 50.8,
+  "size_mb": 18.31,
+  "v": "h264 High 1920x1080 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2884,
+  "lufs": "-16.1",
+  "peak_dbfs": "-2.1",
+  "faststart": true
+ },
+ "v10-stellar-assets-9x16.mp4": {
+  "dur": 50.8,
+  "size_mb": 18.69,
+  "v": "h264 High 1080x1920 30/1 yuv420p",
+  "a": "aac LC 48000Hz ch2",
+  "kbps": 2943,
+  "lufs": "-16.1",
+  "peak_dbfs": "-2.1",
+  "faststart": true
+ }
+}

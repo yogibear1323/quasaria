@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T00:56:21.000Z",
+ "generatedAt": "2026-10-14T01:01:34.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1909795,
-  "oracleAgeSec": 19,
-  "referencePrice": 0.190726,
-  "deviationPct": 0.1329,
+  "oraclePrice": 0.190647,
+  "oracleAgeSec": 7,
+  "referencePrice": 0.190575,
+  "deviationPct": 0.0378,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9999.5317,
@@ -110,15 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:54Z",
+   "lastSignal": "no signal @ bar 10-14T00:59Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.19065,
-    0.190545,
-    0.190628,
-    0.190648,
-    0.190606,
     0.190631,
     0.1907,
     0.190737,
@@ -153,7 +148,12 @@
     0.190804,
     0.190972,
     0.190824,
-    0.190753
+    0.190822,
+    0.190907,
+    0.190725,
+    0.19077,
+    0.190686,
+    0.190705
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:50Z",
+   "lastSignal": "no signal @ bar 10-14T00:55Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.191292,
     0.191279,
     0.191485,
     0.191249,
@@ -272,7 +271,8 @@
     0.191728,
     0.19156,
     0.190908,
-    0.190822
+    0.190822,
+    0.190665
    ]
   },
   {
@@ -348,11 +348,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:30Z",
+   "lastSignal": "no signal @ bar 10-14T00:45Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.191881,
     0.19188,
     0.190993,
     0.190755,
@@ -391,7 +390,8 @@
     0.190026,
     0.190486,
     0.190916,
-    0.19156
+    0.19156,
+    0.190736
    ]
   },
   {
@@ -467,11 +467,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:00Z",
+   "lastSignal": "no signal @ bar 10-14T00:30Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.193109,
     0.194041,
     0.19481,
     0.195163,
@@ -510,7 +509,8 @@
     0.190818,
     0.190053,
     0.190026,
-    0.190916
+    0.190916,
+    0.190736
    ]
   },
   {
@@ -586,11 +586,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-13T23:00Z",
+   "lastSignal": "no signal @ bar 10-14T00:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.201468,
     0.201019,
     0.201075,
     0.200316,
@@ -629,7 +628,8 @@
     0.191745,
     0.191238,
     0.190818,
-    0.190026
+    0.190026,
+    0.190725
    ]
   },
   {
@@ -758,9 +758,9 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1791939381,
-  "lastOracleAgeSec": 19,
-  "lastHeartbeatAgeSec": 19,
+  "lastReadAt": 1791939694,
+  "lastOracleAgeSec": 7,
+  "lastHeartbeatAgeSec": 7,
   "trips": 46,
   "label": "fresh",
   "blockAgeSec": 60,
@@ -883,6 +883,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791939600,
+     "barT": 1791938700,
+     "price": 0.190736,
+     "side": "short",
+     "p": {
+      "setup": 0.379,
+      "direction": 0.517,
+      "pressure": 0.544,
+      "regime": 0.226,
+      "risk": 0.827
+     },
+     "score": 0.468,
+     "action": "skip: setup 0.38 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791938700,
      "barT": 1791937800,
@@ -1654,26 +1674,6 @@
       "pressure": 0.525,
       "regime": 0.228,
       "risk": 0.827
-     },
-     "score": 0.432,
-     "action": "skip: setup 0.30 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791771300,
-     "barT": 1791770400,
-     "price": 0.201301,
-     "side": "short",
-     "p": {
-      "setup": 0.302,
-      "direction": 0.507,
-      "pressure": 0.525,
-      "regime": 0.227,
-      "risk": 0.828
      },
      "score": 0.432,
      "action": "skip: setup 0.30 < 0.5",

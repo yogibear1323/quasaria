@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { CATEGORIES, EMAIL_RE, HERO_IMG, MERCH_CONTACT_EMAIL, PRODUCTS, fmtExample, readNotify, saveNotify, type Category, type Product } from "../merch/catalog";
+import SpaceYeti from "../components/SpaceYeti";
+import "../theme/space-yeti.css";
 
 /** /merch — preview storefront. No checkout, no payments, no backend. */
 export default function Merch() {
@@ -21,6 +23,7 @@ export default function Merch() {
           <div className="row m-hero-cta">
             <a className="btn" href="#m-grid" onClick={(e) => { e.preventDefault(); document.getElementById("m-grid")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }}>Browse the collection</a>
             <button className="btn ghost" onClick={() => setOpen(PRODUCTS[0])}>See the Glow hoodie</button>
+            <SpaceYeti prop="bag" className="sy-inline" />
           </div>
         </div>
         <div className="m-hero-art">

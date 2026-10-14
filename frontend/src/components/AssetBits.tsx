@@ -5,9 +5,9 @@ import type { MarketRow } from "../lib/markets";
 export function AssetLogo({ code, logo, size = 24 }: { code: string; logo?: string | null; size?: number }) {
   const [broken, setBroken] = useState(false);
   if (logo && !broken)
-    return <img src={logo} alt="" width={size} height={size} loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} style={{ borderRadius: "50%", background: "#ffffff", boxShadow: "inset 0 0 0 1px rgba(76,29,149,.18)", objectFit: "contain", flex: "none" }} />;
+    return <img src={logo} alt="" width={size} height={size} loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} style={{ borderRadius: "50%", background: "#ffffff", boxShadow: "inset 0 0 0 1px rgba(139,115,86,.35)", objectFit: "contain", flex: "none" }} />;
   return (
-    <span aria-hidden style={{ width: size, height: size, borderRadius: "50%", display: "inline-grid", placeItems: "center", flex: "none", fontSize: size * 0.42, fontWeight: 700, background: "linear-gradient(135deg, #ede9fe, #cffafe)", boxShadow: "inset 0 0 0 1px rgba(76,29,149,.25)", color: "#3b0764" }}>
+    <span aria-hidden style={{ width: size, height: size, borderRadius: "50%", display: "inline-grid", placeItems: "center", flex: "none", fontSize: size * 0.42, fontWeight: 700, background: "linear-gradient(135deg, #f6dfa8, #e4d6bd)", boxShadow: "inset 0 0 0 1px rgba(139,115,86,.45)", color: "#4a2a14" }}>
       {code.slice(0, 2).toUpperCase()}
     </span>
   );

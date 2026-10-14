@@ -5,8 +5,23 @@ import { snapshotLabel, type DataSource } from "../lib/stellarchain";
 import { TX_EVENT } from "../game/GameProvider";
 import { CountUpText } from "../game/widgets";
 import { burst } from "../game/fx";
+import SpaceYeti, { type YetiProp } from "./SpaceYeti";
+import "../theme/space-yeti.css";
 
-export function PageHead({ kicker, title, children, right }: { kicker: string; title: string; children?: ReactNode; right?: ReactNode }) {
+/** Per-page prop for the header space yeti (same suit everywhere; small variety by route). */
+const YETI_BY_PATH: [RegExp, YetiProp, boolean][] = [
+  [/\/perps\/chart/, "chart", true], [/\/perps/, "chart", false], [/\/trade/, "coin", false], [/\/pools/, "seed", true],
+  [/\/lending/, "coin", true], [/\/earn/, "seed", false], [/\/calculators/, "paper", true], [/\/stake/, "coin", true],
+  [/\/beacons/, "flag", false], [/\/rewards/, "trophy", true], [/\/referrals/, "flag", true], [/\/back-office/, "mug", false],
+  [/\/bots/, "wrench", true], [/\/quests/, "flag", false], [/\/merch/, "bag", true], [/\/news/, "paper", false],
+];
+export function yetiFor(path: string): { prop: YetiProp; mirror: boolean } {
+  for (const [re, prop, mirror] of YETI_BY_PATH) if (re.test(path)) return { prop, mirror };
+  return { prop: "coin", mirror: false };
+}
+
+export function PageHead({ kicker, title, children, right, yeti = true }: { kicker: string; title: string; children?: ReactNode; right?: ReactNode; yeti?: boolean }) {
+  const y = yeti && typeof window !== "undefined" ? yetiFor(window.location.pathname) : null;
   return (
     <div className="page-head">
       <div>
@@ -14,6 +29,7 @@ export function PageHead({ kicker, title, children, right }: { kicker: string; t
         <h1>{title}</h1>
         {children && <p>{children}</p>}
       </div>
+      {y && <SpaceYeti prop={y.prop} mirror={y.mirror} />}
       {right}
     </div>
   );

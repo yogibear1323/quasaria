@@ -9,6 +9,9 @@ import "@fontsource/jetbrains-mono/700.css";
 import "./theme/global.css";
 import "./theme/world.css";
 import App from "./App";
+// Frost theme (dark navy, snowy mountains) — imported after App so it lands after every page stylesheet.
+import "./theme/frost-auto.css";
+import "./theme/frost.css";
 import { WalletProvider } from "./lib/wallet";
 
 // Old hash-style links (/quasaria/#/beacons) → real path routes before the router mounts.

@@ -5,6 +5,7 @@
  * Motion is CSS-only (transform/opacity) and is disabled under prefers-reduced-motion.
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { STELLAR } from "./SpaceYeti";
 import {
   STRATEGY_LABEL, STRATEGY_SHORT, bubbleFor, deskTally, fmtPnl, pnlTone, reactionFor, sparkPath, tfLabel,
   type DeskView,
@@ -177,8 +178,9 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
             <rect className="rb-chair" x="27" y="54" width="66" height="54" rx="12" />
             <g className="rb-body">
               <path className="rb-torso" d={BODY} />
-              <ellipse className="rb-chest" cx="60" cy="90" rx="13" ry="13" />
+              <g transform="translate(52 81) scale(0.52)"><path className="yt-mark" fillRule="evenodd" clipRule="evenodd" d={STELLAR} /></g><path className="yt-hem" d="M37 104 Q60 114 83 104" />
               <circle className="rb-led" cx="49" cy="78" r="2.4" /><rect className="rb-bars" x="45.5" y="81.5" width="7" height="2" rx="1" /><rect className="rb-bars b2" x="46.5" y="84.5" width="5" height="2" rx="1" />
+              <path className="yt-hood" d="M34 50 Q32 14 60 12 Q88 14 86 50 Q84 66 60 70 Q36 66 34 50 Z" />
               <g className="rb-hd">
                 <YetiHead id={d.cfg.id} />
                 <path className="rb-mouth m-n" d="M53 48.5 Q60 51 67 48.5" />
@@ -187,7 +189,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
                 <text className="rb-alert" x="60" y="44">!</text>
               </g>
               <g className="rb-a1"><path className="rb-arm" d="M42 76 Q33 92 63 100" /><path className="yt-arm-fur" d="M42 76 Q33 92 63 100" /><ellipse className="rb-hand" cx="66" cy="100" rx="5" ry="3.8" /><path className="yt-claw" d="M68 98 v3 M65.5 98.3 v3" /></g>
-              <g className="rb-a2"><path className="rb-arm" d="M78 76 Q92 90 99 100" /><path className="yt-arm-fur" d="M78 76 Q92 90 99 100" /><ellipse className="rb-hand" cx="101" cy="100" rx="5" ry="3.8" /><path className="yt-claw" d="M103 98 v3 M100.5 98.3 v3" /></g>
+              <g className="rb-a2"><path className="rb-arm" d="M78 76 Q92 90 99 100" /><path className="yt-arm-fur" d="M78 76 Q92 90 99 100" /><rect className="yt-patch" x="84" y="80" width="6" height="6" rx="1" transform="rotate(40 87 83)" /><ellipse className="rb-hand" cx="101" cy="100" rx="5" ry="3.8" /><path className="yt-claw" d="M103 98 v3 M100.5 98.3 v3" /></g>
             </g>
           </g>
           <polygon className="bo-top-s" points="5,104 235,104 229,112 11,112" />

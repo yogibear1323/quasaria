@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PropertyRoot mark, option C: a house sits on the Q's taproot with roots cradling the plot">
+  <title>PropertyRoot: Q sprouting a homestead (option C)</title>
+  <defs>
+    <linearGradient id="ring" x1="14" y1="6" x2="50" y2="42" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#D9A06A"/><stop offset=".45" stop-color="#B8603A"/><stop offset="1" stop-color="#D9973A"/></linearGradient>
+    <linearGradient id="root" x1="32" y1="36" x2="32" y2="62" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B8603A"/><stop offset=".6" stop-color="#D9973A"/><stop offset="1" stop-color="#F6DFA8"/></linearGradient>
+    <radialGradient id="core" cx="32" cy="22" r="5" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#F6DFA8"/><stop offset="1" stop-color="#D9973A"/></radialGradient>
+    <radialGradient id="halo" cx="32" cy="22" r="13" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F6DFA8" stop-opacity=".9"/><stop offset=".5" stop-color="#D9973A" stop-opacity=".35"/><stop offset="1" stop-color="#B8603A" stop-opacity="0"/></radialGradient>
+    <linearGradient id="tail" x1="36" y1="26" x2="47" y2="37" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#F6DFA8"/><stop offset=".75" stop-color="#D9973A"/><stop offset="1" stop-color="#5E6B3C"/></linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g filter="url(#glow)">
+  <circle cx="32" cy="22" r="13" fill="url(#halo)"/>
+  <circle cx="32" cy="22" r="14" fill="none" stroke="url(#ring)" stroke-width="5"/>
+  <circle cx="32" cy="22" r="4.2" fill="url(#core)"/>
+  <path d="M36.5 26.5 L47 37" stroke="url(#tail)" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- house roofline sits right under the ring, roots below hold the plot -->
+  <path d="M23 44 L32 37 L41 44" stroke="#D9973A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M25.5 42.5 V50 H38.5 V42.5" stroke="#F6DFA8" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+  <path d="M32 50 C32 54 28 57 21 59 M32 50 C32 54 36 57 43 59 M32 50 V61 M32 53 C29 55 26 55 24 54.5 M32 53 C35 55 38 55 40 54.5" stroke="url(#root)" stroke-width="1.7" stroke-linecap="round" fill="none"/>
+  <path d="M12 50 H52" stroke="#5E6B3C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 49 c1.5-3 4.5-3.8 6.5-3.4 c-.8 2.5-3.6 4-6.5 3.4z" fill="#5E6B3C"/>
+  </g>
+</svg>

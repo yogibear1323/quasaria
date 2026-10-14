@@ -17,6 +17,7 @@ import { PERPS } from "../lib/perps";
 import { CalibratedSignals } from "../components/CalibratedSignals";
 import { DecisionDesk } from "../components/DecisionDesk";
 import "../theme/back-office.css";
+import "../theme/back-office-earthy.css";
 import "../theme/beacons.css";
 import { Quasar } from "../components/Quasar";
 import { BeaconsPreview } from "../components/BeaconsPreview";
@@ -61,7 +62,7 @@ function Panel({ d, status, example, tag, driftMode }: { d: DeskView; status: St
   const L = BACK_OFFICE.limits;
   const drift = d.drift;
   const dash = drift ? (drift.score / 100) * 100.5 : 0;
-  const dcol = !drift ? "#7d84a6" : drift.level === "red" ? "#fb7185" : drift.level === "amber" ? "#fbbf24" : "#34d399";
+  const dcol = !drift ? "#8b7356" : drift.level === "red" ? "#9f1d2b" : drift.level === "amber" ? "#c27a1a" : "#4f6b2c";
   return (
     <aside className="bo-panel" aria-label={`${d.cfg.name} details`}>
       <div className="bo-p-h">

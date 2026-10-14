@@ -1,5 +1,5 @@
 /**
- * Back Office trading-floor desk: a small SVG robot at an office desk with a monitor showing the live mini chart.
+ * Back Office trading-floor desk: a small SVG yeti trader seated at an office desk with a monitor showing the live mini chart.
  * Pose and motion are driven only by real data (bot status, on-chain positions/close events); the page's labelled
  * EXAMPLE mode feeds scripted views through the same component.
  * Motion is CSS-only (transform/opacity) and is disabled under prefers-reduced-motion.
@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   STRATEGY_LABEL, STRATEGY_SHORT, bubbleFor, deskTally, fmtPnl, pnlTone, reactionFor, sparkPath, tfLabel,
-  type DeskView, type Strategy,
+  type DeskView,
 } from "../lib/backOffice";
 
 const STATUS_TEXT = { running: "Running", paused: "Paused", halted: "Halted", unknown: "No status" } as const;
@@ -50,43 +50,50 @@ export function useCountUp(target: number, reduced: boolean): number {
   return v;
 }
 
-function Head({ s }: { s: Strategy }) {
-  if (s === "funding")
-    return (
-      <>
-        <g className="rb-ant">
-          <line x1="48" y1="25" x2="43" y2="12" /><line x1="72" y1="25" x2="77" y2="12" />
-          <circle className="rb-bulb" cx="43" cy="11" r="3" /><circle className="rb-bulb b2" cx="77" cy="11" r="3" />
-        </g>
-        <rect className="rb-ear" x="29" y="36" width="5" height="14" rx="2" /><rect className="rb-ear" x="86" y="36" width="5" height="14" rx="2" />
-        <rect className="rb-shell" x="33" y="22" width="54" height="38" rx="19" />
-        <rect className="rb-face" x="40" y="31" width="40" height="22" rx="10" />
-        <circle className="rb-eye" cx="51" cy="40" r="4" /><circle className="rb-eye" cx="69" cy="40" r="4" />
-      </>
-    );
-  if (s === "meanrev")
-    return (
-      <>
-        <g className="rb-ant">
-          <line x1="60" y1="24" x2="60" y2="16" />
-          <circle className="rb-ring" cx="60" cy="10" r="5.5" /><circle className="rb-bulb" cx="60" cy="10" r="2.2" />
-        </g>
-        <rect className="rb-ear" x="27" y="37" width="6" height="10" rx="2" /><rect className="rb-ear" x="87" y="37" width="6" height="10" rx="2" />
-        <polygon className="rb-shell" points="42,24 78,24 89,42 78,60 42,60 31,42" />
-        <rect className="rb-face" x="40" y="31" width="40" height="22" rx="4" />
-        <rect className="rb-eye" x="45" y="37" width="30" height="5.5" rx="2.75" />
-      </>
-    );
+/** Fluffy outline: a circle-ish blob with scalloped fur tufts (deterministic, no randomness). */
+function fluff(cx: number, cy: number, rx: number, ry: number, n: number, tuft: number): string {
+  const pt = (a: number, k: number) => [cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k];
+  let d = "";
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2;
+    const [x0, y0] = pt(a0, 1), [x1, y1] = pt(a1, 1), [xm, ym] = pt(am, 1 + tuft);
+    d += `${i ? "" : `M${x0.toFixed(1)} ${y0.toFixed(1)}`} Q${xm.toFixed(1)} ${ym.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  }
+  return d + "Z";
+}
+const HEAD = fluff(60, 41, 22, 19.5, 16, 0.16);
+const BODY = fluff(60, 88, 24, 22, 18, 0.12);
+
+/** Per-bot accessory (the old robots differed by antenna; the yetis get a small prop each). */
+function Accessory({ id }: { id: string }) {
+  if (id === "vega") // headset
+    return (<g className="yt-acc"><path className="yt-band" d="M38 38 Q60 12 82 38" /><rect className="yt-cup" x="34" y="35" width="7" height="11" rx="3" /><rect className="yt-cup" x="79" y="35" width="7" height="11" rx="3" /><path className="yt-band thin" d="M37 45 Q42 55 52 53" /><circle className="rb-bulb" cx="53" cy="53" r="2" /></g>);
+  if (id === "rigel") // knit beanie with pom-pom
+    return (<g className="yt-acc"><path className="yt-hat" d="M40 33 Q41 15 60 14 Q79 15 80 33 Z" /><rect className="yt-hat-rim" x="38" y="29" width="44" height="7" rx="3.5" /><path className="yt-knit" d="M46 29 V18 M53 29 V15.5 M60 29 V14.5 M67 29 V15.5 M74 29 V18" /><circle className="rb-bulb" cx="60" cy="12" r="4" /></g>);
+  if (id === "lyra") // goggles pushed up on the forehead
+    return (<g className="yt-acc"><path className="yt-band" d="M39 31 Q60 25 81 31" /><circle className="yt-lens" cx="52" cy="29" r="5.5" /><circle className="yt-lens" cx="68" cy="29" r="5.5" /><circle className="rb-bulb" cx="50.5" cy="27.5" r="1.4" /></g>);
+  if (id === "nova") // scarf
+    return (<g className="yt-acc"><path className="yt-scarf" d="M42 60 Q60 67 78 60 L78 66 Q60 73 42 66 Z" /><path className="yt-scarf" d="M68 64 L72 80 L65 80 L63 66 Z" /><path className="yt-knit" d="M66 74 H71 M65.5 77 H71.5" /></g>);
+  if (id === "echo") // round reading glasses
+    return (<g className="yt-acc"><circle className="yt-glass" cx="54" cy="42" r="5" /><circle className="yt-glass" cx="66" cy="42" r="5" /><path className="yt-glass" d="M59 42 H61 M49 41 L43 39 M71 41 L77 39" /></g>);
+  if (id === "halo") // earmuffs
+    return (<g className="yt-acc"><path className="yt-band" d="M40 34 Q60 14 80 34" /><circle className="yt-muff" cx="39" cy="40" r="6.5" /><circle className="yt-muff" cx="81" cy="40" r="6.5" /><circle className="rb-bulb" cx="60" cy="21" r="1.8" /></g>);
+  return null;
+}
+
+function YetiHead({ id }: { id: string }) {
   return (
     <>
-      <g className="rb-ant">
-        <line x1="60" y1="24" x2="60" y2="12" />
-        <circle className="rb-bulb" cx="60" cy="10" r="3.6" />
-      </g>
-      <rect className="rb-ear" x="29" y="35" width="5" height="16" rx="2" /><rect className="rb-ear" x="86" y="35" width="5" height="16" rx="2" />
-      <rect className="rb-shell" x="34" y="24" width="52" height="36" rx="9" />
-      <rect className="rb-face" x="41" y="30" width="38" height="23" rx="5" />
-      <rect className="rb-eye" x="47" y="36" width="8" height="8" rx="2.4" /><rect className="rb-eye" x="65" y="36" width="8" height="8" rx="2.4" />
+      <circle className="rb-ear" cx="39" cy="33" r="5" /><circle className="rb-ear" cx="81" cy="33" r="5" />
+      <path className="rb-shell" d={HEAD} />
+      <path className="yt-tuft" d="M54 23 Q57 17 60 22 Q63 16 66 23" />
+      <ellipse className="rb-face" cx="60" cy="45" rx="14" ry="10.5" />
+      <path className="yt-brow" d="M50.5 37.6 Q54 36 57 37.4 M63 37.4 Q66 36 69.5 37.6" />
+      <circle className="rb-eye" cx="54" cy="41.5" r="2.5" /><circle className="rb-eye" cx="66" cy="41.5" r="2.5" />
+      <circle className="yt-glint" cx="54.8" cy="40.7" r=".8" /><circle className="yt-glint" cx="66.8" cy="40.7" r=".8" />
+      <ellipse className="yt-cheek" cx="49" cy="47" rx="2.6" ry="1.6" /><ellipse className="yt-cheek" cx="71" cy="47" rx="2.6" ry="1.6" />
+      <path className="yt-nose" d="M57.4 44.6 Q60 43.4 62.6 44.6 Q60 47.6 57.4 44.6 Z" />
+      <Accessory id={id} />
     </>
   );
 }
@@ -134,7 +141,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
   const rx = lastFx && lastFx.kind !== "open" ? lastFx.kind : reactionFor(d.trades, now);
 
   const sp = sparkPath(d.spark, 86, 30);
-  const scr = tone === "dn" ? "#fb7185" : "#34d399";
+  const scr = tone === "dn" ? "#e8836a" : "#a9c47f";
   const style = { "--d": `${(i * 0.73) % 4}s` } as CSSProperties;
   return (
     <button
@@ -169,19 +176,18 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
           <g className="rb-lean">
             <rect className="rb-chair" x="27" y="54" width="66" height="54" rx="12" />
             <g className="rb-body">
-              <rect className="rb-neck" x="55" y="58" width="10" height="9" rx="2" />
-              <rect className="rb-torso" x="38" y="66" width="44" height="42" rx="10" />
-              <rect className="rb-chest" x="48" y="75" width="24" height="16" rx="3" />
-              <circle className="rb-led" cx="54" cy="83" r="2.4" /><rect className="rb-bars" x="59" y="80" width="9" height="2" rx="1" /><rect className="rb-bars b2" x="59" y="84" width="6" height="2" rx="1" />
+              <path className="rb-torso" d={BODY} />
+              <ellipse className="rb-chest" cx="60" cy="90" rx="13" ry="13" />
+              <circle className="rb-led" cx="49" cy="78" r="2.4" /><rect className="rb-bars" x="45.5" y="81.5" width="7" height="2" rx="1" /><rect className="rb-bars b2" x="46.5" y="84.5" width="5" height="2" rx="1" />
               <g className="rb-hd">
-                <Head s={d.cfg.strategy === "supertrend" ? "trend" : d.cfg.strategy === "liqpocket" ? "funding" : d.cfg.strategy} />
+                <YetiHead id={d.cfg.id} />
                 <path className="rb-mouth m-n" d="M53 48.5 Q60 51 67 48.5" />
                 <path className="rb-mouth m-w" d="M51 47 Q60 54 69 47" />
                 <path className="rb-mouth m-l" d="M53 51 Q60 46.5 67 51" />
                 <text className="rb-alert" x="60" y="44">!</text>
               </g>
-              <g className="rb-a1"><path className="rb-arm" d="M41 75 L35 92 L63 100" /><circle className="rb-hand" cx="65" cy="100" r="4" /></g>
-              <g className="rb-a2"><path className="rb-arm" d="M79 75 L90 91 L99 100" /><circle className="rb-hand" cx="101" cy="100" r="4" /></g>
+              <g className="rb-a1"><path className="rb-arm" d="M42 76 Q33 92 63 100" /><path className="yt-arm-fur" d="M42 76 Q33 92 63 100" /><ellipse className="rb-hand" cx="66" cy="100" rx="5" ry="3.8" /><path className="yt-claw" d="M68 98 v3 M65.5 98.3 v3" /></g>
+              <g className="rb-a2"><path className="rb-arm" d="M78 76 Q92 90 99 100" /><path className="yt-arm-fur" d="M78 76 Q92 90 99 100" /><ellipse className="rb-hand" cx="101" cy="100" rx="5" ry="3.8" /><path className="yt-claw" d="M103 98 v3 M100.5 98.3 v3" /></g>
             </g>
           </g>
           <polygon className="bo-top-s" points="5,104 235,104 229,112 11,112" />
@@ -195,7 +201,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
           <rect className="bo-mon" x="118" y="14" width="104" height="76" rx="6" />
           <rect className="bo-scr" x="123" y="19" width="94" height="66" rx="3" />
           <text className="bo-st" x="127" y="28">XLM-PERP</text>
-          <text className="bo-st b" x="213" y="28" textAnchor="end" fill={tone === "flat" ? "#9aa3c7" : scr}>{d.status === "halted" ? "HALT" : fmtPnl(pnl)}</text>
+          <text className="bo-st b" x="213" y="28" textAnchor="end" fill={tone === "flat" ? "#d8c7a8" : scr}>{d.status === "halted" ? "HALT" : fmtPnl(pnl)}</text>
           {sp.line ? (
             <g transform="translate(127 34)">
               <path d={sp.area} fill={scr} opacity=".14" />

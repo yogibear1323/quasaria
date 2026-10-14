@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T00:51:10.000Z",
+ "generatedAt": "2026-10-14T00:56:21.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1909145,
-  "oracleAgeSec": 8,
-  "referencePrice": 0.190754,
-  "deviationPct": 0.0841,
+  "oraclePrice": 0.1909795,
+  "oracleAgeSec": 19,
+  "referencePrice": 0.190726,
+  "deviationPct": 0.1329,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9999.5317,
@@ -110,14 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:50Z",
+   "lastSignal": "no signal @ bar 10-14T00:54Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190394,
-    0.190438,
-    0.190513,
-    0.190486,
     0.19065,
     0.190545,
     0.190628,
@@ -152,8 +148,12 @@
     0.191587,
     0.19131,
     0.191148,
-    0.190981,
-    0.190901
+    0.190908,
+    0.190901,
+    0.190804,
+    0.190972,
+    0.190824,
+    0.190753
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:45Z",
+   "lastSignal": "no signal @ bar 10-14T00:50Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.191342,
     0.191292,
     0.191279,
     0.191485,
@@ -272,7 +271,8 @@
     0.191081,
     0.191728,
     0.19156,
-    0.191023
+    0.190908,
+    0.190822
    ]
   },
   {
@@ -753,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "block",
-  "reason": "resume: clock jumped 5995s; need 3 fresh reads",
-  "trippedSince": 1791939070,
-  "freshCount": 1,
-  "lastReadAt": 1791939070,
-  "lastOracleAgeSec": 8,
-  "lastHeartbeatAgeSec": 8,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1791939381,
+  "lastOracleAgeSec": 19,
+  "lastHeartbeatAgeSec": 19,
   "trips": 46,
-  "label": "STALE DATA · entries halted (block) — resume: clock jumped 5995s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

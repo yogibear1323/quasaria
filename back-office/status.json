@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T04:23:31.000Z",
+ "generatedAt": "2026-10-14T04:30:53.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1898075,
-  "oracleAgeSec": 9,
-  "referencePrice": 0.189751,
-  "deviationPct": 0.0298,
+  "oraclePrice": 0.1900675,
+  "oracleAgeSec": 16,
+  "referencePrice": 0.19008,
+  "deviationPct": 0.0066,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9999.5631,
@@ -110,20 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T04:18Z",
+   "lastSignal": "no signal @ bar 10-14T04:28Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.19043,
-    0.190442,
-    0.190304,
-    0.190334,
-    0.190375,
-    0.190376,
-    0.190259,
-    0.190351,
-    0.190397,
-    0.19048,
     0.190346,
     0.190231,
     0.190168,
@@ -153,7 +143,17 @@
     0.189645,
     0.189635,
     0.189613,
-    0.18958
+    0.18958,
+    0.18966,
+    0.189722,
+    0.18979,
+    0.189816,
+    0.189816,
+    0.189838,
+    0.18973,
+    0.189726,
+    0.189822,
+    0.1899
    ]
   },
   {
@@ -229,12 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T04:15Z",
+   "lastSignal": "no signal @ bar 10-14T04:25Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190326,
-    0.190229,
     0.190198,
     0.190009,
     0.19032,
@@ -272,7 +270,9 @@
     0.189696,
     0.189889,
     0.189749,
-    0.18966
+    0.18966,
+    0.189838,
+    0.189728
    ]
   },
   {
@@ -348,11 +348,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T04:00Z",
+   "lastSignal": "no signal @ bar 10-14T04:15Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.191187,
     0.191701,
     0.192155,
     0.19258,
@@ -391,7 +390,8 @@
     0.190056,
     0.190376,
     0.189685,
-    0.189749
+    0.189749,
+    0.18973
    ]
   },
   {
@@ -467,11 +467,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T03:30Z",
+   "lastSignal": "no signal @ bar 10-14T04:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.193964,
     0.193219,
     0.191988,
     0.191596,
@@ -510,7 +509,8 @@
     0.189696,
     0.190055,
     0.190056,
-    0.189685
+    0.189685,
+    0.18973
    ]
   },
   {
@@ -758,10 +758,10 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1791951811,
-  "lastOracleAgeSec": 9,
-  "lastHeartbeatAgeSec": 8,
-  "trips": 48,
+  "lastReadAt": 1791952253,
+  "lastOracleAgeSec": 16,
+  "lastHeartbeatAgeSec": 16,
+  "trips": 49,
   "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
@@ -779,9 +779,9 @@
    "timeframeSec": 900,
    "status": "running",
    "reason": "",
-   "equity": 100.509,
+   "equity": 100.4657,
    "startEquity": 100,
-   "paperPnl": 0.509,
+   "paperPnl": 0.4657,
    "paperTrades": 1,
    "paperWins": 1,
    "open": null,
@@ -905,6 +905,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791952200,
+     "barT": 1791951300,
+     "price": 0.18973,
+     "side": "short",
+     "p": {
+      "setup": 0.379,
+      "direction": 0.548,
+      "pressure": 0.525,
+      "regime": 0.226,
+      "risk": 0.739
+     },
+     "score": 0.464,
+     "action": "skip: setup 0.38 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791951300,
      "barT": 1791950400,
@@ -1683,26 +1703,6 @@
      "riskPct": 0,
      "sizing": "none",
      "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791815400,
-     "barT": 1791814500,
-     "price": 0.198163,
-     "side": "short",
-     "p": {
-      "setup": 0.333,
-      "direction": 0.548,
-      "pressure": 0.525,
-      "regime": 0.217,
-      "risk": 0.909
-     },
-     "score": 0.462,
-     "action": "skip: setup 0.33 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have won",
      "pnl": null
     }
    ]

@@ -1,5 +1,5 @@
 /**
- * "Perps" top-nav item with a submenu (Perps trade, Back Office robot floor).
+ * "Perps" top-nav item with a submenu (Perps trade, Back Office trading floor).
  * Opens on hover, keyboard focus, or the caret (touch). The menu is portalled with fixed positioning so the scrollable
  * nav strip cannot clip it. Esc closes and returns focus; ArrowDown/ArrowUp move through items.
  */

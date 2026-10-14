@@ -32,7 +32,7 @@ export interface DeskCfg {
 }
 export const BACK_OFFICE = cfg as { statusUrl: string; limits: Record<string, number>; desks: DeskCfg[] };
 export const STRATEGY_LABEL: Record<Strategy, string> = { trend: "Trend", funding: "Funding", meanrev: "Mean-Rev", supertrend: "Supertrend", liqpocket: "Liquidity pockets (experimental)" };
-/** compact tag for the robot desks */
+/** compact tag for the yeti trader desks */
 export const STRATEGY_SHORT: Record<Strategy, string> = { trend: "Trend", funding: "Funding", meanrev: "Mean-Rev", supertrend: "Supertrend", liqpocket: "Liq. pockets" };
 export const tfLabel = (s: number) => (s >= 3600 ? `${s / 3600}h` : s >= 60 ? `${s / 60}m` : `${s}s`);
 
@@ -279,7 +279,7 @@ export function sparkPath(v: number[], w = 150, h = 46) {
   return { line, area: `${line} L${w},${h} L0,${h} Z`, last: pts[pts.length - 1] };
 }
 
-// ---------------------------------------------------------------- floor animation model (robots)
+// ---------------------------------------------------------------- floor animation model (yeti traders)
 /** Signed QUSD amount; exactly zero renders as a clean "0.00". */
 export function fmtPnl(v: number | null, d = 2): string {
   if (v === null || !Number.isFinite(v)) return "—";
@@ -316,7 +316,7 @@ export function bubbleFor(trades: ChainTrade[], now: number, maxAgeSec = 3 * 360
   return { text: `CLOSED ${fmtPnl(p)}`, tone: p >= 0 ? "win" : "loss" };
 }
 
-/** Robot reaction to a close in the last `windowSec` seconds: cheer on a win, slump on a loss. */
+/** Yeti trader reaction to a close in the last `windowSec` seconds: cheer on a win, slump on a loss. */
 export function reactionFor(trades: ChainTrade[], now: number, windowSec = 600): "win" | "loss" | null {
   const t = trades.find((x) => x.kind === "close");
   if (!t || now - Date.parse(t.at) / 1000 > windowSec) return null;

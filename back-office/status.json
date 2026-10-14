@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T04:30:53.000Z",
+ "generatedAt": "2026-10-14T04:36:07.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1900675,
-  "oracleAgeSec": 16,
-  "referencePrice": 0.19008,
-  "deviationPct": 0.0066,
+  "oraclePrice": 0.190636,
+  "oracleAgeSec": 10,
+  "referencePrice": 0.190692,
+  "deviationPct": 0.0294,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9999.5631,
@@ -110,16 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T04:28Z",
+   "lastSignal": "no signal @ bar 10-14T04:34Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190346,
-    0.190231,
-    0.190168,
-    0.190091,
-    0.190052,
-    0.189948,
     0.189929,
     0.189751,
     0.189818,
@@ -153,7 +147,13 @@
     0.18973,
     0.189726,
     0.189822,
-    0.1899
+    0.1899,
+    0.190088,
+    0.19012,
+    0.190495,
+    0.190682,
+    0.19062,
+    0.190437
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T04:25Z",
+   "lastSignal": "no signal @ bar 10-14T04:30Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190198,
     0.190009,
     0.19032,
     0.190004,
@@ -272,7 +271,8 @@
     0.189749,
     0.18966,
     0.189838,
-    0.189728
+    0.190088,
+    0.190655
    ]
   },
   {
@@ -391,7 +391,7 @@
     0.190376,
     0.189685,
     0.189749,
-    0.18973
+    0.190088
    ]
   },
   {
@@ -510,7 +510,7 @@
     0.190055,
     0.190056,
     0.189685,
-    0.18973
+    0.190088
    ]
   },
   {
@@ -758,9 +758,9 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1791952253,
-  "lastOracleAgeSec": 16,
-  "lastHeartbeatAgeSec": 16,
+  "lastReadAt": 1791952567,
+  "lastOracleAgeSec": 10,
+  "lastHeartbeatAgeSec": 10,
   "trips": 49,
   "label": "fresh",
   "blockAgeSec": 60,

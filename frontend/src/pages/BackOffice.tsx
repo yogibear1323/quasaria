@@ -17,8 +17,8 @@ import { PERPS } from "../lib/perps";
 import { CalibratedSignals } from "../components/CalibratedSignals";
 import { DecisionDesk } from "../components/DecisionDesk";
 import "../theme/back-office.css";
-import "../theme/back-office-earthy.css";
 import "../theme/beacons.css";
+import "../theme/back-office-earthy.css"; // after beacons.css so the earthy .bo.bk tokens win
 import { Quasar } from "../components/Quasar";
 import { BeaconsPreview } from "../components/BeaconsPreview";
 import { realEventKeys, useEventPulse } from "../lib/beaconPulse";

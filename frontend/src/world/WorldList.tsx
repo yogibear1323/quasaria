@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AUTOPAY, DISTRICTS, REGIONS } from "../lib/world";
+import { DISTRICTS, REGIONS } from "../lib/world";
 
 /** Accessible list of every district, grouped by region. Fallback for the globe and the inner-page menu. */
 export default function WorldList({ current, onNavigate, label = "Quasaria districts" }: { current?: string; onNavigate?: () => void; label?: string }) {
@@ -20,10 +20,6 @@ export default function WorldList({ current, onNavigate, label = "Quasaria distr
           </ul>
         </div>
       ))}
-      <div className="wl-region">
-        <h3>Outer orbit</h3>
-        <ul><li><a className="wl-item hue-cyan" href={AUTOPAY.href}><span className="wl-dot" aria-hidden /><span><b>{AUTOPAY.label} ↗</b><small>{AUTOPAY.blurb}</small></span></a></li></ul>
-      </div>
     </nav>
   );
 }

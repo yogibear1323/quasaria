@@ -17,7 +17,6 @@ export const DISTRICTS: District[] = [
   { id: "pools", to: "/pools", label: "Pools", district: "Liquidity Lakes", region: "Yield Basin", lat: -8, lon: 52, hue: "cyan", blurb: "Provide liquidity" },
   { id: "lending", to: "/lending", label: "Lend", district: "Blend Harbor", region: "Yield Basin", lat: -30, lon: 70, hue: "violet", blurb: "Blend XLM pool (default)" },
   { id: "earn", to: "/earn", label: "Earn", district: "Harvest Terraces", region: "Yield Basin", lat: 10, lon: 88, hue: "magenta", blurb: "Yield options" },
-  { id: "propertyroot", to: "/propertyroot", label: "PropertyRoot", district: "Rootstead", region: "Yield Basin", lat: -58, lon: 82, hue: "violet", blurb: "Property value → Blend yield · testnet demo" },
   { id: "calculators", to: "/calculators", label: "Calculators", district: "Mirror Lab", region: "Yield Basin", lat: -48, lon: 42, hue: "cyan", blurb: "What-if math" },
   { id: "stake", to: "/stake", label: "Stake", district: "Orbit Citadel", region: "Orbit Coast", lat: 22, lon: 128, hue: "violet", blurb: "Orbit staking" },
   { id: "beacons", to: "/beacons", label: "Beacons", district: "Beacon Heights", region: "Orbit Coast", lat: 46, lon: 150, hue: "magenta", blurb: "Preview · not deployed" },
@@ -29,8 +28,6 @@ export const DISTRICTS: District[] = [
   { id: "merch", to: "/merch", label: "Merch", district: "Bazaar", region: "Commons", lat: -40, lon: -64, hue: "magenta", blurb: "Quasaria gear" },
 ];
 
-/** Autopay orbits Quasaria as a moon: an outer link, not a district. */
-export const AUTOPAY = { label: "Autopay", href: "https://yogibear1323.github.io/autopay/", blurb: "Outer moon · separate app" };
 
 export const REGIONS: Region[] = ["Exchange Ridge", "Yield Basin", "Orbit Coast", "Commons"];
 

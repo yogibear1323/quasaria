@@ -44,7 +44,6 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/pools", label: "Pools", scene: "nebula" },
   { to: "/lending", label: "Lend", scene: "orbits" },
   { to: "/earn", label: "Earn", scene: "supernova" },
-  { to: "/propertyroot", label: "PropertyRoot", scene: "orbits" },
   { to: "/stake", label: "Stake", scene: "orbits" },
   { to: "/beacons", label: "Beacons", scene: "quasar" },
   { to: "/rewards", label: "QFX Mint & Rewards", scene: "supernova" },

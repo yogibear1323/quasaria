@@ -109,3 +109,15 @@
 .bp-field input { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font: 500 1rem var(--font-mono, monospace); color: var(--text); }
 .bp-stake .pill { cursor: pointer; }
 .bp-queue { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #fffaf0; border: 1px solid rgba(232, 163, 61, .4); font-size: .88rem; }
+
+/* ---- Beacons in brief (plain-language summary) */
+.bp-sum { margin: 0 0 16px; }
+.bp-sum h2 { margin: 0 0 6px; }
+.bp-sum h3 { margin: 14px 0 8px; font-size: 1rem; }
+.bp-sum p { margin: 0 0 8px; color: var(--text); max-width: 75ch; }
+.bp-sum-list { margin: 6px 0 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--text); }
+.bp-sum-parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; margin: 0; }
+.bp-sum-parts > div { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--surface-2); min-width: 0; }
+.bp-sum-parts dt { font-weight: 700; color: var(--text); }
+.bp-sum-parts dd { margin: 2px 0 0; color: var(--text-2); font-size: .9rem; }
+.bp-sum-note { margin-top: 12px !important; font-size: .9rem; color: var(--text-2) !important; }

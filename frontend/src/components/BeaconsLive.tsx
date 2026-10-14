@@ -38,7 +38,7 @@ export default function BeaconsLive() {
   return (
     <section className="bp-sec bp-live" id="live-testnet" aria-labelledby="bp-live">
       <h2 id="bp-live">Live on testnet <span className="pill gold">Testnet · unaudited</span><span className="pill cyan" style={{ marginLeft: 6 }}>{demo ? "Demo timing" : "Production timing"}: {dur(cyc)} cycles · {dur(unb)} unbonding</span></h2>
-      <p className="muted">Read straight from the six Beacons contracts on Stellar testnet, refreshed every 20 s. Testnet XLM only, no real value. {demo ? "Demo timing is on so a full cycle can be watched; production timing is 4-hour cycles and 7-day unbonding." : "Production timing: 4-hour cycles, 7-day unbonding. The end-to-end check ran earlier on 2-minute demo cycles."} Fees come from a labelled <b>test fee source</b>: the DEX has no protocol fee share yet.</p>
+      <p className="muted">Live numbers from the six testnet contracts, updated every 20 seconds. {demo ? "Demo timing is on, so cycles are short." : "Payouts every 4 hours. Exits take 7 days."} Fees come from a <b>test fee source</b> for now.</p>
       {err && <div className="bp-banner">Could not read testnet contracts: {err}</div>}
       {!d ? <div className="card muted">Loading live testnet state…</div> : <>
         <div className="grid g-3">

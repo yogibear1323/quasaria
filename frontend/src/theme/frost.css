@@ -54,7 +54,7 @@ html.frost .wb-stars { position: absolute; inset: 0 0 35% 0; pointer-events: non
   radial-gradient(1px 1px at 77% 48%, #fff, transparent 60%), radial-gradient(1px 1px at 12% 58%, #c9d5e6, transparent 60%);
   animation: frost-twinkle 7s ease-in-out infinite alternate; }
 html.frost .wb-mtn { position: absolute; left: 0; right: 0; bottom: 0; height: 62vh; min-height: 320px; pointer-events: none;
-  background: url("/frost/mountains.svg") center bottom / cover no-repeat; opacity: 0.95; }
+  background: url("/frost/mountains.svg") center bottom / cover no-repeat; opacity: 0.62; }
 html.frost .wb-mtn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, rgba(11, 20, 40, 0.15) 50%, rgba(11, 20, 40, 0.55) 100%); }
 html.frost .wb-snow { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 html.frost .wb-snow i { position: absolute; left: 0; right: 0; top: -100%; height: 200%; display: block;

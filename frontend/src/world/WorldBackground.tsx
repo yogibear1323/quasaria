@@ -12,6 +12,7 @@ export default function WorldBackground({ scene = "quasar" }: { scene?: Scene })
       <div className="wb-sky" />
       <div className="wb-stars" />
       <div className="wb-mtn" />
+      <div className="wb-yeti" />
       <div className="wb-snow"><i /><i /><i /></div>
       <div className="wb-coins"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
     </div>

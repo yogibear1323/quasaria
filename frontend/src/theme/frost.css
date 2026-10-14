@@ -155,3 +155,13 @@ html.frost .bo-st { fill: #9fb0cc; } html.frost .bo-st.b { fill: #eef3fa; } html
 html.frost .bo-dot, html.frost .bo-off { fill: #08101f; }
 html.frost .yt-hood { stroke: #8fa3c4; stroke-width: 1; }
 html.frost .rb-lean { filter: drop-shadow(0 0 .5px rgba(183, 198, 222, .9)); }
+
+/* Parka yeti photo blended into the dashboard background: behind all content, low opacity, masked so it fades into
+   the navy sky and mountains. Static (no motion). */
+html.frost .wb-yeti { position: absolute; right: max(-40px, -3vw); bottom: 0; width: min(44vw, 640px); height: min(94vh, 940px);
+  pointer-events: none; background: url("/frost/yeti-cutout-lg.webp") right bottom / contain no-repeat; opacity: 0.17;
+  filter: saturate(0.85) brightness(0.95);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%), linear-gradient(0deg, transparent 0%, #000 26%);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0%, #000 38%), linear-gradient(0deg, transparent 0%, #000 26%); mask-composite: intersect; }
+@media (max-width: 899px) { html.frost .wb-yeti { width: 92vw; height: 78vh; right: -14vw; opacity: 0.11; } }
+@media (prefers-contrast: more) { html.frost .wb-yeti { display: none; } }

@@ -96,18 +96,18 @@ async function sheetPage(html, out, w, h = 800, full = true) {
   await p.screenshot({ path: out, fullPage: full });
   await ctx.close();
 }
-const css = `body{margin:0;background:#070709;color:#e8e6f5;font:15px/1.35 system-ui,sans-serif;padding:36px}h1{margin:0 0 6px;font-size:28px}p{margin:0 0 24px;color:#9aa0b8}
-.g{display:grid;gap:18px}.c{background:#111114;border:1px solid #26262d;border-radius:14px;overflow:hidden}.c img{display:block;width:100%}.c div{padding:10px 12px;font-size:13px;color:#c9c6e0}`;
+const css = `body{margin:0;background:#090807;color:#f6eae5;font:15px/1.35 system-ui,sans-serif;padding:36px}h1{margin:0 0 6px;font-size:28px}p{margin:0 0 24px;color:#bcaa96}
+.g{display:grid;gap:18px}.c{background:#16130f;border:1px solid #312a22;border-radius:14px;overflow:hidden}.c img{display:block;width:100%}.c div{padding:10px 12px;font-size:13px;color:#e9cabd}`;
 if (want("sheets")) {
   const cells = MOCKUPS.map(([n]) => `<div class="c"><img src="mockup-${n}.png"><div>${n}</div></div>`).join("");
   await sheetPage(`<style>${css}.g{grid-template-columns:repeat(6,1fr)}</style><h1>Quasaria merch v4 — mockups</h1><p>${MOCKUPS.length} programmatic studio mockups · minimal, logo-led · black / navy / pearl · example products, not for sale yet</p><div class="g">${cells}</div>`, resolve(SHOTS, "merch-contact-sheet-v4.png"), 2000);
-  const dcells = DESIGNS.filter((d) => d.id !== "sticker-sheet").map((d) => `<div class="c"><div style="background:${d.id.startsWith("sticker") ? "#6f7385" : "#141417"};padding:14px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><img style="max-width:100%;max-height:100%;width:auto" src="${pathToFileURL(resolve(PRINT, "png", d.file + ".png")).href}"></div><div>${d.file}<br><span style="color:#8d93ad">${d.w}×${d.h} · ${d.kind}</span></div></div>`).join("");
+  const dcells = DESIGNS.filter((d) => d.id !== "sticker-sheet").map((d) => `<div class="c"><div style="background:${d.id.startsWith("sticker") ? "#907b64" : "#231a12"};padding:14px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><img style="max-width:100%;max-height:100%;width:auto" src="${pathToFileURL(resolve(PRINT, "png", d.file + ".png")).href}"></div><div>${d.file}<br><span style="color:#b39e87">${d.w}×${d.h} · ${d.kind}</span></div></div>`).join("");
   await sheetPage(`<style>${css}.g{grid-template-columns:repeat(6,1fr)}</style><h1>Quasaria merch v4 — print designs</h1><p>Full-resolution print PNGs (transparent) rendered from outlined SVG</p><div class="g">${dcells}</div>`, resolve(SHOTS, "merch-designs-overview-v4.png"), 2000);
   console.log("sheets done");
 }
 if (want("hero")) {
   const panels = ["hoodie-black", "pearl-tee", "bomber-navy"].map((n) => `<img src="mockup-${n}.png">`).join("");
-  await sheetPage(`<style>html,body{margin:0;background:#0B0B0D}.h{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding:24px;width:2400px;box-sizing:border-box}.h img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:28px;box-shadow:0 0 0 1px #ffffff14}</style><div class="h">${panels}</div>`, resolve(SHOTS, "merch-hero-v4.png"), 2400, 2 * 24 + Math.round((2400 - 4 * 24) / 3), false);
+  await sheetPage(`<style>html,body{margin:0;background:#0E0C0A}.h{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding:24px;width:2400px;box-sizing:border-box}.h img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:28px;box-shadow:0 0 0 1px #ffffff14}</style><div class="h">${panels}</div>`, resolve(SHOTS, "merch-hero-v4.png"), 2400, 2 * 24 + Math.round((2400 - 4 * 24) / 3), false);
   console.log("hero done");
 }
 
@@ -129,8 +129,8 @@ converted to outlines, so no fonts are needed. Regenerate with \`scripts/merch/b
 only type on the core pieces. The three slogan tees (Speed of Light, Level Up, Stardust to Quasar)
 are kept but reduced to one glowing Q, one simple graphic element and one short line of type.
 
-* **Palette:** logo violet \`#7C5CFF\` → cyan \`#22D3EE\` glow, white \`#FFFFFF\`.
-  Garments: **Black** \`#141417\`, **Navy** \`#1B2446\`, **Pearl** (iridescent white, \`#E6E8EE\` base).
+* **Palette:** logo violet \`#B8603A\` → cyan \`#D9973A\` glow, white \`#FFFFFF\`.
+  Garments: **Black** \`#231a12\`, **Navy** \`#2F3A26\`, **Pearl** (iridescent white, \`#E9DFCC\` base).
 * **Pearl iridescent tee** is a specialty blank (pearlescent / iridescent-finish fabric) and is not a
   standard Printful/Printify DTG blank. Source it from a cut-and-sew or specialty supplier, or fall
   back to a white or "pearl"/ash heavyweight tee (the chest Q and cyan sleeve file work on white).
@@ -175,7 +175,7 @@ ${rows}
 
 ## Individual die-cut stickers (300 DPI)
 
-SVGs include the magenta \`#EC008C\` **CutContour** hairline (2.5 mm white border, 1.5 mm bleed).
+SVGs include the magenta \`#C4704A\` **CutContour** hairline (2.5 mm white border, 1.5 mm bleed).
 PNGs are the finished look (white border, no bleed/cut line).
 
 | Files | Sticker | Size |
@@ -187,7 +187,7 @@ ${srows}
 1. Order a physical sample of each item: the violet → cyan glow shifts on DTG, and navy and
    pearl blanks vary by supplier.
 2. Re-check each provider's current templates (mug wrap, cap and bomber areas vary by blank).
-3. Embroidery threads: violet ≈ \`#7C5CFF\`, turquoise/cyan ≈ \`#22D3EE\`, white. Caps ≤ 3 threads.
+3. Embroidery threads: violet ≈ \`#B8603A\`, turquoise/cyan ≈ \`#D9973A\`, white. Caps ≤ 3 threads.
 `);
   console.log("README written");
 }

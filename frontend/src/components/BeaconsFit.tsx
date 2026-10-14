@@ -27,11 +27,11 @@ export default function BeaconsFit() {
       onToggle={(e) => { try { localStorage.setItem(SEEN, (e.currentTarget as HTMLDetailsElement).open ? "open" : "closed"); } catch { /* private mode */ } }}>
       <summary><span className="bp-fit-t">How Beacons fits into Quasaria</span><span className="pill gold">Testnet · unaudited</span><span className="bp-fit-chev" aria-hidden="true">▾</span></summary>
       <div className="bp-fit-body">
-        <p className="bp-fit-note" role="note">Testnet · unaudited. The six contracts are deployed on Stellar testnet only (see Live on testnet above), with <b>no change to the QFX contract</b>. Nothing here is a guaranteed return.</p>
+        <p className="bp-fit-note" role="note">Testnet · unaudited. Beacons adds six new contracts on testnet. <b>QFX itself does not change.</b> Returns are not guaranteed.</p>
 
-        <h3>Key finding: no protocol fee share yet</h3>
-        <p>Today the DEX's 0.3% swap fee goes entirely to liquidity providers (minus an optional referral cut). There is no protocol share, so the "40% of fees to stakers" has no source until one is added. Recommended: add a small protocol share (e.g. about 5 of the 30 bps) to <i>new</i> testnet pools and point it at the fee router; existing pools stay 100% to LPs. Lending treasury and a slice of leverage open fees can also flow to the router. Not recommended: taking 40% of gross swap fees from LPs.</p>
-        <p className="muted">Honest scale: the 12% holder-yield break-even is about 808 XLM/day of fees entering the router per 1M QFX staked, roughly 1.6M XLM/day of swap volume per 1M QFX staked at a 5 bps protocol cut.</p>
+        <h3>The main gap: no protocol fee yet</h3>
+        <p>Today the whole 0.3% swap fee goes to liquidity providers. Nothing goes to the protocol yet, so stakers have no fee source. The plan: add a small protocol share (about 5 of the 30 bps) to <i>new</i> testnet pools and send it to the fee router. Existing pools stay as they are. Lending and leverage fees can add to it too.</p>
+        <p className="muted">To beat the 12% holder yield, Beacons needs about 808 XLM of fees a day per 1M QFX staked. At a 5 bps cut, that's about 1.6M XLM of daily swap volume.</p>
 
         <h3>What stays, what changes, what's new</h3>
         <div className="bp-fit-scroll"><table className="bp-fit-table">
@@ -39,21 +39,21 @@ export default function BeaconsFit() {
           <tbody>{ROWS.map(([a, b, c, d]) => <tr key={a}><th scope="row">{a}</th><td>{b}</td><td>{c}</td><td>{d}</td></tr>)}</tbody>
         </table></div>
 
-        <h3>Beside Orbit and the 12% holder yield, not replacing them</h3>
+        <h3>It sits beside Orbit and the 12% yield</h3>
         <ol>
-          <li><b>Now:</b> this preview page; testnet contracts built and soaked next to Orbit. Users choose: hold QFX (12% from the pre-funded reserve), Orbit pools, or Beacons (revenue share, variable).</li>
-          <li><b>After the testnet soak:</b> publish Beacons APR vs holder yield vs Orbit, and the holder-yield reserve runway.</li>
-          <li><b>Only if Beacons proves revenue-backed:</b> stop adding new Orbit pools (existing ones run out naturally) and phase the holder yield down in announced, timelocked steps. No QFX code change needed.</li>
+          <li><b>Now:</b> Beacons runs on testnet next to Orbit. You choose: hold QFX (12%), use Orbit, or try Beacons (variable).</li>
+          <li><b>After testing:</b> publish how Beacons compares with the holder yield and Orbit.</li>
+          <li><b>Only if Beacons works:</b> stop adding new Orbit pools and lower the holder yield slowly, with notice.</li>
         </ol>
 
         <h3>Navigation</h3>
-        <p>Beacons sits right after Stake, labelled Preview. Entry points: the Stake page, the Earn hub and the Back Office Beacons panel. On the Quasaria world globe it's Beacon Heights.</p>
+        <p>Find Beacons after Stake in the menu, and from the Stake, Earn and Back Office pages. On the world globe it's Beacon Heights.</p>
 
-        <h3>Testnet build order (no deploys yet)</h3>
+        <h3>Build order</h3>
         <ol className="bp-fit-cols">{BUILD.map((b) => <li key={b}>{b}</li>)}</ol>
-        <p className="muted">Then a 4–8 week soak, audit, legal review, hardware multisig, and a capped mainnet launch only with Robert's sign-off.</p>
+        <p className="muted">Then 4–8 weeks of testing, an audit and a legal review. A small mainnet launch only happens with Robert's sign-off.</p>
 
-        <h3>Back Office monitoring (with the testnet contracts)</h3>
+        <h3>What the Back Office watches</h3>
         <ul className="bp-fit-cols">
           <li>Router inflow per source and protocol fee volume</li><li>Reserve vs 30-day threshold, cycles at the 25% cap</li><li>Blend deployed vs target, supply rate, liquidity</li>
           <li>Buffer vs queued exits, queue length and ETA</li><li>Peg drift vs 1% and pause state</li><li>Insurance vs 5% target; keeper heartbeat</li><li>Beacons APR vs holder yield vs Orbit APR</li>

@@ -75,7 +75,7 @@ export default function BeaconsStake() {
   return (
     <section className="bp-sec bp-stake" id="stake-testnet" aria-labelledby="bp-stake-h">
       <h2 id="bp-stake-h">Stake on testnet <span className="pill gold">Testnet · unaudited</span></h2>
-      <p className="muted">Signs real transactions on <b>Stellar testnet</b> with your connected wallet (in-app account or Freighter set to TESTNET). Testnet QFX has no value. Get QFX on the Swap or Earn pages by depositing testnet XLM 1:1.</p>
+      <p className="muted">This uses <b>Stellar testnet</b>, so test QFX has no value. Connect your wallet (in-app or Freighter on TESTNET). Need QFX? Swap testnet XLM for it 1:1 on the Swap or Earn page.</p>
       {!me ? <div className="card"><p style={{ margin: 0 }}>Connect a testnet wallet to stake.</p><button className="btn" style={{ marginTop: 10 }} onClick={() => w.openModal()}>Connect wallet</button></div>
       : w.wrongNetwork ? <div className="bp-banner bp-err" role="alert">Your wallet is on the wrong network. Switch Freighter to <b>TESTNET</b> to use Beacons. Mainnet is not supported.</div>
       : <>
@@ -90,7 +90,7 @@ export default function BeaconsStake() {
             </label>
             {!pos && <div className="bp-seg" role="group" aria-label="Lock">{LOCKS.map(([days, label, boost]) => <button key={days} type="button" aria-pressed={lock === days} onClick={() => setLock(days)}>{label} · {boost}</button>)}</div>}
             <p className="muted" style={{ margin: "8px 0" }}>Tier after this: <b>{tierIdx >= 0 ? TIERS[tierIdx][0] : "below Spark (100 QFX min)"}</b>{pos && active ? ` · keeps your ${pos.lock_days ? `${pos.lock_days}-day` : "no"} lock${pos.lock_days ? " (lock end moves to today + lock)" : ""} · the added QFX starts earning next cycle` : " · starts earning from the next 4-hour cycle"}</p>
-            {pos && !active ? <p className="muted">You can't add to a position that is unbonding. Wait for the exit to finish, then stake again.</p>
+            {pos && !active ? <p className="muted">This stake is being withdrawn. Wait until that's done, then stake again.</p>
             : <button className="btn" disabled={busy || paused || amount <= 0 || (!pos && amount < 100) || amount > (d?.qfx ?? 0)}
                 onClick={() => pos ? act(`Add ${n(amount)} QFX`, "add_stake", [addr(me), i128(units(amount))]) : act(`Stake ${n(amount)} QFX`, "stake", [addr(me), i128(units(amount)), u32(lock)])}>
                 {paused ? "Paused by peg monitor" : pos ? "Add to stake" : "Stake QFX"}</button>}

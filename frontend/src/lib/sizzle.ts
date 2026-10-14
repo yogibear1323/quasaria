@@ -11,8 +11,8 @@ const base = (): string => (import.meta.env?.BASE_URL as string | undefined) ?? 
 
 export function sizzleCuts(b: string = base()): SizzleCut[] {
   return [
-    { id: "wide", label: "Widescreen · 16:9", src: `${PROMO_PAGE_URL}quasaria-sizzle-16x9-earthy.mp4`, poster: `${b}media/quasaria-sizzle-16x9-earthy-poster.jpg`, width: 1920, height: 1080 },
-    { id: "vertical", label: "Vertical · 9:16", src: `${PROMO_PAGE_URL}quasaria-sizzle-9x16-earthy.mp4`, poster: `${b}media/quasaria-sizzle-9x16-earthy-poster.jpg`, width: 1080, height: 1920 },
+    { id: "wide", label: "Widescreen · 16:9", src: `${PROMO_PAGE_URL}quasaria-sizzle-16x9-frost.mp4`, poster: `${b}media/quasaria-sizzle-16x9-frost-poster.jpg`, width: 1920, height: 1080 },
+    { id: "vertical", label: "Vertical · 9:16", src: `${PROMO_PAGE_URL}quasaria-sizzle-9x16-frost.mp4`, poster: `${b}media/quasaria-sizzle-9x16-frost-poster.jpg`, width: 1080, height: 1920 },
   ];
 }
 

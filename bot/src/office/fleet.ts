@@ -333,7 +333,7 @@ export class Fleet {
     const bars: Record<number, Candle[]> = {};
     const need = new Map<number, number>();
     for (const d of this.cfg.desks) need.set(d.timeframeSec, Math.max(need.get(d.timeframeSec) ?? 300, barsNeeded(d)));
-    for (const [tf, n] of need) bars[tf] = await this.ref.closedBars(tf, now, n).catch(() => []);
+    await Promise.all([...need].map(async ([tf, n]) => { bars[tf] = await this.ref.closedBars(tf, now, n).catch(() => []); }));
 
     // chain views
     const views: Record<string, { free: number; positions: ChainPosition[] } | null> = {};

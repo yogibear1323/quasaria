@@ -1,6 +1,8 @@
 /** Independent reference market data (public, read-only): Coinbase XLM-USD candles/ticker, Kraken ticker fallback. */
 import type { Candle } from "./indicators.js";
 import { aggregate } from "./indicators.js";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 type Fetch = typeof fetch;
 
@@ -32,7 +34,29 @@ async function getJson(f: Fetch, url: string, timeoutMs = 8000): Promise<unknown
 
 export class PublicReferenceFeed implements ReferenceFeed {
   private cache = new Map<string, { at: number; v: Candle[] }>();
-  constructor(private readonly f: Fetch = fetch, private readonly ttlSec = 55) {}
+  /** cacheDir: persist base-granularity candles between restarts so a fresh start only fetches the gap. */
+  constructor(private readonly f: Fetch = fetch, private readonly ttlSec = 55, private readonly cacheDir?: string) {}
+
+  private diskLoad(base: number): Map<number, Candle> | undefined {
+    if (!this.cacheDir) return undefined;
+    try {
+      const rows = JSON.parse(readFileSync(join(this.cacheDir, `candles-${base}.json`), "utf8")) as Candle[];
+      return new Map(rows.map((c) => [c.t, c]));
+    } catch {
+      return undefined;
+    }
+  }
+  private diskSave(base: number, m: Map<number, Candle>) {
+    if (!this.cacheDir) return;
+    try {
+      if (!existsSync(this.cacheDir)) mkdirSync(this.cacheDir, { recursive: true });
+      const f = join(this.cacheDir, `candles-${base}.json`);
+      writeFileSync(f + ".tmp", JSON.stringify([...m.values()].sort((a, b) => a.t - b.t)));
+      renameSync(f + ".tmp", f);
+    } catch {
+      /* cache is best-effort */
+    }
+  }
 
   async ticker(): Promise<number | null> {
     try {
@@ -71,15 +95,19 @@ export class PublicReferenceFeed implements ReferenceFeed {
       const base = baseGran(gran), k = gran / base, needBase = minBars * k;
       if (needBase <= 300) bars = agg(await this.coinbase(base), gran);
       else {
-        let m = this.store.get(base);
-        const have = m ? [...m.keys()].sort((a, b) => a - b) : [];
-        if (!m || !have.length || have[0] > now - (needBase - 10) * base) { // coverage by time (1m candles skip no-trade minutes)
-          m = new Map((await this.history(base, now - (needBase + 2 * k) * base, now)).map((c) => [c.t, c]));
-        }
+        let m = this.store.get(base) ?? this.diskLoad(base) ?? new Map<number, Candle>();
+        const ts = [...m.keys()].sort((a, b) => a - b);
+        const from = now - (needBase + 2 * k) * base;
+        // back-fill the head only if the cache doesn't reach far enough (1m candles skip no-trade minutes: allow slack)
+        if (!ts.length || ts[0] > from + 10 * base) for (const c of await this.history(base, from, ts.length ? ts[0] : now)) m.set(c.t, c);
+        // forward-fill the gap since the newest cached candle (pages), else just the latest page
+        const newest = ts.length ? ts[ts.length - 1] : now;
+        if (now - newest > 250 * base) for (const c of await this.history(base, newest, now)) m.set(c.t, c);
         for (const c of await this.coinbase(base)) m.set(c.t, c);
         const cut = now - (needBase + 4 * k) * base;
         for (const t of m.keys()) if (t < cut) m.delete(t);
         this.store.set(base, m);
+        this.diskSave(base, m);
         bars = agg([...m.values()].sort((a, b) => a.t - b.t), gran);
       }
       this.cache.set(key, { at: now, v: bars });
@@ -108,7 +136,7 @@ export class PublicReferenceFeed implements ReferenceFeed {
     for (let s = from; s < to; s += base * 300) {
       const e = Math.min(to, s + base * 300);
       for (const c of await this.coinbase(base, s, e)) out.set(c.t, c);
-      await new Promise((r) => setTimeout(r, 350));
+      await new Promise((r) => setTimeout(r, 150));
     }
     const bars = [...out.values()].sort((a, b) => a.t - b.t);
     return agg(bars, gran);

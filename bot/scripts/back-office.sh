@@ -19,14 +19,19 @@ supervise() {
     cd "$BOT_DIR"
     "$NODE_BIN" --import tsx src/office/cli.ts run --publish --admin-port "$ADMIN_PORT" >> "$LOG_DIR/fleet.log" 2>&1 &
     child=$!; echo "$child" > "$CHILDPID"; log "runner started pid $child"
-    # heartbeat watchdog: kill a hung runner (no completed loop for 5 min)
+    # heartbeat watchdog: kill a hung runner. Fresh start: STARTUP_GRACE s to complete its first loop (history load);
+    # after that, no completed loop for HB_STALE s. A supervisor sleep that overran (VM suspend / clock jump) resets the
+    # grace instead of killing on a stale-by-wallclock heartbeat.
+    started=$(date +%s); last=$started
     while kill -0 "$child" 2>/dev/null; do
       sleep 30
-      hb="$HOME_DIR/state/heartbeat"
-      if [ -f "$hb" ]; then
-        age=$(( $(date +%s) - $(cat "$hb" 2>/dev/null || echo 0) ))
-        if [ "$age" -gt 300 ]; then log "heartbeat stale ${age}s — killing runner $child"; kill "$child" 2>/dev/null; sleep 5; kill -9 "$child" 2>/dev/null; fi
-      fi
+      now=$(date +%s)
+      if [ $((now - last)) -gt 120 ]; then log "clock jumped $((now - last))s (suspend?) — watchdog grace reset"; started=$now; fi
+      last=$now
+      hb="$HOME_DIR/state/heartbeat"; hbt=$(cat "$hb" 2>/dev/null || echo 0)
+      if [ "${hbt:-0}" -lt "$started" ]; then age=$((now - started)); limit=${STARTUP_GRACE:-180}; what="no first loop"
+      else age=$((now - hbt)); limit=${HB_STALE:-300}; what="heartbeat stale"; fi
+      if [ "$age" -gt "$limit" ]; then log "$what ${age}s (> ${limit}s) — killing runner $child"; kill "$child" 2>/dev/null; sleep 5; kill -9 "$child" 2>/dev/null; fi
     done
     wait "$child"; code=$?
     log "runner $child exited ($code)"

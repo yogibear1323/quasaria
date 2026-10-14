@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T04:19:20.000Z",
+ "generatedAt": "2026-10-14T04:23:31.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1894885,
-  "oracleAgeSec": 13,
-  "referencePrice": 0.189528,
-  "deviationPct": 0.0208,
+  "oraclePrice": 0.1898075,
+  "oracleAgeSec": 9,
+  "referencePrice": 0.189751,
+  "deviationPct": 0.0298,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9999.5631,
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T04:10Z",
+   "lastSignal": "no signal @ bar 10-14T04:15Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190665,
     0.190326,
     0.190229,
     0.190198,
@@ -272,7 +271,8 @@
     0.189685,
     0.189696,
     0.189889,
-    0.189749
+    0.189749,
+    0.18966
    ]
   },
   {
@@ -758,9 +758,9 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1791951560,
-  "lastOracleAgeSec": 13,
-  "lastHeartbeatAgeSec": 12,
+  "lastReadAt": 1791951811,
+  "lastOracleAgeSec": 9,
+  "lastHeartbeatAgeSec": 8,
   "trips": 48,
   "label": "fresh",
   "blockAgeSec": 60,

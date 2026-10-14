@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T05:33:41.000Z",
+ "generatedAt": "2026-10-14T05:38:56.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,14 +23,12 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1905305,
-  "oracleAgeSec": 2044,
-  "referencePrice": 0.190053,
-  "deviationPct": 0.2512,
-  "oracleLevel": "halt",
-  "oracleReasons": [
-   "oracle age 2044s > 90s"
-  ],
+  "oraclePrice": 0.1895995,
+  "oracleAgeSec": 14,
+  "referencePrice": 0.189486,
+  "deviationPct": 0.0599,
+  "oracleLevel": "ok",
+  "oracleReasons": [],
   "reserve": 9999.5631,
   "longOi": 0,
   "shortOi": 31.4064,
@@ -112,14 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T05:30Z",
+   "lastSignal": "no signal @ bar 10-14T05:35Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190586,
-    0.190598,
-    0.190668,
-    0.19065,
     0.190529,
     0.190628,
     0.190536,
@@ -155,7 +149,11 @@
     0.189872,
     0.189892,
     0.190096,
-    0.190032
+    0.190032,
+    0.189965,
+    0.18986,
+    0.189944,
+    0.1899
    ]
   },
   {
@@ -231,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T05:25Z",
+   "lastSignal": "no signal @ bar 10-14T05:30Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.189862,
     0.189918,
     0.189869,
     0.189696,
@@ -274,7 +271,8 @@
     0.189919,
     0.189904,
     0.190021,
-    0.190096
+    0.190096,
+    0.189837
    ]
   },
   {
@@ -755,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "trip",
-  "reason": "resume: clock jumped 2128s; need 3 fresh reads",
-  "trippedSince": 1791956021,
-  "freshCount": 0,
-  "lastReadAt": 1791956021,
-  "lastOracleAgeSec": 2044,
-  "lastHeartbeatAgeSec": 2094,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1791956336,
+  "lastOracleAgeSec": 14,
+  "lastHeartbeatAgeSec": 14,
   "trips": 50,
-  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 2128s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

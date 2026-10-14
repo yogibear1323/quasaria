@@ -20,7 +20,7 @@ describe("landing feature videos", () => {
         expect(statSync(jpg).size).toBeLessThan(120_000);
       }
     }
-    expect(featureSrc(FEATURE_VIDEOS[0], "16x9", "/quasaria/")).toBe("/quasaria/media/features/01-swaps-16x9-light.mp4");
+    expect(featureSrc(FEATURE_VIDEOS[0], "16x9", "/quasaria/")).toBe("/quasaria/media/features/01-swaps-16x9-earthy.mp4");
   });
   it("renders a lazy poster grid (no video element, no autoplay) with title + runtime", () => {
     const html = renderToStaticMarkup(<FeatureVideos />);
@@ -28,7 +28,7 @@ describe("landing feature videos", () => {
     expect(html).not.toContain("<video");
     expect(html).not.toMatch(/autoplay/i);
     expect(html).toContain('loading="lazy"');
-    expect(html).toMatch(/<source media="\(max-width: 720px\)" srcSet="[^"]*-9x16-light-poster\.jpg"/i);
+    expect(html).toMatch(/<source media="\(max-width: 720px\)" srcSet="[^"]*-9x16-earthy-poster\.jpg"/i);
     for (const v of FEATURE_VIDEOS) expect(html).toContain(fmtRuntime(v.seconds));
     expect(html).toContain("Live on testnet");
     expect(html).not.toContain("In development");

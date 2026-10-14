@@ -1,0 +1,23 @@
+{
+  "network": "testnet",
+  "warning": "TESTNET DEMO ONLY - UNAUDITED. pRT tokens are not legal title. Appraisal, title and KYC are simulated.",
+  "rpcUrl": "https://soroban-testnet.stellar.org",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "admin": "GDPJR3BLUUOA4GGFRZTIMERXVA75XJBXJXE75SJQ6FCRQ42I6NSBV3G3",
+  "appraiser": "GBGI72OD56HM3LU57FYQHOJ47A47CDLCVNRTWFUSA2UB4WCZ7KQO3QFS",
+  "external": {
+    "xlmSac": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "blendPool": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "blendPoolNote": "Blend v2 testnet pool; XLM reserve (index 0) supplied with request_type 0",
+    "reflector": "CCYOZJCOPG34LLQQ7N24YXBM7LL62R7ONMZ3G6WZAAYPB5OYKOMJRN63",
+    "reflectorNote": "Reflector testnet oracle (SEP-40), asset Other(XLM), 14 decimals, USD base"
+  },
+  "contracts": {
+    "attestationRegistry": "CB2GMNKP2DAH6TKNQOPDXXOWDJQ32DQXZOILPLW5NBXIQMZKLTT5SQTV",
+    "propertyVault": "CAOFCSLRS42AJXJGIHD3A7IOGJHR6KPH2ZESR5MVLP7AIMDVIHGR72RO",
+    "blendAdapter": "CDAH3K243QBP3BAVCEPRHGVRGBBPMJXSNCQGPGQACQWZDOHNRFN3UB3L"
+  },
+  "propertyTokenWasmHash": "6ae24e7befc5bfeab4c3f688d9527a8d06fb73a1eca87502ac1682b6e6a29aa8",
+  "params": { "ltvBps": 5000, "maxPriceAgeSecs": 1800, "demoMode": true, "demoCapUsd": 2000000, "requireVerified": true, "initialReserveXlm": 9000 },
+  "deployedAt": "2026-10-14T01:09:58Z"
+}

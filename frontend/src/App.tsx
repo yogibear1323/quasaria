@@ -18,6 +18,7 @@ import News from "./pages/News";
 import Lending from "./pages/Lending";
 import Perps from "./pages/Perps";
 import BackOffice from "./pages/BackOffice";
+import PropertyRoot from "./pages/PropertyRoot";
 import { GameProvider } from "./game/GameProvider";
 
 /** Live XLM chart pulls in lightweight-charts: lazy so it never weighs on other routes. */
@@ -59,6 +60,7 @@ export default function App() {
           <Route path="/quests" element={<Quests />} />
           <Route path="/merch" element={<Merch />} />
           <Route path="/news" element={<News />} />
+          <Route path="/propertyroot" element={<PropertyRoot />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

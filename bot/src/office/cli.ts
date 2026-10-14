@@ -72,7 +72,7 @@ async function runFleet() {
     if (missing.length) throw new Error(`no keys for desks: ${missing.join(", ")} (run: office setup)`);
   }
   const store = new Store(join(home, "state"));
-  const fleet = new Fleet(cfg, venue, keys, store, new PublicReferenceFeed(), { mode, baselines: loadBaselines(), log, vaultId: dep.contracts.vault, network: (dep as { network?: string }).network ?? "unknown" });
+  const fleet = new Fleet(cfg, venue, keys, store, new PublicReferenceFeed(fetch, 55, join(store.dir, "candles")), { mode, baselines: loadBaselines(), log, vaultId: dep.contracts.vault, network: (dep as { network?: string }).network ?? "unknown" });
   log(`Back Office fleet · ${mode.toUpperCase()} · TESTNET · vault ${dep.contracts.vault} · ${cfg.desks.length} desks · drift ${fleet.driftMode(Date.now() / 1000)}`);
   log("Unaudited testnet software, test funds only. No expected or guaranteed returns.");
   const publisher = flag("publish") && mode === "live" ? new StatusPublisher() : null;

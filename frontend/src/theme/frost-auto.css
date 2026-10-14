@@ -326,7 +326,7 @@ html.frost .badge-cell.on { border-color: hsla(208, 45%, 72.0%, 0.3); }
 html.frost .card.q-risk { border-color: hsla(208, 45%, 72.0%, 0.35); background: radial-gradient(ellipse at 0% 0%, hsla(210, 50%, 53.5%, 0.08), transparent 60%), linear-gradient(180deg, hsla(222, 42%, 9.0%, 0.703), hsla(222, 42%, 9.0%, 0.703)); }
 html.frost .gt-ico { color: hsla(214, 35%, 97.1%, 1); box-shadow: 0 0 18px -4px hsla(226, 60%, 3.0%, 0.8); }
 html.frost ::selection { background: hsla(210, 50%, 51.0%, 0.45); color: hsla(214, 35%, 100.0%, 1); }
-html.frost ::-webkit-scrollbar-thumb { background: hsla(210, 50%, 26.2%, 0.128); }
+html.frost ::-webkit-scrollbar-thumb { background: hsla(210, 50%, 26.2%, 0.128); background-clip: padding-box; }
 html.frost ::-webkit-scrollbar-thumb:hover { background-color: hsla(210, 50%, 26.2%, 0.218); }
 html.frost .topbar { background: hsla(222, 42%, 9.0%, 0.684); }
 html.frost .topbar::after { background: linear-gradient(90deg, transparent, hsla(210, 50%, 55.7%, 0.45) 30%, hsla(210, 50%, 40.0%, 0.35) 70%, transparent); }

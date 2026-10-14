@@ -35,10 +35,13 @@ for (const f of files) {
     if (rule.parent?.type === "atrule" && /keyframes/.test(rule.parent.name)) return;
     if (rule.selector.includes(":root") || SKIP.test(rule.selector)) return;
     const decls = [];
-    rule.each((d) => { if (d.type !== "decl") return; const role = roleOf(d.prop); if (!role || /url\(/.test(d.value) || /var\(/.test(d.value) && !COLOR.test(d.value)) return; COLOR.lastIndex = 0;
+    const clipText = rule.nodes.some((d) => d.type === "decl" && /background-clip$/.test(d.prop) && /text/.test(d.value));
+    rule.each((d) => { if (d.type !== "decl") return; const role = clipText && /^background/.test(d.prop) ? "text" : roleOf(d.prop); if (!role || /url\(/.test(d.value) || /var\(/.test(d.value) && !COLOR.test(d.value)) return; COLOR.lastIndex = 0;
       if (!COLOR.test(d.value)) return; COLOR.lastIndex = 0; let v = d.value.replace(COLOR, (c) => map(c, role)); if (/white|#fff\b/i.test(v) && role === "text") v = v.replace(/\bwhite\b/g, "#f2f6fc");
       decls.push(`${d.prop}: ${v}${d.important ? " !important" : ""};`); });
     if (!decls.length) return;
+    // keep gradient text working: a re-emitted `background` shorthand resets background-clip, so restate it
+    rule.each((d) => { if (d.type === "decl" && /background-clip$/.test(d.prop)) decls.push(`${d.prop}: ${d.value}${d.important ? " !important" : ""};`); });
     const sel = rule.selector.split(",").map((s) => s.trim()).map((s) => /^(html|body)\b/.test(s) ? s.replace(/^html/, "html.frost").replace(/^body/, "html.frost body") : `html.frost ${s}`).join(", ");
     let block = `${sel} { ${decls.join(" ")} }`;
     let p = rule.parent; while (p && p.type === "atrule") { if (/media|supports/.test(p.name)) block = `@${p.name} ${p.params} { ${block} }`; p = p.parent; }

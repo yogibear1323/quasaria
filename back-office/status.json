@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T12:27:36.000Z",
+ "generatedAt": "2026-10-14T12:33:03.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.190329,
-  "oracleAgeSec": 29,
-  "referencePrice": 0.190222,
-  "deviationPct": 0.0563,
+  "oraclePrice": 0.1883405,
+  "oracleAgeSec": 26,
+  "referencePrice": 0.187527,
+  "deviationPct": 0.4338,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9999.6408,
@@ -110,16 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T12:24Z",
+   "lastSignal": "no signal @ bar 10-14T12:30Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.189614,
-    0.189611,
-    0.189673,
-    0.189581,
-    0.18953,
-    0.189547,
     0.189591,
     0.189562,
     0.189619,
@@ -153,7 +147,13 @@
     0.190035,
     0.190086,
     0.19021,
-    0.189961
+    0.189961,
+    0.18996,
+    0.190253,
+    0.190415,
+    0.190336,
+    0.190698,
+    0.189255
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T12:20Z",
+   "lastSignal": "no signal @ bar 10-14T12:25Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.18927,
     0.189159,
     0.189172,
     0.188684,
@@ -272,7 +271,8 @@
     0.190413,
     0.19062,
     0.19031,
-    0.190102
+    0.189961,
+    0.190415
    ]
   },
   {
@@ -348,11 +348,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T12:00Z",
+   "lastSignal": "no signal @ bar 10-14T12:15Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.189696,
     0.189938,
     0.190055,
     0.189933,
@@ -391,7 +390,8 @@
     0.18898,
     0.18945,
     0.189452,
-    0.19062
+    0.19062,
+    0.190698
    ]
   },
   {
@@ -467,11 +467,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T11:30Z",
+   "lastSignal": "no signal @ bar 10-14T12:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.191491,
     0.191186,
     0.190877,
     0.190589,
@@ -510,7 +509,8 @@
     0.188714,
     0.189259,
     0.18898,
-    0.189452
+    0.189452,
+    0.190698
    ]
   },
   {
@@ -753,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "block",
-  "reason": "block (>= 60s): feed heartbeat age 69s",
-  "trippedSince": 1791980856,
-  "freshCount": 0,
-  "lastReadAt": 1791980856,
-  "lastOracleAgeSec": 29,
-  "lastHeartbeatAgeSec": 69,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1791981183,
+  "lastOracleAgeSec": 26,
+  "lastHeartbeatAgeSec": 46,
   "trips": 53,
-  "label": "STALE DATA · entries halted (block) — block (>= 60s): feed heartbeat age 69s",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,
@@ -909,6 +909,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1791981000,
+     "barT": 1791980100,
+     "price": 0.18996,
+     "side": "short",
+     "p": {
+      "setup": 0.379,
+      "direction": 0.517,
+      "pressure": 0.551,
+      "regime": 0.217,
+      "risk": 0.739
+     },
+     "score": 0.459,
+     "action": "skip: setup 0.38 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1791980100,
      "barT": 1791979200,
@@ -1682,26 +1702,6 @@
       "risk": 0.739
      },
      "score": 0.431,
-     "action": "skip: setup 0.32 < 0.5, pressure 0.48 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791831600,
-     "barT": 1791830700,
-     "price": 0.195501,
-     "side": "long",
-     "p": {
-      "setup": 0.324,
-      "direction": 0.535,
-      "pressure": 0.475,
-      "regime": 0.226,
-      "risk": 0.795
-     },
-     "score": 0.437,
      "action": "skip: setup 0.32 < 0.5, pressure 0.48 < 0.5",
      "fired": false,
      "riskPct": 0,

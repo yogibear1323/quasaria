@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { AUTOPAY, DISTRICTS, project, type District } from "../lib/world";
+import { DISTRICTS, project, type District } from "../lib/world";
 
 const TILT = 16;
 const HUE = { violet: "#7c3aed", cyan: "#0891b2", magenta: "#c026d3" } as const;
@@ -142,7 +142,7 @@ export default function Globe({ compact = false, current, onNavigate }: { compac
           </filter>
         </defs>
         <circle r={R * 1.18} fill="url(#g-atmo)" />
-        {/* orbit ring + Autopay moon */}
+        {/* decorative orbit ring */}
         <ellipse className="globe-orbit" rx={R * 1.32} ry={R * 0.36} transform="rotate(-12)" />
         <circle r={R} fill="url(#g-body)" className="globe-body" />
         <g className="globe-land" aria-hidden="true">{land.map((l, i) => <path key={i} className={`land-${l.k}`} d={l.d} />)}</g>
@@ -185,12 +185,6 @@ export default function Globe({ compact = false, current, onNavigate }: { compac
             </g>
           );
         })}
-        <a href={AUTOPAY.href} className="moon" aria-label={`${AUTOPAY.label}: ${AUTOPAY.blurb}`}>
-          <g transform={`translate(${(R * 1.02).toFixed(0)} ${(-R * 0.9).toFixed(0)})`}>
-            <circle r={compact ? 11 : 17} className="moon-body" />
-            <text y={compact ? 24 : 34} textAnchor="middle" className="moon-text">{AUTOPAY.label} ↗</text>
-          </g>
-        </a>
       </svg>
       {hover && !compact && (() => {
         const d = DISTRICTS.find((x) => x.id === hover)!;

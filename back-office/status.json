@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T12:48:45.000Z",
+ "generatedAt": "2026-10-14T12:54:07.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -9,32 +9,30 @@
  "fleet": {
   "status": "running",
   "reason": "",
-  "equity": 2999.5238,
+  "equity": 3000.6871,
   "startEquity": 3000,
-  "pnlToday": -0.4762,
-  "pnlTotal": -0.4762,
-  "drawdownPct": 0.0159,
+  "pnlToday": 0.6871,
+  "pnlTotal": 0.6871,
+  "drawdownPct": 0,
   "drawdownLimitPct": 12,
-  "riskUsedPct": 0.1177,
+  "riskUsedPct": 0,
   "riskCapPct": 5,
-  "openPositions": 1,
+  "openPositions": 0,
   "maxPositions": 12,
-  "netNotional": 476.1905,
-  "netSide": "long"
+  "netNotional": 0,
+  "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.187073,
-  "oracleAgeSec": 93,
-  "referencePrice": 0.187072,
-  "deviationPct": 0.0005,
-  "oracleLevel": "halt",
-  "oracleReasons": [
-   "oracle age 93s > 90s"
-  ],
-  "reserve": 10000.117,
-  "longOi": 476.1905,
+  "oraclePrice": 0.1868945,
+  "oracleAgeSec": 35,
+  "referencePrice": 0.187163,
+  "deviationPct": 0.1435,
+  "oracleLevel": "ok",
+  "oracleReasons": [],
+  "reserve": 9998.9537,
+  "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 4.2588711608968655e-8,
+  "fundingPredictedHourly": 6.564436946507766e-8,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -51,15 +49,15 @@
    "status": "halted",
    "reason": "reconciliation: on-chain position #5 not in journal",
    "manualPause": false,
-   "equity": 499.5238,
+   "equity": 500.6871,
    "startEquity": 500,
-   "pnlToday": -0.4762,
-   "pnlTotal": -0.4762,
+   "pnlToday": 0.6871,
+   "pnlTotal": 0.6871,
    "riskPct": 1,
    "maxLeverage": 5,
-   "dailyLossPct": 0.0952,
+   "dailyLossPct": 0,
    "dailyLimitPct": 3,
-   "drawdownPct": 0.0952,
+   "drawdownPct": 0,
    "drawdownLimitPct": 10,
    "lossStreak": 0,
    "drift": {
@@ -91,7 +89,7 @@
      {
       "id": "D-4",
       "label": "execution",
-      "value": "slip med 0.00% max 0.00% · tx fail 1/1 1h",
+      "value": "slip med 0.00% max 0.00% · tx fail 1/2 1h",
       "points": 0,
       "level": "ok"
      },
@@ -111,28 +109,11 @@
      }
     ]
    },
-   "open": [
-    {
-     "id": 5,
-     "side": "long",
-     "size": 476.1905,
-     "margin": 122.1001,
-     "leverage": 3.9,
-     "entry": 0.187073,
-     "stop": 0.185685536,
-     "takeProfit": 0,
-     "upnl": 0
-    }
-   ],
+   "open": [],
    "lastSignal": "no signal @ bar 10-14T12:44Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190239,
-    0.190209,
-    0.190174,
-    0.190413,
-    0.19062,
     0.190481,
     0.190565,
     0.190502,
@@ -167,7 +148,12 @@
     0.187306,
     0.187145,
     0.187578,
-    0.187725
+    0.187523,
+    0.187194,
+    0.187351,
+    0.187109,
+    0.18758,
+    0.187383
    ]
   },
   {
@@ -243,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T12:40Z",
+   "lastSignal": "no signal @ bar 10-14T12:45Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.188318,
     0.188348,
     0.188462,
     0.188353,
@@ -286,7 +271,8 @@
     0.190698,
     0.187626,
     0.188001,
-    0.187578
+    0.187578,
+    0.18758
    ]
   },
   {
@@ -767,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "trip",
-  "reason": "trip (>= 90s): on-chain oracle age 93s",
-  "trippedSince": 1791982125,
-  "freshCount": 0,
-  "lastReadAt": 1791982125,
-  "lastOracleAgeSec": 93,
-  "lastHeartbeatAgeSec": 0,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1791982447,
+  "lastOracleAgeSec": 35,
+  "lastHeartbeatAgeSec": 34,
   "trips": 55,
-  "label": "STALE DATA · entries halted (trip) — trip (>= 90s): on-chain oracle age 93s",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

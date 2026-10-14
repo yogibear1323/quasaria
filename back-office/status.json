@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T01:01:34.000Z",
+ "generatedAt": "2026-10-14T01:06:48.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,10 +23,10 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.190647,
-  "oracleAgeSec": 7,
-  "referencePrice": 0.190575,
-  "deviationPct": 0.0378,
+  "oraclePrice": 0.190425,
+  "oracleAgeSec": 1,
+  "referencePrice": 0.190388,
+  "deviationPct": 0.0194,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9999.5317,
@@ -110,15 +110,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:59Z",
+   "lastSignal": "no signal @ bar 10-14T01:04Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190631,
-    0.1907,
-    0.190737,
-    0.190719,
-    0.190818,
     0.190818,
     0.190814,
     0.190815,
@@ -153,7 +148,12 @@
     0.190725,
     0.19077,
     0.190686,
-    0.190705
+    0.190665,
+    0.190796,
+    0.190542,
+    0.190585,
+    0.190405,
+    0.190326
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T00:55Z",
+   "lastSignal": "no signal @ bar 10-14T01:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.191279,
     0.191485,
     0.191249,
     0.191238,
@@ -272,7 +271,8 @@
     0.19156,
     0.190908,
     0.190822,
-    0.190665
+    0.190665,
+    0.190326
    ]
   },
   {
@@ -391,7 +391,7 @@
     0.190486,
     0.190916,
     0.19156,
-    0.190736
+    0.190665
    ]
   },
   {
@@ -510,7 +510,7 @@
     0.190053,
     0.190026,
     0.190916,
-    0.190736
+    0.190665
    ]
   },
   {
@@ -629,7 +629,7 @@
     0.191238,
     0.190818,
     0.190026,
-    0.190725
+    0.190665
    ]
   },
   {
@@ -758,9 +758,9 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1791939694,
-  "lastOracleAgeSec": 7,
-  "lastHeartbeatAgeSec": 7,
+  "lastReadAt": 1791940008,
+  "lastOracleAgeSec": 1,
+  "lastHeartbeatAgeSec": 1,
   "trips": 46,
   "label": "fresh",
   "blockAgeSec": 60,

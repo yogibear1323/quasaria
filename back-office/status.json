@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-14T22:02:25.000Z",
+ "generatedAt": "2026-10-14T22:07:36.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,16 +23,16 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.184036,
-  "oracleAgeSec": 13,
-  "referencePrice": 0.18412,
-  "deviationPct": 0.0456,
+  "oraclePrice": 0.1837,
+  "oracleAgeSec": 44,
+  "referencePrice": 0.183898,
+  "deviationPct": 0.1077,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 4.326646771239975e-9,
+  "fundingPredictedHourly": 4.288761547661501e-9,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -114,11 +114,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.182792,
-    0.182925,
-    0.183088,
-    0.18325,
-    0.18325,
     0.18326,
     0.183397,
     0.18336,
@@ -153,7 +148,12 @@
     0.18387,
     0.183835,
     0.183972,
-    0.183838
+    0.183838,
+    0.184013,
+    0.184005,
+    0.183986,
+    0.184014,
+    0.183776
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-14T21:55Z",
+   "lastSignal": "no signal @ bar 10-14T22:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.183414,
     0.183789,
     0.183975,
     0.1838,
@@ -272,7 +271,8 @@
     0.183553,
     0.183709,
     0.183665,
-    0.183965
+    0.183972,
+    0.183798
    ]
   },
   {
@@ -391,7 +391,7 @@
     0.18306,
     0.18336,
     0.183553,
-    0.18397
+    0.183972
    ]
   },
   {
@@ -510,7 +510,7 @@
     0.183516,
     0.182921,
     0.18336,
-    0.18397
+    0.183972
    ]
   },
   {
@@ -758,9 +758,9 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1792015345,
-  "lastOracleAgeSec": 13,
-  "lastHeartbeatAgeSec": 12,
+  "lastReadAt": 1792015656,
+  "lastOracleAgeSec": 44,
+  "lastHeartbeatAgeSec": 44,
   "trips": 59,
   "label": "fresh",
   "blockAgeSec": 60,

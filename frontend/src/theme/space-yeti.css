@@ -1,0 +1,45 @@
+/* Space yeti: decorative astronaut yeti (earthy Stellar suit) leaning on page headers / tabs. */
+.space-yeti { pointer-events: none; user-select: none; flex: none; width: 84px; height: 140px; align-self: flex-end; transform-origin: 50% 100%; transform: rotate(-4deg); }
+.space-yeti.is-mirror { transform: scaleX(-1) rotate(-4deg); }
+.space-yeti svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.space-yeti .my-suit { fill: #e4d6bd; stroke: #8b7356; stroke-width: 1.1; stroke-linejoin: round; }
+.space-yeti .my-boot { fill: #6b4a33; }
+.space-yeti .my-trim { fill: none; stroke: #b8603a; stroke-width: 3; stroke-linecap: round; }
+.space-yeti .my-zip { stroke: #a8957a; stroke-width: 1; stroke-dasharray: 2 2; }
+.space-yeti .my-strap { stroke: #d9973a; stroke-width: 3.2; stroke-linecap: round; }
+.space-yeti .my-patch { fill: #fffaf0; stroke: #d9973a; stroke-width: 1.6; }
+.space-yeti .my-mark { fill: #0f0f0f; }
+.space-yeti .my-arm { fill: none; stroke: #e4d6bd; stroke-width: 11; stroke-linecap: round; }
+.space-yeti .my-glove { fill: #b8603a; }
+.space-yeti .my-ring { fill: #cbb89a; stroke: #8b7356; stroke-width: 1; }
+.space-yeti .my-helmet { fill: rgba(246, 236, 218, 0.55); stroke: #a8957a; stroke-width: 2.4; }
+.space-yeti .my-helmet-rim { fill: none; stroke: #d9973a; stroke-width: 3; stroke-linecap: round; }
+.space-yeti .my-visor { fill: #5e6b3c; stroke: #d9973a; stroke-width: 1.2; opacity: .92; }
+.space-yeti .my-lamp { fill: #f2b84b; }
+.space-yeti .my-fur { fill: #fbf6ec; stroke: #8b7356; stroke-width: 1.1; stroke-linejoin: round; }
+.space-yeti .my-ear { fill: #efe4d0; stroke: #8b7356; stroke-width: 1; }
+.space-yeti .my-tuft { fill: none; stroke: #8b7356; stroke-width: 1; stroke-linecap: round; }
+.space-yeti .my-face { fill: #c9ad8c; }
+.space-yeti .my-brow { fill: none; stroke: #6b5638; stroke-width: 1.1; stroke-linecap: round; }
+.space-yeti .my-eye { fill: #2a2118; } .space-yeti .my-glint { fill: #fff; }
+.space-yeti .my-cheek { fill: #d98b6a; opacity: .5; }
+.space-yeti .my-nose { fill: #4a3424; }
+.space-yeti .my-smile { fill: none; stroke: #4a3424; stroke-width: 1; stroke-linecap: round; }
+.space-yeti .my-coin { fill: #f6dfa8; stroke: #d9973a; stroke-width: 1.4; }
+.space-yeti .my-card { fill: #fffaf0; stroke: #8b7356; stroke-width: 1; }
+.space-yeti .my-line { fill: none; stroke: #5e6b3c; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.space-yeti .my-pole { fill: none; stroke: #6b4a33; stroke-width: 1.4; stroke-linecap: round; }
+.space-yeti .my-flag { fill: #b8603a; } .space-yeti .my-flagless { fill: none; stroke: #6b4a33; stroke-width: 2; }
+.space-yeti .my-leaf { fill: #6e7c4a; }
+@keyframes my-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+.space-yeti .my-bob { animation: my-bob 4.5s ease-in-out infinite; transform-box: fill-box; }
+@media (prefers-reduced-motion: reduce) { .space-yeti .my-bob { animation: none; } }
+
+/* In page headers: a real flex item, so it can never overlap text or controls. Sits right next to the header's
+   pill/tab block, leaning on it. Hidden on narrow screens where there's no room. */
+.page-head .space-yeti { order: 2; margin-left: auto; margin-bottom: -4px; margin-right: 0; }
+.page-head > :not(.space-yeti):not(:first-child) { order: 3; }
+@media (max-width: 899px) { .space-yeti { display: none; } }
+/* inline placements (hero CTA rows that aren't PageHead): smaller, pushed to the row's end */
+.sy-inline { width: 60px; height: 100px; margin-left: auto; margin-bottom: -6px; }
+.xc-pagehead .xc-yeti { margin-left: auto; align-self: flex-end; }

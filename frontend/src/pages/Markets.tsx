@@ -9,6 +9,9 @@ import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type Marke
 import { hms, LIVE_ASSET_COUNT as LIVE_N, MAINNET_USDC_ISSUER, REFRESH_MS, snapshotRow, useLiveMarkets, type LiveRow } from "../lib/liveMarkets";
 import { OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
+import MarketsHero from "../components/MarketsHero";
+import SpaceYeti from "../components/SpaceYeti";
+import "../theme/markets-fancy.css";
 
 const chg = (v: number | null) => (v === null ? <span className="muted">—</span> : <span className={v >= 0 ? "pos" : "neg"}>{v >= 0 ? "+" : ""}{fmt(v, 2)}%</span>);
 const priceFmt = (v: number) => (v >= 100 ? fmt(v, 2) : v >= 1 ? fmt(v, 4) : v >= 0.0001 ? fmt(v, 6) : v.toExponential(2));
@@ -161,18 +164,20 @@ export default function Markets() {
 
   return (
     <>
-      <PageHead kicker="Scene · Constellations" title="Markets" right={headRight}>
+      <div className="mk-page">
+      <PageHead kicker="Scene · Constellations" title="Markets" right={headRight} yeti={false}>
         {network === "mainnet"
           ? "Live Stellar mainnet market data straight from public Horizon — price, momentum, volume and holders. Display data only: trading on Quasaria is testnet-only, and every trade settles on the testnet SDEX or through Soroban."
           : "Discover Stellar assets ranked by stellarchain.io — price, momentum, volume and issuer info. Display data only: every trade still settles on the SDEX via Horizon or through Soroban."}
       </PageHead>
-      <div className="grid g-4" style={{ marginBottom: 18 }}>
+      {network === "mainnet" && !OFFLINE_DEMO && <MarketsHero rows={allRows} live={live.mode === "live"} onPick={(c) => { setSearch(c); }} />}
+      <div className="grid g-4 mk-stats" style={{ marginBottom: 18 }}>
         <div className="card"><Stat label="XLM / USD" value={usdPerXlm ? `$${fmt(usdPerXlm, 4)}` : "—"} sub={xlmSub} className="gold" /></div>
         <div className="card"><Stat label="Tracked assets" value={overview?.trackedAssets ? fmtCompact(overview.trackedAssets) : "—"} sub={overview ? `mainnet · as of ${asOf(overview.updatedAt)}${overview.source === "snapshot" ? ` · ${snapshotLabel(overview.snapshotAt)}` : ""}` : "stellarchain overview"} /></div>
         <div className="card"><Stat label="Accounts" value={overview?.totalAccounts ? fmtCompact(overview.totalAccounts) : "—"} sub={overview?.source === "snapshot" ? `mainnet · stellarchain.io ${snapshotLabel(overview.snapshotAt)}` : "mainnet"} /></div>
         <div className="card"><Stat label="Contracts" value={overview?.totalContracts ? fmtCompact(overview.totalContracts) : "—"} sub={overview && overview.trades24h === 0 ? "24h trades: 0 reported (snapshot may lag)" : "mainnet"} /></div>
       </div>
-      <div className="card">
+      <div className="card mk-card">
         <div className="row between" style={{ flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
           <Tabs value={network} onChange={setNetwork} options={[{ v: "mainnet", label: "Mainnet · live data" }, { v: "testnet", label: "Testnet · tradeable here" }]} />
           <input className="input" style={{ maxWidth: 280 }} placeholder="Search code, issuer or org…" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -194,14 +199,14 @@ export default function Markets() {
                 {live.snapshotRows} of {live.rows.length} assets couldn't be loaded live this round; those rows show saved snapshot values (marked <span style={{ color: "var(--amber)" }}>snapshot</span>) and are retried every refresh.
               </div>
             )}
-            <Pager where="top" />
+            <div className="mk-tabsbar"><Pager where="top" /><SpaceYeti prop="chart" className="mk-yeti" /></div>
             <div className="mk-scroll" id="mk-table">
             <table className="t mk-table">
               <thead>
                 <tr><Th k="rank">#</Th><Th k="code">Asset</Th><Th k="price">Price (XLM)</Th><th>≈ USD</th><th>1h</th><Th k="change24h">24h</Th><Th k="change7d">7d</Th><Th k="volume">Vol 24h (XLM)</Th><Th k="trades">Trades</Th><Th k="holders">Trustlines</Th><th>24h trend</th><th>As of</th><th /></tr>
               </thead>
               <tbody>
-                {live.mode === "loading" && !allRows.length && <tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>}
+                {live.mode === "loading" && !allRows.length && <><tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>{Array.from({ length: 8 }, (_, i) => <tr key={i} className="mk-skrow" aria-hidden="true"><td colSpan={13}><i className="mk-sk" /></td></tr>)}</>}
                 {live.mode !== "loading" && !allRows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
                 {liveRows.map((r) => {
                   const snapRow = r.source === "snapshot";
@@ -317,6 +322,7 @@ export default function Markets() {
           </>
         )}
       </div>
+    </div>
     </>
   );
 }

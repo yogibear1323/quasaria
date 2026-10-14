@@ -5,6 +5,8 @@
  * illustrative is labelled as an example / estimate / simulation.
  */
 import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import SpaceYeti from "../components/SpaceYeti";
+import "../theme/space-yeti.css";
 import { Link, useNavigate } from "react-router-dom";
 import outlineMd from "../../../docs/landing-outline.md?raw";
 import pairsDoc from "../../../docs/stablecoin-pairs.json";
@@ -659,7 +661,7 @@ export default function Landing() {
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
               <CtaButtons />
-              <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span></div>
+              <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span><SpaceYeti prop="coin" className="sy-inline" /></div>
             </div>
             <div className="l-hero-art">
               <Suspense fallback={<div className="globe-loading" aria-hidden />}><Globe /></Suspense>

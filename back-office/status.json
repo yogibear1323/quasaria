@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-15T03:03:33.000Z",
+ "generatedAt": "2026-10-15T03:08:47.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,16 +23,16 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1788425,
-  "oracleAgeSec": 1,
-  "referencePrice": 0.17874,
-  "deviationPct": 0.0573,
+  "oraclePrice": 0.1793355,
+  "oracleAgeSec": 0,
+  "referencePrice": 0.17939,
+  "deviationPct": 0.0304,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 2.8596158732922186e-9,
+  "fundingPredictedHourly": 2.8428594463735336e-9,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -114,11 +114,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.179461,
-    0.178512,
-    0.177469,
-    0.179148,
-    0.178932,
     0.178459,
     0.176652,
     0.177684,
@@ -153,7 +148,12 @@
     0.180279,
     0.180121,
     0.17982,
-    0.179664
+    0.17901,
+    0.179045,
+    0.179047,
+    0.17901,
+    0.179256,
+    0.179098
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T02:55Z",
+   "lastSignal": "no signal @ bar 10-15T03:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.182954,
     0.18267,
     0.182207,
     0.182336,
@@ -272,7 +271,8 @@
     0.17973,
     0.179243,
     0.179954,
-    0.180121
+    0.180121,
+    0.17901
    ]
   },
   {
@@ -391,7 +391,7 @@
     0.181174,
     0.177684,
     0.17973,
-    0.180145
+    0.180121
    ]
   },
   {
@@ -510,7 +510,7 @@
     0.181828,
     0.1816,
     0.177684,
-    0.180145
+    0.180121
    ]
   },
   {
@@ -629,7 +629,7 @@
     0.182336,
     0.18248,
     0.1816,
-    0.18017
+    0.180121
    ]
   },
   {
@@ -758,8 +758,8 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1792033413,
-  "lastOracleAgeSec": 1,
+  "lastReadAt": 1792033727,
+  "lastOracleAgeSec": 0,
   "lastHeartbeatAgeSec": 0,
   "trips": 63,
   "label": "fresh",

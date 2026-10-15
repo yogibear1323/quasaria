@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-15T03:56:13.000Z",
+ "generatedAt": "2026-10-15T03:59:45.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,16 +23,18 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1782855,
-  "oracleAgeSec": 31,
-  "referencePrice": 0.178502,
-  "deviationPct": 0.1213,
-  "oracleLevel": "ok",
-  "oracleReasons": [],
+  "oraclePrice": 0.1785605,
+  "oracleAgeSec": 208,
+  "referencePrice": 0.17895,
+  "deviationPct": 0.2177,
+  "oracleLevel": "halt",
+  "oracleReasons": [
+   "oracle age 208s > 90s"
+  ],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 2.699542449624921e-9,
+  "fundingPredictedHourly": 2.6894255090445393e-9,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -114,11 +116,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.17962,
-    0.1798,
-    0.17995,
-    0.180187,
-    0.180422,
     0.180111,
     0.179911,
     0.1795,
@@ -153,7 +150,12 @@
     0.17832,
     0.178374,
     0.17828,
-    0.178483
+    0.178472,
+    0.178213,
+    0.17831,
+    0.178324,
+    0.178657,
+    0.178805
    ]
   },
   {
@@ -272,7 +274,7 @@
     0.178704,
     0.178615,
     0.17832,
-    0.17856
+    0.17831
    ]
   },
   {
@@ -753,16 +755,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": false,
-  "level": "fresh",
-  "reason": "",
-  "trippedSince": 0,
-  "freshCount": 3,
-  "lastReadAt": 1792036573,
-  "lastOracleAgeSec": 31,
-  "lastHeartbeatAgeSec": 30,
-  "trips": 65,
-  "label": "fresh",
+  "tripped": true,
+  "level": "trip",
+  "reason": "resume: clock jumped 275s; need 3 fresh reads",
+  "trippedSince": 1792036785,
+  "freshCount": 0,
+  "lastReadAt": 1792036785,
+  "lastOracleAgeSec": 208,
+  "lastHeartbeatAgeSec": 242,
+  "trips": 66,
+  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 275s; need 3 fresh reads",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

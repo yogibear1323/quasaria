@@ -1,0 +1,17 @@
+/* Space yeti: photo cutout of the Stellar parka yeti, leaning on page headers / tabs. */
+.space-yeti { pointer-events: none; user-select: none; flex: none; width: 84px; height: 124px; align-self: flex-end; transform-origin: 50% 100%; transform: rotate(-3deg); }
+.space-yeti.is-mirror { transform: scaleX(-1) rotate(-3deg); }
+.space-yeti img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%;
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%); mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+  filter: drop-shadow(0 6px 10px rgba(2, 6, 20, .55)); animation: my-bob 4.5s ease-in-out infinite; }
+@keyframes my-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+@media (prefers-reduced-motion: reduce) { .space-yeti img { animation: none; } }
+
+/* In page headers: a real flex item, so it can never overlap text or controls. Sits right next to the header's
+   pill/tab block, leaning on it. Hidden on narrow screens where there's no room. */
+.page-head .space-yeti { order: 2; margin-left: auto; margin-bottom: -4px; margin-right: 0; }
+.page-head > :not(.space-yeti):not(:first-child) { order: 3; }
+@media (max-width: 899px) { .space-yeti { display: none; } }
+/* inline placements (hero CTA rows that aren't PageHead): smaller, pushed to the row's end */
+.sy-inline { width: 60px; height: 88px; margin-left: auto; margin-bottom: -6px; }
+.xc-pagehead .xc-yeti { margin-left: auto; align-self: flex-end; }

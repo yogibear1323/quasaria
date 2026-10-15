@@ -6,8 +6,10 @@ import Beacons from "../src/pages/Beacons";
 
 describe("Beacons preview page", () => {
   const html = renderToStaticMarkup(<WalletProvider><MemoryRouter><Beacons /></MemoryRouter></WalletProvider>);
-  it("is labelled preview / not deployed / illustrative", () => {
-    expect(html).toContain("Preview · not deployed · illustrative");
+  it("is labelled testnet / unaudited and lists the live testnet contracts", () => {
+    expect(html).toContain("Testnet · unaudited");
+    expect(html).toContain("Live on testnet");
+    expect(html).not.toContain("mainnet contract");
     expect(html).toContain("not a guaranteed return");
   });
   it("shows all six tiers, default simulator result and no fake balance", () => {

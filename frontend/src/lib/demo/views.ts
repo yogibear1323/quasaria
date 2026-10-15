@@ -1,4 +1,4 @@
-/** Map demo simulator state (and the optional live-fleet mirror) onto the robot floor's DeskView model. */
+/** Map demo simulator state (and the optional live-fleet mirror) onto the trading floor (yeti traders)'s DeskView model. */
 import type { ChainPos, ChainTrade, DeskCfg, DeskView } from "../backOffice";
 import { deskEquity, type DemoState } from "./engine";
 import { profileOf } from "./profiles";

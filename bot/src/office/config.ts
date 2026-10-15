@@ -1,3 +1,4 @@
+import { TIMEFRAMES } from "./marketData.js";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { OfficeConfig } from "./types.js";
@@ -27,8 +28,10 @@ export function parseOfficeConfig(raw: unknown, opts: ConfigOptions = {}): Offic
     if (!["trend", "funding", "meanrev", "supertrend", "liqpocket"].includes(d.strategy)) fail(`${d.id}: unknown strategy ${d.strategy}`);
     if (!(d.riskPct > 0 && d.riskPct <= L.hardMaxRiskPct)) fail(`${d.id}: riskPct must be in (0, ${L.hardMaxRiskPct}]`);
     if (!(d.maxLeverage >= 1 && d.maxLeverage <= 10)) fail(`${d.id}: maxLeverage must be 1..10 (vault cap)`);
-    if (![900, 3600, 14400].includes(d.timeframeSec)) fail(`${d.id}: timeframe must be 900/3600/14400`);
-    if (ISSUE_30_PAUSED_DESKS.includes(d.id) && !d.paused && !opts.ackIssue30)
+    if (!TIMEFRAMES.includes(d.timeframeSec)) fail(`${d.id}: timeframe must be one of ${TIMEFRAMES.join("/")}`);
+    const ov = (c as { issue30Override?: { desks?: string[]; by?: string; date?: string } }).issue30Override;
+    const ownerOverride = !!(ov?.by && ov?.date && ov.desks?.includes(d.id));
+    if (ISSUE_30_PAUSED_DESKS.includes(d.id) && !d.paused && !opts.ackIssue30 && !ownerOverride)
       fail(`${d.id}: unpausing ${d.name} is blocked by issue #30 (${ISSUE_30}); pass --ack-issue-30 to override`);
   }
   for (const d of c.calibrated ?? []) {
@@ -53,7 +56,7 @@ export function parseOfficeConfig(raw: unknown, opts: ConfigOptions = {}): Offic
     }
     if (!(d.riskPct > 0 && d.riskPct <= 1 && d.riskPct <= L.hardMaxRiskPct)) fail(`${d.id}: calibrated riskPct must be in (0, 1] (1 % target, ${L.hardMaxRiskPct} % hard cap)`);
     if (!(d.maxLeverage >= 1 && d.maxLeverage <= 5)) fail(`${d.id}: maxLeverage must be 1..5`);
-    if (![900, 3600, 14400].includes(d.timeframeSec)) fail(`${d.id}: timeframe must be 900/3600/14400`);
+    if (!TIMEFRAMES.includes(d.timeframeSec)) fail(`${d.id}: timeframe must be one of ${TIMEFRAMES.join("/")}`);
     if (!d.model) fail(`${d.id}: model path required`);
   }
   if (L.hardMaxRiskPct > 2) fail("hardMaxRiskPct > 2 not allowed");

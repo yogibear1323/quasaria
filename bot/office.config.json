@@ -1,5 +1,7 @@
 {
   "loopSec": 60,
+  "rescale": "2026-10-13 (owner-approved): every bar-counted param rescaled to keep the wall-clock span it had at the desk's previous timeframe (vega 1h, rigel 4h, lyra 1h, nova 1h, echo 15m, halo 1h)",
+  "issue30Override": { "desks": ["echo", "nova"], "by": "Robert Walker (owner)", "date": "2026-10-13", "scope": "testnet only, allocations/risk unchanged", "note": "walk-forward gate has NOT passed; see issue #30" },
   "driftMode": "standard",
   "strictUntil": "2026-10-18T20:00:00Z",
   "staleBreaker": { "blockAgeSec": 60, "tripAgeSec": 90, "clearAfterFresh": 3, "escalateAfterSec": 600, "clockJumpSec": 180, "heartbeatFile": "state/oracle-feed.heartbeat" },
@@ -11,12 +13,12 @@
     "fleetDailyLossPct": 4, "fleetDrawdownPct": 12, "entriesPerFleetDay": 24
   },
   "desks": [
-    { "id": "vega", "name": "Vega", "strategy": "supertrend", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": { "n": 10, "m": 3, "lpSweepBars": 24 } },
-    { "id": "rigel", "name": "Regal", "strategy": "trend", "timeframeSec": 14400, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": { "lpSweepBars": 12 } },
-    { "id": "lyra", "name": "Lyra", "strategy": "liqpocket", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "label": "Experimental · liquidity pockets · simulated/testnet", "params": { "k": 2, "L": 50, "src": 1, "bufAtr": 0.25, "targetR": 3, "alignEma": 50, "timeStopBars": 48 } },
-    { "id": "nova", "name": "Nova", "strategy": "funding", "timeframeSec": 3600, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "paused": "fast funding-skew strategy was net negative out-of-sample in the walk-forward study", "params": { "minRateHourly": 0.0003 } },
-    { "id": "echo", "name": "Echo", "strategy": "meanrev", "timeframeSec": 900, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "paused": "15m mean-reversion was net negative out-of-sample in the walk-forward study", "params": {} },
-    { "id": "halo", "name": "Halo", "strategy": "meanrev", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": { "lpSweepBars": 12 } }
+    { "id": "vega", "name": "Vega", "strategy": "supertrend", "timeframeSec": 60, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": { "n": 600, "m": 3, "lpSweepBars": 1440, "lpK": 180, "lpL": 6000, "lpAtrPeriod": 840 } },
+    { "id": "rigel", "name": "Regal", "strategy": "trend", "timeframeSec": 300, "riskPct": 1.0, "maxLeverage": 5, "capital": 500, "params": { "fast": 960, "slow": 2400, "breakout": 960, "atrPeriod": 672, "lpSweepBars": 576, "lpK": 144, "lpL": 4800, "lpAtrPeriod": 672 } },
+    { "id": "lyra", "name": "Lyra", "strategy": "liqpocket", "timeframeSec": 900, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "label": "Experimental · liquidity pockets · simulated/testnet", "params": { "k": 8, "L": 200, "src": 1, "bufAtr": 0.25, "targetR": 3, "alignEma": 200, "timeStopBars": 192, "atrPeriod": 56, "warmBars": 120 } },
+    { "id": "nova", "name": "Nova", "strategy": "funding", "timeframeSec": 1800, "riskPct": 0.75, "maxLeverage": 3, "capital": 500, "params": { "minRateHourly": 0.0003, "retBars": 2 } },
+    { "id": "echo", "name": "Echo", "strategy": "meanrev", "timeframeSec": 3600, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": { "bbPeriod": 5, "rsiPeriod": 4, "adxPeriod": 4, "atrPeriod": 4, "timeStopBars": 3, "warmBars": 8 } },
+    { "id": "halo", "name": "Halo", "strategy": "meanrev", "timeframeSec": 14400, "riskPct": 1.0, "maxLeverage": 4, "capital": 500, "params": { "bbPeriod": 5, "rsiPeriod": 4, "adxPeriod": 4, "atrPeriod": 4, "timeStopBars": 3, "warmBars": 8, "lpSweepBars": 3, "lpK": 1, "lpL": 25, "lpAtrPeriod": 4 } }
   ],
   "calibrated": [
     { "id": "orion", "name": "Orion", "mode": "live", "liveOverride": "testnet-tiny", "liveApproval": "Robert Walker, Oct 10 2026 (testnet tiny slice; overrides the failed gate on testnet only)", "timeframeSec": 900, "model": "office.calibrated.model.json", "capital": 100, "riskPct": 0.25, "maxLeverage": 2, "live": { "dailyLossUsd": 2, "killDrawdownUsd": 5, "maxEntriesPerDay": 4, "maxOpen": 1 }, "label": "Live testnet · tiny slice · failed gate · test funds only" }

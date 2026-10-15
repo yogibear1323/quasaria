@@ -1,5 +1,7 @@
 /** /perps/chart — live XLM-PERP/USD chart for anyone weighing a perps trade (lazy-loaded route). */
 import { Link } from "react-router-dom";
+import SpaceYeti from "../components/SpaceYeti";
+import "../theme/space-yeti.css";
 import XlmChart, { XLM_CHART_LABEL } from "../components/XlmChart";
 
 export default function XlmChartPage() {
@@ -14,6 +16,7 @@ export default function XlmChartPage() {
             on-chain oracle price and the vault's mark price that Perps positions actually settle against.
           </p>
         </div>
+        <SpaceYeti prop="chart" mirror className="xc-yeti" />
         <div className="xc-ctas">
           <Link to="/perps" className="btn" data-testid="xlm-chart-trade">Trade on Perps →</Link>
           <Link to="/back-office?view=demo" className="btn ghost" data-testid="xlm-chart-demo">Try a demo</Link>

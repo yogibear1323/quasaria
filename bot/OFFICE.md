@@ -55,7 +55,6 @@ Local admin page: `http://127.0.0.1:52610/` (127.0.0.1 only). The public Back Of
   "STALE DATA · entries halted". Orion's paper/live decisions log `veto: STALE DATA · entries halted`.
 * Lending keeper: liquidations act on oracle prices, so each one is re-checked right before signing (fast-path XLM
   timestamp + heartbeat, same thresholds); while tripped the liquidation is skipped and retried next sweep.
-* The Autopay keepers do not read oracle prices (agreement sweeps, TTL extension, demo autopilot only): not gated.
 
 ## Orion live testnet slice (issue #30)
 

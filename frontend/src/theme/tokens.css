@@ -7,26 +7,26 @@
   color-scheme: light;
 
   /* ---- base surfaces */
-  --bg: #f5f6fd;             /* page */
+  --bg: #e6e6f0;             /* page */
   --bg-elev: #ffffff;        /* raised solid */
   --bg-sunken: rgba(238, 236, 252, 0.85); /* inputs, wells */
   --surface: rgba(255, 255, 255, 0.84);   /* glass card */
   --surface-2: rgba(246, 244, 255, 0.92); /* nested / hover */
-  --line: #dfdcf3;
-  --line-2: #cdc7ec;
+  --line: #cbc6e0;
+  --line-2: #b3adcf;
   --line-accent: rgba(124, 58, 237, 0.45);
 
   /* ---- text (contrast on --bg-elev: 15.1 / 8.3 / 5.3) */
   --text: #1b1640;
-  --text-2: #4a4470;
-  --text-3: #5d577f;
+  --text-2: #3d3764;
+  --text-3: #4b4570;
 
   /* ---- signature accent: cosmic violet → cyan */
   --violet: #6d28d9;
   --violet-hi: #5b21b6;
   --violet-strong: #6d4aff;
   --indigo: #4f46e5;
-  --cyan: #0e7490;
+  --cyan: #0b5f75;
   --cyan-hi: #155e75;
   --grad-accent: linear-gradient(135deg, #8b5cf6 0%, #d946ef 45%, #06b6d4 100%);
   --grad-accent-soft: linear-gradient(135deg, rgba(139, 92, 246, 0.14), rgba(217, 70, 239, 0.08), rgba(6, 182, 212, 0.12));
@@ -36,7 +36,7 @@
   /* ---- semantic */
   --green: #047857;
   --red: #be123c;
-  --amber: #b45309;
+  --amber: #92400e;
   --orange: #c2410c;
 
   /* ---- legacy aliases (used by components / inline styles) */
@@ -61,8 +61,8 @@
   --glow-violet: 0 0 0 1px rgba(139, 124, 255, 0.35), 0 10px 30px -12px rgba(124, 92, 255, 0.7);
 
   /* ---- elevation */
-  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(46, 30, 110, 0.08), 0 14px 34px -20px rgba(76, 29, 149, 0.35);
-  --shadow-pop: 0 24px 60px -24px rgba(76, 29, 149, 0.4), 0 0 0 1px var(--line-2);
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(20, 18, 40, 0.20), 0 16px 36px -18px rgba(18, 16, 40, 0.58);
+  --shadow-pop: 0 26px 64px -22px rgba(16, 14, 36, 0.62), 0 0 0 1px var(--line-2);
   --ring: 0 0 0 2px var(--bg), 0 0 0 4px rgba(109, 40, 217, 0.9);
 
   /* ---- typography */
@@ -98,4 +98,22 @@
   --neon-magenta: #e879f9;
   --gold: #E8A33D;        /* warm amber accent (decorative only) */
   --gold-honey: #F2B84B;  /* honey accent (decorative only) */
+}
+
+/* ==== earthy tokens (sand / clay / moss / stone / umber; AA-checked) ==== */
+html:root {
+  --bg: #efe7da; --bg-elev: #fffdf8; --bg-2: #e6dccb; --bg-sunken: rgba(244, 238, 228, 0.88);
+  --surface: rgba(255, 252, 245, 0.86); --surface-2: rgba(250, 245, 236, 0.94); --card: rgba(255, 252, 245, 0.88);
+  --line: #d9ccb6; --line-2: #c4b398; --line-accent: rgba(138, 58, 28, 0.42);
+  --text: #2a2118; --text-2: #43362a; --text-3: #574634;
+  --violet: #5a2d6e; --violet-hi: #4a2259; --violet-strong: #6b3a80; --indigo: #4a3f6b;
+  --cyan: #234536; --cyan-hi: #24493b; --green: #3f5a24; --red: #9f1d2b; --amber: #7a3415; --orange: #8a3a1c; --plasma: #8a3a1c;
+  --grad: linear-gradient(135deg, #c4704a 0%, #e8a33d 45%, #6e7c4a 100%);
+  --grad-accent: linear-gradient(135deg, #c4704a 0%, #e8a33d 45%, #6e7c4a 100%);
+  --grad-accent-soft: linear-gradient(135deg, rgba(196, 112, 74, 0.14), rgba(232, 163, 61, 0.10), rgba(110, 124, 74, 0.12));
+  --grad-disk: linear-gradient(90deg, #c4704a, #e8a33d 45%, #6e7c4a);
+  --grad-button: linear-gradient(135deg, #8a3a1c 0%, #6b4a2a 55%, #3f5a36 100%);
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(58, 40, 24, 0.18), 0 16px 36px -18px rgba(58, 40, 24, 0.50);
+  --shadow-pop: 0 26px 64px -22px rgba(48, 32, 18, 0.55), 0 0 0 1px #c4b398;
+  --ring: 0 0 0 2px var(--bg), 0 0 0 4px rgba(138, 58, 28, 0.85);
 }

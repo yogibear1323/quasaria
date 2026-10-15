@@ -18,8 +18,8 @@ const FONTS = {};
 const font = (w, fam = "sg") => (FONTS[`${fam}${w}`] ??= opentype.loadSync(fontFile(w, fam)));
 
 export const C = {
-  base: "#06070d", ink: "#0b0d18", violet: "#7C5CFF", violetDeep: "#4f46e5", lilac: "#C4B5FD",
-  cyan: "#22D3EE", ice: "#A5F3FC", white: "#ffffff", gold: "#FDE047", pink: "#F472B6", warm: "#FDE68A",
+  base: "#1e160e", ink: "#241b12", violet: "#B8603A", violetDeep: "#8a3a1c", lilac: "#D9A06A",
+  cyan: "#D9973A", ice: "#F6DFA8", white: "#ffffff", gold: "#FDE047", pink: "#E8BE7E", warm: "#FDE68A",
 };
 export const r2 = (n) => Math.round(n * 100) / 100;
 
@@ -111,11 +111,11 @@ export function stars(n, [x, y, w, h], { seed = 1, min = 2, max = 9, keep = () =
 
 // ------------------------------------------------------------------ ranks & badge glyphs (48 grid, white)
 export const RANKS = [
-  { name: "Stardust", levels: "1–2", grad: ["#e2e8f0", "#64748b"], icon: "stardust" },
-  { name: "Comet", levels: "3–4", grad: ["#67e8f9", "#0891b2"], icon: "comet" },
+  { name: "Stardust", levels: "1–2", grad: ["#f4e5de", "#8d7962"], icon: "stardust" },
+  { name: "Comet", levels: "3–4", grad: ["#f2c46e", "#5e6b3c"], icon: "comet" },
   { name: "Nova", levels: "5–6", grad: ["#fde68a", "#d97706"], icon: "nova" },
-  { name: "Pulsar", levels: "7–8", grad: ["#f9a8d4", "#db2777"], icon: "pulsar" },
-  { name: "Quasar", levels: "9–10", grad: ["#a78bfa", "#0891b2"], icon: "quasar" },
+  { name: "Pulsar", levels: "7–8", grad: ["#f1d7b0", "#d99329"], icon: "pulsar" },
+  { name: "Quasar", levels: "9–10", grad: ["#c98a5a", "#5e6b3c"], icon: "quasar" },
 ];
 export const GLYPH = {
   stardust: `<g fill="#fff" stroke="none"><circle cx="19" cy="20" r="2.6"/><circle cx="28" cy="15.5" r="1.7"/><circle cx="31" cy="26" r="3"/><circle cx="20.5" cy="30.5" r="2"/><circle cx="26" cy="34" r="1.4"/><circle cx="35" cy="33" r="1.6"/><path d="${sparkle(14.5, 34, 3.4)}"/></g>`,
@@ -131,7 +131,7 @@ export const GLYPH = {
   flame: `<path d="M24 12.5c1 4.5 7.5 7.4 7.5 13.5a7.5 7.5 0 0 1-15 0c0-3 1.6-5 3.4-6.4.2 2.2 1.2 3.6 2.6 4.1-.6-4.6 0-8.2 1.5-11.2z"/>`,
   bolt: `<path d="M26.5 12 17 26h7l-2.5 10L31 22h-7z" fill="#fff" stroke="none"/>`,
 };
-export const HUES = { violet: ["#a78bfa", "#6d4aff"], cyan: ["#67e8f9", "#0891b2"], gold: ["#fde68a", "#d97706"], green: ["#6ee7b7", "#059669"], rose: ["#fda4af", "#e11d48"] };
+export const HUES = { violet: ["#c98a5a", "#9a4a26"], cyan: ["#f2c46e", "#5e6b3c"], gold: ["#fde68a", "#d97706"], green: ["#b6c293", "#586338"], rose: ["#ecc2b5", "#cb5633"] };
 /** Glyph from GLYPH drawn in a 48 grid, centred on (cx, cy) at `scale`. */
 export const glyph = (name, cx, cy, scale, sw = 2) => `<g transform="translate(${r2(cx - 24 * scale)} ${r2(cy - 24 * scale)}) scale(${scale})" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${GLYPH[name]}</g>`;
 /** Game-style hex badge (48 grid) centred on (cx, cy). */
@@ -194,9 +194,9 @@ export const pixelPlus = (x, y, px, fill) => `<path d="M${x} ${y - px}h${px}v${p
 /** v3 palette = the website's tokens only: near-black base, deep navy, the violet→cyan accent
  *  (same as the Singularity Q) and white / light-grey text. No warm or rainbow accents. */
 export const V2 = {
-  base: "#06070D", navy: "#0B0D18", glass: "#12152A", glass2: "#181C34", line: "#2A2F52",
-  violetHi: "#A78BFA", violet: "#7C5CFF", violetSoft: "#8B7CFF", violetDeep: "#6D4AFF", indigo: "#4F46E5", lilac: "#C4B5FD",
-  cyan: "#22D3EE", ice: "#A5F3FC", text: "#EEF0FA", text2: "#A3A9C6", text3: "#7D84A6", ink: "#06070D",
+  base: "#1E160E", navy: "#241B12", glass: "#231E19", glass2: "#292E1E", line: "#434C30",
+  violetHi: "#C98A5A", violet: "#B8603A", violetSoft: "#C27548", violetDeep: "#9A4A26", indigo: "#8A3A1C", lilac: "#D9A06A",
+  cyan: "#D9973A", ice: "#F6DFA8", text: "#FAF2EE", text2: "#DAA68F", text3: "#AA9379", ink: "#1E160E",
 };
 /** Ink set: every v3 garment is dark (black / navy / charcoal / deep violet), so there is one ink. */
 export const INK = {
@@ -206,8 +206,8 @@ INK.light = INK.dark;
 /** Liquid-chrome vertical gradient for type between y0 (cap top) and y1 (baseline). */
 export function chrome(id, y0, y1, tone = "dark") {
   const s = tone === "dark"
-    ? [[0, "#FFFFFF"], [0.3, "#E6E8F2"], [0.47, "#9EA3BD"], [0.5, "#3A3F5C"], [0.55, "#C7CBE0"], [0.74, "#F4F6FC"], [1, "#B8BED6"]]
-    : [[0, "#1A1828"], [0.32, "#47425E"], [0.47, "#A7A2C0"], [0.5, "#FFFFFF"], [0.56, "#3B2FA8"], [0.76, "#15132A"], [1, "#4B3FD0"]];
+    ? [[0, "#FFFFFF"], [0.3, "#F6E8E3"], [0.47, "#BFAF9C"], [0.5, "#505C3B"], [0.55, "#E9CBBE"], [0.74, "#FCF7F5"], [1, "#E3BCAB"]]
+    : [[0, "#222719"], [0.32, "#5E5142"], [0.47, "#C2B2A0"], [0.5, "#FFFFFF"], [0.56, "#A15636"], [0.76, "#241F19"], [1, "#C3704C"]];
   return `<linearGradient id="${id}" x1="0" y1="${r2(y0)}" x2="0" y2="${r2(y1)}" gradientUnits="userSpaceOnUse">${s.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join("")}</linearGradient>`;
 }
 /** The site accent gradient (violet → cyan, as in --grad-accent) along a line. */
@@ -234,7 +234,7 @@ export const svgDoc = (w, h, body, { title = "", desc = "" } = {}) =>
 
 // ------------------------------------------------------------------ v4: exact brand wordmark + glowing mark
 const lockupSrc = readFileSync(resolve(root, "frontend/public/brand/concept-a-lockup-dark.svg"), "utf8");
-const WM_D = [...lockupSrc.matchAll(/<path d="([^"]+)" fill="#F4F5FF"/g)].pop()[1];
+const WM_D = [...lockupSrc.matchAll(/<path d="([^"]+)" fill="#FBF4E6"/g)].pop()[1];
 const WM = { x: 81.9, y: 18.37, w: 153.82, h: 33.97, base: 46.03 }; // bbox of the outlined wordmark in the lockup
 /** The exact Quasaria wordmark (outlined, from the brand lockup), top-left at (x, y), `width` wide. */
 export function wordmark(x, y, width, fill = "#fff", attrs = "") {
@@ -247,7 +247,7 @@ export const wordmarkC = (cx, cy, width, fill, attrs) => wordmark(cx - width / 2
 /** The full-colour Singularity Q with a soft violet/cyan halo and bloom, `size` square at (x, y). */
 export function glowMark(x, y, size, p, { halo = 1, bloom = 0.75 } = {}) {
   const cx = x + size / 2, cy = y + size / 2;
-  return `<defs><radialGradient id="${p}hl" cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#22D3EE" stop-opacity="${r2(0.55 * halo)}"/><stop offset=".35" stop-color="#7C5CFF" stop-opacity="${r2(0.28 * halo)}"/><stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/></radialGradient>` +
+  return `<defs><radialGradient id="${p}hl" cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#D9973A" stop-opacity="${r2(0.55 * halo)}"/><stop offset=".35" stop-color="#B8603A" stop-opacity="${r2(0.28 * halo)}"/><stop offset="1" stop-color="#B8603A" stop-opacity="0"/></radialGradient>` +
     `<filter id="${p}bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${r2(size * 0.035)}"/></filter></defs>` +
     `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" fill="url(#${p}hl)"/>` +
     (bloom ? `<g filter="url(#${p}bl)" opacity="${bloom}">${mark(x, y, size, p + "b")}</g>` : "") + mark(x, y, size, p + "m");

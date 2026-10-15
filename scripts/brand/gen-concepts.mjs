@@ -24,8 +24,8 @@ mkdirSync(out, { recursive: true });
 
 // ------------------------------------------------------------------ palette
 const P = {
-  violetHi: "#C4B5FD", violet: "#7C5CFF", indigo: "#5B6CFF", cyan: "#22D3EE", cyanHi: "#A5F3FC",
-  white: "#FFFFFF", ink: "#0B0D1A", night: "#070912", night2: "#12152B",
+  violetHi: "#E3EAF4", violet: "#8FA6C8", indigo: "#8FA6C8", cyan: "#C9D5E6", cyanHi: "#F2F6FC",
+  white: "#FFFFFF", ink: "#101B35", night: "#0B1428", night2: "#142240",
 };
 const r = (n) => Math.round(n * 100) / 100;
 
@@ -69,7 +69,7 @@ function markA(id = "a", { glint = true } = {}) {
       <stop offset="0" stop-color="${P.violetHi}"/><stop offset=".42" stop-color="${P.violet}"/><stop offset="1" stop-color="${P.cyan}"/>
     </linearGradient>
     <linearGradient id="${id}-jet" x1="33" y1="33" x2="60" y2="60" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="${P.cyanHi}"/><stop offset=".75" stop-color="${P.cyan}"/><stop offset="1" stop-color="#0EA5E9"/>
+      <stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="${P.cyanHi}"/><stop offset=".75" stop-color="${P.cyan}"/><stop offset="1" stop-color="#5B7299"/>
     </linearGradient>
     <radialGradient id="${id}-core" cx="32" cy="32" r="5.4" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff"/><stop offset=".8" stop-color="${P.cyanHi}"/><stop offset="1" stop-color="${P.cyan}"/>
@@ -139,7 +139,7 @@ function markC(id = "c") {
   return `
   <defs>
     <linearGradient id="${id}-bg" x1="4" y1="2" x2="60" y2="62" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#9B7BFF"/><stop offset=".5" stop-color="${P.indigo}"/><stop offset="1" stop-color="${P.cyan}"/>
+      <stop offset="0" stop-color="#C27548"/><stop offset=".5" stop-color="${P.indigo}"/><stop offset="1" stop-color="${P.cyan}"/>
     </linearGradient>
     <linearGradient id="${id}-shine" x1="32" y1="2" x2="32" y2="34" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
@@ -183,7 +183,7 @@ const CONCEPTS = {
     word: (dark) => {
       const f = font(700);
       const t = textPath(f, "Quasaria", 38, 80, 45.5, -0.012);
-      return { body: `<path d="${t.d}" fill="${dark ? "#F4F5FF" : P.ink}"/>`, width: 80 + t.width };
+      return { body: `<path d="${t.d}" fill="${dark ? "#EEF3FA" : P.ink}"/>`, width: 80 + t.width };
     },
   },
   b: {
@@ -194,7 +194,7 @@ const CONCEPTS = {
     word: (dark) => {
       const f = font(500);
       const t = textPath(f, "QUASARIA", 29, 80, 42.2, 0.2);
-      const grad = `<defs><linearGradient id="bw" x1="80" y1="0" x2="${r(80 + t.width)}" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${dark ? "#fff" : P.ink}"/><stop offset=".55" stop-color="${dark ? P.violetHi : "#4B3BD1"}"/><stop offset="1" stop-color="${dark ? P.cyan : "#0891B2"}"/></linearGradient></defs>`;
+      const grad = `<defs><linearGradient id="bw" x1="80" y1="0" x2="${r(80 + t.width)}" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${dark ? "#fff" : P.ink}"/><stop offset=".55" stop-color="${dark ? P.violetHi : "#C26E4A"}"/><stop offset="1" stop-color="${dark ? P.cyan : "#5B7299"}"/></linearGradient></defs>`;
       return { body: `${grad}<path d="${t.d}" fill="url(#bw)"/>`, width: 80 + t.width };
     },
   },
@@ -210,8 +210,8 @@ const CONCEPTS = {
       const m = gi.g.getMetrics(), s = 44 / f.unitsPerEm;
       const cx = gi.x + ((m.xMin + m.xMax) / 2) * s;
       const dot = `<path d="${sparkle(cx, 44 - 30.5, 6.2, 0.2)}" fill="url(#cw)"/>`;
-      const grad = `<defs><linearGradient id="cw" x1="${r(cx - 6)}" y1="8" x2="${r(cx + 6)}" y2="20" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#9B7BFF"/><stop offset="1" stop-color="${P.cyan}"/></linearGradient></defs>`;
-      return { body: `${grad}<path d="${t.d}" fill="${dark ? "#F4F5FF" : P.ink}"/>${dot}`, width: 80 + t.width };
+      const grad = `<defs><linearGradient id="cw" x1="${r(cx - 6)}" y1="8" x2="${r(cx + 6)}" y2="20" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#C27548"/><stop offset="1" stop-color="${P.cyan}"/></linearGradient></defs>`;
+      return { body: `${grad}<path d="${t.d}" fill="${dark ? "#EEF3FA" : P.ink}"/>${dot}`, width: 80 + t.width };
     },
   },
 };

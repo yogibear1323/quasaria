@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { AUTOPAY, DISTRICTS, project, type District } from "../lib/world";
+import { DISTRICTS, project, type District } from "../lib/world";
 
 const TILT = 16;
 const HUE = { violet: "#7c3aed", cyan: "#0891b2", magenta: "#c026d3" } as const;
@@ -15,6 +15,29 @@ function useReducedMotion() {
     return () => m.removeEventListener?.("change", f);
   }, []);
   return r;
+}
+
+/** Decorative earthy landmasses (lat/lon blobs) projected like the graticule; back-facing points are pinned to the limb. */
+const LAND: { c: [number, number]; r: [number, number]; k: "clay" | "moss" | "stone" }[] = [
+  { c: [30, -20], r: [26, 34], k: "clay" }, { c: [-22, 30], r: [22, 28], k: "moss" }, { c: [12, 100], r: [24, 30], k: "stone" },
+  { c: [-40, 130], r: [16, 24], k: "clay" }, { c: [48, 70], r: [14, 26], k: "moss" }, { c: [-8, -90], r: [22, 26], k: "moss" },
+  { c: [56, -120], r: [12, 22], k: "stone" }, { c: [-50, -40], r: [14, 20], k: "clay" }, { c: [20, 170], r: [14, 18], k: "moss" },
+];
+const LAND_SHAPES = LAND.map((l, i) => {
+  let s = 97 + i * 31; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  const n = 22; const w = Array.from({ length: n }, () => 0.72 + rnd() * 0.42);
+  return { k: l.k, pts: w.map((f, j) => { const a = (j / n) * Math.PI * 2; return [l.c[0] + Math.sin(a) * l.r[0] * f, l.c[1] + Math.cos(a) * l.r[1] * f] as [number, number]; }) };
+});
+function landPaths(rot: number, R: number) {
+  return LAND_SHAPES.map(({ k, pts }) => {
+    let front = 0;
+    const xy = pts.map(([la, lo]) => {
+      const p = project(la, lo, rot, TILT);
+      if (p.z > 0) { front++; return [p.x * R, p.y * R]; }
+      const m = Math.hypot(p.x, p.y) || 1; return [(p.x / m) * R, (p.y / m) * R];
+    });
+    return front ? { k, d: "M" + xy.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join("L") + "Z" } : null;
+  }).filter(Boolean) as { k: string; d: string }[];
 }
 
 /** Graticule as projected polylines; back-facing segments are dropped. */
@@ -74,6 +97,7 @@ export default function Globe({ compact = false, current, onNavigate }: { compac
   }, [reduced]);
 
   const grid = useMemo(() => graticule(rot, R), [rot, R]);
+  const land = useMemo(() => landPaths(rot, R), [rot, R]);
   const pts = DISTRICTS.map((d) => ({ d, p: project(d.lat, d.lon, rot, TILT) })).sort((a, b) => a.p.z - b.p.z);
 
   const go = (d: District) => { onNavigate?.(); nav(d.to); };
@@ -106,11 +130,24 @@ export default function Globe({ compact = false, current, onNavigate }: { compac
             <stop offset="0.86" stopColor="#22d3ee" stopOpacity="0.35" />
             <stop offset="1" stopColor="#e879f9" stopOpacity="0" />
           </radialGradient>
+          <radialGradient id="g-shade" cx="0.36" cy="0.32" r="0.75">
+            <stop offset="0" stopColor="#fff6e0" stopOpacity="0.38" />
+            <stop offset="0.55" stopColor="#fff6e0" stopOpacity="0" />
+            <stop offset="1" stopColor="#1e140a" stopOpacity="0.42" />
+          </radialGradient>
+          <filter id="g-tex" x="0" y="0" width="1" height="1">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" />
+            <feColorMatrix values="0 0 0 0 0.24  0 0 0 0 0.17  0 0 0 0 0.1  0 0 0 0.5 0" />
+            <feComposite in2="SourceGraphic" operator="in" />
+          </filter>
         </defs>
         <circle r={R * 1.18} fill="url(#g-atmo)" />
-        {/* orbit ring + Autopay moon */}
+        {/* decorative orbit ring */}
         <ellipse className="globe-orbit" rx={R * 1.32} ry={R * 0.36} transform="rotate(-12)" />
         <circle r={R} fill="url(#g-body)" className="globe-body" />
+        <g className="globe-land" aria-hidden="true">{land.map((l, i) => <path key={i} className={`land-${l.k}`} d={l.d} />)}</g>
+        <circle r={R} className="globe-tex" filter="url(#g-tex)" aria-hidden="true" />
+        <circle r={R} fill="url(#g-shade)" className="globe-shade" aria-hidden="true" />
         <g className="globe-grid">{grid.map((d, i) => <path key={i} d={d} />)}</g>
         <ellipse className="globe-equator" rx={R} ry={R * Math.sin(TILT * Math.PI / 180)} />
         {pts.map(({ d, p }) => {
@@ -148,12 +185,6 @@ export default function Globe({ compact = false, current, onNavigate }: { compac
             </g>
           );
         })}
-        <a href={AUTOPAY.href} className="moon" aria-label={`${AUTOPAY.label}: ${AUTOPAY.blurb}`}>
-          <g transform={`translate(${(R * 1.02).toFixed(0)} ${(-R * 0.9).toFixed(0)})`}>
-            <circle r={compact ? 11 : 17} className="moon-body" />
-            <text y={compact ? 24 : 34} textAnchor="middle" className="moon-text">{AUTOPAY.label} ↗</text>
-          </g>
-        </a>
       </svg>
       {hover && !compact && (() => {
         const d = DISTRICTS.find((x) => x.id === hover)!;

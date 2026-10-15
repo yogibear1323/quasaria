@@ -35,8 +35,8 @@ function Curve({ pts, start }: { pts: { t: number; eq: number }[]; start: number
   return (
     <svg className="dm-curve" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label="Demo equity curve">
       <line x1="0" x2={w} y1={y(start)} y2={y(start)} stroke="rgba(255,255,255,.15)" strokeDasharray="3 3" />
-      <path d={`${line} L${w},${h} L0,${h} Z`} fill={up ? "#34d399" : "#fb7185"} opacity=".12" />
-      <path d={line} fill="none" stroke={up ? "#34d399" : "#fb7185"} strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
+      <path d={`${line} L${w},${h} L0,${h} Z`} fill={up ? "#4f6b2c" : "#9f1d2b"} opacity=".12" />
+      <path d={line} fill="none" stroke={up ? "#4f6b2c" : "#9f1d2b"} strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }

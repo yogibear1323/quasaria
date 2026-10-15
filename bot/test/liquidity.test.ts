@@ -15,6 +15,9 @@ import type { ChainPosition, DeskConfig, OfficeConfig } from "../src/office/type
 
 const T0 = 1_789_948_800; // 00:00 UTC
 const cfg = loadOfficeConfig();
+// fleet fixture: pre-2026-10-13 bar sizes + Echo/Nova config pauses, so the hourly synthetic market and pause mechanics stay covered
+const LEGACY: Record<string, { tf: number; paused?: string }> = { vega: { tf: 3600 }, rigel: { tf: 14400 }, lyra: { tf: 3600 }, nova: { tf: 3600, paused: "fast funding-skew strategy was net negative out-of-sample in the walk-forward study" }, echo: { tf: 900, paused: "15m mean-reversion was net negative out-of-sample in the walk-forward study" }, halo: { tf: 3600 } };
+const fixture: OfficeConfig = { ...cfg, desks: cfg.desks.map((d) => ({ ...d, timeframeSec: LEGACY[d.id]?.tf ?? d.timeframeSec, ...(LEGACY[d.id]?.paused ? { paused: LEGACY[d.id].paused } : {}) })) };
 const deskBase: DeskConfig = { id: "t", name: "T", strategy: "liqpocket", timeframeSec: 3600, riskPct: 0.75, maxLeverage: 3, capital: 500, params: {} };
 
 /** gentle up-ramp (no pivots of its own) with hand-placed wicks */
@@ -110,16 +113,17 @@ describe("liquidity pockets: strategy (experimental) and entry filter", () => {
   });
   it("shipped desks: Vega/Regal/Halo carry the filter, funding is never wrapped, Lyra runs liqpocket", () => {
     const by = Object.fromEntries(cfg.desks.map((x) => [x.id, x]));
-    expect(by.vega.params.lpSweepBars).toBe(24);
-    expect(by.rigel.params.lpSweepBars).toBe(12);
-    expect(by.halo.params.lpSweepBars).toBe(12);
+    expect(by.vega.params.lpSweepBars).toBe(1440); // 24h @ 1m
+    expect(by.rigel.params.lpSweepBars).toBe(576); // 48h @ 5m
+    expect(by.halo.params.lpSweepBars).toBe(3); // 12h @ 4h
     expect(by.lyra.strategy).toBe("liqpocket");
     expect(by.lyra.riskPct).toBeLessThanOrEqual(1);
     for (const x of cfg.desks) expect(typeof createOfficeStrategy(x).entry).toBe("function");
     const bars = ramp(120);
-    expect(explainEntry(by.vega, ctx(bars))).toMatch(/^Supertrend 10×3: up.*liquidity filter \(≤24 bars\)/);
-    expect(explainEntry(by.echo, ctx(bars))).toMatch(/^Paused: /);
-    expect(explainEntry(by.lyra, ctx(bars))).toMatch(/^Liquidity pockets \(experimental\)/);
+    expect(explainEntry(by.vega, ctx(bars))).toMatch(/^Supertrend: warming up/); // 600-bar ATR needs > 120 bars
+    expect(explainEntry({ ...by.vega, params: { n: 10, m: 3, lpSweepBars: 24 } }, ctx(bars))).toMatch(/^Supertrend 10×3: up.*liquidity filter \(≤24 bars\)/);
+    expect(explainEntry(by.echo, ctx(bars))).not.toMatch(/^Paused: /); // owner override 2026-10-13: Echo live on testnet
+    expect(explainEntry(by.lyra, ctx(ramp(260)))).toMatch(/^Liquidity pockets \(experimental\)/);
   });
 });
 
@@ -171,7 +175,7 @@ class FakeRef implements ReferenceFeed {
 describe("fleet: config-paused desks", () => {
   let dir: string, now: number, venue: PaperOfficeVenue, ref: FakeRef, store: Store;
   const owners = Object.fromEntries(cfg.desks.map((d) => [d.id, { owner: `OWNER_${d.id}`, operatorSecret: "" }]));
-  const shipped: OfficeConfig = { ...cfg, strictUntil: "2999-01-01T00:00:00Z" };
+  const shipped: OfficeConfig = { ...fixture, strictUntil: "2999-01-01T00:00:00Z" };
   const mk = (c: OfficeConfig) => new Fleet(c, venue, owners, store, ref, { mode: "live", baselines: {}, log: () => undefined, now: () => now });
   const setMarket = (closes: number[]) => {
     const t0 = Math.floor((now - closes.length * 3600) / 3600) * 3600;

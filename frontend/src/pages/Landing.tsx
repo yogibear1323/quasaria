@@ -5,6 +5,8 @@
  * illustrative is labelled as an example / estimate / simulation.
  */
 import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import SpaceYeti from "../components/SpaceYeti";
+import "../theme/space-yeti.css";
 import { Link, useNavigate } from "react-router-dom";
 import outlineMd from "../../../docs/landing-outline.md?raw";
 import pairsDoc from "../../../docs/stablecoin-pairs.json";
@@ -515,6 +517,7 @@ function BotsVisual() {
           <div className="field"><label>Leverage: {lev}×</label><input type="range" min={1} max={20} value={lev} onChange={(e) => setLev(Number(e.target.value))} /></div>
           <p className="muted l-tiny">Stop-loss and take-profit levels are stored with the position and enforced on-chain by the vault via a keeper. A bot key authorised as your operator can open and close positions for you; only you can withdraw. The testnet vault is currently deployed with a 10× cap.</p>
           <Link to="/bots" className="btn ghost small">Open Bots &amp; Leverage →</Link>
+          <Link to="/back-office" className="btn ghost small" data-testid="landing-bot-traders">Perps bot traders →</Link>
         </div>
         <div className="card">
           <div className="row between"><h3 style={{ margin: 0 }}>Performance preview</h3><Label kind="simulated" /></div>
@@ -658,7 +661,7 @@ export default function Landing() {
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
               <CtaButtons />
-              <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span></div>
+              <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span><SpaceYeti prop="coin" className="sy-inline" /></div>
             </div>
             <div className="l-hero-art">
               <Suspense fallback={<div className="globe-loading" aria-hidden />}><Globe /></Suspense>

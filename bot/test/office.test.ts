@@ -20,6 +20,7 @@ import type { DeskConfig, OfficeConfig } from "../src/office/types.js";
 import type { ReferenceFeed } from "../src/office/marketData.js";
 
 const cfg = loadOfficeConfig();
+const LEGACY_TF: Record<string, number> = { vega: 3600, rigel: 14400, lyra: 3600, nova: 3600, echo: 900, halo: 3600 };
 const L = cfg.limits;
 const desk = (id: string) => cfg.desks.find((d) => d.id === id)!;
 
@@ -207,7 +208,7 @@ describe("strategies", () => {
     expect(s.manage({ ...ctx, now: 1e9 + 90_000 }, pos).exit).toMatch(/max hold/);
   });
   it("mean-rev: fades a stretched close in a range, skips after a trend breakout, time stop", () => {
-    const s = meanrev(desk("halo"));
+    const s = meanrev({ ...desk("halo"), params: {} }); // strategy logic at default (hourly-tuned) periods
     const closes = [...flat(60), 0.2 * 0.985];
     const bars = series(closes, 1_790_000_000, 3600, 0.0005);
     const ctx = { bars, price: closes[closes.length - 1], now: bars[bars.length - 1].t + 3600, fundingExtHourly: 0, fundingSamples: [], externalSkew: 0, trendBreakoutRecent: false };
@@ -217,6 +218,24 @@ describe("strategies", () => {
     expect(s.entry({ ...ctx, trendBreakoutRecent: true })).toBeNull();
     const pos = { id: 1, side: "long" as const, margin: 50, size: 100, entry: 0.197, openedAt: ctx.now - 13 * 3600, stopLoss: 0.19, takeProfit: 0.2, pendingFunding: 0 };
     expect(s.manage(ctx, pos).exit).toMatch(/time stop/);
+  });
+});
+
+describe("rescale 2026-10-13: bar-counted params keep their previous wall-clock span", () => {
+  const OLD_TF: Record<string, number> = { vega: 3600, rigel: 14400, lyra: 3600, nova: 3600, echo: 900, halo: 3600 };
+  const OLD: Record<string, Record<string, number>> = {
+    vega: { n: 10, lpSweepBars: 24, lpK: 3, lpL: 100, lpAtrPeriod: 14 },
+    rigel: { fast: 20, slow: 50, breakout: 20, atrPeriod: 14, lpSweepBars: 12, lpK: 3, lpL: 100, lpAtrPeriod: 14 },
+    lyra: { k: 2, L: 50, alignEma: 50, timeStopBars: 48, atrPeriod: 14, warmBars: 30 },
+    nova: { retBars: 1 },
+    echo: { bbPeriod: 20, rsiPeriod: 14, adxPeriod: 14, atrPeriod: 14, timeStopBars: 12, warmBars: 30 },
+    halo: { bbPeriod: 20, rsiPeriod: 14, adxPeriod: 14, atrPeriod: 14, timeStopBars: 12, warmBars: 30, lpSweepBars: 12, lpK: 3, lpL: 100, lpAtrPeriod: 14 },
+  };
+  it("new bars × new tf ≈ old bars × old tf (rounded to whole bars, min 1); risk/leverage/capital untouched", () => {
+    for (const d of cfg.desks) {
+      for (const [k, old] of Object.entries(OLD[d.id])) expect(d.params[k], `${d.id}.${k}`).toBe(Math.max(1, Math.round((old * OLD_TF[d.id]) / d.timeframeSec)));
+      expect([d.riskPct, d.maxLeverage, d.capital]).toEqual({ vega: [1, 5, 500], rigel: [1, 5, 500], lyra: [0.75, 3, 500], nova: [0.75, 3, 500], echo: [1, 4, 500], halo: [1, 4, 500] }[d.id]);
+    }
   });
 });
 
@@ -240,7 +259,7 @@ describe("config + backtest", () => {
   it("validates desks and refuses > 2% risk", () => {
     expect(cfg.desks.map((d) => d.name)).toEqual(["Vega", "Regal", "Lyra", "Nova", "Echo", "Halo"]);
     expect(Object.fromEntries(cfg.desks.map((d) => [d.id, `${d.strategy}/${d.timeframeSec}${d.paused ? "/paused" : ""}`]))).toEqual({
-      vega: "supertrend/3600", rigel: "trend/14400", lyra: "liqpocket/3600", nova: "funding/3600/paused", echo: "meanrev/900/paused", halo: "meanrev/3600",
+      vega: "supertrend/60", rigel: "trend/300", lyra: "liqpocket/900", nova: "funding/1800", echo: "meanrev/3600", halo: "meanrev/14400",
     });
     for (const d of cfg.desks) expect(d.riskPct).toBeLessThanOrEqual(1);
     expect(desk("lyra").label).toMatch(/Experimental · liquidity pockets · simulated\/testnet/);
@@ -284,7 +303,8 @@ describe("fleet (paper venue)", () => {
   const config: OfficeConfig = {
     ...cfg,
     strictUntil: "2999-01-01T00:00:00Z",
-    desks: cfg.desks.map(({ paused: _p, ...d }) => (d.id === "vega" ? { ...d, strategy: "trend" as const, params: {} } : d)),
+    // fleet-mechanics fixture: pre-2026-10-13 bar sizes so the synthetic hourly market drives the desks
+    desks: cfg.desks.map(({ paused: _p, ...d }) => ({ ...d, timeframeSec: LEGACY_TF[d.id] ?? d.timeframeSec })).map((d) => (d.id === "vega" ? { ...d, strategy: "trend" as const, params: {} } : d)),
   };
 
   beforeEach(() => {

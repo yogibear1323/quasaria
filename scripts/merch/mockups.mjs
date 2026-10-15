@@ -3,11 +3,11 @@
 // diffuse lighting) plus hand-placed folds, the EXACT print artwork displaced by the same
 // fabric so it sits in the cloth, and an iridescent sheen for the pearl tee.
 const uri = (svg) => `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
-export const GARMENT = { black: "#141417", navy: "#1B2446", pearl: "#E6E8EE" };
-export const STUDIO_BG = "#0B0B0D";
+export const GARMENT = { black: "#231a12", navy: "#2F3A26", pearl: "#E9DFCC" };
+export const STUDIO_BG = "#0E0C0A";
 const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255; };
 
-const studio = (id) => `<defs><radialGradient id="${id}bg" cx="500" cy="300" r="780" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#63666F"/><stop offset=".38" stop-color="#34363C"/><stop offset=".72" stop-color="#16171A"/><stop offset="1" stop-color="#0A0A0C"/></radialGradient>
+const studio = (id) => `<defs><radialGradient id="${id}bg" cx="500" cy="300" r="780" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7C6A56"/><stop offset=".38" stop-color="#42392E"/><stop offset=".72" stop-color="#1C1814"/><stop offset="1" stop-color="#1C150F"/></radialGradient>
 <linearGradient id="${id}floor" x1="0" y1="760" x2="0" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>
 <filter id="${id}soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
 <filter id="${id}b8" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
@@ -26,7 +26,7 @@ const cylinder = (id, x0, x1, a = 0.42) => `<linearGradient id="${id}" x1="${x0}
 const fabric = (id, color, k = 1) => { const L = lum(color); return `<rect width="1000" height="1000" fill="#000" filter="url(#${id}wr)" style="mix-blend-mode:multiply" opacity="${(L > 0.5 ? 0.42 : 0.8) * k}"/><rect width="1000" height="1000" fill="#000" filter="url(#${id}wr)" style="mix-blend-mode:screen" opacity="${(L > 0.5 ? 0.12 : 0.075) * k}"/>`; };
 const img = (id, art, x, y, w, h, extra = "") => `<image href="${uri(art)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet" filter="url(#${id}dsp)" ${extra}/>`;
 /** Pearl / holographic sheen: displaced pastel bands, multiplied + screened. */
-const iridescent = (id) => `<linearGradient id="${id}ir" x1="150" y1="120" x2="850" y2="900" gradientUnits="userSpaceOnUse" spreadMethod="reflect">${["#F4D8EE", "#D5ECFF", "#E4DCFF", "#D3F6F0", "#F7E7DA", "#DCE3FF", "#F4D8EE"].map((c, i) => `<stop offset="${(i / 6).toFixed(3)}" stop-color="${c}"/>`).join("")}</linearGradient>`;
+const iridescent = (id) => `<linearGradient id="${id}ir" x1="150" y1="120" x2="850" y2="900" gradientUnits="userSpaceOnUse" spreadMethod="reflect">${["#F8EAD4", "#F4E6E0", "#F6EAE5", "#E8ECDD", "#F7E7DA", "#F6EAE5", "#F8EAD4"].map((c, i) => `<stop offset="${(i / 6).toFixed(3)}" stop-color="${c}"/>`).join("")}</linearGradient>`;
 
 // ------------------------------------------------------------------ t-shirt (oversized, dropped shoulder)
 const TEE = "M392 112C425 164 575 164 608 112L706 138C770 158 836 205 884 268L818 400C794 386 764 370 740 360C743 525 747 705 752 888C600 904 400 904 248 888C253 705 257 525 260 360C236 370 206 386 182 400L116 268C164 205 230 158 294 138Z";
@@ -48,7 +48,7 @@ export function tee({ color, art, placement = "front", sleeve, label, pearl = fa
     <path d="M158 300C188 332 214 352 250 364" stroke="#000" stroke-opacity="${sh * 0.8}" stroke-width="10"/>
     <path d="M842 300C812 332 786 352 750 364" stroke="#000" stroke-opacity="${sh * 0.8}" stroke-width="10"/>
   </g>`;
-  const inner = L > 0.5 ? "#C9CCD6" : "#050507";
+  const inner = L > 0.5 ? "#DAD0C5" : "#070605";
   const collar = back
     ? `<path d="M392 112C430 132 570 132 608 112" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="16"/>`
     : `<path d="M410 106C450 90 550 90 590 106C575 134 425 134 410 106Z" fill="${inner}"/>` +
@@ -79,7 +79,7 @@ export function hoodie({ color, art, artW = 300, artY = 236 }) {
   const cuffR = "M800 782L886 770L892 832L806 844Z", cuffL = "M200 782L114 770L108 832L194 844Z";
   const ribs = (x0, x1, y0, y1, n) => [...Array(n)].map((_, i) => { const t = (i + 0.5) / n; return `M${x0 + (x1 - x0) * t} ${y0}V${y1}`; }).join("");
   return scene(`${studio("h")}<defs><clipPath id="hclip"><path d="${body}"/></clipPath><clipPath id="hsl"><path d="${sleeveL}"/><path d="${sleeveR}"/><path d="M330 172C318 70 408 22 500 22C592 22 682 70 670 172Z"/></clipPath>${cylinder("hcyl", 250, 750, 0.5)}${cylinder("hcylS", 110, 890, 0.4)}
-  <radialGradient id="hhood" cx="500" cy="60" r="200" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><linearGradient id="hin" x1="0" y1="58" x2="0" y2="205" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a1c24"/><stop offset="1" stop-color="#040406"/></linearGradient><linearGradient id="hvert" x1="0" y1="120" x2="0" y2="920" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".07"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></linearGradient></defs>
+  <radialGradient id="hhood" cx="500" cy="60" r="200" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><linearGradient id="hin" x1="0" y1="58" x2="0" y2="205" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#251f19"/><stop offset="1" stop-color="#060504"/></linearGradient><linearGradient id="hvert" x1="0" y1="120" x2="0" y2="920" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".07"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></linearGradient></defs>
   <ellipse cx="500" cy="925" rx="340" ry="22" fill="#000" opacity=".55" filter="url(#hb20)"/>
   <path d="M330 172C318 70 408 22 500 22C592 22 682 70 670 172Z" fill="${color}"/><path d="M330 172C318 70 408 22 500 22C592 22 682 70 670 172Z" fill="url(#hhood)"/>
   <path d="M382 172C378 98 436 58 500 58C564 58 622 98 618 172C584 212 416 212 382 172Z" fill="url(#hin)"/><path d="M382 172C378 98 436 58 500 58C564 58 622 98 618 172" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="3"/>
@@ -100,9 +100,9 @@ export function hoodie({ color, art, artW = 300, artY = 236 }) {
     <rect width="1000" height="1000" fill="#fff" filter="url(#hnoise)" opacity=".1" style="mix-blend-mode:overlay"/>
   </g>
   <path d="M360 150C380 205 450 228 500 232C550 228 620 205 640 150" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="5"/>
-  <g stroke-linecap="round"><path d="M468 214C466 290 462 340 458 402" stroke="#d9dce6" stroke-width="6" fill="none"/><path d="M532 214C534 290 538 340 542 402" stroke="#d9dce6" stroke-width="6" fill="none"/></g>
-  <rect x="452" y="398" width="12" height="26" rx="4" fill="#9aa0b3"/><rect x="536" y="398" width="12" height="26" rx="4" fill="#9aa0b3"/>
-  <circle cx="468" cy="214" r="6" fill="#9aa0b3"/><circle cx="532" cy="214" r="6" fill="#9aa0b3"/>`);
+  <g stroke-linecap="round"><path d="M468 214C466 290 462 340 458 402" stroke="#efd9d0" stroke-width="6" fill="none"/><path d="M532 214C534 290 538 340 542 402" stroke="#efd9d0" stroke-width="6" fill="none"/></g>
+  <rect x="452" y="398" width="12" height="26" rx="4" fill="#baa893"/><rect x="536" y="398" width="12" height="26" rx="4" fill="#baa893"/>
+  <circle cx="468" cy="214" r="6" fill="#baa893"/><circle cx="532" cy="214" r="6" fill="#baa893"/>`);
 }
 
 // ------------------------------------------------------------------ bomber jacket
@@ -116,12 +116,12 @@ export function bomber({ color, patch, placket, label }) {
   const teeth = [...Array(88)].map((_, i) => `M${i % 2 ? 497 : 500} ${164 + i * 8}h3`).join("");
   return scene(`${studio("b")}<defs><clipPath id="bclip"><path d="${body}"/></clipPath><clipPath id="bsl"><path d="${sleeveL}"/><path d="${sleeveR}"/></clipPath>${cylinder("bcyl", 240, 760, 0.55)}${cylinder("bcylS", 110, 890, 0.45)}
   <linearGradient id="bgloss" x1="300" y1="200" x2="700" y2="800" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".12"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-  <linearGradient id="bzip" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b7080"/><stop offset=".5" stop-color="#e6e8ee"/><stop offset="1" stop-color="#6b7080"/></linearGradient></defs>
+  <linearGradient id="bzip" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b7760"/><stop offset=".5" stop-color="#e9dfcc"/><stop offset="1" stop-color="#8b7760"/></linearGradient></defs>
   <ellipse cx="500" cy="905" rx="340" ry="22" fill="#000" opacity=".55" filter="url(#bb20)"/>
   <path d="${sleeveL}" fill="${color}"/><path d="${sleeveR}" fill="${color}"/>
   <g clip-path="url(#bsl)"><rect width="1000" height="1000" fill="${color}"/>${fabric("b", color, 0.9)}<g filter="url(#bsoft)" fill="none" stroke-linecap="round"><path d="M200 300C190 450 180 600 168 740" stroke="#fff" stroke-opacity=".07" stroke-width="22"/><path d="M225 460C205 520 190 560 170 600M215 620C200 660 185 690 160 720" stroke="#000" stroke-opacity=".4" stroke-width="12"/><path d="M790 460C810 520 825 560 845 600M800 620C815 660 830 690 855 720" stroke="#000" stroke-opacity=".4" stroke-width="12"/></g></g>
   <path d="${sleeveL}" fill="url(#bcylS)"/><path d="${sleeveR}" fill="url(#bcylS)"/>
-  <g transform="rotate(8 800 330)"><rect x="770" y="280" width="62" height="96" rx="6" fill="${color}" stroke="#000" stroke-opacity=".45" stroke-width="2"/><rect x="770" y="280" width="62" height="96" rx="6" fill="#000" fill-opacity=".12"/><path d="M801 286V370" stroke="url(#bzip)" stroke-width="4"/><rect x="796" y="284" width="10" height="16" rx="2" fill="#c9ccd6"/><path d="M774 284h54" stroke="#fff" stroke-opacity=".12" stroke-width="1.5" stroke-dasharray="3 3"/></g>
+  <g transform="rotate(8 800 330)"><rect x="770" y="280" width="62" height="96" rx="6" fill="${color}" stroke="#000" stroke-opacity=".45" stroke-width="2"/><rect x="770" y="280" width="62" height="96" rx="6" fill="#000" fill-opacity=".12"/><path d="M801 286V370" stroke="url(#bzip)" stroke-width="4"/><rect x="796" y="284" width="10" height="16" rx="2" fill="#dad0c5"/><path d="M774 284h54" stroke="#fff" stroke-opacity=".12" stroke-width="1.5" stroke-dasharray="3 3"/></g>
   <path d="${cuffL}" fill="${color}"/><path d="${cuffR}" fill="${color}"/><path d="${cuffL}" fill="#000" fill-opacity=".25"/><path d="${cuffR}" fill="#000" fill-opacity=".25"/>
   <path d="${ribs(122, 202, 762, 836, 14)}${ribs(798, 878, 762, 836, 14)}" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
   <path d="${body}" fill="${color}"/>
@@ -138,11 +138,11 @@ export function bomber({ color, patch, placket, label }) {
     <path d="M254 440C300 452 340 456 380 458M746 440C700 452 660 456 620 458" stroke="#000" stroke-opacity=".3" stroke-width="2"/>
   </g>
   <path d="${hem}" fill="${color}"/><path d="${hem}" fill="#000" fill-opacity=".25"/><path d="${ribs(248, 752, 806, 870, 90)}" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
-  <path d="M412 130C452 122 548 122 588 130L584 152C548 146 452 146 416 152Z" fill="#07080B"/>
+  <path d="M412 130C452 122 548 122 588 130L584 152C548 146 452 146 416 152Z" fill="#0B0907"/>
   ${label ? `<image href="${uri(label)}" x="478" y="129" width="44" height="16.5"/>` : ""}
   <path d="${collar}" fill="${color}"/><path d="${collar}" fill="#000" fill-opacity=".25"/><path d="${ribs(394, 606, 122, 166, 44)}" stroke="#000" stroke-opacity=".35" stroke-width="1.6"/>
-  <path d="M500 150V868" stroke="#2b2e38" stroke-width="12"/><path d="${teeth}" stroke="#c9ccd6" stroke-width="3"/>
-  <rect x="493" y="176" width="14" height="30" rx="3" fill="url(#bzip)"/><rect x="496" y="204" width="8" height="22" rx="3" fill="#aeb3bf"/>
+  <path d="M500 150V868" stroke="#3a3229" stroke-width="12"/><path d="${teeth}" stroke="#dad0c5" stroke-width="3"/>
+  <rect x="493" y="176" width="14" height="30" rx="3" fill="url(#bzip)"/><rect x="496" y="204" width="8" height="22" rx="3" fill="#c6b8a7"/>
   <rect width="1000" height="1000" fill="#fff" filter="url(#bnoise)" opacity=".04"/>`);
 }
 
@@ -185,7 +185,7 @@ export function cap({ color, art, aspect = 1050 / 2400, width = 400 }) {
 }
 
 // ------------------------------------------------------------------ mug (cylindrical projection of the wrap)
-export function mug({ wrap, center = 700, body = "#101118", wrapW = 2700, wrapH = 1050 }) {
+export function mug({ wrap, center = 700, body = "#181410", wrapW = 2700, wrapH = 1050 }) {
   const R = 190, cx = 500, top = 250, bot = 800, ry = 34, s = (2 * Math.PI * R) / wrapW, ph = wrapH * s, N = 120;
   let strips = "";
   for (let i = 0; i < N; i++) {
@@ -194,7 +194,7 @@ export function mug({ wrap, center = 700, body = "#101118", wrapW = 2700, wrapH 
     const u0 = center + (t0 * R) / s, u1 = center + (t1 * R) / s, dy = ry * Math.cos(tm);
     strips += `<svg x="${x0.toFixed(2)}" y="${(top + 22 + dy).toFixed(2)}" width="${(x1 - x0 + 0.7).toFixed(2)}" height="${ph.toFixed(2)}" viewBox="${u0.toFixed(2)} 0 ${(u1 - u0).toFixed(2)} ${wrapH}" preserveAspectRatio="none"><use href="#mw"/><use href="#mw" x="${-wrapW}"/><use href="#mw" x="${wrapW}"/></svg>`;
   }
-  const light = parseInt(body.slice(1, 3), 16) > 0x99, inner = light ? "#CFCAD8" : "#050508";
+  const light = parseInt(body.slice(1, 3), 16) > 0x99, inner = light ? "#DBD2C7" : "#080705";
   const bodyPath = `M${cx - R} ${top}V${bot}A${R} ${ry} 0 0 0 ${cx + R} ${bot}V${top}Z`;
   return scene(`${studio("g")}<defs><image id="mw" href="${uri(wrap)}" width="${wrapW}" height="${wrapH}"/><clipPath id="gclip"><path d="${bodyPath}"/></clipPath>
   <linearGradient id="gcyl" x1="${cx - R}" y1="0" x2="${cx + R}" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000" stop-opacity=".7"/><stop offset=".22" stop-color="#000" stop-opacity=".12"/><stop offset=".3" stop-color="#fff" stop-opacity=".22"/><stop offset=".36" stop-color="#fff" stop-opacity=".05"/><stop offset=".7" stop-color="#000" stop-opacity=".1"/><stop offset="1" stop-color="#000" stop-opacity=".75"/></linearGradient>
@@ -211,7 +211,7 @@ export function mug({ wrap, center = 700, body = "#101118", wrapW = 2700, wrapH 
 }
 
 // ------------------------------------------------------------------ stickers on a laptop / sticker sheet on a desk
-const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="1000" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3A3C43"/><stop offset="1" stop-color="#0E0E11"/></linearGradient>
+const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="1000" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4A3F33"/><stop offset="1" stop-color="#12100D"/></linearGradient>
 <radialGradient id="${id}vig" cx="500" cy="480" r="700" gradientUnits="userSpaceOnUse"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
 <filter id="${id}sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#000" flood-opacity=".45"/></filter>
 <filter id="${id}b20" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
@@ -220,11 +220,11 @@ const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="100
 /** stickers: [{ svg, w, h, x, y, rot }] in 300-DPI px; scale maps px → scene units. */
 export function laptop({ stickers, scale = 0.24 }) {
   const items = stickers.map((s) => `<g transform="translate(${s.x} ${s.y}) rotate(${s.rot})" filter="url(#lsh)"><image href="${uri(s.svg)}" x="${(-s.w * scale) / 2}" y="${(-s.h * scale) / 2}" width="${s.w * scale}" height="${s.h * scale}"/></g>`).join("");
-  return scene(`${desk("l")}<defs><linearGradient id="llid" x1="140" y1="200" x2="860" y2="820" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5a6072"/><stop offset=".5" stop-color="#40454f"/><stop offset="1" stop-color="#2c3038"/></linearGradient>
+  return scene(`${desk("l")}<defs><linearGradient id="llid" x1="140" y1="200" x2="860" y2="820" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#786754"/><stop offset=".5" stop-color="#54483b"/><stop offset="1" stop-color="#3b3329"/></linearGradient>
   <linearGradient id="lsheen" x1="140" y1="200" x2="600" y2="700" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
   <g transform="rotate(-6 500 500)">
     <rect x="130" y="205" width="740" height="500" rx="28" fill="#000" opacity=".6" filter="url(#lb20)" transform="translate(8 22)"/>
-    <rect x="120" y="190" width="760" height="512" rx="28" fill="#1f2228"/>
+    <rect x="120" y="190" width="760" height="512" rx="28" fill="#2a241d"/>
     <rect x="124" y="192" width="752" height="506" rx="26" fill="url(#llid)"/>
     <rect x="124" y="192" width="752" height="506" rx="26" fill="#fff" filter="url(#lnoise)" opacity=".08"/>
     ${items}
@@ -237,7 +237,7 @@ export function sheetOnDesk({ sheet, w = 2550, h = 3300 }) {
   const sc = 760 / h, sw = w * sc;
   return scene(`${desk("k")}<g transform="rotate(4 500 500)">
     <rect x="${500 - sw / 2 + 6}" y="${120 + 16}" width="${sw}" height="760" rx="6" fill="#000" opacity=".55" filter="url(#kb20)"/>
-    <rect x="${500 - sw / 2}" y="120" width="${sw}" height="760" rx="6" fill="#f4f3f8"/>
+    <rect x="${500 - sw / 2}" y="120" width="${sw}" height="760" rx="6" fill="#faf4f1"/>
     <image href="${uri(sheet)}" x="${500 - sw / 2}" y="120" width="${sw}" height="760" filter="url(#ksh)"/>
   </g><rect width="1000" height="1000" fill="url(#kvig)"/>`);
 }

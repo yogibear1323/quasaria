@@ -1,13 +1,21 @@
 /** Independent reference market data (public, read-only): Coinbase XLM-USD candles/ticker, Kraken ticker fallback. */
 import type { Candle } from "./indicators.js";
 import { aggregate } from "./indicators.js";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 type Fetch = typeof fetch;
 
+/** Supported bar sizes (seconds). Coinbase serves 60/300/900/3600 natively; 1800 = 2×900 and 14400 = 4×3600 are aggregated. */
+export const TIMEFRAMES = [60, 300, 900, 1800, 3600, 14400];
+const AGG: Record<number, [number, number]> = { 1800: [900, 2], 14400: [3600, 4] };
+export const baseGran = (gran: number) => AGG[gran]?.[0] ?? gran;
+const agg = (bars: Candle[], gran: number) => (AGG[gran] ? aggregate(bars, AGG[gran][0], AGG[gran][1]) : bars);
+
 export interface ReferenceFeed {
   ticker(): Promise<number | null>;
-  /** closed bars at `gran` seconds (900, 3600, 14400 supported), oldest -> newest */
-  closedBars(gran: number, now: number): Promise<Candle[]>;
+  /** closed bars at `gran` seconds (see TIMEFRAMES), oldest -> newest */
+  closedBars(gran: number, now: number, minBars?: number): Promise<Candle[]>;
   /** optional: public L2 book summary (spread, depth imbalance within 0.5 % of mid). Logged, not a model input. */
   book?(): Promise<{ spreadBps: number; imbalance: number } | null>;
 }
@@ -26,7 +34,29 @@ async function getJson(f: Fetch, url: string, timeoutMs = 8000): Promise<unknown
 
 export class PublicReferenceFeed implements ReferenceFeed {
   private cache = new Map<string, { at: number; v: Candle[] }>();
-  constructor(private readonly f: Fetch = fetch, private readonly ttlSec = 55) {}
+  /** cacheDir: persist base-granularity candles between restarts so a fresh start only fetches the gap. */
+  constructor(private readonly f: Fetch = fetch, private readonly ttlSec = 55, private readonly cacheDir?: string) {}
+
+  private diskLoad(base: number): Map<number, Candle> | undefined {
+    if (!this.cacheDir) return undefined;
+    try {
+      const rows = JSON.parse(readFileSync(join(this.cacheDir, `candles-${base}.json`), "utf8")) as Candle[];
+      return new Map(rows.map((c) => [c.t, c]));
+    } catch {
+      return undefined;
+    }
+  }
+  private diskSave(base: number, m: Map<number, Candle>) {
+    if (!this.cacheDir) return;
+    try {
+      if (!existsSync(this.cacheDir)) mkdirSync(this.cacheDir, { recursive: true });
+      const f = join(this.cacheDir, `candles-${base}.json`);
+      writeFileSync(f + ".tmp", JSON.stringify([...m.values()].sort((a, b) => a.t - b.t)));
+      renameSync(f + ".tmp", f);
+    } catch {
+      /* cache is best-effort */
+    }
+  }
 
   async ticker(): Promise<number | null> {
     try {
@@ -53,13 +83,33 @@ export class PublicReferenceFeed implements ReferenceFeed {
     return rows.map((r) => ({ t: r[0], l: r[1], h: r[2], o: r[3], c: r[4], v: r[5] })).sort((a, b) => a.t - b.t);
   }
 
-  async closedBars(gran: number, now: number): Promise<Candle[]> {
-    const key = String(gran);
+  /** base-granularity bars kept between loops so long lookbacks are paged once, then topped up with the latest page */
+  private store = new Map<number, Map<number, Candle>>();
+
+  async closedBars(gran: number, now: number, minBars = 300): Promise<Candle[]> {
+    const key = `${gran}:${minBars}`;
     const hit = this.cache.get(key);
     let bars: Candle[];
     if (hit && now - hit.at < this.ttlSec) bars = hit.v;
     else {
-      bars = gran === 14_400 ? aggregate(await this.coinbase(3600), 3600, 4) : await this.coinbase(gran);
+      const base = baseGran(gran), k = gran / base, needBase = minBars * k;
+      if (needBase <= 300) bars = agg(await this.coinbase(base), gran);
+      else {
+        let m = this.store.get(base) ?? this.diskLoad(base) ?? new Map<number, Candle>();
+        const ts = [...m.keys()].sort((a, b) => a - b);
+        const from = now - (needBase + 2 * k) * base;
+        // back-fill the head only if the cache doesn't reach far enough (1m candles skip no-trade minutes: allow slack)
+        if (!ts.length || ts[0] > from + 10 * base) for (const c of await this.history(base, from, ts.length ? ts[0] : now)) m.set(c.t, c);
+        // forward-fill the gap since the newest cached candle (pages), else just the latest page
+        const newest = ts.length ? ts[ts.length - 1] : now;
+        if (now - newest > 250 * base) for (const c of await this.history(base, newest, now)) m.set(c.t, c);
+        for (const c of await this.coinbase(base)) m.set(c.t, c);
+        const cut = now - (needBase + 4 * k) * base;
+        for (const t of m.keys()) if (t < cut) m.delete(t);
+        this.store.set(base, m);
+        this.diskSave(base, m);
+        bars = agg([...m.values()].sort((a, b) => a.t - b.t), gran);
+      }
       this.cache.set(key, { at: now, v: bars });
     }
     return bars.filter((b) => b.t + gran <= now);
@@ -81,14 +131,14 @@ export class PublicReferenceFeed implements ReferenceFeed {
 
   /** Long history for backtests (paged, 300 bars per request). */
   async history(gran: number, from: number, to: number): Promise<Candle[]> {
-    const base = gran === 14_400 ? 3600 : gran;
+    const base = baseGran(gran);
     const out = new Map<number, Candle>();
     for (let s = from; s < to; s += base * 300) {
       const e = Math.min(to, s + base * 300);
       for (const c of await this.coinbase(base, s, e)) out.set(c.t, c);
-      await new Promise((r) => setTimeout(r, 350));
+      await new Promise((r) => setTimeout(r, 150));
     }
     const bars = [...out.values()].sort((a, b) => a.t - b.t);
-    return gran === 14_400 ? aggregate(bars, 3600, 4) : bars;
+    return agg(bars, gran);
   }
 }

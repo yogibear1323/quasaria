@@ -1,0 +1,56 @@
+/* /markets polish: earthy hero, movers strip, refined table, pager tabs, skeletons. Scoped to .mk-page. */
+.mk-page { min-width: 0; }
+.mk-hero { position: relative; overflow: hidden; border-radius: 22px; padding: 18px; margin: 0 0 18px; border: 1px solid rgba(139, 115, 86, 0.28);
+  background:
+    radial-gradient(520px 260px at 92% -20%, rgba(184, 96, 58, 0.18), transparent 70%),
+    radial-gradient(420px 240px at -6% 120%, rgba(94, 107, 60, 0.16), transparent 70%),
+    repeating-radial-gradient(circle at 78% 40%, transparent 0 26px, rgba(139, 115, 86, 0.07) 26px 27px),
+    linear-gradient(180deg, #f8f1e4, #efe5d3);
+  box-shadow: 0 18px 40px -30px rgba(74, 52, 32, 0.55); }
+.mk-hero-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.mk-hs { min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 16px; background: rgba(255, 252, 245, 0.82); border: 1px solid rgba(139, 115, 86, 0.22); }
+.mk-hs-l { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5a4632; }
+.mk-hs-v { font-family: var(--font-display); font-size: clamp(1.1rem, 1.8vw, 1.5rem); color: #2a2118; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mk-hs-s { font-size: 0.74rem; color: #574634; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mk-movers { margin-top: 14px; }
+.mk-movers-h { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5a4632; margin: 0 0 8px; }
+.mk-movers ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.mk-mover { width: 100%; min-width: 0; text-align: left; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 14px; cursor: pointer; font: inherit; color: #2a2118;
+  background: #fffaf0; border: 1px solid rgba(139, 115, 86, 0.25); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.mk-mover:hover { transform: translateY(-2px); border-color: rgba(184, 96, 58, 0.55); box-shadow: 0 10px 22px -16px rgba(122, 52, 21, 0.6); }
+.mk-mover:focus-visible { outline: 2px solid #7a3415; outline-offset: 2px; }
+.mk-mover-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mk-mover-id { display: flex; flex-direction: column; min-width: 0; }
+.mk-mover-id b, .mk-mover-id small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mk-mover-id small { color: #574634; font-size: 0.7rem; }
+.mk-mover-bot { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.82rem; font-weight: 600; min-width: 0; }
+.mk-mover-bot svg { flex: 0 1 auto; min-width: 0; max-width: 72px; }
+@media (max-width: 1100px) { .mk-movers ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .mk-hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mk-hero { padding: 12px; } }
+@media (max-width: 520px) { .mk-movers ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* table polish */
+.mk-page .mk-table thead th { position: sticky; top: var(--topbar-h, 64px); z-index: 2; background: #f3eadb; color: #43362a; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid rgba(139, 115, 86, 0.35); }
+.mk-page .mk-table tbody tr[data-testid="market-row"]:nth-child(even) > td { background: rgba(239, 229, 211, 0.45); }
+.mk-page .mk-table tbody tr[data-testid="market-row"]:hover > td { background: rgba(242, 184, 75, 0.14); }
+.mk-page .mk-table tbody td { border-bottom: 1px solid rgba(139, 115, 86, 0.14); }
+.mk-page .mk-table .c-asset b { font-family: var(--font-display); letter-spacing: -0.01em; }
+.mk-page .mk-table .c-rank { color: #6b5638; }
+/* pager as tabs */
+.mk-page .mk-pager .pg-btn { border-radius: 10px; border: 1px solid rgba(139, 115, 86, 0.3); background: #fffaf0; color: #43362a; padding: 6px 10px; font-weight: 600; min-width: 34px; }
+.mk-page .mk-pager .pg-btn:hover:not(:disabled) { border-color: #b8603a; color: #7a3415; }
+.mk-page .mk-pager .pg-btn.on { background-color: #7a3c1f; background-image: linear-gradient(180deg, #8a4526, #6e3418); color: #fffaf0; border-color: #7a3415; box-shadow: 0 6px 14px -8px rgba(122, 52, 21, 0.8); }
+.mk-page .mk-pager .pg-btn:disabled { opacity: .55; }
+/* yeti leaning on the page tabs: reserve its own column so it never covers tabs or the count */
+.mk-tabsbar { position: relative; display: flex; align-items: flex-end; gap: 8px; margin-top: 8px; }
+.mk-tabsbar > .mk-pager { flex: 1 1 auto; min-width: 0; }
+.mk-tabsbar .mk-yeti { order: -1; width: 72px; height: 120px; margin: 0 0 -2px -6px; }
+@media (max-width: 899px) { .mk-tabsbar .mk-yeti { display: none; } }
+/* skeletons */
+.mk-sk { display: inline-block; height: 0.9em; width: 100%; border-radius: 6px; background: linear-gradient(90deg, rgba(139, 115, 86, 0.12), rgba(139, 115, 86, 0.24), rgba(139, 115, 86, 0.12)); background-size: 200% 100%; animation: mk-sk 1.4s ease-in-out infinite; vertical-align: middle; }
+.mk-sk.w60 { width: 60%; } .mk-sk.w80 { width: 80%; }
+.mk-skrow td { padding: 12px 6px; }
+@keyframes mk-sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .mk-sk { animation: none; } .mk-mover { transition: none; } .mk-mover:hover { transform: none; } }
+.mk-movers-h small { text-transform: none; letter-spacing: 0; font-weight: 500; color: #574634; }
+@media (max-width: 760px) { .mk-hs-v { white-space: normal; overflow-wrap: anywhere; } }

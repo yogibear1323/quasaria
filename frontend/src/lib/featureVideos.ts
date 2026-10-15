@@ -35,6 +35,6 @@ export const FEATURE_VIDEOS_COPY = {
 const base = (): string => (import.meta.env?.BASE_URL as string | undefined) ?? "/";
 
 export type Aspect = "16x9" | "9x16";
-export const featureSrc = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}.mp4`;
-export const featurePoster = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}-poster.jpg`;
+export const featureSrc = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}-frost.mp4`;
+export const featurePoster = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}-frost-poster.jpg`;
 export const fmtRuntime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;

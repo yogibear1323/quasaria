@@ -1,5 +1,5 @@
 /**
- * "Perps" top-nav item with a submenu (Perps trade, Back Office robot floor).
+ * "Perps" top-nav item with a submenu (Perps trade, Back Office trading floor).
  * Opens on hover, keyboard focus, or the caret (touch). The menu is portalled with fixed positioning so the scrollable
  * nav strip cannot clip it. Esc closes and returns focus; ArrowDown/ArrowUp move through items.
  */
@@ -10,7 +10,7 @@ import { NavLink } from "react-router-dom";
 export const PERPS_MENU = [
   { to: "/perps", label: "Perps", sub: "trade long / short" },
   { to: "/perps/chart", label: "Live XLM chart", sub: "candles · oracle · mark" },
-  { to: "/back-office", label: "Back Office · robot floor", sub: "six bots · demo account" },
+  { to: "/back-office", label: "Perps bot traders", sub: "Vega 1m · Regal 5m · Lyra 15m · Nova 30m · Echo 1h · Halo 4h" },
 ];
 export const isPerpsPath = (p: string) => p.startsWith("/perps") || p.startsWith("/back-office");
 

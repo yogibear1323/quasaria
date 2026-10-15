@@ -49,8 +49,8 @@ async function renderSvg(svg, size, out, bg = null) {
 }
 
 await renderSvg(icon, 32, resolve(pub, "favicon-32.png"));
-await renderSvg(icon, 180, resolve(pub, "apple-touch-icon.png"), "#070912");
-await renderSvg(icon, 512, resolve(pub, "icon-512.png"), "#070912");
+await renderSvg(icon, 180, resolve(pub, "apple-touch-icon.png"), "#0B1428");
+await renderSvg(icon, 512, resolve(pub, "icon-512.png"), "#0B1428");
 await renderSvg(logo, 512, resolve(docs, "logo-512.png"));
 await renderSvg(icon, 128, resolve(docs, "favicon-preview-128.png"));
 
@@ -67,20 +67,20 @@ async function banner(out, w, h) {
   await page.setContent(`<!doctype html><html><head><style>
     @import url("${fontCss("space-grotesk", "500.css")}");
     @import url("${fontCss("space-grotesk", "700.css")}");
-    body{margin:0;width:${w}px;height:${h}px;overflow:hidden;background:#06070d;font-family:'Space Grotesk',sans-serif;position:relative}
+    body{margin:0;width:${w}px;height:${h}px;overflow:hidden;background:#0B1428;font-family:'Space Grotesk',sans-serif;position:relative}
     .bg{position:absolute;inset:0;background:
-      radial-gradient(ellipse 45% 70% at 82% 45%, rgba(124,92,255,.42), transparent 70%),
-      radial-gradient(ellipse 30% 45% at 90% 70%, rgba(34,211,238,.22), transparent 70%),
-      radial-gradient(ellipse 50% 60% at 0% 0%, rgba(124,92,255,.14), transparent 70%),
-      linear-gradient(180deg,#0b0d18,#06070d)}
+      radial-gradient(ellipse 45% 70% at 82% 45%, rgba(143,166,200,.42), transparent 70%),
+      radial-gradient(ellipse 30% 45% at 90% 70%, rgba(200,220,250,.22), transparent 70%),
+      radial-gradient(ellipse 50% 60% at 0% 0%, rgba(143,166,200,.14), transparent 70%),
+      linear-gradient(180deg,#142240,#0B1428)}
     .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:48px 48px;
       -webkit-mask-image:radial-gradient(ellipse 70% 80% at 30% 40%,#000,transparent 75%)}
     svg.stars{position:absolute;inset:0}
-    .mark{position:absolute;right:${w * 0.06}px;top:50%;width:${h * 0.78}px;height:${h * 0.78}px;transform:translateY(-50%);filter:drop-shadow(0 0 60px rgba(34,211,238,.35)) drop-shadow(0 0 120px rgba(124,92,255,.45))}
+    .mark{position:absolute;right:${w * 0.06}px;top:50%;width:${h * 0.78}px;height:${h * 0.78}px;transform:translateY(-50%);filter:drop-shadow(0 0 60px rgba(200,220,250,.35)) drop-shadow(0 0 120px rgba(143,166,200,.45))}
     .copy{position:absolute;left:${w * 0.07}px;top:50%;transform:translateY(-50%);max-width:${w * 0.52}px}
     .lock{height:${lockH}px;display:block}
     p{margin:${h * 0.05}px 0 0;color:#eef0fa;font-weight:500;font-size:${h * 0.066}px;line-height:1.15;letter-spacing:-.02em}
-    p span{background:linear-gradient(95deg,#c4b5fd,#8b7cff 45%,#22d3ee);-webkit-background-clip:text;color:transparent}
+    p span{background:linear-gradient(95deg,#DCE5F2,#C9D5E6 45%,#8FA6C8);-webkit-background-clip:text;color:transparent}
     .tag{margin-top:${h * 0.05}px;display:inline-flex;gap:10px;align-items:center;padding:7px 16px;border-radius:999px;border:1px solid rgba(251,191,36,.5);background:rgba(251,191,36,.08);
       color:#fbbf24;font-size:${Math.max(13, h * 0.03)}px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
     .tag i{width:8px;height:8px;border-radius:50%;background:#fbbf24;box-shadow:0 0 10px #fbbf24}

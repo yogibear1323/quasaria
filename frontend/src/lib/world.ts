@@ -13,6 +13,7 @@ export const DISTRICTS: District[] = [
   { id: "trade", to: "/trade", label: "Trade", district: "Lightspeed Exchange", region: "Exchange Ridge", lat: 14, lon: 4, hue: "violet", blurb: "Swap and order book" },
   { id: "perps", to: "/perps", label: "Perps", district: "Warp Yard", region: "Exchange Ridge", lat: 40, lon: 26, hue: "magenta", blurb: "Perpetual futures" },
   { id: "chart", to: "/perps/chart", label: "XLM Chart", district: "Observatory", region: "Exchange Ridge", lat: 58, lon: 2, hue: "cyan", blurb: "Live XLM chart" },
+  { id: "back-office", to: "/back-office", label: "Perps Bot Traders", district: "Control Deck", region: "Exchange Ridge", lat: 52, lon: 44, hue: "violet", blurb: "Vega 1m · Regal 5m · Lyra 15m · Nova 30m · Echo 1h · Halo 4h · decision desk" },
   { id: "pools", to: "/pools", label: "Pools", district: "Liquidity Lakes", region: "Yield Basin", lat: -8, lon: 52, hue: "cyan", blurb: "Provide liquidity" },
   { id: "lending", to: "/lending", label: "Lend", district: "Blend Harbor", region: "Yield Basin", lat: -30, lon: 70, hue: "violet", blurb: "Blend XLM pool (default)" },
   { id: "earn", to: "/earn", label: "Earn", district: "Harvest Terraces", region: "Yield Basin", lat: 10, lon: 88, hue: "magenta", blurb: "Yield options" },
@@ -25,13 +26,10 @@ export const DISTRICTS: District[] = [
   { id: "quests", to: "/quests", label: "Quests", district: "Quest Gate", region: "Commons", lat: -14, lon: -96, hue: "cyan", blurb: "Ranks and badges" },
   { id: "news", to: "/news", label: "News", district: "Broadcast Tower", region: "Commons", lat: 44, lon: -110, hue: "violet", blurb: "Stellar news" },
   { id: "merch", to: "/merch", label: "Merch", district: "Bazaar", region: "Commons", lat: -40, lon: -64, hue: "magenta", blurb: "Quasaria gear" },
-  { id: "back-office", to: "/back-office", label: "Back Office", district: "Control Deck", region: "Control", lat: -62, lon: -150, hue: "violet", blurb: "Operations and Beacons preview" },
 ];
 
-/** Autopay orbits Quasaria as a moon: an outer link, not a district. */
-export const AUTOPAY = { label: "Autopay", href: "https://yogibear1323.github.io/autopay/", blurb: "Outer moon · separate app" };
 
-export const REGIONS: Region[] = ["Exchange Ridge", "Yield Basin", "Orbit Coast", "Commons", "Control"];
+export const REGIONS: Region[] = ["Exchange Ridge", "Yield Basin", "Orbit Coast", "Commons"];
 
 export function districtFor(path: string): District | undefined {
   const exact = DISTRICTS.find((d) => d.to === path);

@@ -3,7 +3,7 @@
   <desc id="d">Quasaria mark: an accretion ring forms the bowl of a Q and a relativistic jet from the bright core forms its tail.</desc>
   <defs>
     <radialGradient id="ic-bg" cx="32" cy="24" r="44" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#12152B"/><stop offset="1" stop-color="#070912"/>
+      <stop offset="0" stop-color="#142240"/><stop offset="1" stop-color="#0B1428"/>
     </radialGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="url(#ic-bg)"/>
@@ -11,22 +11,22 @@
   <g transform="translate(3.5 3.5) scale(.890625)">
   <defs>
     <linearGradient id="af-ring" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#C4B5FD"/><stop offset=".42" stop-color="#7C5CFF"/><stop offset="1" stop-color="#22D3EE"/>
+      <stop offset="0" stop-color="#E3EAF4"/><stop offset=".42" stop-color="#8FA6C8"/><stop offset="1" stop-color="#C9D5E6"/>
     </linearGradient>
     <linearGradient id="af-jet" x1="33" y1="33" x2="60" y2="60" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#A5F3FC"/><stop offset=".75" stop-color="#22D3EE"/><stop offset="1" stop-color="#0EA5E9"/>
+      <stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#F2F6FC"/><stop offset=".75" stop-color="#C9D5E6"/><stop offset="1" stop-color="#5B7299"/>
     </linearGradient>
     <radialGradient id="af-core" cx="32" cy="32" r="5.4" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff"/><stop offset=".8" stop-color="#A5F3FC"/><stop offset="1" stop-color="#22D3EE"/>
+      <stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff"/><stop offset=".8" stop-color="#F2F6FC"/><stop offset="1" stop-color="#C9D5E6"/>
     </radialGradient>
     <radialGradient id="af-glint" cx="47.2" cy="13.6" r="4.4" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#fff"/><stop offset="1" stop-color="#22D3EE"/>
+      <stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#fff"/><stop offset="1" stop-color="#C9D5E6"/>
     </radialGradient>
     <linearGradient id="af-cjet" x1="31" y1="31" x2="18" y2="18" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#A5F3FC" stop-opacity=".95"/><stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/>
+      <stop offset="0" stop-color="#F2F6FC" stop-opacity=".95"/><stop offset="1" stop-color="#8FA6C8" stop-opacity="0"/>
     </linearGradient>
     <radialGradient id="af-halo" cx="32" cy="32" r="12" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#A5F3FC" stop-opacity=".95"/><stop offset=".45" stop-color="#22D3EE" stop-opacity=".45"/><stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/>
+      <stop offset="0" stop-color="#F2F6FC" stop-opacity=".95"/><stop offset=".45" stop-color="#C9D5E6" stop-opacity=".45"/><stop offset="1" stop-color="#8FA6C8" stop-opacity="0"/>
     </radialGradient>
     <mask id="af-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
       <rect width="64" height="64" fill="#fff"/>

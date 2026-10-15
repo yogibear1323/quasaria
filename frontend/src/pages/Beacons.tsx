@@ -7,6 +7,10 @@ import { readQfx, useChain } from "../lib/chain";
 import { breakEvenFees, runSim, type Lock } from "../lib/beaconsSim";
 import "../theme/beacons-page.css";
 import BeaconsFit from "../components/BeaconsFit";
+import BeaconsLive from "../components/BeaconsLive";
+import BeaconsStake from "../components/BeaconsStake";
+import BeaconsDocs from "../components/BeaconsDocs";
+import BeaconsSummary from "../components/BeaconsSummary";
 
 const f = (n: number, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
 const PERKS = [0, 5, 10, 15, 20, 25];
@@ -15,9 +19,9 @@ const tierOf = (q: number) => { let t = "Below Spark"; for (const x of BEACON_TI
 function WalletQfx() {
   const w = useWallet();
   const chain = useChain(() => (w.address ? readQfx(w.address) : Promise.resolve(null)), [w.address]);
-  if (!w.address) return <p className="muted">Connect a wallet to see your QFX balance here (read-only).</p>;
+  if (!w.address) return <p className="muted">Connect a wallet to see your QFX balance.</p>;
   if (!chain.data) return <p className="muted">{chain.error ? "Couldn't read your QFX balance." : "Reading your QFX balance…"}</p>;
-  return <p>Your QFX balance (testnet, read-only): <b className="mono">{f(chain.data.balance, 4)} QFX</b>. Nothing can be staked in Beacons yet.</p>;
+  return <p>Your QFX balance (testnet, read-only): <b className="mono">{f(chain.data.balance, 4)} QFX</b>. You can stake it below.</p>;
 }
 
 function Simulator() {
@@ -78,40 +82,43 @@ export default function Beacons() {
   const drift = Math.abs(peg - 1) * 100;
   return (
     <>
-      <PageHead kicker="Preview · not deployed · illustrative" title="Beacons" right={<div className="row"><span className="pill gold">Preview</span><Link className="pill cyan" to="/back-office">Back Office panel</Link></div>}>
-        Lock QFX into one of six tiers and share real protocol revenue, paid in XLM every 4 hours. Every QFX earns the same share; tiers add perks. This is a design preview: no contract is deployed and nothing here is a guaranteed return.
+      <PageHead kicker="Testnet · unaudited · live contracts" title="Beacons" right={<div className="row"><a className="pill gold" href="#beacons-summary">In brief ↓</a><a className="pill gold" href="#live-testnet">Live on testnet ↓</a><a className="pill gold" href="#how-beacons-fits">How Beacons fits ↓</a><a className="pill gold" href="#beacons-docs">Full documents ↓</a><Link className="pill cyan" to="/back-office">Back Office panel</Link></div>}>
+        Stake QFX and earn a share of Quasaria's fees, paid in XLM every 4 hours. Testnet only. Returns are not guaranteed.
       </PageHead>
-      <div className="bp-banner" role="note">Preview · not deployed · illustrative. Rates are variable. No wallet action on this page sends a transaction.</div>
+      <div className="bp-banner" role="note">Testnet · unaudited. Nothing here uses real money. Rates change, and the simulator is only an example.</div>
+      <BeaconsSummary />
       <div className="card"><WalletQfx /></div>
+      <BeaconsLive />
+      <BeaconsStake />
       <BeaconsFit />
 
-      <section className="bp-sec" aria-labelledby="bp-tiers"><h2 id="bp-tiers">Tiers, priced in QFX</h2><p className="muted">Flat reward weight 1.00 in every tier. Lock boost for anyone: none 1.00× · 30 days 1.10× · 90 days 1.25×. No per-wallet cap.</p>
+      <section className="bp-sec" aria-labelledby="bp-tiers"><h2 id="bp-tiers">Tiers, priced in QFX</h2><p className="muted">Every tier earns the same per QFX. Higher tiers get bigger fee discounts. Locking longer boosts rewards: 30 days 1.10×, 90 days 1.25×.</p>
         <div className="bp-tiers">{BEACON_TIERS.map((t, i) => (
-          <div key={t.id} className="bp-tier"><div className="muted">Tier {i + 1} of 6</div><h3 style={{ margin: "2px 0" }}>{t.name}</h3><b>{f(t.lock)}</b><span className="muted">QFX min · {PERKS[i]}% trading-fee discount · XP · visuals</span></div>))}</div></section>
+          <div key={t.id} className="bp-tier"><div className="muted">Tier {i + 1} of 6</div><h3 style={{ margin: "2px 0" }}>{t.name}</h3><b>{f(t.lock)}</b><span className="muted">QFX minimum · {PERKS[i]}% off trading fees</span></div>))}</div></section>
 
-      <section className="bp-sec"><h2>Blend pool</h2><p className="muted">40% of staked value (30–50% range) goes to a Blend pool; 60% stays as a cash buffer for exits.</p>
+      <section className="bp-sec"><h2>Blend pool</h2><p className="muted">40% of staked value is lent to Blend. 60% stays as cash for exits.</p>
         <div className="bp-seg" role="group" aria-label="Blend pool"><button aria-pressed={!usdc} onClick={() => setUsdc(false)}>XLM pool (default)</button><button aria-pressed={usdc} onClick={() => setUsdc(true)}>USDC pool (alternative)</button></div>
-        <div className="card" style={{ marginTop: 10 }}>{usdc ? <><b>USDC pool (not default).</b> Needs XLM↔USDC swaps, adding costs and XLM/USD price risk to the payout pool.</> : <><b>XLM pool (default).</b> Same asset as payouts and the vault, so XLM price moves create no mismatch.</>}
-          <p className="muted" style={{ marginBottom: 0 }}>Live-rate caveat: Blend's XLM supply rate was about 0.02% (30-day average, Oct 11, 2026). The simulator defaults to 0.5%, an illustrative base case.</p></div></section>
+        <div className="card" style={{ marginTop: 10 }}>{usdc ? <><b>USDC pool (not default).</b> Needs XLM↔USDC swaps. That adds costs and price risk.</> : <><b>XLM pool (default).</b> Same coin as the payouts, so there is no price mismatch.</>}
+          <p className="muted" style={{ marginBottom: 0 }}>Blend's XLM rate is near zero right now (about 0.02%, 30-day average, Oct 11, 2026). The simulator uses 0.5% as an example.</p></div></section>
 
       <section className="bp-sec"><h2>Fee split</h2>
         <div className="bp-split" role="img" aria-label="40% stakers, 10% insurance, 50% operations"><div style={{ width: "40%", background: "#67e8f9" }}>40% stakers</div><div style={{ width: "10%", background: "#F2B84B" }}>10%</div><div style={{ width: "50%", background: "#c4b5fd" }}>50% operations</div></div>
-        <p className="muted">Of fees entering the fee router. Today the DEX's swap fee goes entirely to liquidity providers (minus referral cuts), so Beacons needs a new protocol fee share on pools first. See the integration plan.</p></section>
+        <p className="muted">This is how the fee router splits fees. Today all swap fees go to liquidity providers. Beacons needs a new protocol fee share first.</p></section>
 
       <section className="bp-sec"><h2>Reward schedule</h2><div className="grid g-3">
-        <div className="card"><h3>1/42 every 4 hours</h3><p className="muted">Each cycle pays 1/42 of the reserve, about 7 days of smoothing.</p></div>
-        <div className="card"><h3>25% APR cap</h3><p className="muted">Above the cap, the excess stays in the reserve.</p></div>
-        <div className="card"><h3>30-day overflow</h3><p className="muted">Reserve above 30 days of payouts goes to insurance (to 5% of the Blend deployment), then buyback/treasury.</p></div></div></section>
+        <div className="card"><h3>1/42 every 4 hours</h3><p className="muted">Each 4-hour payout is 1/42 of the reserve. That spreads rewards over about 7 days.</p></div>
+        <div className="card"><h3>25% APR cap</h3><p className="muted">Anything above the cap stays in the reserve.</p></div>
+        <div className="card"><h3>30-day overflow</h3><p className="muted">Extra beyond 30 days of payouts tops up insurance first, then goes to buyback and treasury.</p></div></div></section>
 
       <section className="bp-sec"><h2>Peg monitor</h2><div className="card">
         <label className="muted">QFX price in XLM: <b className="mono">{peg.toFixed(3)}</b> ({drift.toFixed(1)}% drift)<input type="range" min={0.97} max={1.03} step={0.001} value={peg} onChange={(e) => setPeg(+e.target.value)} style={{ width: "100%", accentColor: "var(--violet)" }} /></label>
-        <p>{drift > 1 ? <><b className="bp-bad">Paused:</b> new stakes and tier upgrades. Claims and exits keep working.</> : <><b className="bp-good">Open:</b> staking and upgrades allowed.</>}</p></div></section>
+        <p>{drift > 1 ? <><b className="bp-bad">Paused:</b> no new stakes or upgrades. Claims and exits still work.</> : <><b className="bp-good">Open:</b> staking works as normal.</>}</p></div></section>
 
       <section className="bp-sec"><h2>Unbonding</h2><div className="card"><ul>
-        <li><b>7-day unbonding</b>, no rewards while unbonding.</li><li><b>Exit cap</b> 2% of staked value per 4-hour cycle, <b>FIFO queue</b> with position and ETA.</li>
-        <li><b>One-epoch warm-up</b> before new stake earns.</li><li>After an uncovered Blend loss, a pro-rata haircut applies to every exit.</li><li>If QFX minting is paused, exits are paid in XLM until it resumes.</li></ul></div></section>
+        <li><b>Exits take 7 days.</b> No rewards while you wait.</li><li><b>Exits are capped</b> at 2% of staked value per 4-hour cycle. First in, first out.</li>
+        <li><b>New stake starts earning</b> after one cycle.</li><li>If a Blend loss is bigger than the insurance fund, every exit takes a fair share of it.</li><li>If QFX minting is paused, exits are paid in XLM instead.</li></ul></div></section>
 
-      <section className="bp-sec"><h2>How staked QFX reaches Blend</h2><p className="muted">The vault redeems QFX for XLM 1:1, supplies 40% to Blend's XLM pool, keeps 60% as a buffer, and mints fresh QFX 1:1 on exit. The QFX contract is unchanged and stays fully backed.</p>
+      <section className="bp-sec"><h2>How staked QFX reaches Blend</h2><p className="muted">The vault swaps your QFX for XLM 1:1. It lends 40% to Blend and keeps 60% as cash. When you leave, you get QFX back 1:1.</p>
         <div className="card"><svg className="bp-flow" viewBox="0 0 900 230" role="img" aria-label="Routing flow"><defs><marker id="bpar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4a4470" /></marker></defs>
           <g fontSize="14" fill="#1b1640" textAnchor="middle">
             <rect x="10" y="80" width="140" height="64" rx="12" fill="#ffffff" stroke="#cdc7ec" /><text x="80" y="108">Staker</text><text x="80" y="128" fill="#4a4470" fontSize="12">stakes QFX</text>
@@ -121,7 +128,8 @@ export default function Beacons() {
             <rect x="700" y="80" width="190" height="64" rx="12" fill="#ffffff" stroke="#d97706" /><text x="795" y="108">Insurance fund</text><text x="795" y="128" fill="#4a4470" fontSize="12">covers losses first</text></g>
           <g stroke="#4a4470" fill="none" markerEnd="url(#bpar)"><path d="M150 112H205" /><path d="M380 100L445 50" /><path d="M380 125L445 175" /><path d="M640 45L700 95" /></g></svg></div></section>
 
-      <section className="bp-sec" aria-labelledby="bp-sim"><h2 id="bp-sim">Simulator</h2><p className="muted">Same formulas as the Beacons simulations (sim.py). Other stakers assumed at weight 1.00. Illustrative only, not a guaranteed return.</p><Simulator /></section>
+      <section className="bp-sec" aria-labelledby="bp-sim"><h2 id="bp-sim">Simulator</h2><p className="muted">Try different numbers to see possible payouts. Uses the same math as the Beacons simulations. Example only, not a promise.</p><Simulator /></section>
+      <BeaconsDocs />
       <p className="muted" style={{ marginTop: 20 }}>Full write-up, deployment scope and integration plan: <a href="https://github.com/yogibear1323/quasaria-beacons" target="_blank" rel="noreferrer">quasaria-beacons on GitHub</a> · standalone playground: <a href="https://yogibear1323.github.io/quasaria-beacons/" target="_blank" rel="noreferrer">yogibear1323.github.io/quasaria-beacons</a></p>
     </>
   );

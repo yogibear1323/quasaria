@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-15T02:21:20.000Z",
+ "generatedAt": "2026-10-15T02:26:35.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,16 +23,16 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1813535,
-  "oracleAgeSec": 23,
-  "referencePrice": 0.181336,
-  "deviationPct": 0.0097,
+  "oraclePrice": 0.1788615,
+  "oracleAgeSec": 13,
+  "referencePrice": 0.178775,
+  "deviationPct": 0.0484,
   "oracleLevel": "ok",
   "oracleReasons": [],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 3.0023478599567654e-9,
+  "fundingPredictedHourly": 2.9838622618178814e-9,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -114,11 +114,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.18244,
-    0.182064,
-    0.182137,
-    0.182281,
-    0.182227,
     0.182126,
     0.181963,
     0.181963,
@@ -153,7 +148,12 @@
     0.181215,
     0.181053,
     0.181792,
-    0.181778
+    0.181474,
+    0.18108,
+    0.179461,
+    0.178512,
+    0.177469,
+    0.178366
    ]
   },
   {
@@ -229,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T02:15Z",
+   "lastSignal": "no signal @ bar 10-15T02:20Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.18342,
     0.183213,
     0.183616,
     0.18316,
@@ -272,7 +271,8 @@
     0.181231,
     0.181435,
     0.181174,
-    0.181156
+    0.181792,
+    0.181184
    ]
   },
   {
@@ -758,9 +758,9 @@
   "reason": "",
   "trippedSince": 0,
   "freshCount": 3,
-  "lastReadAt": 1792030880,
-  "lastOracleAgeSec": 23,
-  "lastHeartbeatAgeSec": 23,
+  "lastReadAt": 1792031195,
+  "lastOracleAgeSec": 13,
+  "lastHeartbeatAgeSec": 13,
   "trips": 62,
   "label": "fresh",
   "blockAgeSec": 60,

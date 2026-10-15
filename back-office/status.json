@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-15T03:50:58.000Z",
+ "generatedAt": "2026-10-15T03:56:13.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,18 +23,16 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1790045,
-  "oracleAgeSec": 456,
-  "referencePrice": 0.178374,
-  "deviationPct": 0.3535,
-  "oracleLevel": "halt",
-  "oracleReasons": [
-   "oracle age 456s > 90s"
-  ],
+  "oraclePrice": 0.1782855,
+  "oracleAgeSec": 31,
+  "referencePrice": 0.178502,
+  "deviationPct": 0.1213,
+  "oracleLevel": "ok",
+  "oracleReasons": [],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 2.7146510218452566e-9,
+  "fundingPredictedHourly": 2.699542449624921e-9,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -116,11 +114,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.179616,
-    0.179945,
-    0.17969,
-    0.179653,
-    0.179472,
     0.17962,
     0.1798,
     0.17995,
@@ -155,7 +148,12 @@
     0.178615,
     0.178568,
     0.17851,
-    0.178304
+    0.178567,
+    0.17823,
+    0.17832,
+    0.178374,
+    0.17828,
+    0.178483
    ]
   },
   {
@@ -231,11 +229,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T03:45Z",
+   "lastSignal": "no signal @ bar 10-15T03:50Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.183128,
     0.182544,
     0.18244,
     0.181978,
@@ -274,7 +271,8 @@
     0.178688,
     0.178704,
     0.178615,
-    0.178516
+    0.17832,
+    0.17856
    ]
   },
   {
@@ -755,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "trip",
-  "reason": "resume: clock jumped 526s; need 3 fresh reads",
-  "trippedSince": 1792036258,
-  "freshCount": 0,
-  "lastReadAt": 1792036258,
-  "lastOracleAgeSec": 456,
-  "lastHeartbeatAgeSec": 501,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1792036573,
+  "lastOracleAgeSec": 31,
+  "lastHeartbeatAgeSec": 30,
   "trips": 65,
-  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 526s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

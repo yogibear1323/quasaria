@@ -579,6 +579,9 @@ select.input option, select.input optgroup { background: var(--bg-elev); color: 
 @media (max-width: 900px) {
   .calc-grid { grid-template-columns: minmax(0, 1fr); }
   .calc-results.il { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* The XLM pill only hid at <=720px, so Create account clipped around 768. Hide it through 900 (single-row bar). */
+  .topbar .pill[data-testid="xlm-ticker"] { display: none; }
+  .topbar { gap: 8px; }
 }
 @media (max-width: 720px) {
   .topbar { position: relative; flex-wrap: wrap; gap: 10px; padding: 10px 14px 8px; }

@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-15T15:37:40.000Z",
+ "generatedAt": "2026-10-15T16:02:01.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,18 +23,18 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.185307,
-  "oracleAgeSec": 73,
-  "referencePrice": 0.185507,
-  "deviationPct": 0.1078,
-  "oracleLevel": "warn",
+  "oraclePrice": 0.185516,
+  "oracleAgeSec": 1454,
+  "referencePrice": 0.184806,
+  "deviationPct": 0.3842,
+  "oracleLevel": "halt",
   "oracleReasons": [
-   "oracle age 73s > 60s"
+   "oracle age 1454s > 90s"
   ],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 1.5464863877756139e-9,
+  "fundingPredictedHourly": 1.5238733284486895e-9,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -116,32 +116,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.182688,
-    0.183042,
-    0.182884,
-    0.18329,
-    0.183177,
-    0.183378,
-    0.1832,
-    0.183529,
-    0.182996,
-    0.183298,
-    0.183852,
-    0.184113,
-    0.184163,
-    0.184404,
-    0.184383,
-    0.18437,
-    0.18458,
-    0.18466,
-    0.184856,
-    0.184831,
-    0.184851,
-    0.184892,
-    0.18496,
-    0.184881,
-    0.1851,
-    0.184775,
     0.184861,
     0.18478,
     0.184445,
@@ -155,7 +129,33 @@
     0.185047,
     0.18502,
     0.184797,
-    0.184847
+    0.184847,
+    0.18504,
+    0.1855,
+    0.1857,
+    0.185313,
+    0.185313,
+    0.185616,
+    0.185854,
+    0.18586,
+    0.185604,
+    0.185637,
+    0.185492,
+    0.185238,
+    0.18501,
+    0.184952,
+    0.184987,
+    0.1849,
+    0.185196,
+    0.18522,
+    0.185094,
+    0.18494,
+    0.18511,
+    0.185169,
+    0.185111,
+    0.18536,
+    0.185095,
+    0.185159
    ]
   },
   {
@@ -231,15 +231,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T15:30Z",
+   "lastSignal": "no signal @ bar 10-15T15:55Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.179902,
-    0.180362,
-    0.18021,
-    0.17886,
-    0.179972,
     0.179199,
     0.178961,
     0.17856,
@@ -274,7 +269,12 @@
     0.184861,
     0.184619,
     0.185047,
-    0.18504
+    0.1855,
+    0.185854,
+    0.185238,
+    0.185196,
+    0.185169,
+    0.185001
    ]
   },
   {
@@ -350,12 +350,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T15:15Z",
+   "lastSignal": "no signal @ bar 10-15T15:45Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.178376,
-    0.177157,
     0.177536,
     0.17856,
     0.17906,
@@ -393,7 +391,9 @@
     0.181812,
     0.1832,
     0.184892,
-    0.185047
+    0.185047,
+    0.185238,
+    0.185159
    ]
   },
   {
@@ -469,11 +469,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T15:00Z",
+   "lastSignal": "no signal @ bar 10-15T15:30Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.183791,
     0.183516,
     0.182921,
     0.18336,
@@ -512,7 +511,8 @@
     0.177661,
     0.180605,
     0.1832,
-    0.185047
+    0.185047,
+    0.185159
    ]
   },
   {
@@ -588,11 +588,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T14:00Z",
+   "lastSignal": "no signal @ bar 10-15T15:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.190026,
     0.190665,
     0.18973,
     0.190055,
@@ -631,7 +630,8 @@
     0.179626,
     0.178118,
     0.177661,
-    0.1832
+    0.1832,
+    0.18484
    ]
   },
   {
@@ -707,11 +707,10 @@
     ]
    },
    "open": [],
-   "lastSignal": "no signal @ bar 10-15T08:00Z",
+   "lastSignal": "no signal @ bar 10-15T12:00Z",
    "trades": [],
    "entries": [],
    "spark": [
-    0.191891,
     0.19446,
     0.195289,
     0.19444,
@@ -750,21 +749,22 @@
     0.182336,
     0.178893,
     0.18037,
-    0.179626
+    0.179626,
+    0.18484
    ]
   }
  ],
  "staleBreaker": {
   "tripped": true,
-  "level": "block",
-  "reason": "block (>= 60s): on-chain oracle age 73s, feed heartbeat age 73s",
-  "trippedSince": 1792078660,
+  "level": "trip",
+  "reason": "resume: clock jumped 1563s; need 3 fresh reads",
+  "trippedSince": 1792080121,
   "freshCount": 0,
-  "lastReadAt": 1792078660,
-  "lastOracleAgeSec": 73,
-  "lastHeartbeatAgeSec": 73,
+  "lastReadAt": 1792080121,
+  "lastOracleAgeSec": 1454,
+  "lastHeartbeatAgeSec": 1534,
   "trips": 68,
-  "label": "STALE DATA · entries halted (block) — block (>= 60s): on-chain oracle age 73s, feed heartbeat age 73s",
+  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 1563s; need 3 fresh reads",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,
@@ -911,6 +911,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1792080000,
+     "barT": 1792079100,
+     "price": 0.185159,
+     "side": "short",
+     "p": {
+      "setup": 0.379,
+      "direction": 0.548,
+      "pressure": 0.525,
+      "regime": 0.228,
+      "risk": 0.685
+     },
+     "score": 0.459,
+     "action": "skip: setup 0.38 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1792078200,
      "barT": 1792077300,
@@ -1690,26 +1710,6 @@
      "sizing": "none",
      "result": "time -0.11",
      "pnl": -0.10909783040625001
-    },
-    {
-     "t": 1791940500,
-     "barT": 1791939600,
-     "price": 0.190241,
-     "side": "short",
-     "p": {
-      "setup": 0.402,
-      "direction": 0.548,
-      "pressure": 0.544,
-      "regime": 0.226,
-      "risk": 0.827
-     },
-     "score": 0.485,
-     "action": "skip: setup 0.40 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
     }
    ]
   }

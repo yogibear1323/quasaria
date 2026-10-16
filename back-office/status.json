@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-16T07:35:59.000Z",
+ "generatedAt": "2026-10-16T07:41:09.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,18 +23,16 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.1820935,
-  "oracleAgeSec": 10282,
+  "oraclePrice": 0.1831035,
+  "oracleAgeSec": 2,
   "referencePrice": 0.183147,
-  "deviationPct": 0.5752,
-  "oracleLevel": "halt",
-  "oracleReasons": [
-   "oracle age 10282s > 90s"
-  ],
+  "deviationPct": 0.0238,
+  "oracleLevel": "ok",
+  "oracleReasons": [],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 9.765903460852583e-10,
+  "fundingPredictedHourly": 9.746577460086533e-10,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -116,10 +114,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.183639,
-    0.183681,
-    0.183663,
-    0.18351,
     0.183448,
     0.183453,
     0.183434,
@@ -155,7 +149,11 @@
     0.18351,
     0.183457,
     0.18341,
-    0.18341
+    0.183327,
+    0.183232,
+    0.183348,
+    0.183185,
+    0.183156
    ]
   },
   {
@@ -235,7 +233,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.182119,
     0.18245,
     0.182292,
     0.182,
@@ -274,7 +271,8 @@
     0.183756,
     0.183431,
     0.183457,
-    0.183348
+    0.183185,
+    0.183353
    ]
   },
   {
@@ -755,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "trip",
-  "reason": "resume: clock jumped 10338s; need 3 fresh reads",
-  "trippedSince": 1792136159,
-  "freshCount": 0,
-  "lastReadAt": 1792136159,
-  "lastOracleAgeSec": 10282,
-  "lastHeartbeatAgeSec": 0,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1792136469,
+  "lastOracleAgeSec": 2,
+  "lastHeartbeatAgeSec": 2,
   "trips": 72,
-  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 10338s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

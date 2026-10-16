@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-16T02:56:26.000Z",
+ "generatedAt": "2026-10-16T03:01:42.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,18 +23,16 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.182705,
-  "oracleAgeSec": 13279,
-  "referencePrice": 0.181719,
-  "deviationPct": 0.5426,
-  "oracleLevel": "halt",
-  "oracleReasons": [
-   "oracle age 13279s > 90s"
-  ],
+  "oraclePrice": 0.181682,
+  "oracleAgeSec": 20,
+  "referencePrice": 0.181783,
+  "deviationPct": 0.0556,
+  "oracleLevel": "ok",
+  "oracleReasons": [],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 1.0942137193688427e-9,
+  "fundingPredictedHourly": 1.0917339423810986e-9,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -116,11 +114,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.182114,
-    0.181622,
-    0.181929,
-    0.182002,
-    0.182059,
     0.18207,
     0.182014,
     0.182253,
@@ -155,7 +148,12 @@
     0.181768,
     0.181647,
     0.181601,
-    0.181699
+    0.18172,
+    0.181665,
+    0.181778,
+    0.181905,
+    0.181701,
+    0.181713
    ]
   },
   {
@@ -235,7 +233,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.182571,
     0.182641,
     0.18274,
     0.182796,
@@ -274,7 +271,8 @@
     0.182209,
     0.182153,
     0.181879,
-    0.181831
+    0.18172,
+    0.181709
    ]
   },
   {
@@ -354,7 +352,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.184211,
     0.184634,
     0.18482,
     0.184751,
@@ -393,7 +390,8 @@
     0.181858,
     0.182061,
     0.181779,
-    0.182153
+    0.182153,
+    0.181709
    ]
   },
   {
@@ -473,7 +471,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.178891,
     0.17942,
     0.18037,
     0.180168,
@@ -512,7 +509,8 @@
     0.182978,
     0.182648,
     0.181858,
-    0.181779
+    0.181779,
+    0.181709
    ]
   },
   {
@@ -592,7 +590,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.189259,
     0.189452,
     0.186649,
     0.183869,
@@ -631,7 +628,8 @@
     0.18341,
     0.182693,
     0.182978,
-    0.181858
+    0.181858,
+    0.181713
    ]
   },
   {
@@ -755,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "trip",
-  "reason": "resume: clock jumped 13331s; need 3 fresh reads",
-  "trippedSince": 1792119386,
-  "freshCount": 0,
-  "lastReadAt": 1792119386,
-  "lastOracleAgeSec": 13279,
-  "lastHeartbeatAgeSec": 13279,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1792119702,
+  "lastOracleAgeSec": 20,
+  "lastHeartbeatAgeSec": 20,
   "trips": 70,
-  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 13331s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,
@@ -911,6 +909,26 @@
     }
    },
    "decisions": [
+    {
+     "t": 1792119600,
+     "barT": 1792118700,
+     "price": 0.181719,
+     "side": "long",
+     "p": {
+      "setup": 0.415,
+      "direction": 0.526,
+      "pressure": 0.475,
+      "regime": 0.217,
+      "risk": 0.909
+     },
+     "score": 0.481,
+     "action": "skip: setup 0.42 < 0.5, pressure 0.48 < 0.5",
+     "fired": false,
+     "riskPct": 0,
+     "sizing": "none",
+     "result": null,
+     "pnl": null
+    },
     {
      "t": 1792118700,
      "barT": 1792117800,
@@ -1685,26 +1703,6 @@
      },
      "score": 0.5,
      "action": "skip: setup 0.48 < 0.5",
-     "fired": false,
-     "riskPct": 0,
-     "sizing": "none",
-     "result": "would have lost",
-     "pnl": null
-    },
-    {
-     "t": 1791944100,
-     "barT": 1791943200,
-     "price": 0.189977,
-     "side": "short",
-     "p": {
-      "setup": 0.379,
-      "direction": 0.534,
-      "pressure": 0.525,
-      "regime": 0.226,
-      "risk": 0.764
-     },
-     "score": 0.463,
-     "action": "skip: setup 0.38 < 0.5",
      "fired": false,
      "riskPct": 0,
      "sizing": "none",

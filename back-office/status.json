@@ -1,6 +1,6 @@
 {
  "schema": "quasaria-back-office/status@1",
- "generatedAt": "2026-10-16T14:50:29.000Z",
+ "generatedAt": "2026-10-16T14:55:40.000Z",
  "network": "testnet",
  "vault": "CCLI4VU7PD7VKS3NWILJQXI445A2W6L2JQCMM3MOGTHLFBKNTUSUCJX2",
  "mode": "live",
@@ -23,18 +23,16 @@
   "netSide": "flat"
  },
  "market": {
-  "oraclePrice": 0.183235,
-  "oracleAgeSec": 25732,
-  "referencePrice": 0.184089,
-  "deviationPct": 0.4639,
-  "oracleLevel": "halt",
-  "oracleReasons": [
-   "oracle age 25732s > 90s"
-  ],
+  "oraclePrice": 0.183063,
+  "oracleAgeSec": 28,
+  "referencePrice": 0.183104,
+  "deviationPct": 0.0224,
+  "oracleLevel": "ok",
+  "oracleReasons": [],
   "reserve": 9998.9537,
   "longOi": 0,
   "shortOi": 0,
-  "fundingPredictedHourly": 8.367575342433144e-10,
+  "fundingPredictedHourly": 8.353567063504144e-10,
   "fundingExternalHourly": 0,
   "externalSkew": 0
  },
@@ -116,11 +114,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.182484,
-    0.182606,
-    0.182815,
-    0.182966,
-    0.183164,
     0.183157,
     0.183567,
     0.18342,
@@ -155,7 +148,12 @@
     0.183988,
     0.184191,
     0.184179,
-    0.184105
+    0.184179,
+    0.184027,
+    0.183863,
+    0.183721,
+    0.1834,
+    0.18312
    ]
   },
   {
@@ -235,7 +233,6 @@
    "trades": [],
    "entries": [],
    "spark": [
-    0.185144,
     0.185082,
     0.184976,
     0.184887,
@@ -274,7 +271,8 @@
     0.183833,
     0.183788,
     0.184013,
-    0.184185
+    0.184179,
+    0.183587
    ]
   },
   {
@@ -755,16 +753,16 @@
   }
  ],
  "staleBreaker": {
-  "tripped": true,
-  "level": "trip",
-  "reason": "resume: clock jumped 25760s; need 3 fresh reads",
-  "trippedSince": 1792162229,
-  "freshCount": 0,
-  "lastReadAt": 1792162229,
-  "lastOracleAgeSec": 25732,
-  "lastHeartbeatAgeSec": 25762,
+  "tripped": false,
+  "level": "fresh",
+  "reason": "",
+  "trippedSince": 0,
+  "freshCount": 3,
+  "lastReadAt": 1792162540,
+  "lastOracleAgeSec": 28,
+  "lastHeartbeatAgeSec": 28,
   "trips": 73,
-  "label": "STALE DATA · entries halted (trip) — resume: clock jumped 25760s; need 3 fresh reads",
+  "label": "fresh",
   "blockAgeSec": 60,
   "tripAgeSec": 90,
   "clearAfterFresh": 3,

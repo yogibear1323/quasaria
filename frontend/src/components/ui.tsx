@@ -6,6 +6,7 @@ import { snapshotLabel, type DataSource } from "../lib/stellarchain";
 import { TX_EVENT } from "../game/GameProvider";
 import { CountUpText } from "../game/widgets";
 import { burst } from "../game/fx";
+import { TxLink } from "./TxLink";
 import SpaceYeti, { type YetiProp } from "./SpaceYeti";
 import "../theme/space-yeti.css";
 
@@ -100,6 +101,7 @@ export function TxStatus({ status }: { status: string | null }) {
     if (r) burst(r.left + r.width / 2, r.top + r.height / 2, 40);
   }, [ok, status]);
   if (!status) return null;
+  const hashAt = /\(([0-9a-f]{64})\)/.exec(status); // a confirmed transaction: show it as a StellarChain link
   return (
     <div ref={el} className={`notice ${ok ? "tx-ok" : ""}`} style={{ marginTop: 12 }} role="status">
       {ok && (
@@ -107,7 +109,7 @@ export function TxStatus({ status }: { status: string | null }) {
           <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" /><path d="m7.5 12.5 3 3 6-7" /></svg>
         </span>
       )}
-      <span>{status}</span>
+      <span>{hashAt ? <>{status.slice(0, hashAt.index)}(<TxLink hash={hashAt[1]} />){status.slice(hashAt.index + hashAt[0].length)}</> : status}</span>
     </div>
   );
 }

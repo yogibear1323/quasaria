@@ -43,7 +43,7 @@ describe("transactions", () => {
     expect(tx.signatures).toHaveLength(0);
     expect(tx.operations.map((o) => o.type)).toEqual(["changeTrust", "manageBuyOffer"]);
     expect(tx.operations[1]).toMatchObject({ buyAmount: "60.0000000", price: "1.05", offerId: "0" });
-    expect(String((tx.memo as { value: Buffer }).value)).toBe("quasaria");
+    expect(Buffer.from((tx.memo as { value: Uint8Array }).value).toString()).toBe("quasaria");
   });
   it("market sell = manage_sell_offer at the bound", () => {
     const tx = TransactionBuilder.fromXDR(buildMarketTx({ source: SRC, sequence: "10", side: "sell", base: DEMO, quote: XLM, amount: 30, bound: 0.9405, needTrust: [], passphrase: Networks.TESTNET }), Networks.TESTNET);

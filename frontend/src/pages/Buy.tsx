@@ -6,6 +6,7 @@ import { BUY_NOTE, BUY_PROVIDERS } from "../lib/buyProviders";
 import { MAINNET_USDC_ISSUER } from "../lib/liveMarkets";
 import { TESTNET_USDC_ISSUER } from "../lib/config";
 import { Receive } from "./Wallet";
+import BuyWidget from "../components/BuyWidget";
 
 export default function Buy() {
   const w = useWallet();
@@ -28,7 +29,10 @@ export default function Buy() {
         </div>
       )}
 
-      <h2 className="buy-step" style={{ margin: "22px 0 8px" }}>2. Buy XLM from a provider</h2>
+      <h2 className="buy-step" style={{ margin: "22px 0 8px" }}>2. Buy with a card</h2>
+      <BuyWidget address={w.address} />
+
+      <h3 style={{ margin: "18px 0 8px" }}>Or buy on an exchange</h3>
       <div className="card" data-testid="buy-providers">
         <p style={{ marginTop: 0 }}>Pick a provider, buy XLM, then withdraw or send it to the address above. Copy the address from step 1 and paste it, and check the first few and last few characters before you confirm.</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

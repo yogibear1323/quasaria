@@ -73,6 +73,8 @@ jobs:
           # "/quasaria/" for https://<owner>.github.io/quasaria/
           VITE_BASE: /${{ github.event.repository.name }}/
           VITE_NETWORK: testnet
+          # Coindisco *publishable* widget key (pk_test_/pk_prod_), a repo Variable, not a secret. Empty = "Card purchase coming soon".
+          VITE_COINDISCO_PUBLIC_KEY: ${{ vars.COINDISCO_PUBLIC_KEY }}
       - name: SPA deep-link fallback
         run: test -f dist/404.html || cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v5

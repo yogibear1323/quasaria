@@ -21,6 +21,7 @@ import AccountModal from "../components/AccountModal";
 import OrderBook from "../components/OrderBook";
 import WorldMap, { type MapPin } from "../components/WorldMap";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
+import XlmMark from "../components/XlmMark";
 import SizzleReel from "../components/SizzleReel";
 import { FeedBadge } from "../components/ui";
 import { NewsStrip } from "../components/News";
@@ -86,14 +87,14 @@ function Ticker() {
   if (live?.price)
     return (
       <span className="pill cyan l-ticker" title={`XLM/USD live from Stellar mainnet Horizon (XLM/USDC order book, Circle USDC) · updated ${hms(live.at)}`} data-testid="hero-xlm-ticker" data-feed="live">
-        XLM/USD <b className="mono">${live.price.toFixed(4)}</b>
+        <XlmMark size={16} />XLM/USD <b className="mono">${live.price.toFixed(4)}</b>
         <span className="muted">live · Stellar mainnet</span>
       </span>
     );
   if (!x?.price) return <span className="pill">XLM · loading…</span>;
   return (
     <span className="pill cyan l-ticker" data-testid="hero-xlm-ticker" data-feed={x.feed === "snapshot" ? "snapshot" : "fallback"} title={`source: ${x.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet (fallback)"}${x.updatedAt ? ` · as of ${x.updatedAt}` : ""}`}>
-      XLM/USD <b className="mono">${x.price.toFixed(4)}</b>
+      <XlmMark size={16} />XLM/USD <b className="mono">${x.price.toFixed(4)}</b>
       <span className="muted">{x.source === "stellarchain" ? (x.feed === "snapshot" ? `stellarchain.io · ${snapshotLabel(x.snapshotAt)}` : "stellarchain.io") : "Horizon"}{x.updatedAt && x.feed !== "snapshot" ? ` · ${asOf(x.updatedAt)}` : ""}{x.stale ? " · stale" : ""}</span>
     </span>
   );

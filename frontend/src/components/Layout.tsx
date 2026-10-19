@@ -15,6 +15,7 @@ import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
 import { useXlmUsd } from "../lib/markets";
 import { asOf, snapshotLabel } from "../lib/stellarchain";
 import { LevelBadge } from "../game/widgets";
+import XlmMark from "./XlmMark";
 
 function XlmTicker() {
   const x = useXlmUsd();
@@ -23,7 +24,7 @@ function XlmTicker() {
   if (live?.price) {
     return (
       <span className="pill" title={`XLM/USD live from Stellar mainnet Horizon (XLM/USDC, Circle issuer) · updated ${hms(live.at)}`} data-testid="xlm-ticker">
-        XLM <b className="mono" style={{ color: "var(--star, #fff)" }}>${live.price.toFixed(4)}</b>
+        <XlmMark size={15} />XLM <b className="mono" style={{ color: "var(--star, #fff)" }}>${live.price.toFixed(4)}</b>
         <span className="muted" style={{ fontSize: "0.62rem" }}>live</span>
       </span>
     );
@@ -33,7 +34,7 @@ function XlmTicker() {
   const src = x.source === "stellarchain" ? `stellarchain.io${snap ? ` (${snapshotLabel(x.snapshotAt)})` : ""}` : "Horizon testnet";
   return (
     <span className="pill" title={`XLM/USD ${x.note ?? ""} · source: ${src}${x.updatedAt ? ` · as of ${x.updatedAt}` : ""}`} data-testid="xlm-ticker">
-      XLM <b className="mono" style={{ color: "var(--star, #fff)" }}>${x.price.toFixed(4)}</b>
+      <XlmMark size={15} />XLM <b className="mono" style={{ color: "var(--star, #fff)" }}>${x.price.toFixed(4)}</b>
       <span className="muted" style={{ fontSize: "0.62rem" }}>{snap ? snapshotLabel(x.snapshotAt) : x.updatedAt ? asOf(x.updatedAt).replace(" ago", "") : ""}{x.stale ? " · stale" : ""}</span>
     </span>
   );

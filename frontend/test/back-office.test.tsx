@@ -227,24 +227,8 @@ describe("robot desk render", () => {
   });
 });
 
-import { realEventKeys } from "../src/lib/beaconPulse";
-import { BeaconsPreview, BEACON_TIERS } from "../src/components/BeaconsPreview";
-describe("beacons theme", () => {
-  it("preview shows six tiers and empty payout states, no fabricated numbers", () => {
-    const html = renderToStaticMarkup(<MemoryRouter><BeaconsPreview /></MemoryRouter>);
-    expect(BEACON_TIERS.map((t) => t.name)).toEqual(["Spark", "Flare", "Beacon", "Pulsar", "Quasar", "Singularity"]);
-    expect(html).toContain("Not live yet · testnet preview");
-    expect(html).toContain("no payouts yet");
-    expect(html).toContain("href=\"/beacons\"");
-    expect(html).not.toMatch(/APY|APR|\d+(\.\d+)?%/);
-    expect(html).not.toMatch(/share weight|1\.05×/);
-    expect(html).toContain("250,000 <small>QFX min.</small>");
-    expect(html).toMatch(/1\.10× for 30 days, 1\.25× for 90 days/);
-    expect(html).toContain("No per-wallet cap");
-    expect(html).toContain("Blend XLM pool interest");
-    expect(html).toContain("Default Blend pool: the XLM supply pool");
-    expect(html).not.toMatch(/USDC pool/);
-  });
+import { realEventKeys } from "../src/lib/eventPulse";
+describe("back office pulse theme", () => {
   it("event keys change only on real events", () => {
     const tr = (tx: string): ChainTrade => ({ kind: "open", id: 1, price: 0.2, ledger: 1, at: "", tx });
     const a = realEventKeys(100, { vega: [tr("aa")] }, undefined);
@@ -254,7 +238,7 @@ describe("beacons theme", () => {
     expect(realEventKeys(null, null, undefined)).toEqual({ oracle: null, fill: null, decision: null });
   });
   it("theme css: no gradient text, reduced-motion respected, no idle glow", () => {
-    const css = src("src/theme/beacons.css");
+    const css = src("src/theme/back-office-surface.css");
     expect(css).not.toMatch(/background-clip\s*:\s*text/);
     expect(css).toMatch(/prefers-reduced-motion/);
     expect(css).toMatch(/\.bk-pulse \{ animation: bk-pulse var\(--bk-pulse-ms\) ease-out 1; \}/);

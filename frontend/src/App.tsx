@@ -4,7 +4,6 @@ import Layout from "./components/Layout";
 import Trade from "./pages/Trade";
 import Pools from "./pages/Pools";
 import Stake from "./pages/Stake";
-import Beacons from "./pages/Beacons";
 import Rewards from "./pages/Rewards";
 import Referrals, { REF_KEY } from "./pages/Referrals";
 import Bots from "./pages/Bots";
@@ -49,7 +48,6 @@ export default function App() {
           <Route path="/earn" element={<Earn />} />
           <Route path="/calculators" element={<Calculators />} />
           <Route path="/stake" element={<Stake />} />
-          <Route path="/beacons" element={<Beacons />} />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/referrals" element={<Referrals />} />
           <Route path="/perps" element={<Perps />} />

@@ -12,7 +12,7 @@ import "../theme/space-yeti.css";
 const YETI_BY_PATH: [RegExp, YetiProp, boolean][] = [
   [/\/perps\/chart/, "chart", true], [/\/perps/, "chart", false], [/\/trade/, "coin", false], [/\/pools/, "seed", true],
   [/\/lending/, "coin", true], [/\/earn/, "seed", false], [/\/calculators/, "paper", true], [/\/stake/, "coin", true],
-  [/\/beacons/, "flag", false], [/\/rewards/, "trophy", true], [/\/referrals/, "flag", true], [/\/back-office/, "mug", false],
+  [/\/rewards/, "trophy", true], [/\/referrals/, "flag", true], [/\/back-office/, "mug", false],
   [/\/bots/, "wrench", true], [/\/quests/, "flag", false], [/\/merch/, "bag", true], [/\/news/, "paper", false],
 ];
 export function yetiFor(path: string): { prop: YetiProp; mirror: boolean } {

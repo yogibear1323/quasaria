@@ -40,11 +40,6 @@ export default function Earn() {
           <div className="muted" style={{ fontSize: "0.8rem" }}>{lp.data ? `${lp.data.pools.length} live pools · ${core.map((p) => `${p.symA}/${p.symB}`).join(", ")} + v3 stablecoin & popular-asset pools` : "…"}</div>
           <div className="row earn-actions"><Link className="btn small" to="/calculators?c=lp">LP calculator</Link><Link className="btn ghost small" to="/pools">Open Pools</Link></div>
         </div>
-        <div className="card glow earn-card bp-link-card" data-testid="earn-beacons">
-          <div className="row between"><h2 style={{ margin: 0 }}>✦ Beacons</h2><span className="pill gold">Preview</span></div>
-          <p className="muted">Proposed revenue share: lock QFX, get XLM every 4 hours from real protocol fees. Not deployed; try the simulator.</p>
-          <div className="row earn-actions"><Link className="btn small" to="/beacons">Open Beacons preview</Link></div>
-        </div>
       </div>
       <div className="card" style={{ marginTop: 18 }} data-testid="earn-calculators">
         <div className="row between" style={{ flexWrap: "wrap", gap: 10 }}>

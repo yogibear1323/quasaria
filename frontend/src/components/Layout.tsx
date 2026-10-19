@@ -45,7 +45,6 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/lending", label: "Lend", scene: "orbits" },
   { to: "/earn", label: "Earn", scene: "supernova" },
   { to: "/stake", label: "Stake", scene: "orbits" },
-  { to: "/beacons", label: "Beacons", scene: "quasar" },
   { to: "/rewards", label: "QFX Mint & Rewards", scene: "supernova" },
   { to: "/referrals", label: "Referrals", scene: "constellation" },
   { to: "/bots", label: "Bots & Leverage", scene: "warp" },
@@ -54,7 +53,7 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/news", label: "News", scene: "constellation" },
 ];
 
-const QUICK = new Set(["/markets", "/trade", "/perps", "/pools", "/earn", "/beacons"]);
+const QUICK = new Set(["/markets", "/trade", "/perps", "/pools", "/earn"]);
 
 export function sceneFor(path: string): Scene {
   if (path.startsWith("/calculators")) return "orbits";

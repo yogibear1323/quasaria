@@ -19,7 +19,6 @@ export const DISTRICTS: District[] = [
   { id: "earn", to: "/earn", label: "Earn", district: "Harvest Terraces", region: "Yield Basin", lat: 10, lon: 88, hue: "magenta", blurb: "Yield options" },
   { id: "calculators", to: "/calculators", label: "Calculators", district: "Mirror Lab", region: "Yield Basin", lat: -48, lon: 42, hue: "cyan", blurb: "What-if math" },
   { id: "stake", to: "/stake", label: "Stake", district: "Orbit Citadel", region: "Orbit Coast", lat: 22, lon: 128, hue: "violet", blurb: "Orbit staking" },
-  { id: "beacons", to: "/beacons", label: "Beacons", district: "Beacon Heights", region: "Orbit Coast", lat: 46, lon: 150, hue: "magenta", blurb: "Preview · not deployed" },
   { id: "rewards", to: "/rewards", label: "QFX Mint & Rewards", district: "QFX Mint", region: "Orbit Coast", lat: -12, lon: 140, hue: "cyan", blurb: "Mint, redeem, rewards" },
   { id: "bots", to: "/bots", label: "Bots & Leverage", district: "Robot Foundry", region: "Orbit Coast", lat: -38, lon: 118, hue: "violet", blurb: "Automated strategies" },
   { id: "referrals", to: "/referrals", label: "Referrals", district: "Constellation Row", region: "Commons", lat: 18, lon: -72, hue: "magenta", blurb: "Invite and share fees" },

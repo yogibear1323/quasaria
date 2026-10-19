@@ -17,11 +17,10 @@ import { PERPS } from "../lib/perps";
 import { CalibratedSignals } from "../components/CalibratedSignals";
 import { DecisionDesk } from "../components/DecisionDesk";
 import "../theme/back-office.css";
-import "../theme/beacons.css";
-import "../theme/back-office-earthy.css"; // after beacons.css so the earthy .bo.bk tokens win
+import "../theme/back-office-surface.css";
+import "../theme/back-office-earthy.css"; // after back-office-surface.css so the earthy .bo.bk tokens win
 import { Quasar } from "../components/Quasar";
-import { BeaconsPreview } from "../components/BeaconsPreview";
-import { realEventKeys, useEventPulse } from "../lib/beaconPulse";
+import { realEventKeys, useEventPulse } from "../lib/eventPulse";
 
 const EXPERT_TX = "https://stellar.expert/explorer/testnet/tx/";
 const EXPERT_ACCT = "https://stellar.expert/explorer/testnet/account/";
@@ -292,7 +291,6 @@ export default function BackOffice() {
       {!tag && <div className={decisionPulse ? "bk-pulse-wrap bk-pulse" : "bk-pulse-wrap"} data-event="decision"><CalibratedSignals desks={status?.calibrated} stale={stale} /></div>}
 
       {!tag && <DecisionDesk />}
-      {!tag && <BeaconsPreview />}
 
       {!tag && (
         <section className="bo-open-items" aria-label="Open items">

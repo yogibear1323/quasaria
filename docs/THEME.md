@@ -15,7 +15,7 @@ wordmark is outlined Space Grotesk):
 | Concept | Idea | Files |
 |---|---|---|
 | **A · Singularity Q** (default) | The accretion ring is the bowl of a Q; the jet from the bright core is its tail. A faint counter-jet and a glint finish the quasar. | `concept-a-mark.svg`, `concept-a-icon.svg`, `concept-a-lockup-dark.svg`, `concept-a-lockup-light.svg` |
-| B · Beacon | Star-bright core inside a tilted accretion disk, bipolar jets. The most "cosmic". | `concept-b-*.svg` |
+| B · Star core | Star-bright core inside a tilted accretion disk, bipolar jets. The most "cosmic". | `concept-b-*.svg` |
 | C · Orbit Badge | Bold white geometric Q with a sparkle core on a violet→cyan squircle. Best on light backgrounds / app stores. | `concept-c-*.svg` |
 
 The active concept is copied to `logo.svg` (mark), `favicon.svg` (app icon),

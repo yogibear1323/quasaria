@@ -631,7 +631,7 @@ function FaqVisual() {
 }
 
 // ---------------------------------------------------------------- page
-const QUICK = DISTRICTS.filter((d) => ["markets", "trade", "perps", "pools", "earn", "beacons"].includes(d.id));
+const QUICK = DISTRICTS.filter((d) => ["markets", "trade", "perps", "pools", "earn"].includes(d.id));
 
 export default function Landing() {
   const w = useWallet();

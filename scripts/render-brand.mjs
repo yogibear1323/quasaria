@@ -2,7 +2,7 @@
 // PWA icons, OG image, README banner) with headless Chromium via Playwright.
 //
 //   node scripts/render-brand.mjs        # concept "a" (default, Singularity Q)
-//   node scripts/render-brand.mjs b      # swap to concept B (Beacon)
+//   node scripts/render-brand.mjs b      # swap to concept B (Star core)
 //   node scripts/render-brand.mjs c      # swap to concept C (Orbit Badge)
 //
 // Activating a concept copies its SVGs over the default brand files that the

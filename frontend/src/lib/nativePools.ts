@@ -12,6 +12,7 @@ import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Networks, Operation, Tran
 import { HORIZON_URL, NETWORK_PASSPHRASE, TESTNET_USDC_ISSUER } from "./config";
 import curated from "../config/lp-curated.json";
 import testnetDoc from "../config/testnet-assets.json";
+import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_ISSUER } from "./rewards";
 
 export type NetId = "testnet" | "mainnet";
 /** Build flag: show the read-only mainnet data switch. Off unless VITE_MAINNET_BROWSE=1. */
@@ -67,8 +68,14 @@ function testnetList(): CuratedAsset[] {
   return out;
 }
 
+/** GLACIERQ joins the curated list (matched by code + issuer) as soon as its issuer exists on that network. */
+const glacierq = (net: NetId): CuratedAsset[] => {
+  const issuer = REWARD_ISSUER[net];
+  return issuer ? [{ code: REWARD_ASSET_CODE, issuer, category: "reward", peg: null, name: "Glacier (Quasaria rewards token)", homeDomain: net === "mainnet" ? "yogibear1323.github.io" : null,
+    verification: "quasaria-issuer", verifiedVia: null, logo: GLACIERQ_ICON_128, authRequired: false, testnetKind: net === "testnet" ? "real" : undefined }] : [];
+};
 const TESTNET_LIST = testnetList();
-export const curatedList = (net: NetId): CuratedAsset[] => (net === "mainnet" ? [MAINNET_XLM, ...MAINNET_LIST] : TESTNET_LIST);
+export const curatedList = (net: NetId): CuratedAsset[] => (net === "mainnet" ? [MAINNET_XLM, ...MAINNET_LIST, ...glacierq("mainnet")] : [...TESTNET_LIST, ...glacierq("testnet")]);
 export const CURATED_VERIFIED_AT: string = curated.verifiedAt;
 
 export type Verification =
@@ -155,6 +162,27 @@ export async function fetchPoolById(net: NetId, id: string): Promise<PoolRow | n
 /** Most recently created pools, any assets (flagged unverified unless both legs are curated). */
 export async function fetchRecentPools(net: NetId, limit = 40): Promise<PoolRow[]> {
   const j = await getJson<{ _embedded: { records: PoolRecord[] } }>(`${NETS[net].horizon}/liquidity_pools?order=desc&limit=${limit}`);
+  return (j?._embedded.records ?? []).filter((r) => r.reserves.length === 2).map((r) => parsePool(r, net));
+}
+
+/** What a search box entry means for the "any asset" browser. */
+export type Lookup = { kind: "pool"; id: string } | { kind: "asset"; asset: AssetRef };
+/** Parse "XLM", "CODE-GISSUER", "CODE:GISSUER" or a 64-hex pool id. Anything else is a plain filter (null). */
+export function parseLookup(input: string): Lookup | null {
+  const t = input.trim();
+  if (/^[0-9a-f]{64}$/i.test(t)) return { kind: "pool", id: t.toLowerCase() };
+  if (/^xlm$/i.test(t)) return { kind: "asset", asset: XLM };
+  const m = /^([A-Za-z0-9]{1,12})[-:](G[A-Z2-7]{55})$/.exec(t);
+  return m ? { kind: "asset", asset: { code: m[1], issuer: m[2] } } : null;
+}
+/** Pools for an exact asset (code AND issuer), or one pool by id. Horizon filters; we never match on ticker alone. */
+export async function fetchPoolsByLookup(net: NetId, l: Lookup): Promise<PoolRow[]> {
+  if (l.kind === "pool") {
+    const r = await getJson<PoolRecord>(`${NETS[net].horizon}/liquidity_pools/${l.id}`);
+    return r && r.reserves?.length === 2 ? [parsePool(r, net)] : [];
+  }
+  const res = l.asset.issuer ? `${l.asset.code}:${l.asset.issuer}` : "native";
+  const j = await getJson<{ _embedded: { records: PoolRecord[] } }>(`${NETS[net].horizon}/liquidity_pools?reserves=${encodeURIComponent(res)}&limit=40`);
   return (j?._embedded.records ?? []).filter((r) => r.reserves.length === 2).map((r) => parsePool(r, net));
 }
 
@@ -354,4 +382,11 @@ export async function buildWithdrawTx(net: NetId, pubkey: string, pool: PoolRow,
   bld.addOperation(Operation.liquidityPoolWithdraw({ liquidityPoolId: pool.id, amount: fix7(pv.shares), minAmountA: fix7(pv.minAmountA), minAmountB: fix7(pv.minAmountB) }));
   if (closeTrustline) bld.addOperation(Operation.changeTrust({ asset: new LiquidityPoolAsset(toSdk(pool.a), toSdk(pool.b), pool.feeBp), limit: "0" }));
   return bld.build().toXDR();
+}
+
+/** Pools for every curated pair that exists on `net` (bounded concurrency, failures skipped). */
+export async function loadCuratedPools(net: NetId): Promise<PoolRow[]> {
+  const out: PoolRow[] = [];
+  await pooled(curatedPairs(net), 4, ([a, b]) => fetchPoolForPair(net, a, b), (p) => { if (p) out.push(p); });
+  return out;
 }

@@ -1,7 +1,6 @@
 import { explorerAccountUrl } from "../lib/explorer";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useWallet } from "../lib/wallet";
-import { CONTRACTS_CONFIGURED } from "../lib/config";
 import { snapshotLabel, type DataSource } from "../lib/stellarchain";
 import { TX_EVENT } from "../game/GameProvider";
 import { CountUpText } from "../game/widgets";
@@ -59,21 +58,14 @@ export function Tabs<T extends string>({ value, options, onChange }: { value: T;
   );
 }
 
-/**
- * Wraps a transaction action with wallet / config guards and status text.
- * `needsContracts` = the action calls Soroban contracts (vs classic SDEX ops).
- */
-export function useTx(needsContracts = true) {
+/** Wraps a transaction action with a wallet guard and status text. */
+export function useTx() {
   const w = useWallet();
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const run = async (label: string, fn: () => Promise<string | void>) => {
     if (!w.address) {
       setStatus("Read-only mode: create a keypair or sign in with your secret key to sign this transaction.");
-      return;
-    }
-    if (needsContracts && !CONTRACTS_CONFIGURED) {
-      setStatus("Contracts not configured. Run scripts/deploy-testnet.sh and restart the dev server.");
       return;
     }
     setBusy(true);

@@ -70,7 +70,7 @@ export default function Markets() {
   useEffect(() => {
     if (OFFLINE_DEMO) return;
     stellarchain.overview("mainnet").then(setOverview).catch(() => setOverview(null));
-    // testnet asset per code (best-ranked), so a mainnet row's Trade button can open the matching TESTNET market
+    // testnet asset per code (best-ranked), so a mainnet row's Exchange button can open the matching TESTNET market
     stellarchain.loadSnapshot().then((s) => {
       const m = new Map<string, string>();
       for (const a of [...(s?.marketAssets?.testnet?.member ?? [])].sort((x, y) => (x.rankPosition ?? 1e9) - (y.rankPosition ?? 1e9))) if (!m.has(a.code)) m.set(a.code, a.assetKey);
@@ -80,12 +80,12 @@ export default function Markets() {
 
   const trade = (r: MarketRow) => {
     const isUsdc = r.code === "USDC" && r.issuer === TESTNET_USDC_ISSUER;
-    nav(isUsdc ? "/trade" : `/trade?base=${encodeURIComponent(r.key)}&quote=XLM`);
+    nav(isUsdc ? "/exchange" : `/exchange?base=${encodeURIComponent(r.key)}&quote=XLM`);
   };
-  /** Mainnet rows are data only; Trade opens Quasaria's TESTNET market for the same code (or the default XLM/USDC pair). */
+  /** Mainnet rows are data only; Exchange opens Quasaria's TESTNET market for the same code (or the default XLM/USDC pair). */
   const tradeMainnet = (r: LiveRow) => {
     const k = r.code === "USDC" ? null : testnetByCode.get(r.code);
-    nav(k ? `/trade?base=${encodeURIComponent(k)}&quote=XLM` : "/trade");
+    nav(k ? `/exchange?base=${encodeURIComponent(k)}&quote=XLM` : "/exchange");
   };
 
   /** Top 1,000: live Horizon values for the live-tracked top rows, saved list (30-min refresh) for the rest. */
@@ -167,8 +167,8 @@ export default function Markets() {
       <div className="mk-page">
       <PageHead kicker="Scene · Constellations" title="Markets" right={headRight} yeti={false}>
         {network === "mainnet"
-          ? "Live Stellar mainnet market data straight from public Horizon — price, momentum, volume and holders. Display data only: trading on Quasaria is testnet-only, and every trade settles on the testnet SDEX or through Soroban."
-          : "Discover Stellar assets ranked by stellarchain.io — price, momentum, volume and issuer info. Display data only: every trade still settles on the SDEX via Horizon or through Soroban."}
+          ? "Live Stellar mainnet market data straight from public Horizon — price, momentum, volume and holders. Display data only: trading on Quasaria is testnet-only, and every trade settles on the testnet SDEX."
+          : "Discover Stellar assets ranked by stellarchain.io — price, momentum, volume and issuer info. Display data only: every trade still settles on the SDEX via Horizon."}
       </PageHead>
       {network === "mainnet" && !OFFLINE_DEMO && <MarketsHero rows={allRows} live={live.mode === "live"} onPick={(c) => { setSearch(c); }} />}
       <div className="grid g-4 mk-stats" style={{ marginBottom: 18 }}>
@@ -186,7 +186,7 @@ export default function Markets() {
         {network === "mainnet" ? (
           <>
             <div className="notice" data-testid="mainnet-data-notice">
-              <b>Market data: Stellar mainnet</b> (public Horizon, read-only). <b>Trading on Quasaria: testnet only</b> — the Trade button opens Quasaria's testnet market for the same asset code (or XLM/USDC), never a mainnet order.
+              <b>Market data: Stellar mainnet</b> (public Horizon, read-only). <b>Trading on Quasaria: testnet only</b> — the Exchange button opens Quasaria's testnet market for the same asset code (or XLM/USDC), never a mainnet order.
             </div>
             {live.mode === "fallback" && (
               <div className="notice warn" data-testid="fallback-notice">
@@ -243,7 +243,7 @@ export default function Markets() {
                       <td data-label="As of" style={{ fontSize: "0.72rem" }} className="c-asof muted" title={snapRow ? snapTip : r.lastTradeAt ? (r.lastTradeExact ? `last trade seen on the live feed: ${new Date(r.lastTradeAt).toLocaleString()}` : `last trade in the hourly candle starting ${new Date(r.lastTradeAt).toLocaleString()}`) : undefined}>
                         {snapRow ? <span style={{ color: "var(--amber)" }} data-testid="row-snapshot">snapshot</span> : r.priceKind === "trade" && r.lastTradeAt ? (r.lastTradeExact ? `last trade ${asOf(new Date(r.lastTradeAt).toISOString())}` : r.lastTradeAt + 3600_000 > live.now ? "traded this hour" : `last trade ≈ ${asOf(new Date(r.lastTradeAt + 3600_000).toISOString())}`) : r.priceKind === "book" ? "live book" : "no trades 24h"}
                       </td>
-                      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={`Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Trade</button>
+                      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={`Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Exchange</button>
                         <button className={`btn small ghost about-btn ${aboutKey === r.key ? "on" : ""}`} aria-expanded={aboutKey === r.key} onClick={() => setAboutKey((k) => (k === r.key ? null : r.key))}>About</button></div></td>
                     </tr>
                     {aboutKey === r.key && <tr className="about-row"><td colSpan={13}><AssetAbout code={r.code} issuer={r.issuer} homeDomain={r.homeDomain} snapshotDesc={(full?.raw.get(r.key)?.tomlInfo as { desc?: string } | undefined)?.desc ?? null} onClose={() => setAboutKey(null)} /></td></tr>}
@@ -281,7 +281,7 @@ export default function Markets() {
         ) : (
           <>
             {data?.source === "snapshot" && <div className="notice" data-testid="snapshot-notice">The live stellarchain.io API isn't reachable from this site, so this table shows the {snapshotLabel(data.snapshotAt)} ({asOf(data.snapshotAt ?? "")}), fetched when the site was last deployed. Testnet prices are still refreshed from Horizon where possible.</div>}
-            {data?.error && <div className="notice warn">stellarchain.io unavailable ({data.error}). Showing nothing until it recovers; the Trade page keeps working from Horizon.</div>}
+            {data?.error && <div className="notice warn">stellarchain.io unavailable ({data.error}). Showing nothing until it recovers; the Exchange page keeps working from Horizon.</div>}
             <table className="t mk-table">
               <thead>
                 <tr><th>#</th><th>Asset</th><th>Price (XLM)</th><th>≈ USD</th><th>1h</th><th>24h</th><th>7d</th><th>Vol 24h (XLM)</th><th>Trades</th><th>Trustlines</th><th>1h trend</th><th>As of</th><th /></tr>
@@ -310,7 +310,7 @@ export default function Markets() {
                     <td data-label="Trustlines" className="c-holders mono">{r.trustlines !== null ? fmtCompact(r.trustlines) : "—"}</td>
                     <td data-label="Trend" className="c-trend"><Sparkline values={r.sparkline} /></td>
                     <td data-label="As of" style={{ fontSize: "0.72rem" }} className={`c-asof ${r.stale ? "neg" : "muted"}`} title={r.priceAsOf ?? r.updatedAt}>{asOf(r.priceAsOf ?? r.updatedAt)}{r.stale ? " · stale" : ""}</td>
-                    <td data-label="" className="c-act"><button className="btn small ghost" onClick={() => trade(r)}>Trade</button></td>
+                    <td data-label="" className="c-act"><button className="btn small ghost" onClick={() => trade(r)}>Exchange</button></td>
                   </tr>
                 ))}
                 {data && !data.rows.length && !data.error && <tr><td colSpan={13} className="muted">No assets match.</td></tr>}

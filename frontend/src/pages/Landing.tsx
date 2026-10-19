@@ -15,7 +15,7 @@ import logo from "../assets/logo-light.svg";
 import WorldBackground, { type Scene } from "../world/WorldBackground";
 import WorldList from "../world/WorldList";
 import WorldNav from "../world/WorldNav";
-import { DISTRICTS } from "../lib/world";
+import { MainNav, MobileMenu } from "../components/Layout";
 const Globe = lazy(() => import("../world/Globe"));
 import AccountModal from "../components/AccountModal";
 import OrderBook from "../components/OrderBook";
@@ -103,9 +103,10 @@ function CtaButtons() {
   const w = useWallet();
   return (
     <div className="l-ctas">
-      <Link to="/trade" className="btn">Launch app</Link>
+      <Link to="/exchange" className="btn" data-testid="cta-exchange">Exchange</Link>
+      <Link to="/swap" className="btn ghost" data-testid="cta-swap">Swap</Link>
       {w.address ? (
-        <Link to="/trade" className="btn ghost">● {short(w.address, 5)} ready</Link>
+        <Link to="/exchange" className="btn ghost">● {short(w.address, 5)} ready</Link>
       ) : (
         <button className="btn ghost" onClick={() => w.openModal("create")}>Create an account</button>
       )}
@@ -134,7 +135,7 @@ function MarketsPreview() {
   const open = (r: MarketRow) => {
     if (net === "mainnet") return nav("/markets");
     const isUsdc = r.code === "USDC" && r.issuer === TESTNET_USDC_ISSUER;
-    nav(isUsdc ? "/trade" : `/trade?base=${encodeURIComponent(r.key)}&quote=XLM`);
+    nav(isUsdc ? "/exchange" : `/exchange?base=${encodeURIComponent(r.key)}&quote=XLM`);
   };
   return (
     <div className="card">
@@ -209,7 +210,7 @@ function TradePreview() {
           <span className="s1">✍ Signed</span><span className="s2">→ Submitted</span><span className="s3">→ In ledger ✓</span>
         </div>
         <p className="muted l-tiny">Animation. {ledger ? <>Latest testnet ledger <b className="mono">#{ledger.seq.toLocaleString()}</b>{ledger.gap ? <>, closed {fmt(ledger.gap, 1)}s after the previous one</> : null} (live from Horizon).</> : "Stellar ledgers close about every five seconds."}</p>
-        <Link to="/trade" className="btn block">Open Trade</Link>
+        <Link to="/exchange" className="btn block">Open Exchange</Link>
       </div>
     </div>
   );
@@ -452,7 +453,6 @@ function FaqVisual() {
 }
 
 // ---------------------------------------------------------------- page
-const QUICK = DISTRICTS.filter((d) => ["markets", "trade", "pools", "earn", "holders"].includes(d.id));
 
 export default function Landing() {
   const w = useWallet();
@@ -470,9 +470,10 @@ export default function Landing() {
         <header className="topbar l-top">
           <Link to="/" className="brand" aria-label="Quasaria home"><img src={logo} alt="" /><span className="word">Quasaria</span></Link>
           <WorldNav />
-          <nav className="nav l-nav quick-nav" aria-label="Quick links">{QUICK.map((d) => <Link key={d.id} to={d.to}>{d.label}</Link>)}</nav>
+          <MainNav path="/" />
+          <MobileMenu path="/" />
           <Ticker />
-          <Link to="/trade" className="btn small">Launch app</Link>
+          <Link to="/exchange" className="btn small">Launch app</Link>
         </header>
         {w.modalOpen && <AccountModal />}
         <main className="l-main">

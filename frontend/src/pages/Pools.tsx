@@ -196,7 +196,7 @@ export default function Pools() {
             <div className="notice warn" style={{ marginBottom: 10 }}>
               Your account needs a trustline to {missingTrust.map((x) => x.testnet.code).join(" and ")} to hold it (0.5 XLM reserve each).{" "}
               {missingTrust.map((x) => <button key={x.id} className="btn small" disabled={tx.busy} onClick={() => tx.run(`trustline ${x.testnet.code}`, async () => after((await submitSignedXdr(await tx.wallet.sign(await buildTrustline(tx.wallet.address!, classicOf(x)!)))).hash.slice(0, 10)))}>Add {x.testnet.code} trustline</button>)}
-              <div className="muted" style={{ fontSize: "0.72rem", marginTop: 4 }}>Get testnet tokens by swapping XLM on the <Link to="/trade">Trade</Link> page (routes through the router).</div>
+              <div className="muted" style={{ fontSize: "0.72rem", marginTop: 4 }}>Get testnet tokens by trading XLM on the <Link to="/exchange">Exchange</Link> page.</div>
             </div>
           )}
           {mode === "native" && nativeAsset ? (

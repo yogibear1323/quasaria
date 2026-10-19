@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import AccountModal from "./AccountModal";
 import logo from "../assets/logo-light.svg";
 import { MERCH_MARK } from "../merch/catalog";
 import { Orbits } from "./Quasar";
-import WorldBackground, { type Scene } from "../world/WorldBackground";
+import { NAV_GROUP, NAV_MORE, NAV_REST, NAV_SWAP, isActive, sceneFor } from "../lib/nav";
+import WorldBackground from "../world/WorldBackground";
 import WorldNav from "../world/WorldNav";
 import { useWallet } from "../lib/wallet";
 import { short } from "../lib/format";
@@ -37,22 +39,51 @@ function XlmTicker() {
   );
 }
 
-const NAV: { to: string; label: string; scene: Scene }[] = [
-  { to: "/markets", label: "Markets", scene: "constellation" },
-  { to: "/trade", label: "Trade", scene: "quasar" },
-  { to: "/pools", label: "Pools", scene: "nebula" },
-  { to: "/earn", label: "Earnings", scene: "supernova" },
-  { to: "/holders", label: "Holders", scene: "supernova" },
-  { to: "/quests", label: "Quests", scene: "constellation" },
-  { to: "/merch", label: "Merch", scene: "nebula" },
-  { to: "/news", label: "News", scene: "constellation" },
-];
+export { sceneFor };
 
-const QUICK = new Set(["/markets", "/trade", "/pools", "/earn", "/holders"]);
+/** Top row: [Markets | Exchange | Pools] segmented group, then Swap as its own tab, then the individual items. */
+export function MainNav({ path }: { path: string }) {
+  const cls = (to: string) => (isActive(path, to) || (to === "/earn" && path.startsWith("/calculators")) ? "active" : "");
+  return (
+    <nav className="nav quick-nav main-nav" aria-label="Main" data-testid="main-nav">
+      <div className="nav-seg" role="group" aria-label="Markets, Exchange and Pools" data-testid="nav-group">
+        {NAV_GROUP.map((n) => <NavLink key={n.to} to={n.to} className={cls(n.to)}>{n.label}</NavLink>)}
+      </div>
+      <NavLink to={NAV_SWAP.to} className="nav-swap" data-testid="nav-swap">{NAV_SWAP.label}</NavLink>
+      <span className="nav-sep" aria-hidden />
+      {NAV_REST.map((n) => <NavLink key={n.to} to={n.to} className={cls(n.to)}>{n.label}</NavLink>)}
+    </nav>
+  );
+}
 
-export function sceneFor(path: string): Scene {
-  if (path.startsWith("/calculators")) return "orbits";
-  return NAV.find((n) => path.startsWith(n.to))?.scene ?? "quasar";
+/** Phone / tablet menu: the same order, every item top-level. */
+export function MobileMenu({ path, defaultOpen = false }: { path: string; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const [top, setTop] = useState(64);
+  const btn = useRef<HTMLButtonElement>(null);
+  useEffect(() => { if (!defaultOpen) setOpen(false); }, [path, defaultOpen]);
+  const toggle = () => { if (!open && btn.current) setTop(Math.round(btn.current.getBoundingClientRect().bottom + 8)); setOpen((o) => !o); };
+  const cls = (to: string) => (isActive(path, to) ? "active" : "");
+  const panel = (
+    <>
+      <div className="wn-scrim" onClick={() => setOpen(false)} />
+      <nav id="mm-panel" className="mm-panel card" aria-label="Menu" style={{ top }}>
+        <div className="nav-seg" role="group" aria-label="Markets, Exchange and Pools">
+          {NAV_GROUP.map((n) => <NavLink key={n.to} to={n.to} className={cls(n.to)}>{n.label}</NavLink>)}
+        </div>
+        <NavLink to={NAV_SWAP.to} className="mm-item nav-swap">{NAV_SWAP.label}</NavLink>
+        {NAV_REST.map((n) => <NavLink key={n.to} to={n.to} className={`mm-item ${cls(n.to)}`}>{n.label}</NavLink>)}
+        <div className="mm-more muted">More</div>
+        {NAV_MORE.map((n) => <NavLink key={n.to} to={n.to} className={`mm-item ${cls(n.to)}`}>{n.label}</NavLink>)}
+      </nav>
+    </>
+  );
+  return (
+    <div className="mobile-menu" data-testid="mobile-menu">
+      <button ref={btn} className="btn small ghost mm-btn" aria-expanded={open} aria-controls="mm-panel" onClick={toggle}>{open ? "✕ Close" : "☰ Menu"}</button>
+      {open && (typeof document === "undefined" ? panel : createPortal(panel, document.body))}
+    </div>
+  );
 }
 
 function WalletButton() {
@@ -109,14 +140,8 @@ export default function Layout() {
             <span className="word">Quasaria</span>
           </NavLink>
           <WorldNav />
-          {/* Quick strip: the busiest districts one click away; the full map lives in WorldNav. */}
-          <nav className="nav quick-nav" aria-label="Quick links">
-            {NAV.filter((n) => QUICK.has(n.to)).map((n) => (
-                <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive || (n.to === "/earn" && loc.pathname.startsWith("/calculators")) ? "active" : "")}>
-                  {n.label}
-                </NavLink>
-            ))}
-          </nav>
+          <MainNav path={loc.pathname} />
+          <MobileMenu path={loc.pathname} />
           <XlmTicker />
           <span className="net-badge">Testnet</span>
           <LevelBadge />

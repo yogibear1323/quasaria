@@ -1,5 +1,5 @@
 
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import Trade from "./pages/Trade";
 import Pools from "./pages/Pools";
@@ -11,7 +11,15 @@ import Calculators from "./pages/Calculators";
 import Quests from "./pages/Quests";
 import Merch from "./pages/Merch";
 import News from "./pages/News";
+import ComingSoon from "./pages/ComingSoon";
+import { REDIRECTS } from "./lib/nav";
 import { GameProvider } from "./game/GameProvider";
+
+/** Old URLs keep working: /trade?base=… lands on /exchange?base=… */
+function Redirect({ to }: { to: string }) {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
+}
 
 export default function App() {
   return (
@@ -19,10 +27,15 @@ export default function App() {
       <Routes>
         {/* Public landing page; the app keeps its top-level routes (/trade, /pools, …). /app is an alias for Trade. */}
         <Route path="/" element={<Landing />} />
-        <Route path="/app" element={<Navigate to="/trade" replace />} />
+        {Object.entries(REDIRECTS).map(([from, to]) => <Route key={from} path={from} element={<Redirect to={to} />} />)}
         <Route element={<Layout />}>
           <Route path="/markets" element={<Markets />} />
-          <Route path="/trade" element={<Trade />} />
+          <Route path="/exchange" element={<Trade mode="exchange" />} />
+          <Route path="/swap" element={<ComingSoon kicker="Swap" title="Swap" links={[{ to: "/exchange", label: "Open Exchange" }, { to: "/pools", label: "Pools" }]}>A simple swap: pick what you send and what you want, see the quote and your slippage limit, then confirm.</ComingSoon>} />
+          <Route path="/referral" element={<ComingSoon kicker="Referral" title="Referral program" links={[{ to: "/holders", label: "Holder rewards" }]}>Invite people with your link. It will go live after the first mainnet holder-reward run, and the terms may change.</ComingSoon>} />
+          <Route path="/activity" element={<ComingSoon kicker="Activity" title="Activity" links={[{ to: "/exchange", label: "Exchange" }, { to: "/pools", label: "Pools" }]}>Your trades, pool deposits and withdrawals, and rewards in one timeline, plus a network-wide view.</ComingSoon>} />
+          <Route path="/buy" element={<ComingSoon kicker="Buy" title="Buy XLM" links={[{ to: "/markets", label: "Markets" }]}>How to get XLM into your Quasaria address with a card from a third-party provider, and how to set up USDC.</ComingSoon>} />
+          <Route path="/about" element={<ComingSoon kicker="About" title="About Quasaria" links={[{ to: "/", label: "Home" }, { to: "/holders", label: "Holder rewards" }]}>Quasaria is a self-banking decentralized exchange on Stellar where you trade, earn, and stay in full control of your keys.</ComingSoon>} />
           <Route path="/pools" element={<Pools />} />
           <Route path="/earn" element={<Earn />} />
           <Route path="/holders" element={<Holders />} />

@@ -374,14 +374,18 @@ and decimals of the feed before trusting it.
 ## Landing page
 
 `/` is the public landing page (`frontend/src/pages/Landing.tsx`). The app keeps its
-existing top-level routes (`/trade`, `/pools`, `/markets`, …), and `/app` is an alias for Trade.
-We kept the routes rather than moving them under `/app` so that shared links
-(`/trade?base=…`, `?ref=G…`) and the Markets "Trade" buttons keep working.
+existing top-level routes (`/exchange`, `/swap`, `/pools`, `/markets`, …). Old links keep working: `/trade` and `/app` redirect to `/exchange` (the query string is kept, so `/trade?base=…` lands on `/exchange?base=…`).
+
+### Navigation
+
+The top row is defined once in `frontend/src/lib/nav.ts` and used by the desktop row and the mobile menu:
+**[Markets | Exchange | Pools]** (a segmented group), then **Swap** as its own tab, then Earnings, Holders, Referral, Activity, News, Buy, About.
+Quests, Merch and Calculators stay reachable from the mobile menu's "More" section and the world map. Exchange (`/exchange`) is native order-book trading; Swap is a separate simple swap page. Markets is a read-only browser whose rows open Exchange for that pair. Pages that are not built yet (Swap, Referral, Activity, Buy, About) are honest "coming soon" pages with no data and no forms.
 
 - **Copy.** The copy is parsed at build time from
   [`docs/landing-outline.md`](docs/landing-outline.md), so all 14 headlines and pitches are the approved
   text verbatim. `test/landing.test.ts` checks that the outline has all 14 sections.
-- **Buttons.** **Launch app** → `/trade`. **Create a wallet** opens the non-custodial account modal
+- **Buttons.** The hero buttons link to **Exchange** (`/exchange`) and **Swap** (`/swap`). **Create a wallet** opens the non-custodial account modal
   straight at the freshly generated key (`openModal("create")`).
 - **Real data:**
   - the XLM/USD ticker and markets preview (stellarchain.io live, or the build-time snapshot labelled "snapshot, updated <time>", with "as of" and stale flags)

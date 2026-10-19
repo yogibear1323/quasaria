@@ -46,18 +46,18 @@ export function levelFor(xp: number) {
 export type QuestKind = "learn" | "try" | "habit";
 export type Quest = { id: string; title: string; desc: string; xp: number; kind: QuestKind; to?: string; cta?: string; steps?: number };
 
-export const EXPLORE_PATHS = ["/markets", "/trade", "/pools", "/earn", "/holders"] as const;
+export const EXPLORE_PATHS = ["/markets", "/exchange", "/pools", "/earn", "/holders"] as const;
 export const CALCS = ["lp"] as const;
 export type CalcId = (typeof CALCS)[number];
 
 export const QUESTS: Quest[] = [
   { id: "risk-guide", kind: "learn", xp: 100, title: "Read the risk guide", desc: "Five minutes on liquidations, impermanent loss, finite reward reserves and what 'unaudited' means.", to: "/quests#risk-guide", cta: "Open guide" },
   { id: "calc-lp", kind: "learn", xp: 40, title: "Try the liquidity calculator", desc: "Move the price slider and watch impermanent loss.", to: "/calculators?c=lp", cta: "Open" },
-  { id: "slippage", kind: "learn", xp: 40, title: "Set your slippage guard", desc: "Adjust max slippage on the Trade swap panel before you swap.", to: "/trade", cta: "Trade" },
-  { id: "explore", kind: "learn", xp: 60, title: "Tour the galaxy", desc: "Visit Markets, Trade, Pools, Earn and Holder rewards.", steps: EXPLORE_PATHS.length },
+  { id: "slippage", kind: "learn", xp: 40, title: "Set your slippage guard", desc: "Adjust max slippage on the Exchange order form before you trade.", to: "/exchange", cta: "Exchange" },
+  { id: "explore", kind: "learn", xp: 60, title: "Tour the galaxy", desc: "Visit Markets, Exchange, Pools, Earn and Holder rewards.", steps: EXPLORE_PATHS.length },
   { id: "merch-visit", kind: "learn", xp: 20, title: "Visit the merch store", desc: "Take a look at the (coming soon) merch line. Just browsing: nothing is for sale and buying would never earn XP.", to: "/merch", cta: "Merch" },
   { id: "connect", kind: "try", xp: 50, title: "Create a testnet account", desc: "Create an account (your browser generates the keypair) or log in with your secret key, on TESTNET." },
-  { id: "first-swap", kind: "try", xp: 75, title: "Make your first swap", desc: "One-time: any amount of free testnet tokens counts. Extra swaps earn nothing.", to: "/trade", cta: "Trade" },
+  { id: "first-swap", kind: "try", xp: 75, title: "Make your first swap", desc: "One-time: any amount of free testnet tokens counts. Extra swaps earn nothing.", to: "/exchange", cta: "Exchange" },
   { id: "first-lp", kind: "try", xp: 75, title: "Add liquidity once", desc: "One-time: deposit any amount into a pool. Read about impermanent loss first.", to: "/pools", cta: "Pools" },
   { id: "streak-3", kind: "habit", xp: 100, title: "3-day visit streak", desc: "Check in on three days in a row.", steps: 3 },
   { id: "streak-7", kind: "habit", xp: 150, title: "7-day visit streak", desc: "Keep the streak alive for a week.", steps: 7 },

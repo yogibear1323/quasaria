@@ -37,3 +37,17 @@ describe("testnet never shows dollar values", () => {
     expect(tvlUsd(p, { xlmUsd: 0.18 })).toBeNull();
   });
 });
+
+import { mainnetUrl, ASSET_LIST } from "../src/lib/assets";
+import { readdirSync, statSync } from "node:fs";
+const walk = (d: string): string[] => readdirSync(d).flatMap((f) => { const p = `${d}/${f}`; return statSync(p).isDirectory() ? walk(p) : /\.(ts|tsx)$/.test(p) ? [p] : []; });
+describe("explorer links go to StellarChain only", () => {
+  it("mainnet asset links use stellarchain.io", () => {
+    const usdc = ASSET_LIST.find((a) => a.mainnet && a.code === "USDC")!;
+    expect(mainnetUrl(usdc)).toMatch(/^https:\/\/stellarchain\.io\/assets\/USDC-G[A-Z0-9]{55}$/);
+    for (const a of ASSET_LIST) { const u = mainnetUrl(a); if (u) expect(u).toMatch(/^https:\/\/stellarchain\.io\//); }
+  });
+  it("no source file builds a stellar.expert explorer link (the Markets search API call is data, not a link)", () => {
+    for (const f of walk("src")) expect(readFileSync(f, "utf8"), f).not.toMatch(/stellar\.expert\/explorer\/(testnet|public)\/(contract|account|asset|tx)/);
+  });
+});

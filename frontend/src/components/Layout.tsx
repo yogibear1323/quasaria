@@ -113,7 +113,7 @@ function WalletButton() {
     );
   return (
     <button className="btn small" onClick={() => w.openModal()} data-testid="account-cta">
-      {w.stored ? "Unlock key" : "Create / sign in"}
+      Create / sign in
     </button>
   );
 }

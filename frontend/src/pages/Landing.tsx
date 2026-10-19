@@ -112,6 +112,7 @@ export function KeysStrip() {
       </div>
       <div className="l-keysstrip-cta">
         {!w.address && <button className="btn" onClick={() => w.openModal("create")}>Create a keypair</button>}
+        {w.address && <Link className="btn ghost" to="/wallet" data-testid="keys-wallet-link">Send / receive</Link>}
         <a className="btn ghost" href="#keys">How your keys work</a>
       </div>
     </section>

@@ -3,13 +3,13 @@ import { PageHead, Stat, Tabs, TxStatus, useTx } from "../components/ui";
 import OrderBook from "../components/OrderBook";
 import PriceChart from "../components/PriceChart";
 import { ASSETS, assetFromKey, assetKeyOf, buildLimitOrder, fetchOrderBook, fetchTradeCandles, submitSignedXdr } from "../lib/stellar";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AssetPicker, toOption, type PickerOption } from "../components/AssetBits";
 import { loadMarkets, type MarketRow } from "../lib/markets";
 import { STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
 import { demoBook, demoCandles, type Book } from "../lib/demo";
 import { fmt } from "../lib/format";
-import { XLM_LOGO } from "../lib/xlm";
+import { XLM_ABOUT_PATH, XLM_LOGO } from "../lib/xlm";
 import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
 
 /** Curated asset list (stablecoins + popular assets, v3 pools) as picker options. */
@@ -133,11 +133,12 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
         <div className="grid" style={{ alignContent: "start" }}>
           <div className="card glow">
             <div className="row between ticker" style={{ marginBottom: 10, flexWrap: "wrap", gap: 16 }}>
-              <div className="row" style={{ gap: 12 }}>
+              <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
                 <AssetPicker label="Base asset" value={baseOpt} options={options} onChange={(o) => pick("base", o)} />
                 <span className="muted">/</span>
                 <AssetPicker label="Quote asset" value={quoteOpt} options={options} onChange={(o) => pick("quote", o)} />
                 <span className="pill">SDEX</span>
+                {(baseOpt?.key === "XLM" || quoteOpt?.key === "XLM") && <Link className="pill cyan" to={XLM_ABOUT_PATH} data-testid="xlm-about-link" title="What XLM is, reserves, fees and network facts">About XLM</Link>}
               </div>
               <Stat label="Mid" value={last ? px(last) : "—"} />
               <Stat label="Change" value={`${change >= 0 ? "+" : ""}${fmt(change, 2)}%`} className={change >= 0 ? "pos" : "neg"} />

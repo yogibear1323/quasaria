@@ -29,7 +29,8 @@ export default function Markets() {
   const [search, setSearch] = useState(() => params.get("q") ?? "");
   const [q, setQ] = useState(() => (params.get("q") ?? "").trim());
   const [full, setFull] = useState<FullList | null>(null);
-  const [aboutKey, setAboutKey] = useState<string | null>(null);
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("about")?.toLowerCase() === "xlm" || params.get("about")?.toLowerCase() === "xlm") { const t = setTimeout(() => document.getElementById("about-xlm")?.scrollIntoView({ block: "center" }), 1500); return () => clearTimeout(t); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [aboutKey, setAboutKey] = useState<string | null>(() => (params.get("about")?.toLowerCase() === "xlm" ? "XLM" : null));
   const [beyond, setBeyond] = useState<{ q: string; hits: BeyondHit[]; loading: boolean }>({ q: "", hits: [], loading: false });
   const sortKey = (["rank", "code", "price", "change24h", "change7d", "volume", "trades", "holders"].includes(params.get("sort") ?? "") ? params.get("sort") : "rank") as SortKey;
   const dir: "asc" | "desc" = params.get("dir") === "desc" ? "desc" : params.get("dir") === "asc" ? "asc" : sortKey === "rank" || sortKey === "code" ? "asc" : "desc";
@@ -210,7 +211,7 @@ export default function Markets() {
               <tbody>
                 {live.mode === "loading" && !allRows.length && <><tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>{Array.from({ length: 8 }, (_, i) => <tr key={i} className="mk-skrow" aria-hidden="true"><td colSpan={13}><i className="mk-sk" /></td></tr>)}</>}
                 {live.mode !== "loading" && !allRows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
-                {page === 1 && xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} change24h={liveXlm?.change24h ?? null} live={!!liveXlm} asOf={liveXlm ? undefined : snapXlm ? (snapXlm.source === "snapshot" ? snapshotLabel(snapXlm.snapshotAt) : `as of ${asOf(snapXlm.updatedAt)}`) : undefined} onExchange={() => nav("/exchange")} />}
+                {page === 1 && xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} change24h={liveXlm?.change24h ?? null} live={!!liveXlm} asOf={liveXlm ? undefined : snapXlm ? (snapXlm.source === "snapshot" ? snapshotLabel(snapXlm.snapshotAt) : `as of ${asOf(snapXlm.updatedAt)}`) : undefined} onExchange={() => nav("/exchange")} aboutOpen={aboutKey === "XLM"} onAbout={() => setAboutKey((k) => (k === "XLM" ? null : "XLM"))} />}
                 {liveRows.map((r) => {
                   const snapRow = r.source === "snapshot";
                   const snapTip = `saved snapshot (${snapTime(live.snapshotAt)})`;
@@ -291,7 +292,7 @@ export default function Markets() {
               </thead>
               <tbody>
                 {!data && <tr><td colSpan={13} className="muted">Loading market data…</td></tr>}
-                {xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} live={false} asOf={xlm?.price ? (xlm.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet") : undefined} onExchange={() => nav("/exchange")} />}
+                {xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} live={false} asOf={xlm?.price ? (xlm.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet") : undefined} onExchange={() => nav("/exchange")} aboutOpen={aboutKey === "XLM"} onAbout={() => setAboutKey((k) => (k === "XLM" ? null : "XLM"))} />}
                 {data?.rows.map((r) => (
                   <tr key={r.key} data-testid="market-row">
                     <td data-label="#" className="c-rank mono muted">{r.rank ?? "—"}</td>

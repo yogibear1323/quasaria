@@ -1,6 +1,7 @@
 import { AssetLogo } from "./AssetBits";
 import { XLM_CODE, XLM_LOGO, XLM_NAME, xlmRowData } from "../lib/xlm";
 import { fmt } from "../lib/format";
+import XlmAbout from "./XlmAbout";
 
 const dash = <span className="muted">—</span>;
 
@@ -8,9 +9,10 @@ const dash = <span className="muted">—</span>;
  * The native asset (XLM, no issuer) as a pinned row at the top of the Markets tables. Only fields we really have are filled:
  * price in USD and (live feed only) the 24h change. Price in XLM is 1 by definition; everything else is a dash.
  */
-export default function XlmRow({ usdPerXlm, change24h = null, live, asOf, onExchange }: { usdPerXlm: number | null; change24h?: number | null; live: boolean; asOf?: string; onExchange: () => void }) {
+export default function XlmRow({ usdPerXlm, change24h = null, live, asOf, onExchange, aboutOpen = false, onAbout }: { usdPerXlm: number | null; change24h?: number | null; live: boolean; asOf?: string; onExchange: () => void; aboutOpen?: boolean; onAbout?: () => void }) {
   const d = xlmRowData({ usdPerXlm, change24h, live });
   return (
+    <>
     <tr data-testid="xlm-row" data-native="true">
       <td data-label="#" className="c-rank mono muted">—</td>
       <td data-label="Asset" className="c-asset">
@@ -32,7 +34,10 @@ export default function XlmRow({ usdPerXlm, change24h = null, live, asOf, onExch
       <td data-label="Trustlines" className="c-holders mono">{dash}</td>
       <td data-label="Trend" className="c-trend">{dash}</td>
       <td data-label="As of" style={{ fontSize: "0.72rem" }} className="c-asof muted">{d.priceUsd === null ? "—" : asOf ?? (d.source === "live" ? "live" : "snapshot")}</td>
-      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={onExchange} title="Opens the Exchange with XLM as the base asset">Exchange</button></div></td>
+      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={onExchange} title="Opens the Exchange with XLM as the base asset">Exchange</button>
+        {onAbout && <button className={`btn small ghost about-btn ${aboutOpen ? "on" : ""}`} aria-expanded={aboutOpen} aria-controls="about-xlm" onClick={onAbout} data-testid="xlm-about-btn">About</button>}</div></td>
     </tr>
+    {aboutOpen && <tr className="about-row" data-testid="xlm-about-row"><td colSpan={13}><XlmAbout onClose={onAbout} /></td></tr>}
+    </>
   );
 }

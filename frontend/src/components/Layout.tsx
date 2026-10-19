@@ -1,3 +1,4 @@
+import { explorerAccountUrl } from "../lib/explorer";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -100,7 +101,7 @@ function WalletButton() {
           <div className="card acct-menu" role="menu" onMouseLeave={() => setMenu(false)}>
             <button className="btn small ghost" onClick={() => navigator.clipboard?.writeText(w.address!).catch(() => void 0)}>Copy address</button>
             <button className="btn small ghost" onClick={() => { setMenu(false); w.openModal("fund"); }}>Receive / fund (QR)</button>
-            <a className="btn small ghost" href={`https://stellar.expert/explorer/testnet/account/${w.address}`} target="_blank" rel="noreferrer">View on stellar.expert ↗</a>
+            <a className="btn small ghost" href={explorerAccountUrl(w.address, "testnet") ?? undefined} target="_blank" rel="noopener noreferrer">View on StellarChain ↗</a>
             <button className="btn small ghost" onClick={() => { setMenu(false); w.disconnect(); }}>Sign out of this tab</button>
             <button className="btn small ghost neg" onClick={() => { if (window.confirm("Forget this key? It is removed from this tab and any encrypted copy is deleted from this browser. Make sure your secret key is saved: Quasaria cannot recover it.")) { setMenu(false); w.forgetKey(); } }}>Forget this key</button>
           </div>

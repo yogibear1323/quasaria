@@ -1,3 +1,4 @@
+import { explorerAccountUrl } from "../lib/explorer";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useWallet } from "../lib/wallet";
 import { CONTRACTS_CONFIGURED } from "../lib/config";
@@ -124,7 +125,7 @@ export function ViewerNote({ address, isDemo, role }: { address: string; isDemo:
   return (
     <p className="muted" style={{ fontSize: "0.78rem", margin: "6px 0 0" }}>
       Read-only: showing the public seeded {role} account{" "}
-      <a className="mono" href={`https://stellar.expert/explorer/testnet/account/${address}`} target="_blank" rel="noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Create an account or connect a wallet to see your own.
+      <a className="mono" href={explorerAccountUrl(address, "testnet") ?? undefined} target="_blank" rel="noopener noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Create an account or connect a wallet to see your own.
     </p>
   );
 }

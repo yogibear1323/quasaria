@@ -4,8 +4,8 @@
  */
 import { useEffect, useState } from "react";
 import { rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
-import { CONTRACTS, CONTRACTS_CONFIGURED, DEMO_ACCOUNTS, VAULT_MARKET } from "./config";
-import { addr, assetOther, readContract, soroban, u32, u64 } from "./soroban";
+import { CONTRACTS, CONTRACTS_CONFIGURED, DEMO_ACCOUNTS } from "./config";
+import { addr, readContract, soroban, u32 } from "./soroban";
 import { fromUnits } from "./format";
 import { useWallet } from "./wallet";
 
@@ -197,48 +197,3 @@ export async function readReferrals(referrer: string) {
 export async function readReferrerOf(user: string) {
   return readContract<string | null>(CONTRACTS.referral, "get_referrer", [addr(user)]);
 }
-
-// ---------------------------------------------------------------- vault
-/** ScVal of the vault's XLM market key (`Asset::Stellar(sac)` or `Asset::Other(sym)`, see VAULT_MARKET). */
-export function vaultMarketAsset(): xdr.ScVal {
-  return "Stellar" in VAULT_MARKET
-    ? xdr.ScVal.scvVec([xdr.ScVal.scvSymbol("Stellar"), addr(VAULT_MARKET.Stellar)])
-    : assetOther(VAULT_MARKET.Other);
-}
-export type VaultPosition = { id: number; asset: string; isLong: boolean; margin: number; size: number; entry: number; sl: number; tp: number; openedAt: number };
-
-export async function readVault(owner: string) {
-  const [cfg, liquidity, openCount, decimals, paused] = await Promise.all([
-    readContract<{ max_leverage_bps: number; maintenance_margin_bps: number; open_fee_bps: number; max_price_age: bigint; min_margin: bigint; max_positions_per_user: number; max_open_positions: number }>(CONTRACTS.vault, "config"),
-    readContract<bigint>(CONTRACTS.vault, "liquidity"),
-    readContract<number>(CONTRACTS.vault, "open_position_count"),
-    readContract<number>(CONTRACTS.oracle, "decimals"),
-    readContract<boolean>(CONTRACTS.vault, "paused"),
-  ]);
-  const pd = await readContract<{ price: bigint; timestamp: bigint } | null>(CONTRACTS.oracle, "lastprice", [vaultMarketAsset()]);
-  const scale = 10 ** decimals;
-  const ids = owner ? await readContract<bigint[]>(CONTRACTS.vault, "user_positions", [addr(owner)]) : [];
-  const positions: VaultPosition[] = [];
-  for (const id of ids) {
-    const p = await readContract<{ id: bigint; asset: [string, string]; is_long: boolean; margin: bigint; size: bigint; entry_price: bigint; stop_loss: bigint; take_profit: bigint; opened_at: bigint }>(CONTRACTS.vault, "position", [u64(id)]);
-    positions.push({ id: Number(p.id), asset: String(p.asset[1]) === CONTRACTS.xlmSac ? "XLM" : String(p.asset[1]), isLong: p.is_long, margin: fromUnits(p.margin), size: fromUnits(p.size), entry: Number(p.entry_price) / scale, sl: Number(p.stop_loss) / scale, tp: Number(p.take_profit) / scale, openedAt: Number(p.opened_at) });
-  }
-  const free = owner ? fromUnits(await readContract<bigint>(CONTRACTS.vault, "free_collateral", [addr(owner)])) : 0;
-  return {
-    maxLeverage: cfg.max_leverage_bps / 10_000,
-    mmBps: cfg.maintenance_margin_bps,
-    openFeeBps: cfg.open_fee_bps,
-    maxPriceAge: Number(cfg.max_price_age),
-    liquidity: fromUnits(liquidity),
-    openCount: Number(openCount),
-    minMargin: fromUnits(cfg.min_margin),
-    maxPositionsPerUser: cfg.max_positions_per_user,
-    maxOpenPositions: cfg.max_open_positions,
-    paused,
-    mark: pd ? Number(pd.price) / scale : null,
-    priceTimestamp: pd ? Number(pd.timestamp) : null,
-    positions,
-    free,
-  };
-}
-

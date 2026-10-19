@@ -6,8 +6,8 @@ const md = readFileSync(new URL("../../docs/landing-outline.md", import.meta.url
 
 describe("landing outline (approved copy)", () => {
   const s = parseOutline(md);
-  it("has all 15 sections with headline, pitch and visual notes", () => {
-    expect(s.map((x) => x.n)).toEqual(Array.from({ length: 15 }, (_, i) => i + 1));
+  it("has all 12 sections with headline, pitch and visual notes", () => {
+    expect(s.map((x) => x.n)).toEqual(Array.from({ length: 12 }, (_, i) => i + 1));
     for (const x of s) {
       expect(x.headline.length).toBeGreaterThan(5);
       expect(x.pitch.length).toBeGreaterThan(20);
@@ -16,11 +16,12 @@ describe("landing outline (approved copy)", () => {
   });
   it("keeps the approved text verbatim", () => {
     expect(s[0].headline).toBe("Your keys, your XLM.");
-    expect(s[0].pitch).toBe("Connect your own Stellar wallet. Quasaria never holds your keys or your XLM when you trade.");
+    expect(s[0].pitch).toBe("Quasaria never holds your keys or your XLM when you trade: you hold the secret key and sign everything in your own browser.");
     expect(s[3].headline).toBe("Your keys never leave your browser.");
-    expect(s[13].headline).toBe("Your first trade is a few clicks away.");
-    expect(s[14].headline).toBe("Latest from Stellar.");
-    expect(s[11].pitch).toContain("Every Quasaria contract is public on the Stellar ledger");
+    expect(s[10].headline).toBe("Your first trade is a few clicks away.");
+    expect(s[11].headline).toBe("Latest from Stellar.");
+    expect(s[6].headline).toBe("Hold GLACIERQ, get paid daily.");
+    expect(s[8].pitch).toContain("Every Quasaria contract is public on the Stellar ledger");
   });
   it("ignores text before the first numbered section", () => {
     expect(parseOutline("# Title\nHeadline: stray\n1. A\nHeadline: H\nPitch: P\nVisual: V")).toEqual([{ n: 1, title: "A", headline: "H", pitch: "P", visual: "V" }]);

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import AccountModal from "./AccountModal";
-import { PerpsNav } from "./PerpsNav";
 import logo from "../assets/logo-light.svg";
 import { Orbits } from "./Quasar";
 import WorldBackground, { type Scene } from "../world/WorldBackground";
@@ -40,24 +39,18 @@ function XlmTicker() {
 const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/markets", label: "Markets", scene: "constellation" },
   { to: "/trade", label: "Trade", scene: "quasar" },
-  { to: "/perps", label: "Perps", scene: "warp" },
   { to: "/pools", label: "Pools", scene: "nebula" },
-  { to: "/lending", label: "Lend", scene: "orbits" },
-  { to: "/earn", label: "Earn", scene: "supernova" },
-  { to: "/stake", label: "Stake", scene: "orbits" },
-  { to: "/rewards", label: "QFX Mint & Rewards", scene: "supernova" },
-  { to: "/referrals", label: "Referrals", scene: "constellation" },
-  { to: "/bots", label: "Bots & Leverage", scene: "warp" },
+  { to: "/earn", label: "Earnings", scene: "supernova" },
+  { to: "/holders", label: "Holders", scene: "supernova" },
   { to: "/quests", label: "Quests", scene: "constellation" },
   { to: "/merch", label: "Merch", scene: "nebula" },
   { to: "/news", label: "News", scene: "constellation" },
 ];
 
-const QUICK = new Set(["/markets", "/trade", "/perps", "/pools", "/earn"]);
+const QUICK = new Set(["/markets", "/trade", "/pools", "/earn", "/holders"]);
 
 export function sceneFor(path: string): Scene {
   if (path.startsWith("/calculators")) return "orbits";
-  if (path.startsWith("/back-office")) return "warp";
   return NAV.find((n) => path.startsWith(n.to))?.scene ?? "quasar";
 }
 
@@ -112,15 +105,11 @@ export default function Layout() {
           <WorldNav />
           {/* Quick strip: the busiest districts one click away; the full map lives in WorldNav. */}
           <nav className="nav quick-nav" aria-label="Quick links">
-            {NAV.filter((n) => QUICK.has(n.to)).map((n) =>
-              n.to === "/perps" ? (
-                <PerpsNav key={n.to} pathname={loc.pathname} />
-              ) : (
+            {NAV.filter((n) => QUICK.has(n.to)).map((n) => (
                 <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive || (n.to === "/earn" && loc.pathname.startsWith("/calculators")) ? "active" : "")}>
                   {n.label}
                 </NavLink>
-              ),
-            )}
+            ))}
           </nav>
           <XlmTicker />
           <span className="net-badge">Testnet</span>
@@ -130,14 +119,14 @@ export default function Layout() {
         {w.error && !w.modalOpen && <div className="demo-banner">{w.error}</div>}
         {w.modalOpen && <AccountModal />}
         <main className="pg-main">
-          {loc.pathname !== "/" && !loc.pathname.startsWith("/back-office") && <Orbits className="pg-orbits" />}
+          {loc.pathname !== "/" && <Orbits className="pg-orbits" />}
           <Outlet />
         </main>
         <footer>
           <div className="foot-inner">
             <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
             <span>
-              Quasaria is an <b>unaudited, testnet-only</b> scaffold. Nothing here is financial advice. Leverage and yield features
+              Quasaria is an <b>unaudited, testnet-only</b> scaffold. Nothing here is financial advice. Liquidity pools and token rewards
               carry substantial risk of loss and may be regulated in your jurisdiction.
             </span>
           </div>

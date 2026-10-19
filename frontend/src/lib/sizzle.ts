@@ -19,7 +19,7 @@ export function sizzleCuts(b: string = base()): SizzleCut[] {
 export const SIZZLE_COPY = {
   kicker: "Watch",
   headline: "See Quasaria in 34 seconds.",
-  pitch: "Swaps, liquidity pools, lending, quests, and keys that stay yours, all settled on Stellar.",
+  pitch: "Swaps, liquidity pools, holder rewards, and keys that stay yours, all settled on Stellar.",
 } as const;
 
 /** Widescreen cut is shown from this width up; below it, only the vertical cut. */

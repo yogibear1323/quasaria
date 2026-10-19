@@ -28,21 +28,11 @@ export const CONTRACTS = {
   pools: list(env.VITE_POOL_IDS as string).length ? list(env.VITE_POOL_IDS as string) : [d.poolXlmQusd, d.poolQfxQusd],
   staking: (env.VITE_STAKING_ID as string) || d.staking,
   referral: (env.VITE_REFERRAL_ID as string) || d.referral,
-  vault: (env.VITE_VAULT_ID as string) || d.vault,
   oracle: (env.VITE_ORACLE_ID as string) || d.oracle,
   xlmSac: d.xlmSac,
   qusdSac: d.qusdSac,
 };
 
-/**
- * Leverage-vault market key for XLM. The perps-v1 vault trades
- * `Asset::Stellar(<native XLM SAC>)`, the key the oracle feed refreshes from live prices
- * (deployment `vault.marketAsset`). Older deployments used `Asset::Other("XLM")`.
- */
-const vaultMarket = (deployment as { vault?: { marketAsset?: { Stellar?: string; Other?: string } } }).vault?.marketAsset;
-export const VAULT_MARKET: { Stellar: string } | { Other: string } = vaultMarket?.Stellar
-  ? { Stellar: vaultMarket.Stellar }
-  : { Other: vaultMarket?.Other ?? "XLM" };
 
 /** Offline demo mode (no network calls at all) — used for CI / offline screenshots. */
 export const OFFLINE_DEMO = (env.VITE_OFFLINE_DEMO as string) === "1";
@@ -52,7 +42,7 @@ export const CONTRACTS_CONFIGURED = Boolean(CONTRACTS.router && CONTRACTS.qfx) &
 
 /** Public seeded accounts shown in read-only mode (no secrets, testnet only). */
 export const DEMO_ACCOUNTS = {
-  /** Seeded trader: holds QFX, stakes, has leveraged positions, was referred. */
+  /** Seeded trader: public seeded account. */
   trader: (deployment as { demoTrader?: string }).demoTrader ?? "",
   /** Deployer/admin: the seeded LP and the trader's referrer. */
   lp: deployment.admin,

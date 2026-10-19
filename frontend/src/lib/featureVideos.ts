@@ -14,22 +14,14 @@ export type FeatureVideo = {
 export const FEATURE_VIDEOS: FeatureVideo[] = [
   { id: "01-swaps", title: "Swaps", seconds: 27 },
   { id: "02-liquidity-pools", title: "Liquidity pools", seconds: 30 },
-  { id: "03-lending-market", title: "Lending market", seconds: 27 },
-  { id: "04-warp-leverage-vault", title: "Warp leverage vault", seconds: 29, tag: "Leverage risk" },
-  { id: "05-stop-loss-take-profit-liquidations", title: "Stop-loss, take-profit & liquidations", seconds: 29, tag: "Leverage risk" },
-  { id: "06-oracle-pricing", title: "Oracle pricing & staleness guards", seconds: 30 },
-  { id: "07-qfx-staking-referrals", title: "QFX, staking, referrals & calculators", seconds: 29 },
-  { id: "08-xp-ranks-quests", title: "XP ranks & Quests", seconds: 29 },
   { id: "09-markets-news", title: "Markets & Stellar news", seconds: 28 },
-  { id: "10-governance-security", title: "Governance & security", seconds: 28 },
-  { id: "11-perps-funding-bots", title: "Perps funding + bots", seconds: 45, tag: "Live on testnet" },
 ];
 
 export const FEATURE_VIDEOS_COPY = {
   kicker: "Feature videos",
   headline: "Every feature, in about 30 seconds.",
   pitch: "Short tours of the exchange, captured on testnet. Pick a feature to play it.",
-  note: "Testnet beta · unaudited · testnet tokens have no value. Rates and rewards shown are illustrative and variable. Leverage amplifies losses and carries liquidation risk.",
+  note: "Testnet beta · unaudited · testnet tokens have no value. Rates and rewards shown are illustrative and variable. Liquidity pools can lose value to impermanent loss.",
 } as const;
 
 const base = (): string => (import.meta.env?.BASE_URL as string | undefined) ?? "/";

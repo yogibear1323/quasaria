@@ -113,18 +113,6 @@ html.frost .wn-btn { background: #13203d; } html.frost .wn-panel { background: r
 html.frost .wl-item:hover, html.frost .wl-item:focus-visible, html.frost .wl-item[aria-current="page"] { background: #1a2748; border-color: #c9d8ef; }
 html.frost .wn-orb { background: radial-gradient(circle at 30% 30%, #fff 0 8%, transparent 9%), radial-gradient(circle at 62% 40%, #f2f6fc 0 18%, transparent 19%), radial-gradient(circle at 35% 30%, #dfe8f5, #3e5680 70%, #142240); box-shadow: 0 0 8px rgba(200, 225, 255, 0.5); }
 html.frost .wl-item.hue-violet, html.frost .wl-item.hue-cyan, html.frost .wl-item.hue-magenta { --dot: #c9d8ef; }
-
-/* ---- Back Office: navy room + parka yetis ---- */
-html.frost .bo { --bo-tr: #c9d8ef; --bo-fu: #9cc8f0; --bo-mr: #fcd34d; --acc: #c9d8ef;
-  --yt-fur: #f4f7fb; --yt-fur-2: #e3e9f2; --yt-line: #8e9db6; --yt-skin: #7d8ca6; --yt-ink: #0b1222; --honey: #c9d5e6; }
-html.frost .bo.bk { --bk-bg: #0f1a33; --bk-s1: rgba(19, 32, 61, 0.86); --bk-s2: #16233f; --bk-s3: #1a2748;
-  --bk-line: rgba(170, 190, 220, 0.2); --bk-line-2: rgba(190, 206, 230, 0.32); --bk-text: #eef3fa; --bk-text-2: #c3cfe2; --bk-text-3: #9fb0cc;
-  --bk-violet: #c9d8ef; --bk-violet-hi: #e3ecf8; --bk-violet-dim: rgba(200, 216, 240, 0.12); --bk-cyan: #9cc8f0; --bk-cyan-hi: #b9daf6; --bk-cyan-dim: rgba(156, 200, 240, 0.12);
-  --bk-success: #6ee7b7; --bk-warn: #fcd34d; --bk-danger: #fda4af; --bk-elev-2: 0 12px 32px -18px rgba(2, 6, 20, 0.8); }
-html.frost .bo-desk.trend, html.frost .bo-desk.supertrend { --acc: #c9d8ef; --acc-d: rgba(200, 216, 240, 0.4); }
-html.frost .bo-desk.funding, html.frost .bo-desk.liqpocket { --acc: #9cc8f0; --acc-d: rgba(156, 200, 240, 0.4); }
-html.frost .bo-desk.meanrev { --acc: #e3eaf4; --acc-d: rgba(227, 234, 244, 0.4); }
-html.frost .bk-hero .qz-spin svg, html.frost .bk-hero .qz-jets, html.frost .bk-hero .qz-stars { filter: saturate(0.2) brightness(1.1); }
 html.frost .rb-chair { fill: #2a3a60; stroke: rgba(2, 6, 20, 0.4); }
 html.frost .rb-torso { fill: #1a2748; stroke: #0a1226; }
 html.frost .rb-shell { fill: var(--yt-fur); stroke: var(--yt-line); }
@@ -143,16 +131,6 @@ html.frost .yt-hat { fill: #16213f; stroke: #0a1226; } html.frost .yt-hat-rim { 
 html.frost .yt-lens { fill: #3e5680; stroke: #c9d3e3; } html.frost .yt-scarf { fill: #0f1a33; stroke: #8fa3c4; } html.frost .yt-glass { fill: rgba(200, 216, 240, .15); stroke: #c9d3e3; }
 html.frost .rb-bulb { fill: #e3eaf4; }
 html.frost .st-halted .rb-eye, html.frost .st-halted .rb-mouth, html.frost .rb-alert { fill: #fda4af; stroke: #fda4af; }
-html.frost .bo-wall { fill: #16233f; stroke: rgba(170, 190, 220, 0.18); } html.frost .st-halted .bo-wall { fill: #2a1f33; }
-html.frost .bo-top-s { fill: #3e5680; } html.frost .bo-front { fill: #26385e; }
-html.frost .bo-kb, html.frost .bo-stand, html.frost .bo-foot { fill: #5b7299; } html.frost .bo-keys { stroke: #c9d5e6; }
-html.frost .bo-mon { fill: #2a3a60; stroke: rgba(2, 6, 20, 0.5); } html.frost .bo-scr { fill: #08101f; }
-html.frost .bo-tf, html.frost .bo-exchip, html.frost .bo-exbanner, html.frost .bo-odo em { color: #0f1a33; background: #c9d8ef; }
-html.frost .bo-coin { background: #e3e9f2; box-shadow: inset 0 0 0 2px #8fa6c8; }
-html.frost .bo-demobanner { color: #0f1a33; background: #c9d8ef; }
-html.frost .bo-zzz { color: #c9d8ef; }
-html.frost .bo-st { fill: #9fb0cc; } html.frost .bo-st.b { fill: #eef3fa; } html.frost .st-halted .bo-st.b { fill: #fda4af; }
-html.frost .bo-dot, html.frost .bo-off { fill: #08101f; }
 html.frost .yt-hood { stroke: #8fa3c4; stroke-width: 1; }
 html.frost .rb-lean { filter: drop-shadow(0 0 .5px rgba(183, 198, 222, .9)); }
 

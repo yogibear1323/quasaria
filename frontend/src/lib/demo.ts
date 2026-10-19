@@ -85,7 +85,3 @@ export const DEMO_REFERRAL = {
   ],
 };
 
-export const DEMO_POSITIONS = [
-  { id: 17, asset: "XLM", isLong: true, margin: 250, leverage: 5, entry: 0.1211, mark: 0.1234, sl: 0.115, tp: 0.135 },
-  { id: 18, asset: "XLM", isLong: false, margin: 120, leverage: 3, entry: 0.1262, mark: 0.1234, sl: 0.131, tp: 0.118 },
-];

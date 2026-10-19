@@ -46,24 +46,19 @@ export function levelFor(xp: number) {
 export type QuestKind = "learn" | "try" | "habit";
 export type Quest = { id: string; title: string; desc: string; xp: number; kind: QuestKind; to?: string; cta?: string; steps?: number };
 
-export const EXPLORE_PATHS = ["/markets", "/trade", "/pools", "/earn", "/stake"] as const;
-export const CALCS = ["staking", "holder", "lp"] as const;
+export const EXPLORE_PATHS = ["/markets", "/trade", "/pools", "/earn", "/holders"] as const;
+export const CALCS = ["lp"] as const;
 export type CalcId = (typeof CALCS)[number];
 
 export const QUESTS: Quest[] = [
   { id: "risk-guide", kind: "learn", xp: 100, title: "Read the risk guide", desc: "Five minutes on liquidations, impermanent loss, finite reward reserves and what 'unaudited' means.", to: "/quests#risk-guide", cta: "Open guide" },
-  { id: "calc-staking", kind: "learn", xp: 40, title: "Try the staking calculator", desc: "See how rewards stop when a pool's reserve runs dry.", to: "/calculators?c=staking", cta: "Open" },
-  { id: "calc-holder", kind: "learn", xp: 40, title: "Try the QFX holder-yield calculator", desc: "Compare simple vs settled yield and the reserve runway.", to: "/calculators?c=holder", cta: "Open" },
   { id: "calc-lp", kind: "learn", xp: 40, title: "Try the liquidity calculator", desc: "Move the price slider and watch impermanent loss.", to: "/calculators?c=lp", cta: "Open" },
   { id: "slippage", kind: "learn", xp: 40, title: "Set your slippage guard", desc: "Adjust max slippage on the Trade swap panel before you swap.", to: "/trade", cta: "Trade" },
-  { id: "explore", kind: "learn", xp: 60, title: "Tour the galaxy", desc: "Visit Markets, Trade, Pools, Earn and Stake.", steps: EXPLORE_PATHS.length },
+  { id: "explore", kind: "learn", xp: 60, title: "Tour the galaxy", desc: "Visit Markets, Trade, Pools, Earn and Holder rewards.", steps: EXPLORE_PATHS.length },
   { id: "merch-visit", kind: "learn", xp: 20, title: "Visit the merch store", desc: "Take a look at the (coming soon) merch line. Just browsing: nothing is for sale and buying would never earn XP.", to: "/merch", cta: "Merch" },
-  { id: "connect", kind: "try", xp: 50, title: "Connect a testnet wallet", desc: "Create an in-app account or connect Freighter on TESTNET." },
+  { id: "connect", kind: "try", xp: 50, title: "Create a testnet account", desc: "Create an account (your browser generates the keypair) or log in with your secret key, on TESTNET." },
   { id: "first-swap", kind: "try", xp: 75, title: "Make your first swap", desc: "One-time: any amount of free testnet tokens counts. Extra swaps earn nothing.", to: "/trade", cta: "Trade" },
-  { id: "first-mint", kind: "try", xp: 75, title: "Mint QFX once", desc: "One-time: mint any amount of QFX (1 QFX = 1 XLM, fully backed) on testnet.", to: "/rewards", cta: "Mint" },
   { id: "first-lp", kind: "try", xp: 75, title: "Add liquidity once", desc: "One-time: deposit any amount into a pool. Read about impermanent loss first.", to: "/pools", cta: "Pools" },
-  { id: "first-lend", kind: "try", xp: 75, title: "Try lending once", desc: "One-time: supply any amount of a testnet asset on the Lend page. Read its risk box first. Amounts never matter.", to: "/lending", cta: "Lend" },
-  { id: "first-stake", kind: "try", xp: 75, title: "Stake once", desc: "One-time: stake any amount in an Orbit pool on testnet.", to: "/stake", cta: "Stake" },
   { id: "streak-3", kind: "habit", xp: 100, title: "3-day visit streak", desc: "Check in on three days in a row.", steps: 3 },
   { id: "streak-7", kind: "habit", xp: 150, title: "7-day visit streak", desc: "Keep the streak alive for a week.", steps: 7 },
 ];
@@ -79,12 +74,10 @@ export const BADGES: Badge[] = [
   { id: "first-light", name: "First Light", desc: "Connected a testnet wallet.", icon: "spark", hue: "cyan", when: (s) => done(s, "connect") },
   { id: "navigator", name: "Navigator", desc: "Toured every part of the app.", icon: "compass", hue: "violet", when: (s) => done(s, "explore") },
   { id: "risk-aware", name: "Risk Aware", desc: "Read the risk guide.", icon: "shield", hue: "green", when: (s) => done(s, "risk-guide") },
-  { id: "calculated", name: "Calculated", desc: "Tried all three calculators.", icon: "abacus", hue: "gold", when: (s) => CALCS.every((c) => done(s, `calc-${c}`)) },
+  { id: "calculated", name: "Calculated", desc: "Tried the liquidity calculator.", icon: "abacus", hue: "gold", when: (s) => CALCS.every((c) => done(s, `calc-${c}`)) },
   { id: "guardian", name: "Slippage Guardian", desc: "Set a slippage guard.", icon: "gauge", hue: "cyan", when: (s) => done(s, "slippage") },
   { id: "lightspeed", name: "Lightspeed", desc: "Made a first testnet swap.", icon: "bolt", hue: "violet", when: (s) => done(s, "first-swap") },
-  { id: "forge", name: "Star Forge", desc: "Minted QFX once.", icon: "forge", hue: "gold", when: (s) => done(s, "first-mint") },
   { id: "liquid-light", name: "Liquid Light", desc: "Added liquidity once.", icon: "drop", hue: "cyan", when: (s) => done(s, "first-lp") },
-  { id: "first-orbit", name: "First Orbit", desc: "Staked once.", icon: "orbit", hue: "violet", when: (s) => done(s, "first-stake") },
   { id: "constellation", name: "Constellation", desc: "3-day visit streak.", icon: "flame", hue: "rose", when: (s) => done(s, "streak-3") },
   { id: "supernova", name: "Supernova", desc: "7-day visit streak.", icon: "nova", hue: "gold", when: (s) => done(s, "streak-7") },
   { id: "quasar-rank", name: "Quasar", desc: "Reached the Quasar rank.", icon: "crown", hue: "violet", when: (s) => levelFor(s.xp).level >= RANKS[4].minLevel },
@@ -155,16 +148,12 @@ export function checkIn(state: GameState, today: string, now = Date.now()) {
 
 /**
  * Map a confirmed transaction label (from useTx) to a one-time quest.
- * Deliberately NOT mapped: leverage ("open position", "set operator", "close"),
- * order-book offers, withdrawals, unstake/claim, redeem — and no volume/size.
+ * Deliberately NOT mapped: order-book offers, withdrawals — and no volume/size.
  */
 export function questForTx(label: string): string | null {
   const l = label.trim().toLowerCase();
   if (l === "swap") return "first-swap";
-  if (l === "mint qfx") return "first-mint";
   if (l === "deposit" || l === "native lp deposit") return "first-lp";
-  if (l === "stake") return "first-stake";
-  if (l === "lend supply") return "first-lend";
   return null;
 }
 

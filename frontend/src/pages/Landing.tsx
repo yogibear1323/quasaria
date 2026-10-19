@@ -22,7 +22,7 @@ import OrderBook from "../components/OrderBook";
 import WorldMap, { type MapPin } from "../components/WorldMap";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
 import SizzleReel from "../components/SizzleReel";
-import { FeedBadge, RiskWarning } from "../components/ui";
+import { FeedBadge } from "../components/ui";
 import { NewsDisclaimer, NewsGrid, NewsHeader, NewsSources } from "../components/News";
 import { useNews } from "../lib/news";
 import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
@@ -34,14 +34,15 @@ import { useWallet } from "../lib/wallet";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
 import { ASSETS, fetchOrderBook, horizon } from "../lib/stellar";
-import { readPool, readQfx, readReferrals, readStaking, useChain, type PoolInfo } from "../lib/chain";
-import { CONTRACTS, CONTRACTS_CONFIGURED, DEMO_ACCOUNTS, expertContract, OFFLINE_DEMO, TESTNET_USDC_ISSUER, symbolOf } from "../lib/config";
-import { ammAmountOut, projectBalance } from "../lib/math";
+import { readPool, useChain, type PoolInfo } from "../lib/chain";
+import { CONTRACTS, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
+import { ammAmountOut } from "../lib/math";
+import { REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TOTAL_SUPPLY, TOKENOMICS, dailyReward, tierFor } from "../lib/rewards";
 import { fmt, fmtCompact, short } from "../lib/format";
 import type { Book } from "../lib/demo";
 
 const COPY = parseOutline(outlineMd);
-const [POOL_XLM_QUSD = "", POOL_QFX_QUSD = ""] = CONTRACTS.pools;
+const [POOL_XLM_QUSD = ""] = CONTRACTS.pools;
 const S = (n: number) => COPY.find((c) => c.n === n) ?? { n, title: "", headline: "", pitch: "", visual: "" };
 
 type Pair = (typeof pairsDoc.pairs)[number];
@@ -107,7 +108,7 @@ function CtaButtons() {
       {w.address ? (
         <Link to="/trade" className="btn ghost">● {short(w.address, 5)} ready</Link>
       ) : (
-        <button className="btn ghost" onClick={() => w.openModal("create")}>Create a wallet</button>
+        <button className="btn ghost" onClick={() => w.openModal("create")}>Create an account</button>
       )}
     </div>
   );
@@ -256,7 +257,7 @@ function KeysVisual() {
       <div className="l-callout">
         <div className="l-callout-big">What we store about you: nothing.</div>
         <p className="muted">No server-side accounts, emails or key copies. If you tick "remember on this device", the encrypted key stays in your own browser's storage (PBKDF2-SHA256 → AES-256-GCM).</p>
-        {!w.address && <button className="btn" onClick={() => w.openModal("create")}>Create a wallet</button>}
+        {!w.address && <button className="btn" onClick={() => w.openModal("create")}>Create an account</button>}
       </div>
     </div>
   );
@@ -369,207 +370,47 @@ function LiquidityVisual() {
           <div><span className="muted l-tiny">Est. fees / 30 days</span><b className="mono">{fmt(daily * 30, 2)} XLM</b></div>
           <div><span className="muted l-tiny">Est. APR</span><b className="mono">{deposit > 0 ? fmt((daily * 365 / deposit) * 100, 2) : "0.00"}%</b></div>
         </div>
-        <p className="muted l-tiny">Estimate only, not a promise: it assumes the volume you entered, constant prices and your pool share at today's live reserves. It ignores impermanent loss, and when a trader was referred, 20% of that trade's fee goes to their referrer. Withdraw any time by burning your QLP share tokens.</p>
+        <p className="muted l-tiny">Estimate only, not a promise: it assumes the volume you entered, constant prices and your pool share at today's live reserves. It ignores impermanent loss, Withdraw any time.</p>
       </div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------- 7. staking
-function StakingVisual() {
-  const st = useChain(() => readStaking(""), []);
-  const [lock, setLock] = useState(30);
-  const [amount, setAmount] = useState(10_000);
-  const exampleApr = 0.06 + 0.1 * (lock / 90); // purely illustrative curve
-  const reward = amount * exampleApr * (Math.max(lock, 30) / 365);
+// ---------------------------------------------------------------- 7. holder rewards (GLACIERQ)
+function RewardsVisual() {
+  const [bal, setBal] = useState(5_000_000);
+  const t = tierFor(bal);
+  const daily = dailyReward(bal);
   return (
     <div className="l-grid-2">
+      <div className="card" data-testid="rewards-tiers">
+        <div className="row between"><h3 style={{ margin: 0 }}>Tiers</h3><Label kind="example">published terms</Label></div>
+        <table className="t" style={{ marginTop: 8 }}>
+          <thead><tr><th>Balance</th><th>Rate (per year)</th><th>Paid</th></tr></thead>
+          <tbody>
+            <tr><td className="mono">1M to under 10M</td><td className="mono">~5%</td><td>daily</td></tr>
+            <tr><td className="mono">10M and up</td><td className="mono">~7%</td><td>daily</td></tr>
+            <tr><td className="mono muted">under 1M</td><td className="mono muted">none</td><td className="muted">n/a</td></tr>
+          </tbody>
+        </table>
+        <p className="muted l-tiny">Daily reward = rate ÷ 365 × your whole balance, paid in {REWARD_ASSET_CODE} by an ordinary payment from a finite reward reserve ({fmtCompact(TOKENOMICS.rewardReserve)} of a fixed {fmtCompact(REWARD_TOTAL_SUPPLY)} supply). No smart contract. A daily cap of {fmtCompact(TOKENOMICS.dailyCap)} can scale rewards down.</p>
+        <Link to="/holders" className="btn ghost small" style={{ marginTop: 6, display: "inline-block" }}>Holder rewards →</Link>
+      </div>
       <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Lock period</h3><Label kind="example">made-up rates</Label></div>
-        <div className="field" style={{ marginTop: 12 }}><label>Stake (tokens)</label><input className="input" type="number" min={0} value={amount} onChange={(e) => setAmount(Math.max(0, Number(e.target.value)))} /></div>
-        <div className="field"><label>Lock: {lock === 0 ? "flexible (no lock)" : `${lock} days`}</label><input type="range" min={0} max={90} step={1} value={lock} onChange={(e) => setLock(Number(e.target.value))} /></div>
+        <div className="row between"><h3 style={{ margin: 0 }}>Daily reward estimator</h3><Label kind="estimate" /></div>
+        <div className="field" style={{ marginTop: 12 }}><label>Your {REWARD_ASSET_CODE} balance</label><input className="input" type="number" min={0} value={bal} onChange={(e) => setBal(Math.max(0, Number(e.target.value)))} /></div>
         <div className="l-est">
-          <div><span className="muted l-tiny">Example rate</span><b className="mono">{fmt(exampleApr * 100, 1)}% / yr</b></div>
-          <div><span className="muted l-tiny">Example reward over {Math.max(lock, 30)} days</span><b className="mono">{fmt(reward, 2)}</b></div>
+          <div><span className="muted l-tiny">Tier</span><b className="mono">{t ? `${t.name} · ${t.apr * 100}%/yr` : "below 1M"}</b></div>
+          <div><span className="muted l-tiny">Reward / day</span><b className="mono">{fmt(daily, 2)} {REWARD_ASSET_CODE}</b></div>
+          <div><span className="muted l-tiny">Reward / 30 days</span><b className="mono">{fmt(daily * 30, 2)}</b></div>
         </div>
-        <p className="muted l-tiny">Illustration of how a longer lock can earn a higher rate. These numbers are made up; real reward rates are set per staking pool on-chain, depend on how much is staked, and can change.</p>
-      </div>
-      <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Staking pools on testnet</h3><Label kind={st.live ? "live" : "example"}>{st.live ? "staking contract" : st.loading ? "reading…" : "unavailable"}</Label></div>
-        {st.data?.pools.map((p) => (
-          <div key={p.id} className="l-pool">
-            <div><b>Pool {p.id}</b> <span className="muted">stake {symbolOf(p.stakeToken)} → earn {symbolOf(p.rewardToken)}</span></div>
-            <div className="mono l-tiny">{p.lockDays > 0 ? `${fmt(p.lockDays, 0)}-day lock` : "flexible"} · {fmt(p.ratePerSec * 86_400, 0)} {symbolOf(p.rewardToken)}/day to all stakers · {fmtCompact(p.totalStaked)} staked · {fmtCompact(p.reserve)} reward reserve</div>
-          </div>
-        ))}
-        {!st.data && <p className="muted">{st.loading ? "Reading staking pools…" : "Staking pools unavailable."}</p>}
-        <Link to="/stake" className="btn ghost small" style={{ marginTop: 10, display: "inline-block" }}>Open Stake →</Link>
+        <div className="notice" role="note" data-testid="rewards-disclosure" style={{ marginTop: 10 }}><b>Plainly:</b> {REWARD_DISCLOSURE}</div>
       </div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------- 8. QFX
-function QfxVisual() {
-  const q = useChain(() => readQfx(""), []);
-  const aprBps = q.data?.aprBps ?? 1200;
-  const principal = 1000;
-  const days = 365;
-  const pts = Array.from({ length: days + 1 }, (_, d) => projectBalance(principal, aprBps, d));
-  const max = pts[pts.length - 1];
-  const W = 560, H = 200;
-  const path = pts.map((v, d) => `${d === 0 ? "M" : "L"}${(d / days) * W},${H - ((v - principal) / Math.max(1e-9, max - principal)) * (H - 20) - 10}`).join(" ");
-  return (
-    <div className="l-grid-2">
-      <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>1 QFX = 1 XLM, fully backed</h3>{q.live ? <Label kind="live">live reserves</Label> : <Label kind="example">loading</Label>}</div>
-        <div className="l-est" style={{ marginTop: 12 }}>
-          <div><span className="muted l-tiny">XLM reserve</span><b className="mono">{q.data ? fmt(q.data.xlmReserve, 2) : "—"}</b></div>
-          <div><span className="muted l-tiny">QFX supply</span><b className="mono">{q.data ? fmt(q.data.totalSupply, 2) : "—"}</b></div>
-          <div><span className="muted l-tiny">Backing</span><b className="mono">{q.data && q.data.totalSupply > 0 ? `${fmt((q.data.xlmReserve / q.data.totalSupply) * 100, 2)}%` : "—"}</b></div>
-        </div>
-        <div className="row between" style={{ marginTop: 14 }}><h3 style={{ margin: 0, fontSize: "1rem" }}>Holding {fmt(principal, 0)} QFX for a year</h3><Label kind="example">example numbers</Label></div>
-        <svg viewBox={`0 0 ${W} ${H}`} className="l-chart" role="img" aria-label="Illustrative reward curve">
-          <defs><linearGradient id="qfxg" x1="0" x2="1"><stop offset="0" stopColor="#ffd166" /><stop offset=".5" stopColor="#ff3dcb" /><stop offset="1" stopColor="#9b5cff" /></linearGradient></defs>
-          <path d={`${path} L${W},${H} L0,${H} Z`} fill="rgba(255,61,203,.08)" />
-          <path d={path} fill="none" stroke="url(#qfxg)" strokeWidth={3} />
-        </svg>
-        <div className="l-est">
-          <div><span className="muted l-tiny">Day 0</span><b className="mono">{fmt(principal, 2)}</b></div>
-          <div><span className="muted l-tiny">Day 30</span><b className="mono">{fmt(pts[30], 2)}</b></div>
-          <div><span className="muted l-tiny">Day 365</span><b className="mono">{fmt(max, 2)}</b></div>
-        </div>
-        <p className="muted l-tiny">Illustration only: assumes the rate stays at {fmt(aprBps / 100, 2)}% APR ({q.live ? "the current on-chain rate" : "the deployed default"}), yield is credited daily, and the reward reserve lasts the whole year. The rate is variable and capped at {fmt((q.data?.maxAprBps ?? 2500) / 100, 2)}%; when the reserve runs out, yield stops.</p>
-      </div>
-      <div className="card">
-        <h3>How the backing and the yield work</h3>
-        <ol className="l-ol">
-          <li><b>Mint:</b> deposit XLM and the contract mints exactly the same amount of QFX. <b>Redeem:</b> burn QFX and get the same amount of XLM back. There is no admin mint.</li>
-          <li>The contract's XLM balance always equals QFX total supply; anyone can check it with the <span className="mono">reserves()</span> view.</li>
-          <li>Holder yield is <b>paid from a reward reserve</b> that was pre-funded with testnet XLM{q.data ? ` (${fmtCompact(q.data.rewardPool)} QFX left on testnet)` : ""}. Paying it moves existing QFX; it never creates unbacked tokens.</li>
-          <li>The APR is capped by the contract. When the reserve is empty, yield stops until someone tops it up.</li>
-        </ol>
-        {q.live && <Label kind="live">APR {fmt(aprBps / 100, 2)}% · reserve = supply {q.data!.raw.xlmReserve === q.data!.raw.totalSupply ? "✓" : "✗"}</Label>}
-        <div style={{ marginTop: 12 }}><Link to="/rewards" className="btn ghost small">Mint / Redeem QFX →</Link></div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------- 9. bots
-function mulberry(seed: number) {
-  return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-type Strat = "grid" | "dca" | "momentum";
-function simulate(strat: Strat, lev: number, seed: number) {
-  const r = mulberry(seed);
-  const prices = [0.12];
-  for (let i = 1; i < 180; i++) prices.push(Math.max(0.02, prices[i - 1] * (1 + (r() - 0.495) * 0.03)));
-  let equity = 100;
-  const curve = [equity];
-  let liquidated = false;
-  for (let i = 1; i < prices.length; i++) {
-    const ret = prices[i] / prices[i - 1] - 1;
-    let exposure = 0;
-    if (strat === "momentum") {
-      const w = prices.slice(Math.max(0, i - 12), i);
-      const ma = w.reduce((a, b) => a + b, 0) / w.length;
-      exposure = prices[i - 1] > ma ? 1 : -1;
-    } else if (strat === "dca") exposure = Math.min(1, i / 60);
-    else exposure = prices[i - 1] < 0.12 ? 1 : -1; // mean-revert around the grid centre
-    if (!liquidated) {
-      equity *= 1 + ret * exposure * lev - (strat === "grid" ? 0.0002 : 0.0001);
-      if (equity <= 5) {
-        equity = 0;
-        liquidated = true;
-      }
-    }
-    curve.push(equity);
-  }
-  return { curve, liquidated };
-}
-
-function BotsVisual() {
-  const [strat, setStrat] = useState<Strat>("grid");
-  const [lev, setLev] = useState(3);
-  const [seed, setSeed] = useState(7);
-  const sim = useMemo(() => simulate(strat, lev, seed), [strat, lev, seed]);
-  const W = 560, H = 180;
-  const max = Math.max(...sim.curve, 100), min = Math.min(...sim.curve, 100);
-  const y = (v: number) => H - ((v - min) / Math.max(1e-9, max - min)) * (H - 16) - 8;
-  const path = sim.curve.map((v, i) => `${i ? "L" : "M"}${(i / (sim.curve.length - 1)) * W},${y(v)}`).join(" ");
-  const final = sim.curve[sim.curve.length - 1];
-  return (
-    <div>
-      <RiskWarning>Leverage multiplies losses as well as gains: at {lev}× a {fmt(100 / lev, 1)}% move against you can wipe out your margin, and positions are liquidated when the health factor drops below 1.0. Bots can malfunction or act on stale prices. Quasaria is unaudited, experimental software on testnet. This is not financial advice, and leveraged trading may be restricted where you live.</RiskWarning>
-      <div className="l-grid-2">
-        <div className="card">
-          <h3>Strategy</h3>
-          <div className="tabs">
-            {(["grid", "dca", "momentum"] as Strat[]).map((s) => <button key={s} className={s === strat ? "on" : ""} onClick={() => setStrat(s)}>{s === "dca" ? "DCA" : s[0].toUpperCase() + s.slice(1)}</button>)}
-          </div>
-          <p className="muted l-tiny">{strat === "grid" ? "Grid: places a ladder of buy and sell orders around a centre price and profits from chop." : strat === "dca" ? "DCA: buys a fixed amount on a schedule, averaging the entry price." : "Momentum: goes long above a moving average and short below it."}</p>
-          <div className="field"><label>Leverage: {lev}×</label><input type="range" min={1} max={20} value={lev} onChange={(e) => setLev(Number(e.target.value))} /></div>
-          <p className="muted l-tiny">Stop-loss and take-profit levels are stored with the position and enforced on-chain by the vault via a keeper. A bot key authorised as your operator can open and close positions for you; only you can withdraw. The testnet vault is currently deployed with a 10× cap.</p>
-          <Link to="/bots" className="btn ghost small">Open Bots &amp; Leverage →</Link>
-          <Link to="/back-office" className="btn ghost small" data-testid="landing-bot-traders">Perps bot traders →</Link>
-        </div>
-        <div className="card">
-          <div className="row between"><h3 style={{ margin: 0 }}>Performance preview</h3><Label kind="simulated" /></div>
-          <svg viewBox={`0 0 ${W} ${H}`} className="l-chart" role="img" aria-label="Simulated equity curve">
-            <line x1={0} x2={W} y1={y(100)} y2={y(100)} stroke="rgba(169,166,216,.35)" strokeDasharray="4 6" />
-            <path d={path} fill="none" stroke={final >= 100 ? "#3dffa8" : "#ff4d6d"} strokeWidth={2.5} />
-          </svg>
-          <div className="row between l-wrap">
-            <span className="mono">Start 100 → end <b className={final >= 100 ? "pos" : "neg"}>{fmt(final, 1)}</b>{sim.liquidated ? " · LIQUIDATED" : ""}</span>
-            <button className="btn ghost small" onClick={() => setSeed((s) => s + 1)}>New random path</button>
-          </div>
-          <p className="muted l-tiny">Simulated on a synthetic random price path. It is not a backtest, not a prediction and not what a real bot will do. Try a few paths: the same strategy can win or lose.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------- 10. referrals
-function ReferralVisual() {
-  const w = useWallet();
-  const [addr, setAddr] = useState("");
-  const [copied, setCopied] = useState(false);
-  const who = addr || w.address || "";
-  const valid = /^G[A-Z2-7]{55}$/.test(who);
-  const link = valid ? `${window.location.origin}${import.meta.env.BASE_URL}?ref=${who}` : "";
-  const refs = useChain(() => readReferrals(DEMO_ACCOUNTS.lp), []);
-  return (
-    <div className="l-grid-2">
-      <div className="card">
-        <h3>Your referral link</h3>
-        <div className="field"><label>Your Stellar address (G…)</label><input className="input" placeholder={w.address ?? "G…"} value={addr} onChange={(e) => setAddr(e.target.value.trim())} /></div>
-        <div className="row l-wrap">
-          <input className="input mono" readOnly value={link || (who ? "Not a valid Stellar address" : "Enter your address or create a wallet")} />
-          <button className="btn small" disabled={!valid} onClick={() => navigator.clipboard?.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => void 0)}>{copied ? "Copied ✦" : "Copy"}</button>
-        </div>
-        <p className="muted l-tiny">Friends who open your link can register you as their referrer, once and on-chain. From then on the referral contract automatically pays you 20% of the fees their swaps and positions pay.</p>
-      </div>
-      <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Earnings dashboard</h3><Label kind="preview">{refs.live ? "live numbers of the public demo referrer" : "loading"}</Label></div>
-        <div className="l-est" style={{ marginTop: 10 }}>
-          <div><span className="muted l-tiny">Referred accounts</span><b className="mono">{refs.data ? refs.data.count : "—"}</b></div>
-          <div><span className="muted l-tiny">Fee share</span><b className="mono">{refs.data ? `${refs.data.shareBps / 100}%` : "20%"}</b></div>
-          {refs.data?.earned.map((e) => <div key={e.token}><span className="muted l-tiny">Earned {symbolOf(e.token)}</span><b className="mono">{fmt(e.amount, 4)}</b></div>)}
-        </div>
-        <p className="muted l-tiny">Testnet demo account {short(DEMO_ACCOUNTS.lp, 5)}. <Link to="/referrals">Your dashboard →</Link></p>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------- 11. open data
+// ---------------------------------------------------------------- 8. open data
 function OpenDataVisual() {
   return (
     <div className="card">
@@ -587,35 +428,34 @@ function OpenDataVisual() {
   );
 }
 
-// ---------------------------------------------------------------- 12. transparency
-const CONTRACT_LIST: [string, string][] = [
-  ["Router", CONTRACTS.router], ["AMM pool XLM/QUSD", POOL_XLM_QUSD], ["AMM pool QFX/QUSD", POOL_QFX_QUSD], ["Staking", CONTRACTS.staking], ["QFX (1:1 XLM-backed)", CONTRACTS.qfx],
-  ["Referral registry", CONTRACTS.referral], ["Leverage vault", CONTRACTS.vault], ["Price oracle (mock)", CONTRACTS.oracle], ["QUSD token (SAC)", CONTRACTS.qusdSac], ["XLM token (SAC)", CONTRACTS.xlmSac],
-];
+// ---------------------------------------------------------------- 9. transparency
 function TransparencyVisual() {
+  const links: [string, string][] = [
+    ["Stellar network (Horizon, testnet)", "https://horizon-testnet.stellar.org"],
+    ["Explorer (stellar.expert, testnet)", "https://stellar.expert/explorer/testnet"],
+    ...(REWARD_ISSUER.testnet ? ([[`${REWARD_ASSET_CODE} issuer (testnet)`, `https://stellar.expert/explorer/testnet/account/${REWARD_ISSUER.testnet}`]] as [string, string][]) : []),
+  ];
   return (
     <div className="card">
       <div className="l-contracts">
-        {CONTRACT_LIST.filter(([, id]) => id).map(([label, id]) => (
-          <a key={label} className="l-contract" href={expertContract(id)} target="_blank" rel="noreferrer">
-            <span>{label}</span><span className="mono l-tiny">{short(id, 6)} ↗</span>
-          </a>
+        {links.map(([label, href]) => (
+          <a key={label} className="l-contract" href={href} target="_blank" rel="noreferrer"><span>{label}</span><span className="mono l-tiny">↗</span></a>
         ))}
       </div>
-      <p className="muted l-tiny">Deployed on Stellar testnet; links open stellar.expert. Plus {TESTNET_POOLS.length} v3 asset pools (stablecoins + popular Stellar assets) listed on the <Link to="/pools">Pools page</Link>.{!CONTRACTS_CONFIGURED ? " (Contracts not configured in this build.)" : ""}</p>
+      <p className="muted l-tiny">Quasaria runs on Stellar's own order book and liquidity pools, and holder rewards are plain payments you can verify on the ledger. There is no custom smart contract for you to trust. Listed assets are matched by issuer address (not by ticker) against each issuer's stellar.toml; see the <Link to="/pools">Pools page</Link>.</p>
       <div className="l-audit" role="note"><b>Audit status:</b> not yet audited.</div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------- 13. FAQ
+// ---------------------------------------------------------------- 10. FAQ
 const FAQ: { q: string; a: ReactNode }[] = [
   { q: "What happens if I lose my secret key?", a: "Your account and everything in it are gone for good. Quasaria never sees or stores your key, so nobody (including us) can recover it. Write it down or save the backup file somewhere safe. \"Remember on this device\" is a convenience, not a backup." },
-  { q: "What are the fees?", a: "Every Stellar transaction pays a tiny network fee (the base fee is 0.00001 XLM per operation; contract calls cost a little more). AMM swaps pay a 0.30% pool fee to liquidity providers, and if the trader was referred, 20% of that fee goes to their referrer. Opening a leveraged position costs 0.10% of its size. Quasaria charges no fee on SDEX order-book trades." },
-  { q: "Is my money safe?", a: "You keep custody of your keys, so nobody can freeze or move your funds without them. But Quasaria is experimental and not yet audited: contracts can have bugs, leverage can liquidate your margin, and prices can move fast. During the beta it runs on Stellar testnet, where tokens have no real value." },
+  { q: "What are the fees?", a: "Every Stellar transaction pays a tiny network fee (the base fee is 0.00001 XLM per operation; contract calls cost a little more). Swaps through a Stellar liquidity pool pay a 0.30% pool fee to the liquidity providers. Quasaria itself charges no fee on order-book or pool swaps." },
+  { q: "Is my money safe?", a: "You keep custody of your keys, so nobody can freeze or move your funds without them. But Quasaria is experimental and not yet audited: liquidity pools can lose value to impermanent loss, reward tokens dilute supply, and prices can move fast. During the beta it runs on Stellar testnet, where tokens have no real value." },
   { q: "Is this live on mainnet?", a: "Not yet. Quasaria is a testnet beta: testnet XLM is free from Friendbot. Mainnet market data is shown for reference only." },
   { q: "Why don't I see some stablecoins?", a: "We only list coins whose issuer's stellar.toml confirms the exact code and issuer, with enough holders and trading activity. Look-alikes and impostors are rejected. Unverified coins are hidden behind a \"show unverified\" toggle on the Pools page, with a warning." },
-  { q: "Do I need a browser extension?", a: "No. You can create an account right in the page, import an existing secret key, or connect the Freighter wallet if you prefer." },
+  { q: "Do I need a browser extension?", a: "No. There are no wallet extensions or third-party connectors: you create an account in the page (your browser generates the keypair) or log in by pasting an existing secret key." },
 ];
 function FaqVisual() {
   return (
@@ -631,7 +471,7 @@ function FaqVisual() {
 }
 
 // ---------------------------------------------------------------- page
-const QUICK = DISTRICTS.filter((d) => ["markets", "trade", "perps", "pools", "earn"].includes(d.id));
+const QUICK = DISTRICTS.filter((d) => ["markets", "trade", "pools", "earn", "holders"].includes(d.id));
 
 export default function Landing() {
   const w = useWallet();
@@ -641,7 +481,7 @@ export default function Landing() {
     document.title = "Quasaria · Trade at the speed of light on Stellar";
   }, []);
   const hero = S(1);
-  const cta = S(14);
+  const cta = S(11);
   return (
     <>
       <WorldBackground scene={scene} />
@@ -660,7 +500,7 @@ export default function Landing() {
               <span className="net-badge">Testnet beta</span>
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
-              <p className="muted l-tiny l-custody" data-testid="hero-custody-note">Trading is non-custodial. Staking, vaults and lending put funds into smart contracts (testnet).</p>
+              <p className="muted l-tiny l-custody" data-testid="hero-custody-note">Non-custodial: you hold the secret key. Pools and holder rewards use plain Stellar operations, with no smart contract. Testnet beta.</p>
               <CtaButtons />
               <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span><SpaceYeti prop="coin" className="sy-inline" /></div>
             </div>
@@ -679,18 +519,15 @@ export default function Landing() {
           <Section id="watch" n={0} scene="quasar" onScene={onScene} kicker={SIZZLE_COPY.kicker} headline={SIZZLE_COPY.headline} pitch={SIZZLE_COPY.pitch} unnumbered><SizzleReel /></Section>
           <Section id="feature-videos" n={0} scene="quasar" onScene={onScene} kicker={FEATURE_VIDEOS_COPY.kicker} headline={FEATURE_VIDEOS_COPY.headline} pitch={FEATURE_VIDEOS_COPY.pitch} unnumbered><FeatureVideos /></Section>
           <Section id="markets" n={2} scene="constellation" onScene={onScene}><MarketsPreview /></Section>
-          <Section id="news" n={15} scene="constellation" onScene={onScene} kicker="News" unnumbered><NewsPreview /></Section>
+          <Section id="news" n={12} scene="constellation" onScene={onScene} kicker="News" unnumbered><NewsPreview /></Section>
           <Section id="trade" n={3} scene="quasar" onScene={onScene}><TradePreview /></Section>
           <Section id="keys" n={4} scene="constellation" onScene={onScene} kicker="Your keys, your coins"><KeysVisual /></Section>
           <Section id="stablecoins" n={5} scene="nebula" onScene={onScene}><StablecoinVisual /></Section>
           <Section id="earn" n={6} scene="nebula" onScene={onScene}><LiquidityVisual /></Section>
-          <Section id="staking" n={7} scene="orbits" onScene={onScene}><StakingVisual /></Section>
-          <Section id="qfx" n={8} scene="supernova" onScene={onScene}><QfxVisual /></Section>
-          <Section id="bots" n={9} scene="warp" onScene={onScene}><BotsVisual /></Section>
-          <Section id="referrals" n={10} scene="constellation" onScene={onScene}><ReferralVisual /></Section>
-          <Section id="data" n={11} scene="constellation" onScene={onScene}><OpenDataVisual /></Section>
-          <Section id="security" n={12} scene="orbits" onScene={onScene}><TransparencyVisual /></Section>
-          <Section id="faq" n={13} scene="nebula" onScene={onScene}><FaqVisual /></Section>
+          <Section id="rewards" n={7} scene="supernova" onScene={onScene}><RewardsVisual /></Section>
+          <Section id="data" n={8} scene="constellation" onScene={onScene}><OpenDataVisual /></Section>
+          <Section id="security" n={9} scene="orbits" onScene={onScene}><TransparencyVisual /></Section>
+          <Section id="faq" n={10} scene="nebula" onScene={onScene}><FaqVisual /></Section>
 
           <section className="l-final" aria-labelledby="final-h">
             <img src={logo} alt="" width={84} />
@@ -701,7 +538,7 @@ export default function Landing() {
         </main>
         <footer className="l-footer">
           <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
-          <p><b>Risk disclosure.</b> Quasaria is experimental software. Nothing on this site is financial advice. Leverage and yield carry real risk of loss and may be regulated where you live.</p>
+          <p><b>Risk disclosure.</b> Quasaria is experimental software. Nothing on this site is financial advice. Liquidity pools and token rewards carry real risk of loss and may be regulated where you live.</p>
           <p><b>Audit status:</b> not yet audited. Testnet beta: tokens on Stellar testnet have no real value.</p>
           <p className="muted">{STELLARCHAIN_ATTRIBUTION} · Settlement: Stellar network · <a href="https://stellar.expert/explorer/testnet" target="_blank" rel="noreferrer">stellar.expert</a> · <Link to="/trade">Launch app</Link></p>
         </footer>

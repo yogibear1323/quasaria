@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Asset, Keypair } from "@stellar/stellar-sdk";
-import { MAINNET_SIGNING, XLM, assertSignable, curatedList, curatedPairs, fix7, orderAssets, poolIdFor, previewDeposit, previewWithdraw, verifyAsset, depositReserveCost, type PoolRow } from "../src/lib/nativePools";
+import { MAINNET_SIGNING, XLM, assertSignable, curatedList, curatedPairs, fix7, orderAssets, poolIdFor, previewDeposit, previewWithdraw, verifyAsset, depositReserveCost, parseLookup, type PoolRow } from "../src/lib/nativePools";
 import { minReceived } from "../src/lib/swap";
 import { TESTNET_USDC_ISSUER } from "../src/lib/config";
 
@@ -85,5 +85,17 @@ describe("mainnet stays read-only", () => {
     expect(MAINNET_SIGNING).toBe(false);
     expect(() => assertSignable("mainnet")).toThrow(/Mainnet signing is off/);
     expect(() => assertSignable("testnet")).not.toThrow();
+  });
+});
+
+describe("native pools: any-asset lookup", () => {
+  const G = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
+  it("parses exact asset, pool id and native; leaves loose text as a filter", () => {
+    expect(parseLookup(`USDC-${G}`)).toEqual({ kind: "asset", asset: { code: "USDC", issuer: G } });
+    expect(parseLookup(` USDC:${G} `)).toEqual({ kind: "asset", asset: { code: "USDC", issuer: G } });
+    expect(parseLookup("xlm")).toEqual({ kind: "asset", asset: { code: "XLM", issuer: null } });
+    expect(parseLookup("a".repeat(64))).toEqual({ kind: "pool", id: "a".repeat(64) });
+    expect(parseLookup("USDC")).toBeNull(); // never match on ticker alone
+    expect(parseLookup(`USDC-${G.slice(0, 20)}`)).toBeNull();
   });
 });

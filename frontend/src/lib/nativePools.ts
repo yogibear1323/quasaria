@@ -165,6 +165,27 @@ export async function fetchRecentPools(net: NetId, limit = 40): Promise<PoolRow[
   return (j?._embedded.records ?? []).filter((r) => r.reserves.length === 2).map((r) => parsePool(r, net));
 }
 
+/** What a search box entry means for the "any asset" browser. */
+export type Lookup = { kind: "pool"; id: string } | { kind: "asset"; asset: AssetRef };
+/** Parse "XLM", "CODE-GISSUER", "CODE:GISSUER" or a 64-hex pool id. Anything else is a plain filter (null). */
+export function parseLookup(input: string): Lookup | null {
+  const t = input.trim();
+  if (/^[0-9a-f]{64}$/i.test(t)) return { kind: "pool", id: t.toLowerCase() };
+  if (/^xlm$/i.test(t)) return { kind: "asset", asset: XLM };
+  const m = /^([A-Za-z0-9]{1,12})[-:](G[A-Z2-7]{55})$/.exec(t);
+  return m ? { kind: "asset", asset: { code: m[1], issuer: m[2] } } : null;
+}
+/** Pools for an exact asset (code AND issuer), or one pool by id. Horizon filters; we never match on ticker alone. */
+export async function fetchPoolsByLookup(net: NetId, l: Lookup): Promise<PoolRow[]> {
+  if (l.kind === "pool") {
+    const r = await getJson<PoolRecord>(`${NETS[net].horizon}/liquidity_pools/${l.id}`);
+    return r && r.reserves?.length === 2 ? [parsePool(r, net)] : [];
+  }
+  const res = l.asset.issuer ? `${l.asset.code}:${l.asset.issuer}` : "native";
+  const j = await getJson<{ _embedded: { records: PoolRecord[] } }>(`${NETS[net].horizon}/liquidity_pools?reserves=${encodeURIComponent(res)}&limit=40`);
+  return (j?._embedded.records ?? []).filter((r) => r.reserves.length === 2).map((r) => parsePool(r, net));
+}
+
 /** Run `fn` over items with bounded concurrency; failures are skipped. */
 export async function pooled<T, R>(items: T[], conc: number, fn: (x: T) => Promise<R>, onEach?: (r: R, i: number) => void): Promise<void> {
   let i = 0;

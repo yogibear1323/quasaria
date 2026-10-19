@@ -8,7 +8,7 @@ import { useAsync } from "../lib/useAsync";
 import { fmt, fmtCompact } from "../lib/format";
 import {
   BASE_RESERVE, MAINNET_BROWSE, buildDepositTx, buildWithdrawTx, curatedList, deriveXlmUsd, depositReserveCost, feeApr, fetchAccountBalances, fetchAssetBalance,
-  fetchPoolForPair, fetchPositions, loadCuratedPools, fetchRecentPools, fetchVolume24h, keyOf, orderAssets, poolIdFor, poolVerified, pooled, previewDeposit, previewWithdraw, spot, tvlUsd,
+  fetchPoolForPair, fetchPoolsByLookup, parseLookup, fetchPositions, loadCuratedPools, fetchRecentPools, fetchVolume24h, keyOf, orderAssets, poolIdFor, poolVerified, pooled, previewDeposit, previewWithdraw, spot, tvlUsd,
   verifyAsset, volumeUnit, type AssetRef, type NetId, type PoolRow, type Pricing,
 } from "../lib/nativePools";
 import { submitSignedXdr } from "../lib/stellar";
@@ -40,16 +40,19 @@ export default function Pools() {
   const [sel, setSel] = useState<string | null>(null);
   const [vol, setVol] = useState<Record<string, { volume: number; truncated: boolean }>>({});
   const refXlm = useXlmUsd();
-  const list = useAsync(() => (scope === "curated" ? loadCuratedPools(net) : fetchRecentPools(net, 40)), [net, scope]);
+  const [lookup, setLookup] = useState<string>("");
+  const lk = useMemo(() => parseLookup(lookup), [lookup]);
+  const list = useAsync(() => (scope === "curated" ? loadCuratedPools(net) : lk ? fetchPoolsByLookup(net, lk) : fetchRecentPools(net, 40)), [net, scope, scope === "recent" ? lookup : ""]);
+  useEffect(() => { const t = setTimeout(() => setLookup(parseLookup(q) ? q.trim() : ""), 350); return () => clearTimeout(t); }, [q]);
   const pools = list.data ?? [];
-  const pricing: Pricing = useMemo(() => ({ xlmUsd: deriveXlmUsd(net, pools) ?? (net === "mainnet" ? refXlm?.price ?? null : null) ?? refXlm?.price ?? null }), [pools, net, refXlm?.price]);
+  const pricing: Pricing = useMemo(() => ({ xlmUsd: net === "mainnet" ? deriveXlmUsd(net, pools) ?? refXlm?.price ?? null : null }), [pools, net, refXlm?.price]);
   const rows: Row[] = useMemo(() => {
-    const t = q.trim().toLowerCase();
+    const t = lk && scope === "recent" ? "" : q.trim().toLowerCase();
     return pools
       .filter((p) => !t || `${p.a.code}/${p.b.code}`.toLowerCase().includes(t) || (p.a.issuer ?? "").toLowerCase().includes(t) || (p.b.issuer ?? "").toLowerCase().includes(t) || p.id.startsWith(t))
       .map((p) => ({ ...p, volume: vol[p.id]?.volume ?? null, truncated: vol[p.id]?.truncated }))
       .sort((x, y) => (tvlUsd(y, pricing) ?? 0) - (tvlUsd(x, pricing) ?? 0) || y.reserveA - x.reserveA);
-  }, [pools, q, vol, pricing]);
+  }, [pools, q, vol, pricing, lk, scope]);
 
   // 24h volume for the top pools only (rate-limit friendly: bounded concurrency, top 12)
   useEffect(() => {
@@ -72,12 +75,12 @@ export default function Pools() {
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          <Tabs value={scope} onChange={(v) => { setScope(v); setSel(null); }} options={[{ v: "curated", label: "Verified pairs" }, { v: "recent", label: "Recent pools (any asset)" }]} />
+          <Tabs value={scope} onChange={(v) => { setScope(v); setSel(null); }} options={[{ v: "curated", label: "Verified pairs" }, { v: "recent", label: "Any asset" }]} />
           {MAINNET_BROWSE && <Tabs value={net} onChange={(v) => { setNet(v); setSel(null); setVol({}); }} options={[{ v: "testnet", label: "Testnet" }, { v: "mainnet", label: "Mainnet (read-only)" }]} />}
-          <input className="input" style={{ maxWidth: 260 }} placeholder="Search code, issuer or pool id" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search pools" data-testid="pool-search" />
+          <input className="input" style={{ maxWidth: 260 }} placeholder="Code, CODE-ISSUER or pool id" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search pools" data-testid="pool-search" />
           <button className="btn small ghost" onClick={() => { setVol({}); list.reload(); }}>Refresh</button>
         </div>
-        {scope === "recent" && <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Anyone can create a pool for any two assets, so recent pools are shown with a verification flag. Only pools where both assets are on Quasaria's issuer-verified list are marked verified.</p>}
+        {scope === "recent" && <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Anyone can create a pool for any two assets, so every pool is shown with a verification flag. Paste CODE-ISSUER or a pool id to look up an exact asset or pool; otherwise this lists the first 40 pools Horizon returns. Only pools where both assets are on Quasaria's issuer-verified list are marked verified.</p>}
         <div style={{ overflowX: "auto", marginTop: 10 }}>
           <table className="t" data-testid="pool-table">
             <thead><tr><th>Pair</th><th>TVL</th><th>24h volume</th><th>Fee APR (est.)</th><th>Reserves</th><th>Providers</th><th /></tr></thead>

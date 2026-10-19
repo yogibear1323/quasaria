@@ -206,7 +206,7 @@ export default function AccountModal() {
             <p>Encrypted key in this browser: <span className="mono">{short(w.stored.publicKey, 6)}</span></p>
             <div className="field"><label>Passphrase</label><input className="input" type="password" autoComplete="current-password" value={unlockPw} onChange={(e) => setUnlockPw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (document.getElementById("unlock-btn") as HTMLButtonElement | null)?.click()} /></div>
             {err && <div className="notice warn">{err}</div>}
-            <div className="row">
+            <div className="row" style={{ flexWrap: "wrap" }} data-testid="unlock-actions">
               <button id="unlock-btn" className="btn" disabled={busy || !unlockPw} onClick={async () => {
                 setBusy(true); setErr(null);
                 try { await w.unlockStored(unlockPw); setUnlockPw(""); close(); } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }

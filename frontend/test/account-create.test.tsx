@@ -55,6 +55,8 @@ describe("account creation (bug: Create opened 'Unlock saved key' and the secret
     expect(text(h)).toMatch(/Unlock saved key/);
     expect(text(h)).toMatch(/Use a different account \/ Create new/);
     expect(text(h)).toMatch(/Forget saved key/);
+    expect(h).toMatch(/data-testid="unlock-actions"|style="flex-wrap:wrap"[^>]*data-testid="unlock-actions"/);
+    expect(h).toMatch(/flex-wrap:wrap[^>]*data-testid="unlock-actions"/); // buttons must wrap at 390 px
     expect(readFileSync(new URL("../src/components/AccountModal.tsx", import.meta.url), "utf8")).toMatch(/cannot be recovered without its secret key/);
   });
 

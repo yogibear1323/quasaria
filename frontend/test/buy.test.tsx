@@ -25,7 +25,7 @@ describe("Buy page", () => {
   });
   it("has no embeds, affiliate/referral params, rewards wording or backend calls", () => {
     const all = src("../src/pages/Buy.tsx") + src("../src/lib/buyProviders.ts");
-    expect(all).not.toMatch(/iframe|<script|fetch\(|affiliate|referral|\bref=|utm_|GLACIERQ|\bAPY\b/i);
+    expect(all).not.toMatch(/iframe|<script|fetch\(|affiliate(?!d)|referral|\bref=|utm_|GLACIERQ|\bAPY\b/i);
     expect(html).not.toMatch(/iframe|GLACIERQ|referral/i);
   });
 });

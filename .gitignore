@@ -35,7 +35,6 @@ identities/
 *seed-phrase*
 *.backup.json
 quasaria-backup*.json
-quasaria-bot.config.json
 id_rsa*
 id_ed25519*
 

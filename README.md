@@ -16,8 +16,8 @@
 **A quasar-bright decentralized exchange scaffold for the Stellar network.**
 SDEX order books + Soroban AMM pools, staking orbits, the QFX token (**1 QFX = 1 XLM,
 fully backed**, with holder yield paid from a pre-funded reserve),
-an on-chain referral constellation, and leveraged trading bots with a liquidation
-keeper. **Everything defaults to Stellar TESTNET.**
+an on-chain referral constellation. A small testnet oracle feed and lending keeper
+live in `bot/` (there are no trading bots). **Everything defaults to Stellar TESTNET.**
 
 > [!CAUTION]
 > **Unaudited · testnet only · not financial advice.** This repository is an
@@ -26,8 +26,7 @@ keeper. **Everything defaults to Stellar TESTNET.**
 > yield-bearing tokens carry a high risk of loss (including total loss of margin)
 > and may be subject to securities, derivatives, consumer-protection, tax and
 > licensing regulation in your jurisdiction. Nothing here is investment, legal or
-> tax advice. Automated bots can malfunction, act on stale prices or trade into
-> losses. Use at your own risk.
+> tax advice. Use at your own risk.
 
 ---
 
@@ -46,7 +45,7 @@ magenta `#ff3dcb`, nebula violet `#9b5cff`, solar gold `#ffd166`. Typography is
 Orbitron (display), Space Grotesk (body) and JetBrains Mono (numbers), all
 self-hosted. Every page gets its own animated cosmic scene: **Quasar Core**
 (Trade), **Nebula Drift** (Pools), **Orbital Rings** (Stake), **Supernova**
-(Rewards), **Constellations** (Referrals), **Warp Speed** (Bots). The illustrative
+(Rewards), **Constellations** (Referrals). The illustrative
 logo is a Q built from a quasar: the tilted accretion disk forms the bowl and the
 relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md).
 
@@ -57,10 +56,10 @@ relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md)
 | Trade — Quasar Core | Pools — Nebula Drift | Stake — Orbital Rings |
 |---|---|---|
 | ![Trade](screenshots/01-trade.png) | ![Pools](screenshots/02-pools.png) | ![Stake](screenshots/03-stake.png) |
-| **QFX Mint & Rewards — Supernova** | **Referrals — Constellations** | **Bots & Leverage — Warp Speed** |
-| ![Rewards](screenshots/04-rewards.png) | ![Referrals](screenshots/05-referrals.png) | ![Bots](screenshots/06-bots.png) |
-| **Markets (stellarchain.io)** | **Create account** (secret blurred) | **Backup check** (secret blurred) |
-| ![Markets](screenshots/07-markets.png) | ![Create account](screenshots/09-create-account-secret-blurred.png) | ![Backup](screenshots/10-backup-check-blurred.png) |
+| **QFX Mint & Rewards — Supernova** | **Referrals — Constellations** | **Markets** |
+| ![Rewards](screenshots/04-rewards.png) | ![Referrals](screenshots/05-referrals.png) | ![Markets](screenshots/07-markets.png) |
+| **Create account** (secret blurred) | **Backup check** (secret blurred) | |
+| | ![Create account](screenshots/09-create-account-secret-blurred.png) | ![Backup](screenshots/10-backup-check-blurred.png) |
 
 ---
 
@@ -73,7 +72,7 @@ relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md)
 | 3 | **Liquidity providing** | `amm-pool`: x·y=k, SEP-41 **QLP** share token, 0.30% fee accrues to LPs | Pools page: deposit/withdraw, fee APR estimate |
 | 4 | **Staking** | `staking`: admin-whitelisted pools, per-pool reward rate, funded reserves, optional lock | Stake page |
 | 5 | **Referrals** | `referral`: set-once, no self-referral, no cycles; pools & vault pay referrers a share of fees | Referral dashboard, `?ref=` shareable link |
-| 6 | **Bot leverage trading** | `leverage-vault`: collateral, positions with max-leverage cap, health-factor liquidation, operator delegation, on-chain SL/TP; `mock-oracle` with a Reflector-compatible interface | `bot/`: grid / DCA / momentum strategies, risk manager, paper vault, liquidation + SL/TP keeper; Back Office fleet of six testnet perp desks ([bot/OFFICE.md](bot/OFFICE.md)) |
+| 6 | **Leverage vault (contract only; not on the site, no bots)** | `leverage-vault`: collateral, positions with max-leverage cap, health-factor liquidation, operator delegation, on-chain SL/TP; `mock-oracle` with a Reflector-compatible interface | `bot/`: grid / DCA / momentum strategies, risk manager, paper vault, liquidation + SL/TP keeper; Back Office fleet of six testnet perp desks ([bot/OFFICE.md](bot/OFFICE.md)) |
 | 7 | **Earn calculators** | Reads staking pools (rate, lock, reserve), QFX `yield_info`/`reserves`, pool `info` (fee) and recent `swap` events | `/earn` hub + `/calculators` (staking, holder yield, LP fees + impermanent loss); pure math in `src/lib/calc.ts` |
 
 ---
@@ -83,7 +82,7 @@ relativistic jet is the tail. Full brand guide: [`docs/THEME.md`](docs/THEME.md)
 ```mermaid
 flowchart LR
   subgraph Browser["Frontend (React + Vite + TS)"]
-    UI["Pages: Trade · Pools · Stake · Rewards · Referrals · Bots"]
+    UI["Pages: Trade · Pools · Stake · Rewards · Referrals"]
     FW["Freighter wallet<br/>@stellar/freighter-api"]
     SDK["@stellar/stellar-sdk<br/>Horizon + Soroban RPC"]
     UI --> SDK
@@ -105,11 +104,6 @@ flowchart LR
     REFLECTOR["Reflector oracle<br/>(optional, real feeds)"]
   end
 
-  subgraph Bot["bot/ (Node + TypeScript)"]
-    ENGINE["BotEngine<br/>grid · DCA · momentum"]
-    RISK["RiskManager<br/>lev cap · max positions · daily loss"]
-    KEEPER["Keeper<br/>liquidate · execute_trigger"]
-  end
 
   SDK -- Horizon --> SDEX
   SDK -- RPC simulate/send --> ROUTER & POOL & QFX & STAKE & REF & VAULT
@@ -122,8 +116,6 @@ flowchart LR
   STAKE -. QFX rewards from funded reserve .-> QFX
   VAULT -- lastprice --> ORACLE
   VAULT -. set_oracle .-> REFLECTOR
-  ENGINE --> RISK --> VAULT
-  KEEPER --> VAULT
 ```
 
 ### Repository layout
@@ -140,8 +132,8 @@ contracts/            Cargo workspace (soroban-sdk 28), one crate per contract
 frontend/             React + Vite + TS dApp (Freighter, stellar-sdk)
   public/brand/       logo.svg (illustrative master), favicon.svg (small variant)
   src/components/     CosmicBackground (6 animated scenes), Layout, OrderBook, ...
-  src/pages/          Landing, Trade, Pools, Stake, Rewards, Referrals, Bots, Markets
-bot/                  TypeScript bot + keeper service (vitest tests)
+  src/pages/          Landing, Trade, Pools, Stake, Rewards, Referrals, Markets
+bot/                  testnet oracle feed + lending keeper (vitest tests; no trading bots)
 shared/               stablecoins.ts: stablecoin discovery (frontend + scripts)
 config/               stablecoins.json: allowlist / denylist / thresholds; assets.mainnet.json: curated asset list (verified mainnet issuers)
 deployments/          testnet.json, testnet-assets.json (v3 asset pools), testnet-stablecoins.json (retired v2 pools)
@@ -217,21 +209,15 @@ build, the script keeps the last committed snapshot section by section and exits
 Refresh the committed copy locally with `cd frontend && npm run snapshot`.
 Horizon/Soroban testnet data (order books, pools, contracts) is read live as before.
 
-### Run the bot
+### Oracle feed and lending keeper (testnet)
 
 ```bash
 cd bot
-npm run paper                        # simulated vault + deterministic random walk
-npm start -- --config quasaria-bot.config.example.json --mode paper --ticks 1000
-cp .env.example .env                 # then fill in testnet IDs + operator key
-npm run keeper                       # live liquidation / SL-TP keeper (testnet)
-npm run oracle-feed -- --identity quasaria-admin --interval 300      # mock SEP-40 oracle ← live mainnet prices (testnet tx only)
+npm run oracle-feed -- --identity quasaria-admin --interval 300      # mock SEP-40 oracle <- live mainnet prices (testnet tx only)
 npm run lending-keeper -- --identity <liquidator> --interval 60     # lending liquidations (add --dry-run to simulate)
-npm start -- --config my-bot.json --mode live
 ```
 
-The Bots page can export a config (`quasaria-bot.config.json`) that `parseConfig`
-validates (testnet only, leverage ≤ risk cap ≤ 20×).
+The trading bots (grid / DCA / momentum, the paper vault and the leverage keeper) were removed on 2026-10-18 and archived outside the repo; see issue #30.
 
 ---
 
@@ -312,22 +298,12 @@ pool reference the token address. Everything QFX-related is funded with testnet 
   - Stake: pools, stake and pending rewards.
   - QFX: `reserves()` (XLM reserve vs supply), `yield_info()`, balances; Mint/Redeem signs `deposit` / `redeem`.
   - Referrals: count, earnings and payout history from `referral_paid` events.
-  - Bots: on-chain positions, health, vault liquidity, oracle mark and staleness.
   - Trade: the AMM quote.
   - The SDEX order book comes live from Horizon.
   - Pages without a connected wallet show the demo trader / admin (read-only viewer).
 - **Still demo:**
   - The candle chart falls back to a demo series when Horizon has no history for the pair.
-  - The bot strategy builder is config only; the bots run from `bot/`.
 - The mock oracle price goes stale after 15 minutes. After that the vault refuses opens and liquidations until someone pushes a fresh price with `set_price`.
-
-**Keeper:**
-
-```bash
-cd bot
-npm run keeper -- --dry-run                                   # no key needed, simulates only
-QUASARIA_SECRET="$(stellar keys show quasaria-admin)" npm run keeper -- --once
-```
 
 **Re-running** `deploy-testnet.sh` / `seed-testnet.sh` is idempotent. Existing aliases are reused unless `FRESH=1`, and staking pools are added only once.
 
@@ -399,7 +375,6 @@ Quests, Merch and Calculators stay reachable from the mobile menu's "More" secti
   - the LP fee estimator (an estimate that depends on the user's volume assumption)
   - the staking lock slider (made-up example rates)
   - the QFX yield chart (example numbers at the current APR, assuming the reserve lasts)
-  - the bot performance preview (a synthetic random walk)
   - the order-settling animation
 - **Footer.** It carries the risk disclosure and "Audit status: not yet audited".
 - **Background.** The background scene switches as you scroll (quasar → constellations → nebula → orbits → supernova → warp).
@@ -754,7 +729,7 @@ credits the same share of its opening fee. The fee source then calls
 `https://…/?ref=G…`. The app captures `?ref=` into localStorage and asks the
 invitee to confirm it on-chain. It also shows referral count, earnings and activity.
 
-### 6. Bot leverage trading
+### 6. Leverage vault (contract only; the trading bots were removed)
 
 *On-chain* (`contracts/leverage-vault`):
 - Users `deposit` a collateral token (QUSD on testnet) and then call
@@ -776,23 +751,7 @@ invitee to confirm it on-chain. It also shows referral count, earnings and activ
 - **Oracle:** Reflector-compatible `lastprice`, with a staleness bound
   (`max_price_age`). `mock-oracle` implements the same interface for tests and demos.
 
-*Off-chain* (`bot/`):
-- **Strategies:** `GridStrategy` (levels across a price band, opens on level
-  crossings and exits one grid step later), `DcaStrategy` (fixed margin every
-  N seconds, up to a max) and `MomentumStrategy` (EMA fast/slow crossover). Each
-  one takes a leverage, stop-loss % and take-profit %.
-- **BotEngine:** strategy actions → `RiskManager` (leverage cap, max open
-  positions, daily-loss kill switch) → venue. After a fill, it attaches the
-  on-chain SL/TP triggers and also enforces SL/TP off-chain as a backup.
-- **Venues:** `PaperVault` mirrors the vault math exactly and is used for paper
-  trading and tests. `SorobanVault` runs live on testnet with the operator key and
-  refuses to start unless the RPC passphrase is TESTNET.
-- **Keeper:** `runKeeperOnce` pages through `open_position_ids_page()` (count from `open_position_count()`), liquidates HF < 1
-  positions and executes crossed triggers. Races with other keepers are
-  tolerated because the contract re-checks everything.
-- **UI:** the Bots page has a prominent risk banner, a required risk
-  acknowledgement, a leverage slider with estimated liquidation price, health
-  gauges and config export.
+The trading bots that used to drive this vault were removed (2026-10-18). The contract remains as a deployed testnet contract.
 
 ### 7. Earn calculators
 
@@ -833,7 +792,7 @@ other tokens valued through pool spot prices). All math is in pure functions
 |---|---|---|
 | Contracts (unit + cross-contract, soroban testutils) | `cd contracts && cargo test` | 119 tests across 9 crates (Sep 30: +33 lending, +6 mock-oracle SEP-40); previously 85 tests across 8 crates, including regression tests for F-02/F-03/F-04/F-05/F-07/F-08/F-13 plus pause, timelock, two-step admin and hostile-registry tests (Sep 28); originally 41 tests, incl. 14 QFX peg tests (reserve == supply after deposits, redeems, yield and mixed activity; over-redeem fails; no `mint` entry point; yield stops when the reserve is empty) and a staking ↔ QFX test (rewards from an XLM-funded reserve, peg holds) |
 | Wasm build | `cd contracts && stellar contract build` | 7 `.wasm` (wasm32v1-none) |
-| Bot | `cd bot && npm run typecheck && npm test` | 32 vitest tests (incl. 12 lending keeper / price-feed tests) |
+| Oracle feed / lending keeper | `cd bot && npm run typecheck && npm test` | 31 vitest tests |
 | Frontend unit | `cd frontend && npm test` | 155 vitest tests (Sep 30: incl. 16 lending, Txrep, SEP-1/10/38 anchor tests): calculator math (staking stream + reserve cap, simple vs daily/weekly compounding, reserve runway, LP fees, impermanent loss, swap-event summaries, pool-price valuation) plus stellarchain client + build-time snapshot fallback (live first, snapshot, newer-of cache/snapshot, search/paging) and the snapshot script (trimming; keeps the old file and exits 0 when the API is down), exact Mint/Redeem amount parsing, keys/signer, stablecoin filter + verification, landing copy |
 | Frontend | `cd frontend && npm run build` | tsc + vite build |
 | Screenshots | `cd frontend && npx vite preview & node ../scripts/screenshots.mjs` | landing (desktop + mobile), 7 app pages, account flow (secrets blurred); `ONLY=landing` for just the landing |
@@ -844,15 +803,13 @@ other tokens valued through pool spot prices). All math is in pure functions
 
 **Works and is tested:** all contract logic listed above (unit tests plus
 cross-contract tests covering pool ↔ referral, router ↔ pools ↔ referral and
-vault ↔ oracle ↔ referral). Wasm builds for all contracts. Bot strategies, risk,
-paper vault, keeper and config validation. The frontend builds, renders every
+vault ↔ oracle ↔ referral). Wasm builds for all contracts.  The frontend builds, renders every
 page without a wallet, and reads the live SDEX order book from Horizon testnet.
 
 **Exercised end-to-end on testnet:**
 - the full deploy + seed
 - router swaps with referral payout
 - staking, vault deposits and positions with SL/TP
-- the keeper (`--once`, 0 actions needed)
 - an in-app (browser-generated) account signing a real `set_referrer`
 - a real QFX mint → redeem round trip through the live Pages UI (throwaway friendbot key; see `scripts/verify-live.mjs`):
   25 XLM → 25 QFX ([`d2ef64d2…1abf`](https://stellar.expert/explorer/testnet/tx/d2ef64d2240a7db0de7f10d6dc32ff3d9577f8284c5ce08dca83609605291abf)),
@@ -861,7 +818,7 @@ page without a wallet, and reads the live SDEX order book from Horizon testnet.
   Screenshots: `screenshots/live-markets.png` (snapshot fallback on github.io), `screenshots/live-mint-redeem.png`.
 - the 21 XLM/stablecoin Soroban + native pools
 
-**Not exercised end-to-end:** Freighter-signed transactions (they use the same `Signer` path as in-app keys) and the bot's live strategy mode.
+**Not exercised end-to-end:** Freighter-signed transactions (they use the same `Signer` path as in-app keys).
 
 **Simplifications / known limitations:**
 - Without a connected wallet, panels show the demo trader / admin accounts as a read-only viewer.

@@ -787,3 +787,42 @@ html.frost .buy-soon { border-color: rgba(201, 216, 239, 0.45); background: line
 html.frost .soon-badge { color: #0b1220; background: linear-gradient(90deg, #eef3fa, #a9c4ea); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35), 0 6px 18px -8px rgba(169, 196, 234, 0.9); }
 html.frost .buy-soon h3 { color: var(--text); }
 @media (max-width: 480px) { .buy-frame { height: 640px; } .soon-badge { font-size: 0.82rem; } }
+
+/* ---- Holders motion: transform/opacity only, paused when the tab is hidden, static with reduced motion. ---- */
+.holders-anim { position: relative; isolation: isolate; }
+.snowfield { position: absolute; inset: -20px 0 auto 0; height: 260px; overflow: hidden; z-index: -1; pointer-events: none; -webkit-mask-image: linear-gradient(#000 55%, transparent); mask-image: linear-gradient(#000 55%, transparent); }
+.snowfield span { position: absolute; top: -10px; width: 5px; height: 5px; border-radius: 50%; background: rgba(238, 243, 250, 0.85); box-shadow: 0 0 6px rgba(201, 216, 239, 0.8); opacity: 0; transform: translate3d(0, 0, 0) scale(var(--s, 1)); animation: hq-snow linear infinite; will-change: transform, opacity; }
+@keyframes hq-snow { 0% { opacity: 0; transform: translate3d(0, 0, 0) scale(var(--s, 1)); } 12% { opacity: 0.8; } 85% { opacity: 0.5; } 100% { opacity: 0; transform: translate3d(28px, 250px, 0) scale(var(--s, 1)); } }
+.count-up { font-variant-numeric: tabular-nums; }
+.tier-progress { margin: 12px 0 4px; }
+.tp-track { position: relative; height: 10px; border-radius: 999px; overflow: hidden; background: rgba(139, 124, 255, 0.12); border: 1px solid rgba(139, 124, 255, 0.25); }
+.tp-fill { position: absolute; inset: 0; transform-origin: left center; border-radius: inherit; background: linear-gradient(90deg, #a9c4ea, #eef3fa); transition: transform 1.1s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden; }
+.tp-fill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%); transform: translateX(-100%); animation: hq-shimmer 2.8s ease-in-out infinite 1.2s; }
+@keyframes hq-shimmer { to { transform: translateX(100%); } }
+.tp-marks { position: relative; height: 16px; font-size: 0.7rem; color: var(--text-3); }
+.tp-marks span { position: absolute; top: 2px; transform: translateX(-100%); font-family: var(--font-mono); }
+.tp-marks span:first-child { transform: translateX(-50%); }
+.reserve-gauge { position: relative; height: 8px; margin: 10px 0 4px; border-radius: 999px; overflow: hidden; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25); }
+.rg-fill { position: absolute; inset: 0; transform-origin: left center; border-radius: inherit; background: linear-gradient(90deg, rgba(52, 211, 153, 0.7), rgba(201, 236, 255, 0.95)); transition: transform 1.3s cubic-bezier(0.2, 0.8, 0.2, 1); animation: hq-breathe 4s ease-in-out infinite 1.4s; }
+@keyframes hq-breathe { 50% { opacity: 0.78; } }
+.tier-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+@media (max-width: 640px) { .tier-cards { grid-template-columns: 1fr; } }
+.tier-card { position: relative; padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line-2); background: rgba(139, 124, 255, 0.04); transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; }
+.tier-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px -14px rgba(169, 196, 234, 0.75); border-color: rgba(201, 216, 239, 0.55); }
+.tier-card .tc-rate { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; }
+.tier-card.current { border-color: rgba(201, 216, 239, 0.75); }
+.tier-card.current::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; box-shadow: 0 0 0 2px rgba(201, 216, 239, 0.7), 0 0 18px rgba(169, 196, 234, 0.55); opacity: 0.35; animation: hq-ring 2.6s ease-in-out infinite; pointer-events: none; }
+@keyframes hq-ring { 50% { opacity: 1; } }
+.row-in { animation: hq-row-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes hq-row-in { from { opacity: 0; transform: translateY(6px); } }
+.yeti-glint { position: relative; display: inline-block; width: 28px; height: 28px; border-radius: 50%; overflow: hidden; vertical-align: middle; margin-left: 8px; transform-origin: 50% 90%; animation: hq-wave 1.6s ease-in-out 0.6s 2; }
+.yeti-glint img { display: block; width: 100%; height: 100%; }
+.yeti-glint::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.85) 50%, transparent 65%); transform: translateX(-120%); animation: hq-glint 3.6s ease-in-out 1s infinite; }
+@keyframes hq-wave { 25% { transform: rotate(-10deg); } 50% { transform: rotate(8deg); } 75% { transform: rotate(-4deg); } }
+@keyframes hq-glint { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+html[data-tab-hidden] .holders-anim *, html[data-tab-hidden] .holders-anim *::before, html[data-tab-hidden] .holders-anim *::after { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .snowfield { display: none; }
+  .holders-anim *, .holders-anim *::before, .holders-anim *::after { animation: none !important; transition: none !important; }
+  .tier-card:hover { transform: none; }
+}

@@ -37,7 +37,7 @@ import { ASSETS, fetchOrderBook, horizon } from "../lib/stellar";
 import { readPool, useChain, type PoolInfo } from "../lib/chain";
 import { CONTRACTS, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
 import { ammAmountOut } from "../lib/math";
-import { REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TOTAL_SUPPLY, TOKENOMICS, dailyReward, tierFor } from "../lib/rewards";
+import { REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TOTAL_SUPPLY, TOKENOMICS, dailyReward, tierFor, pctYear } from "../lib/rewards";
 import { fmt, fmtCompact, short } from "../lib/format";
 import type { Book } from "../lib/demo";
 
@@ -400,7 +400,7 @@ function RewardsVisual() {
         <div className="row between"><h3 style={{ margin: 0 }}>Daily reward estimator</h3><Label kind="estimate" /></div>
         <div className="field" style={{ marginTop: 12 }}><label>Your {REWARD_ASSET_CODE} balance</label><input className="input" type="number" min={0} value={bal} onChange={(e) => setBal(Math.max(0, Number(e.target.value)))} /></div>
         <div className="l-est">
-          <div><span className="muted l-tiny">Tier</span><b className="mono">{t ? `${t.name} · ${t.apr * 100}%/yr` : "below 1M"}</b></div>
+          <div><span className="muted l-tiny">Tier</span><b className="mono">{t ? `${t.name} · ${pctYear(t.apr)}%/yr` : "below 1M"}</b></div>
           <div><span className="muted l-tiny">Reward / day</span><b className="mono">{fmt(daily, 2)} {REWARD_ASSET_CODE}</b></div>
           <div><span className="muted l-tiny">Reward / 30 days</span><b className="mono">{fmt(daily * 30, 2)}</b></div>
         </div>

@@ -54,3 +54,10 @@ requestAnimationFrame(() => {
     setTimeout(() => s.remove(), 600);
   }
 });
+
+// Pause the decorative background motion while the tab is hidden (CSS does the pausing; this only toggles a class).
+if (typeof document !== "undefined") {
+  const sync = () => document.documentElement.classList.toggle("tab-hidden", document.hidden);
+  document.addEventListener("visibilitychange", sync);
+  sync();
+}

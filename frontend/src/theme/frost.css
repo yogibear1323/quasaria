@@ -143,3 +143,26 @@ html.frost .wb-yeti { position: absolute; right: max(-40px, -3vw); bottom: 0; wi
   -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0%, #000 38%), linear-gradient(0deg, transparent 0%, #000 26%); mask-composite: intersect; }
 @media (max-width: 899px) { html.frost .wb-yeti { width: 92vw; height: 78vh; right: -14vw; opacity: 0.11; } }
 @media (prefers-contrast: more) { html.frost .wb-yeti { display: none; } }
+
+/* Subtle live motion for the yeti (CSS only, transform/opacity only, behind all content): slow breathing (scale 1 to 1.015),
+   a slight sway/parallax drift, and a faint frost shimmer that drifts across the fur. Paused while the tab is hidden
+   (html.tab-hidden, toggled by one visibilitychange listener, no JS animation loop) and static under reduced motion. */
+html.frost .wb-yeti { transform-origin: 78% 100%; will-change: transform; contain: layout paint style;
+  animation: wb-yeti-breathe 11s ease-in-out infinite, wb-yeti-sway 23s ease-in-out infinite; }
+html.frost .wb-yeti::after { content: ""; position: absolute; inset: 0; pointer-events: none; will-change: transform, opacity;
+  background: radial-gradient(ellipse 46% 30% at 50% 44%, rgba(214, 232, 255, 0.55), rgba(214, 232, 255, 0) 70%),
+              radial-gradient(ellipse 30% 22% at 62% 70%, rgba(214, 232, 255, 0.4), rgba(214, 232, 255, 0) 70%);
+  mix-blend-mode: screen; opacity: 0.0; animation: wb-yeti-shimmer 17s ease-in-out infinite; }
+@keyframes wb-yeti-breathe { 0%, 100% { scale: 1; } 50% { scale: 1.015; } }
+@keyframes wb-yeti-sway { 0%, 100% { translate: 0 0; } 33% { translate: -5px -2px; } 66% { translate: 4px 1px; } }
+@keyframes wb-yeti-shimmer { 0%, 100% { transform: translate3d(-6%, 3%, 0); opacity: 0.0; } 50% { transform: translate3d(6%, -3%, 0); opacity: 0.28; } }
+html.tab-hidden .world-bg *, html.tab-hidden .world-bg *::after, html.tab-hidden .world-bg *::before { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { html.frost .wb-yeti, html.frost .wb-yeti::after { animation: none !important; will-change: auto; } html.frost .wb-yeti::after { display: none; } }
+
+/* Earnings: "How earnings work" explainer */
+.how-earn-grid { gap: 12px; }
+.how-earn-card { padding: 14px 16px; border: 1px solid rgba(201, 216, 239, 0.18); border-radius: 12px; background: rgba(15, 26, 51, 0.55); }
+.how-earn-card .kicker { margin-bottom: 4px; }
+.how-earn-t { margin: 0 0 6px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.how-earn-card p { margin: 0; font-size: 0.9rem; line-height: 1.5; }
+.how-earn-note { margin: 14px 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--text); }

@@ -11,6 +11,7 @@
  * unit-tested; UI helpers live in components/AssetSelect.tsx.
  */
 import doc from "../config/testnet-assets.json";
+import { explorerAssetUrl } from "./explorer";
 import { XLM_LOGO } from "./xlm";
 
 export type AssetCategory = "stablecoin" | "popular" | "base";
@@ -61,8 +62,8 @@ export function badgeOf(a: ListedAsset): { text: string; tone: "green" | "pink" 
     default: return { text: "testnet demo", tone: "gold" };
   }
 }
-/** Link to the REAL mainnet asset (stellar.expert, read-only explorer). */
-export const mainnetUrl = (a: ListedAsset) => a.mainnet?.expert ?? null;
+/** Link to the REAL mainnet asset on StellarChain (read-only explorer). */
+export const mainnetUrl = (a: ListedAsset) => (a.mainnet ? explorerAssetUrl(a.mainnet.code, a.mainnet.issuer, "mainnet") : null);
 /** "CODE-ISSUER" testnet key used by the SDEX pickers (XLM for native). */
 export const testnetKey = (a: ListedAsset) => (a.testnet.kind === "native" ? "XLM" : `${a.testnet.code}-${a.testnet.issuer}`);
 export const assetByTestnetKey = (key: string) => ASSET_LIST.find((a) => testnetKey(a) === key);

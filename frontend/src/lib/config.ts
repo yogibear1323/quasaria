@@ -59,8 +59,6 @@ export const TOKEN_SYMBOLS: Record<string, string> = {
 export const symbolOf = (id: string) => TOKEN_SYMBOLS[id] ?? `${id.slice(0, 4)}…${id.slice(-4)}`;
 
 export const DEPLOYMENT = deployment;
-export const expertContract = (id: string) => `https://stellar.expert/explorer/testnet/contract/${id}`;
-export const expertAccount = (id: string) => `https://stellar.expert/explorer/testnet/account/${id}`;
 
 /** Circle's testnet USDC issuer (classic asset on testnet). */
 export const TESTNET_USDC_ISSUER = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";

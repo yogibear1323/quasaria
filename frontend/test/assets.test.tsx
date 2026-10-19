@@ -60,7 +60,7 @@ describe("src/config/testnet-assets.json (testnet list + v3 pools)", () => {
         expect(mirrors).toContain(a.testnet.issuer);
         expect(a.testnet.label).toMatch(/Testnet mirror of/);
         expect(badgeOf(a).text).toBe(`testnet mirror of ${a.code}`);
-        expect(mainnetUrl(a)).toMatch(/^https:\/\/stellar\.expert\/explorer\/public\/asset\//);
+        expect(mainnetUrl(a)).toMatch(/^https:\/\/stellarchain\.io\/assets\//);
       }
       if (a.testnet.kind === "real") expect({ USDC: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", EURC: "GB3Q6QDZYTHWT7E5PVS3W7FUT5GVAFC5KSZFFLPU25GO7VTC3NM2ZTVO" }[a.id]).toBe(a.testnet.issuer);
       expect(a.testnet.sac).toMatch(/^C[A-Z2-7]{55}$/);

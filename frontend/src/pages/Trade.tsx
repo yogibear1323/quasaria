@@ -42,7 +42,7 @@ function LimitPanel({ book, baseKey, quoteKey, BASE, QUOTE }: { book: Book; base
   useEffect(() => {
     if (!touched && ref) setPriceRaw(ref < 0.01 ? ref.toPrecision(4) : ref.toFixed(5));
   }, [ref, touched]);
-  const tx = useTx(false);
+  const tx = useTx();
   const total = Number(price) * Number(amount);
   return (
     <>
@@ -160,7 +160,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
 
 function OpenOffers({ tick, onChange }: { tick: number; onChange: () => void }) {
   const w = useWallet();
-  const tx = useTx(false);
+  const tx = useTx();
   const offers = useAsync(async () => (w.address ? fetchOpenOffers(w.address) : []), [w.address, tick, tx.status]);
   if (!w.address || !(offers.data?.length)) return null;
   return (

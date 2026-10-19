@@ -1,297 +1,274 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { PageHead, SourceTag, Stat, Tabs, TxStatus, ViewerNote, useTx } from "../components/ui";
-import { DEMO_POOLS } from "../lib/demo";
-import { CONTRACTS, expertContract, symbolOf } from "../lib/config";
-import { addr, i128, invokeContract } from "../lib/soroban";
-import { poolVolumes, readPool, tokenBalance, useChain, useViewer, type PoolInfo } from "../lib/chain";
-import { fmt, fmtCompact, toUnits } from "../lib/format";
-import { Asset } from "@stellar/stellar-sdk";
-import { buildNativeLpDeposit, buildTrustline, fetchBalances, fetchNativePool, hasTrustline, nativePoolId, submitSignedXdr, type Balance } from "../lib/stellar";
-import AssetSelect, { AssetBadge } from "../components/AssetSelect";
+import { PageHead, Tabs, TxStatus, useTx } from "../components/ui";
 import { AssetLogo } from "../components/AssetBits";
-import { ASSET_LIST, POOL_LIST, RETIRED_NOTE, RETIRED_POOLS, assetById, findPool, ilRisk, mainnetUrl, poolsWith, type ListedAsset, type ListedPool } from "../lib/assets";
+import { useWallet } from "../lib/wallet";
+import { useXlmUsd } from "../lib/markets";
+import { useAsync } from "../lib/useAsync";
+import { fmt, fmtCompact } from "../lib/format";
+import {
+  BASE_RESERVE, MAINNET_BROWSE, buildDepositTx, buildWithdrawTx, curatedList, deriveXlmUsd, depositReserveCost, feeApr, fetchAccountBalances, fetchAssetBalance,
+  fetchPoolForPair, fetchPositions, loadCuratedPools, fetchRecentPools, fetchVolume24h, keyOf, orderAssets, poolIdFor, poolVerified, pooled, previewDeposit, previewWithdraw, spot, tvlUsd,
+  verifyAsset, volumeUnit, type AssetRef, type NetId, type PoolRow, type Pricing,
+} from "../lib/nativePools";
+import { submitSignedXdr } from "../lib/stellar";
+import { REWARD_ASSET_CODE } from "../lib/rewards";
 
-type PoolView = (typeof DEMO_POOLS)[number] & { volumeLive?: boolean; tokenA?: string; tokenB?: string };
-
-const classicOf = (a: ListedAsset | undefined) => (!a || a.testnet.kind === "native" || !a.testnet.issuer ? null : new Asset(a.testnet.code, a.testnet.issuer));
-
-/** Read many pools with bounded concurrency (RPC friendliness). */
-async function readPools(ids: string[], conc = 6): Promise<Record<string, PoolInfo>> {
-  const out: Record<string, PoolInfo> = {};
-  let i = 0;
-  await Promise.all(Array.from({ length: conc }, async () => {
-    while (i < ids.length) {
-      const id = ids[i++];
-      try { out[id] = await readPool(id); } catch { /* leave missing */ }
-    }
-  }));
-  return out;
+const logoOf = (net: NetId, a: AssetRef) => curatedList(net).find((c) => c.code === a.code && c.issuer === a.issuer)?.logo ?? null;
+function AssetChip({ net, a, size = 20 }: { net: NetId; a: AssetRef; size?: number }) {
+  const v = verifyAsset(net, a);
+  return (
+    <span className="row" style={{ gap: 6, display: "inline-flex" }}>
+      <AssetLogo code={a.code} issuer={a.issuer} logo={logoOf(net, a)} size={size} />
+      <b>{a.code}</b>
+      {v.status === "unverified" && <span className="pill pink" style={{ fontSize: "0.55rem" }} title="Not on the issuer-verified list">unverified</span>}
+      {v.status === "lookalike" && <span className="pill pink" style={{ fontSize: "0.55rem" }} title="Same ticker as a verified asset, different issuer">look-alike</span>}
+    </span>
+  );
 }
 
+const usd = (n: number | null) => (n == null ? "—" : `$${fmtCompact(n)}`);
+const amt = (n: number) => (n >= 1000 ? fmtCompact(n) : fmt(n, n < 1 ? 6 : 3));
+
+type Row = PoolRow & { volume?: number | null; truncated?: boolean };
+
 export default function Pools() {
-  const viewer = useViewer("lp");
-  const [selId, setSelId] = useState<string | null>(null);
-  const [sideA, setSideA] = useState<ListedAsset | undefined>(() => assetById("USDC"));
-  const [sideB, setSideB] = useState<ListedAsset | undefined>(() => assetById("XLM"));
-  const [mode, setMode] = useState<"deposit" | "withdraw" | "native">("deposit");
-  const [amtA, setAmtA] = useState("100");
-  const [shares, setShares] = useState("10");
-  const [slippage, setSlippage] = useState(0.5);
-  const [cat, setCat] = useState<"all" | "stablecoin" | "popular">("all");
-  const [showRetired, setShowRetired] = useState(false);
-  const [nonce, setNonce] = useState(0);
-  const tx = useTx();
+  const w = useWallet();
+  const [net, setNet] = useState<NetId>("testnet");
+  const [scope, setScope] = useState<"curated" | "recent">("curated");
+  const [q, setQ] = useState("");
+  const [sel, setSel] = useState<string | null>(null);
+  const [vol, setVol] = useState<Record<string, { volume: number; truncated: boolean }>>({});
+  const refXlm = useXlmUsd();
+  const list = useAsync(() => (scope === "curated" ? loadCuratedPools(net) : fetchRecentPools(net, 40)), [net, scope]);
+  const pools = list.data ?? [];
+  const pricing: Pricing = useMemo(() => ({ xlmUsd: deriveXlmUsd(net, pools) ?? (net === "mainnet" ? refXlm?.price ?? null : null) ?? refXlm?.price ?? null }), [pools, net, refXlm?.price]);
+  const rows: Row[] = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return pools
+      .filter((p) => !t || `${p.a.code}/${p.b.code}`.toLowerCase().includes(t) || (p.a.issuer ?? "").toLowerCase().includes(t) || (p.b.issuer ?? "").toLowerCase().includes(t) || p.id.startsWith(t))
+      .map((p) => ({ ...p, volume: vol[p.id]?.volume ?? null, truncated: vol[p.id]?.truncated }))
+      .sort((x, y) => (tvlUsd(y, pricing) ?? 0) - (tvlUsd(x, pricing) ?? 0) || y.reserveA - x.reserveA);
+  }, [pools, q, vol, pricing]);
 
-  // core (QUSD/QFX) pools
-  const chain = useChain(async () => {
-    const infos = await Promise.all(CONTRACTS.pools.map(readPool));
-    const [mine, vols] = await Promise.all([
-      Promise.all(infos.map((p) => (viewer.address ? tokenBalance(p.id, viewer.address) : Promise.resolve(0)))),
-      poolVolumes(infos).catch(() => null),
-    ]);
-    return infos.map<PoolView>((p, i) => ({
-      id: p.id, a: symbolOf(p.tokenA), b: symbolOf(p.tokenB), reserveA: p.reserveA, reserveB: p.reserveB, totalShares: p.totalShares, feeBps: p.feeBps,
-      volume24h: vols ? vols[p.id] : 0, volumeLive: Boolean(vols), myShares: mine[i], tokenA: p.tokenA, tokenB: p.tokenB,
-    }));
-  }, [viewer.address, nonce]);
-  const core: PoolView[] = chain.data ?? DEMO_POOLS;
-
-  // v3 asset pools (live reserves; falls back to the seeded amounts)
-  const assetLive = useChain(() => readPools(POOL_LIST.map((p) => p.pool!)), [nonce]);
-  const assetView = (lp: ListedPool): PoolView => {
-    const l = assetLive.data?.[lp.pool!];
-    return { id: lp.pool!, a: assetById(lp.assetA)?.code ?? lp.assetA, b: assetById(lp.assetB)?.code ?? lp.assetB, reserveA: l?.reserveA ?? lp.seeded!.a, reserveB: l?.reserveB ?? lp.seeded!.b, totalShares: l?.totalShares ?? Math.sqrt(lp.seeded!.a * lp.seeded!.b), feeBps: l?.feeBps ?? lp.feeBps, volume24h: 0, myShares: 0, tokenA: lp.tokenA, tokenB: lp.tokenB };
-  };
-
-  // picker → pool
-  const picked = sideA && sideB ? findPool(sideA.id, sideB.id) : undefined;
+  // 24h volume for the top pools only (rate-limit friendly: bounded concurrency, top 12)
   useEffect(() => {
-    if (picked) setSelId(picked.pool!);
-  }, [picked?.pool]); // eslint-disable-line react-hooks/exhaustive-deps
+    let alive = true;
+    const top = [...pools].sort((x, y) => (tvlUsd(y, pricing) ?? 0) - (tvlUsd(x, pricing) ?? 0)).slice(0, 12).filter((p) => !(p.id in vol));
+    pooled(top, 3, async (p) => ({ p, v: await fetchVolume24h(net, p.id, volumeUnit(p, pricing).unit) }), ({ p, v }) => { if (alive) setVol((m) => ({ ...m, [p.id]: { volume: v.volume, truncated: v.truncated } })); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pools.length, net]);
 
-  const selAsset = POOL_LIST.find((p) => p.pool === selId);
-  const selCore = core.find((p) => p.id === selId) ?? (selAsset ? undefined : core[0]);
-  // live read of the selected asset pool + the viewer's LP balance
-  const selLive = useChain(async () => {
-    if (!selAsset) return null;
-    const [info, mine] = await Promise.all([readPool(selAsset.pool!), viewer.address ? tokenBalance(selAsset.pool!, viewer.address).catch(() => 0) : Promise.resolve(0)]);
-    return { info, mine };
-  }, [selAsset?.pool, viewer.address, nonce]);
-  const p: PoolView = selAsset
-    ? { ...assetView(selAsset), ...(selLive.data ? { reserveA: selLive.data.info.reserveA, reserveB: selLive.data.info.reserveB, totalShares: selLive.data.info.totalShares, feeBps: selLive.data.info.feeBps, myShares: selLive.data.mine } : {}) }
-    : selCore!;
-  const A = selAsset ? assetById(selAsset.assetA) : undefined;
-  const B = selAsset ? assetById(selAsset.assetB) : undefined;
-  const live = selAsset ? selLive.live : chain.live;
-
-  // wallet balances → trustline hints for classic assets
-  const [balances, setBalances] = useState<Balance[] | null>(null);
-  useEffect(() => {
-    if (!tx.wallet.address) return setBalances(null);
-    fetchBalances(tx.wallet.address).then(setBalances).catch(() => setBalances(null));
-  }, [tx.wallet.address, nonce]);
-  const missingTrust = [A, B].filter((x) => { const c = classicOf(x); return c && balances && !hasTrustline(balances, c); }) as ListedAsset[];
-
-  // native (CAP-38) pool for XLM/classic pairs
-  const nativeAsset = selAsset && selAsset.assetA === "XLM" ? classicOf(B) : null;
-  const native = useChain(async () => (nativeAsset ? fetchNativePool(nativePoolId(Asset.native(), nativeAsset)) : null), [nativeAsset?.getCode(), nativeAsset?.getIssuer(), nonce]);
-  useEffect(() => {
-    if (mode === "native" && !nativeAsset) setMode("deposit");
-  }, [nativeAsset, mode]);
-
-  // F-10: real minimums from the live reserves and the user's slippage tolerance (never 0).
-  const ratio = p.reserveA > 0 ? p.reserveB / p.reserveA : 0;
-  const amtB = Number(amtA) * ratio;
-  const slip = slippage / 100;
-  const newShares = p.totalShares ? (Number(amtA) / p.reserveA) * p.totalShares : Math.sqrt(Number(amtA) * amtB);
-  const outA = p.totalShares ? (Number(shares) / p.totalShares) * p.reserveA : 0;
-  const outB = p.totalShares ? (Number(shares) / p.totalShares) * p.reserveB : 0;
-  const minUnits = (x: number) => { const u = toUnits(x * (1 - slip)); return u > 0n ? u : 1n; };
-  const nativeRatio = native.data && native.data.reserveA > 0 ? native.data.reserveB / native.data.reserveA : (B?.pricePerXlm ?? 0);
-  const risk = selAsset ? ilRisk(A, B) : "high";
-
-  const tvl = (x: PoolView) => x.reserveB * 2; // quote-denominated
-  const feeApr = (x: PoolView) => (tvl(x) ? ((x.volume24h * x.feeBps * 0.8) / 10_000 / tvl(x)) * 365 * 100 : 0);
-  const after = (r: string) => {
-    setNonce((n) => n + 1);
-    return r;
-  };
-  const pickPool = (lp: ListedPool) => {
-    setSideA(assetById(lp.base));
-    setSideB(assetById(lp.quote));
-    setSelId(lp.pool!);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-  const visiblePools = useMemo(() => POOL_LIST.filter((lp) => cat === "all" || assetById(lp.base)?.category === cat), [cat]);
-  const seen = new Set<string>();
-  const altPools = sideA && !picked ? poolsWith(sideA.id).filter((x) => (seen.has(x.pool!) ? false : (seen.add(x.pool!), true))).slice(0, 6) : [];
+  const positions = useAsync(() => (w.address ? fetchPositions(net, w.address, pricing) : Promise.resolve([])), [w.address, net, pools.length]);
+  const selected = pools.find((p) => p.id === sel) ?? null;
 
   return (
     <>
-      <PageHead kicker="Scene · Nebula Drift" title="Liquidity Pools" right={<div className="row"><SourceTag {...chain} /><span className="pill pink">Constant product · SEP-41 LP shares</span><Link className="pill cyan" to="/calculators?c=lp">🧮 LP calculator</Link></div>}>
-        Deposit both assets into an x·y=k pool, receive QLP share tokens, and earn 80% of the 0.30% swap fee (20% goes to the trader's referrer, if any). Pick any pair from {ASSET_LIST.length} assets — all notable Stellar stablecoins plus popular assets like SHX, AQUA and yXLM — to build your own setup.
+      <PageHead kicker="Pools" title="Liquidity pools" right={<span className="pill gold">{net === "testnet" ? "Testnet · unaudited" : "Mainnet · read-only"}</span>}>
+        Stellar's native liquidity pools: add both sides of a pair and earn a share of the 0.30% fee on every swap. Impermanent loss can outweigh fees.
       </PageHead>
+      <div className="notice" role="note" style={{ marginBottom: 12, fontSize: "0.82rem" }}><b>Plainly:</b> a pool is a protocol feature of Stellar, not a Quasaria contract. Your share is a pool-share trustline on your own account. Fees accrue inside the pool and are paid out when you withdraw. Past volume does not predict future fees, and the fee APR shown is an estimate that ignores impermanent loss.</div>
 
-      <div className="card" style={{ marginBottom: 18, position: "relative", zIndex: 20 }} data-testid="pool-picker">
-        <div className="row between" style={{ flexWrap: "wrap", gap: 10 }}>
-          <h2 style={{ margin: 0 }}>Choose a pair</h2>
-          <span className="muted" style={{ fontSize: "0.75rem" }}>{POOL_LIST.length} v3 pools · hardened contracts (pause, timelock, two-step admin) · testnet only</span>
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+          <Tabs value={scope} onChange={(v) => { setScope(v); setSel(null); }} options={[{ v: "curated", label: "Verified pairs" }, { v: "recent", label: "Recent pools (any asset)" }]} />
+          {MAINNET_BROWSE && <Tabs value={net} onChange={(v) => { setNet(v); setSel(null); setVol({}); }} options={[{ v: "testnet", label: "Testnet" }, { v: "mainnet", label: "Mainnet (read-only)" }]} />}
+          <input className="input" style={{ maxWidth: 260 }} placeholder="Search code, issuer or pool id" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search pools" data-testid="pool-search" />
+          <button className="btn small ghost" onClick={() => { setVol({}); list.reload(); }}>Refresh</button>
         </div>
-        <div className="grid" style={{ gridTemplateColumns: "minmax(0,1fr) auto minmax(0,1fr)", gap: 12, alignItems: "start", marginTop: 12 }}>
-          <AssetSelect label="Asset A" value={sideA} exclude={sideB?.id} onChange={setSideA} testId="pick-a" />
-          <button type="button" className="btn small ghost" style={{ marginTop: 22 }} aria-label="Swap sides" onClick={() => { setSideA(sideB); setSideB(sideA); }}>⇄</button>
-          <AssetSelect label="Asset B" value={sideB} exclude={sideA?.id} onChange={setSideB} testId="pick-b" />
-        </div>
-        <div style={{ marginTop: 10, fontSize: "0.82rem" }} data-testid="pick-status">
-          {picked ? (
-            <span className="pos">✔ Pool {picked.pair} exists (<a className="mono" href={expertContract(picked.pool!)} target="_blank" rel="noreferrer">{picked.pool!.slice(0, 6)}…{picked.pool!.slice(-4)}</a>) — selected below. You can supply liquidity now.</span>
-          ) : sideA && sideB ? (
-            <span className="muted">No {sideA.code}/{sideB.code} pool yet. {altPools.length ? <>Pools with {sideA.code}: {altPools.map((x) => <button key={x.pool} type="button" className="btn small ghost" style={{ margin: "2px 4px" }} onClick={() => pickPool(x)}>{x.pair}</button>)}</> : null} Swaps between them still route through the router via XLM/USDC on the Trade page.</span>
-          ) : <span className="muted">Pick both sides.</span>}
-        </div>
-      </div>
-
-      <div className="grid g-main-side">
-        <div className="card">
-          <h2>Core pools</h2>
-          <table className="t">
-            <thead><tr><th>Pool</th><th>Reserves</th><th>TVL (quote)</th><th>24h volume</th><th>Fee APR*</th><th /></tr></thead>
+        {scope === "recent" && <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Anyone can create a pool for any two assets, so recent pools are shown with a verification flag. Only pools where both assets are on Quasaria's issuer-verified list are marked verified.</p>}
+        <div style={{ overflowX: "auto", marginTop: 10 }}>
+          <table className="t" data-testid="pool-table">
+            <thead><tr><th>Pair</th><th>TVL</th><th>24h volume</th><th>Fee APR (est.)</th><th>Reserves</th><th>Providers</th><th /></tr></thead>
             <tbody>
-              {core.map((x) => (
-                <tr key={x.id} onClick={() => setSelId(x.id)} style={{ cursor: "pointer", outline: x.id === p.id ? "1px solid var(--quasar)" : undefined }}>
-                  <td><b>{x.a}</b><span className="muted"> / {x.b}</span>{chain.live && <div><a className="mono muted" style={{ fontSize: "0.7rem" }} href={expertContract(x.id)} target="_blank" rel="noreferrer">{x.id.slice(0, 6)}…{x.id.slice(-4)}</a></div>}</td>
-                  <td className="mono">{fmtCompact(x.reserveA)} / {fmtCompact(x.reserveB)}</td>
-                  <td className="mono">{fmtCompact(tvl(x))}</td>
-                  <td className="mono">{chain.live && !x.volumeLive ? "n/a" : fmtCompact(x.volume24h)}</td>
-                  <td className="mono pos">{fmt(feeApr(x), 1)}%</td>
-                  <td><button className="btn small ghost" onClick={() => setSelId(x.id)}>Select</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="muted" style={{ fontSize: "0.78rem" }}>*Fee APR = 24h volume × LP fee share annualised; illustrative, excludes impermanent loss. {chain.live ? "Volume is summed from on-chain swap events (last ~24h of ledgers)." : ""}</p>
-          <div className="grid g-3" style={{ marginTop: 14 }}>
-            <Stat label="Spot price" value={`${fmt(ratio, ratio < 0.01 ? 8 : 5)}`} sub={`${p.b} per ${p.a}`} />
-            <Stat label="Total QLP" value={fmtCompact(p.totalShares)} sub="1,000 units locked forever" />
-            <Stat label={viewer.isDemo ? "Seeded LP's share" : "Your share"} value={`${fmt((p.myShares / (p.totalShares || 1)) * 100, 3)}%`} sub={live ? `${fmtCompact(p.myShares)} QLP on-chain` : "connect wallet"} />
-          </div>
-          {chain.live && <ViewerNote {...viewer} role="LP (deployer)" />}
-        </div>
-        <div className="card glow" data-testid="pool-panel">
-          <h2 className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            {A && <AssetLogo code={A.code} logo={A.logo} size={22} />}{B && <AssetLogo code={B.code} logo={B.logo} size={22} />}
-            {p.a}/{p.b}
-            {A && <AssetBadge a={A} small />}{B && <AssetBadge a={B} small />}
-          </h2>
-          {selAsset && (
-            <p className="muted" style={{ fontSize: "0.72rem", marginTop: -6 }}>
-              v3 pool <a className="mono" href={expertContract(selAsset.pool!)} target="_blank" rel="noreferrer">{selAsset.pool!.slice(0, 6)}…{selAsset.pool!.slice(-4)}</a>.{" "}
-              {[A, B].filter((x) => x && x.testnet.kind === "mirror").map((x) => <span key={x!.id}>{x!.code} here is a testnet mirror of <a href={mainnetUrl(x!)!} target="_blank" rel="noreferrer">{x!.code} ({x!.mainnet?.homeDomain ?? x!.mainnet?.issuer.slice(0, 6)}) on mainnet ↗</a> — not redeemable, no value. </span>)}
-              {[A, B].filter((x) => x && x.testnet.kind === "real").map((x) => <span key={x!.id}>{x!.code} is the real testnet asset (official testnet issuer). </span>)}
-            </p>
-          )}
-          <Tabs value={mode} onChange={setMode} options={[{ v: "deposit", label: "Soroban deposit" }, { v: "withdraw", label: "Withdraw" }, ...(nativeAsset ? [{ v: "native" as const, label: "Native LP" }] : [])]} />
-          {missingTrust.length > 0 && mode !== "withdraw" && (
-            <div className="notice warn" style={{ marginBottom: 10 }}>
-              Your account needs a trustline to {missingTrust.map((x) => x.testnet.code).join(" and ")} to hold it (0.5 XLM reserve each).{" "}
-              {missingTrust.map((x) => <button key={x.id} className="btn small" disabled={tx.busy} onClick={() => tx.run(`trustline ${x.testnet.code}`, async () => after((await submitSignedXdr(await tx.wallet.sign(await buildTrustline(tx.wallet.address!, classicOf(x)!)))).hash.slice(0, 10)))}>Add {x.testnet.code} trustline</button>)}
-              <div className="muted" style={{ fontSize: "0.72rem", marginTop: 4 }}>Get testnet tokens by trading XLM on the <Link to="/exchange">Exchange</Link> page.</div>
-            </div>
-          )}
-          {mode === "native" && nativeAsset ? (
-            <>
-              <p className="muted" style={{ fontSize: "0.8rem" }}>Stellar protocol-level liquidity pool (CAP-38) for XLM/{nativeAsset.getCode()} on testnet — no Soroban contract involved. {native.data ? `Reserves ${fmtCompact(native.data.reserveA)} XLM / ${fmtCompact(native.data.reserveB)} ${nativeAsset.getCode()}, ${native.data.holders} LPs.` : "Pool not created yet: your deposit creates it."}</p>
-              <div className="field"><label>XLM</label><input className="input" value={amtA} onChange={(e) => setAmtA(e.target.value)} /></div>
-              <div className="field"><label>{nativeAsset.getCode()} (pool ratio)</label><input className="input" readOnly value={fmt(Number(amtA) * nativeRatio, 4)} /></div>
-              <button className="btn block" disabled={tx.busy} onClick={() => tx.run("native LP deposit", async () => {
-                const me = tx.wallet.address!;
-                const xdr = await buildNativeLpDeposit(me, Asset.native(), nativeAsset, Number(amtA), Number(amtA) * nativeRatio, slip);
-                return after((await submitSignedXdr(await tx.wallet.sign(xdr))).hash.slice(0, 10));
-              })}>Deposit to native pool</button>
-              <p className="muted" style={{ fontSize: "0.72rem" }}>Adds the {nativeAsset.getCode()} and pool-share trustlines if missing (0.5 XLM reserve each).</p>
-            </>
-          ) : mode === "deposit" ? (
-            <>
-              <div className="field"><label>{p.a}</label><input className="input" value={amtA} onChange={(e) => setAmtA(e.target.value)} data-testid="deposit-a" /></div>
-              <div className="field"><label>{p.b} (matched to pool ratio)</label><input className="input" readOnly value={fmt(amtB, amtB < 0.01 ? 7 : 4)} /></div>
-              <div className="row between" style={{ fontSize: "0.85rem" }}><span className="muted">QLP minted (est.)</span><span className="mono">{fmt(newShares, 4)}</span></div>
-              <div className="row between" style={{ fontSize: "0.78rem", marginBottom: 6 }} data-testid="deposit-mins"><span className="muted">Minimums (−{slippage}%)</span><span className="mono">{fmt(Number(amtA) * (1 - slip), 4)} {p.a} · {fmt(amtB * (1 - slip), amtB < 0.01 ? 7 : 4)} {p.b}</span></div>
-              <div className="field"><label>Max slippage: {slippage}%</label><input type="range" min={0.1} max={5} step={0.1} value={slippage} onChange={(e) => setSlippage(Number(e.target.value))} /></div>
-              <button className="btn block" disabled={tx.busy || !(Number(amtA) > 0) || !(amtB > 0)} onClick={() => tx.run("deposit", async () => {
-                const me = tx.wallet.address!;
-                const r = await invokeContract(me, tx.wallet.sign, p.id, "deposit", [addr(me), i128(toUnits(Number(amtA))), i128(toUnits(amtB)), i128(minUnits(Number(amtA))), i128(minUnits(amtB))]);
-                return after(r.hash.slice(0, 10));
-              })}>Add liquidity</button>
-            </>
-          ) : (
-            <>
-              <div className="field"><label>QLP shares to burn</label><input className="input" value={shares} onChange={(e) => setShares(e.target.value)} /></div>
-              <div className="row between" style={{ fontSize: "0.85rem" }}><span className="muted">You receive</span><span className="mono">{fmt(outA, 4)} {p.a}</span></div>
-              <div className="row between" style={{ fontSize: "0.85rem" }}><span /><span className="mono">{fmt(outB, outB < 0.01 ? 7 : 4)} {p.b}</span></div>
-              <div className="row between" style={{ fontSize: "0.78rem", marginBottom: 6 }} data-testid="withdraw-mins"><span className="muted">Minimums (−{slippage}%)</span><span className="mono">{fmt(outA * (1 - slip), 4)} · {fmt(outB * (1 - slip), outB < 0.01 ? 7 : 4)}</span></div>
-              <div className="field"><label>Max slippage: {slippage}%</label><input type="range" min={0.1} max={5} step={0.1} value={slippage} onChange={(e) => setSlippage(Number(e.target.value))} /></div>
-              <button className="btn block" disabled={tx.busy || !(Number(shares) > 0)} onClick={() => tx.run("withdraw", async () => {
-                const me = tx.wallet.address!;
-                const r = await invokeContract(me, tx.wallet.sign, p.id, "withdraw", [addr(me), i128(toUnits(Number(shares))), i128(minUnits(outA)), i128(minUnits(outB))]);
-                return after(r.hash.slice(0, 10));
-              })}>Remove liquidity</button>
-            </>
-          )}
-          <TxStatus status={tx.status} />
-          <div className="notice" style={{ marginTop: 14 }}>Impermanent loss: when prices move, LPs end up with more of the asset that fell. Fees may or may not compensate.</div>
-          <div className={`notice ${risk === "high" ? "warn" : ""}`} style={{ marginTop: 8 }} data-testid="il-pair-note">
-            {risk === "high"
-              ? <>Stable-vs-volatile pairs (e.g. USDC/XLM, SHX/XLM) and cross-currency pairs have <b>more impermanent loss</b> than same-peg stablecoin pairs: {p.a}/{p.b} can move a lot.</>
-              : <>{p.a}/{p.b} is a same-peg stablecoin pair: lower impermanent loss while both hold their peg (a de-peg still causes losses). Stable-vs-volatile pairs have more impermanent loss.</>}
-          </div>
-          <Link className="calc-panel-link" to={`/calculators?c=lp${live ? `&pool=${p.id}` : ""}`} data-testid="pools-calc-link">🧮 Estimate fees &amp; impermanent loss for {p.a}/{p.b} →</Link>
-        </div>
-      </div>
-
-      <div className="card" style={{ marginTop: 18 }} data-testid="asset-pools">
-        <div className="row between" style={{ flexWrap: "wrap", gap: 10 }}>
-          <div>
-            <h2 style={{ margin: 0 }}>Asset pools (v3)</h2>
-            <p className="muted" style={{ fontSize: "0.78rem", margin: "4px 0 0" }}>Every stablecoin vs XLM, same-peg stable pairs vs USDC/EURC, and popular assets vs XLM. Seeded with modest testnet liquidity at live mainnet price ratios. Swaps route through the v3 router.</p>
-          </div>
-          <div className="row" style={{ gap: 6 }}>
-            <SourceTag {...assetLive} />
-            <Tabs value={cat} onChange={setCat} options={[{ v: "all", label: "All" }, { v: "stablecoin", label: "Stablecoins" }, { v: "popular", label: "Popular assets" }]} />
-          </div>
-        </div>
-        <div style={{ overflowX: "auto" }}>
-          <table className="t" style={{ marginTop: 10 }}>
-            <thead><tr><th>Pair</th><th>Testnet assets</th><th>Reserves</th><th>Spot</th><th>Mainnet reference</th><th /></tr></thead>
-            <tbody>
-              {visiblePools.map((lp) => {
-                const v = assetView(lp);
-                const base = assetById(lp.base)!, quote = assetById(lp.quote)!;
-                const spot = v.reserveA > 0 ? (lp.assetA === lp.base ? v.reserveB / v.reserveA : v.reserveA / v.reserveB) : 0;
+              {list.loading && <tr><td colSpan={7} className="muted">Reading Horizon…</td></tr>}
+              {list.error && <tr><td colSpan={7} className="neg">Could not read pools: {list.error}</td></tr>}
+              {!list.loading && !list.error && !rows.length && <tr><td colSpan={7} className="muted" data-testid="no-pools">{scope === "curated" ? "No pools exist yet for the verified pairs on this network. Pick a pair below and make the first deposit to create one." : "No pools match."}</td></tr>}
+              {rows.map((p) => {
+                const t = tvlUsd(p, pricing), vu = volumeUnit(p, pricing);
+                const vUsd = p.volume != null && vu.usd != null ? p.volume * vu.usd : null;
                 return (
-                  <tr key={lp.pool} style={{ outline: lp.pool === selId ? "1px solid var(--quasar)" : undefined }}>
-                    <td><div className="row" style={{ gap: 6 }}><AssetLogo code={base.code} logo={base.logo} size={20} /><b>{lp.pair}</b></div><a className="mono muted" style={{ fontSize: "0.68rem" }} href={expertContract(lp.pool!)} target="_blank" rel="noreferrer">{lp.pool!.slice(0, 6)}…{lp.pool!.slice(-4)}</a></td>
-                    <td><div className="row" style={{ gap: 4, flexWrap: "wrap" }}>{[base, quote].filter((x) => x.testnet.kind !== "native").map((x) => <AssetBadge key={x.id} a={x} small />)}</div></td>
-                    <td className="mono" style={{ fontSize: "0.78rem" }}>{fmtCompact(v.reserveA)} {v.a} / {fmtCompact(v.reserveB)} {v.b}</td>
-                    <td className="mono" style={{ fontSize: "0.78rem" }}>{spot < 0.01 ? spot.toPrecision(4) : fmt(spot, 4)} {quote.code}</td>
-                    <td style={{ fontSize: "0.72rem" }}>{base.mainnet ? <a href={base.mainnet.expert} target="_blank" rel="noreferrer">{base.code} · {base.mainnet.homeDomain ?? `${base.mainnet.issuer.slice(0, 6)}…`} ↗</a> : <span className="muted">{base.testnet.label}</span>}</td>
-                    <td><button className="btn small ghost" onClick={() => pickPool(lp)}>Supply</button></td>
+                  <tr key={p.id} className={sel === p.id ? "l-sel" : ""} onClick={() => setSel(p.id)} style={{ cursor: "pointer" }} data-testid="pool-row">
+                    <td><AssetChip net={net} a={p.a} /> <span className="muted">/</span> <AssetChip net={net} a={p.b} /> {poolVerified(net, p) ? <span className="pill green" style={{ fontSize: "0.55rem" }}>✔ verified</span> : null}</td>
+                    <td className="mono">{usd(t)}</td>
+                    <td className="mono">{p.volume == null ? "…" : vUsd != null ? `${usd(vUsd)}${p.truncated ? "+" : ""}` : `${amt(p.volume)} ${vu.unit.code}`}</td>
+                    <td className="mono">{(() => { const a = feeApr(vUsd, t); return a == null ? "—" : `${fmt(a, 2)}%`; })()}</td>
+                    <td className="mono muted" style={{ fontSize: "0.72rem" }}>{amt(p.reserveA)} {p.a.code} / {amt(p.reserveB)} {p.b.code}</td>
+                    <td className="mono">{p.holders}</td>
+                    <td><button className="btn small ghost">Open</button></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <p className="muted" style={{ fontSize: "0.72rem" }}>
-          Mainnet issuers don't exist on testnet. <b>REAL testnet</b> = the official testnet asset (Circle's testnet USDC). <b>testnet mirror of X</b> = a Quasaria mock (code mk&lt;CODE&gt;, issuer home_domain *.quasaria.invalid) that mirrors the mainnet asset for testing: not redeemable, no value. Mainnet codes/issuers were verified read-only against Horizon and each issuer's stellar.toml (see config/assets.mainnet.json). Quasaria never trades on mainnet.
-        </p>
       </div>
 
-      <div className="card" style={{ marginTop: 18 }} data-testid="retired-pools">
-        <div className="row between"><h2 style={{ margin: 0, fontSize: "1rem" }}>Retired v2 stablecoin pools ({RETIRED_POOLS.length})</h2><button className="btn small ghost" onClick={() => setShowRetired((s) => !s)}>{showRetired ? "Hide" : "Show IDs"}</button></div>
-        <p className="muted" style={{ fontSize: "0.75rem", margin: "4px 0 0" }}>{RETIRED_NOTE} Replaced by the v3 asset pools above.</p>
-        {showRetired && <div className="mono muted" style={{ fontSize: "0.7rem", marginTop: 8, columns: 2 }}>{RETIRED_POOLS.map((r) => <div key={r.pool}>{r.pair} · <a href={expertContract(r.pool)} target="_blank" rel="noreferrer">{r.pool.slice(0, 6)}…{r.pool.slice(-4)}</a></div>)}</div>}
+      <PairPicker net={net} pools={pools} onPick={(id) => setSel(id)} />
+
+      {(selected || sel?.startsWith("new:")) && <PoolPanel key={sel!} net={net} sel={sel!} pool={selected} pricing={pricing} onDone={() => { list.reload(); positions.reload(); }} />}
+
+      <div className="card" style={{ marginTop: 16 }} data-testid="my-positions">
+        <h2 style={{ marginTop: 0 }}>Your positions</h2>
+        {!w.address ? <p className="muted">Create a keypair or sign in with your secret key to see your pool shares. <button className="btn small" onClick={() => w.openModal()}>Sign in</button></p>
+          : positions.loading ? <p className="muted">Reading Horizon…</p>
+          : !positions.data?.length ? <p className="muted">No pool shares on this account yet.</p>
+          : (
+            <div style={{ overflowX: "auto" }}><table className="t"><thead><tr><th>Pair</th><th>Shares</th><th>Pool share</th><th>Your amounts</th><th>Value</th><th /></tr></thead><tbody>
+              {positions.data.map((p) => (
+                <tr key={p.pool.id}>
+                  <td><AssetChip net={net} a={p.pool.a} /> / <AssetChip net={net} a={p.pool.b} /></td>
+                  <td className="mono">{fmt(p.shares, 4)}</td>
+                  <td className="mono">{fmt(p.fraction * 100, 4)}%</td>
+                  <td className="mono">{amt(p.amountA)} {p.pool.a.code} + {amt(p.amountB)} {p.pool.b.code}</td>
+                  <td className="mono">{usd(p.usd)}</td>
+                  <td><button className="btn small ghost" onClick={() => { setSel(p.pool.id); if (!pools.some((x) => x.id === p.pool.id)) { /* show anyway */ } }}>Manage</button></td>
+                </tr>
+              ))}
+            </tbody></table></div>
+          )}
+        <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Earned fees stay in the pool and raise what your shares are worth. See the <Link to="/earn">Earnings</Link> tab for fee earnings and {REWARD_ASSET_CODE} holder rewards.</p>
       </div>
     </>
+  );
+}
+
+/** Choose any two curated assets; if the pool does not exist the first deposit creates it. */
+function PairPicker({ net, pools, onPick }: { net: NetId; pools: PoolRow[]; onPick: (sel: string) => void }) {
+  const list = curatedList(net);
+  const [a, setA] = useState(0), [b, setB] = useState(Math.min(1, list.length - 1));
+  const A = list[a], B = list[b];
+  const same = a === b;
+  const id = !same && A && B ? poolIdFor(A, B) : null;
+  return (
+    <div className="card" style={{ marginBottom: 16 }} data-testid="pair-picker">
+      <h2 style={{ marginTop: 0 }}>Pick a pair</h2>
+      <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+        <select className="input" style={{ maxWidth: 220 }} value={a} onChange={(e) => setA(Number(e.target.value))} aria-label="Asset 1">{list.map((c, i) => <option key={keyOf(c)} value={i}>{c.code}{c.issuer ? ` · ${c.issuer.slice(0, 4)}…${c.issuer.slice(-4)}` : ""}</option>)}</select>
+        <span className="muted">+</span>
+        <select className="input" style={{ maxWidth: 220 }} value={b} onChange={(e) => setB(Number(e.target.value))} aria-label="Asset 2">{list.map((c, i) => <option key={keyOf(c)} value={i}>{c.code}{c.issuer ? ` · ${c.issuer.slice(0, 4)}…${c.issuer.slice(-4)}` : ""}</option>)}</select>
+        <button className="btn small" disabled={same || !id} onClick={() => id && onPick(pools.some((p) => p.id === id) ? id : `new:${id}:${keyOf(orderAssets(A, B)[0])}|${keyOf(orderAssets(A, B)[1])}`)}>Open</button>
+      </div>
+      <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Assets come from the issuer-verified list and are matched by code and issuer, never by ticker alone. {same ? "Pick two different assets." : id && !pools.some((p) => p.id === id) ? "No pool is loaded for this pair yet: depositing creates it (or joins it if it exists but is not in the list)." : ""}</p>
+    </div>
+  );
+}
+
+function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; sel: string; pool: PoolRow | null; pricing: Pricing; onDone: () => void }) {
+  const w = useWallet();
+  const tx = useTx();
+  const [mode, setMode] = useState<"deposit" | "withdraw">("deposit");
+  // a "new:" selection is a pair with no loaded pool: look it up, else it is created by the deposit
+  const pair = useMemo(() => {
+    if (poolIn) return { a: poolIn.a, b: poolIn.b };
+    const [, , k] = sel.split(":");
+    const [ka, kb] = (k ?? "|").split("|");
+    const f = (s: string): AssetRef => (s === "native" ? { code: "XLM", issuer: null } : { code: s.split(":")[0], issuer: s.split(":")[1] });
+    return { a: f(ka), b: f(kb) };
+  }, [poolIn, sel]);
+  const looked = useAsync(() => (poolIn ? Promise.resolve(poolIn) : fetchPoolForPair(net, pair.a, pair.b)), [sel]);
+  const pool: PoolRow | null = poolIn ?? looked.data;
+  const [driver, setDriver] = useState<"A" | "B">("A");
+  const [amount, setAmount] = useState("100");
+  const [other, setOther] = useState("100");
+  const [slip, setSlip] = useState(100); // bps
+  const [pct, setPct] = useState(100);
+  const [closeTl, setCloseTl] = useState(true);
+  const [ack, setAck] = useState(false);
+  const bal = useAsync(async () => {
+    if (!w.address) return null;
+    const [ba, bb, acct] = await Promise.all([fetchAssetBalance(net, w.address, pair.a), fetchAssetBalance(net, w.address, pair.b), fetchAccountBalances(net, w.address)]);
+    return { a: ba, b: bb, acct };
+  }, [w.address, net, sel, tx.status]);
+
+  const verified = poolVerified(net, pair);
+  const poolId = poolIdFor(pair.a, pair.b);
+  const pv = previewDeposit({ pool, driver, amount: Number(amount), otherAmount: Number(other), slippageBps: slip });
+  const shareBal = useAsync(async () => {
+    if (!w.address) return 0;
+    const ps = await fetchPositions(net, w.address, pricing);
+    return ps.find((p) => p.pool.id === poolId)?.shares ?? 0;
+  }, [w.address, poolId, tx.status]);
+  const mine = shareBal.data ?? 0;
+  const wd = pool && mine > 0 ? previewWithdraw(pool, (mine * pct) / 100, slip) : null;
+  const acct = bal.data?.acct;
+  const cost = depositReserveCost({ needTrustA: !!pair.a.issuer && !acct?.trust.has(keyOf(pair.a)), needTrustB: !!pair.b.issuer && !acct?.trust.has(keyOf(pair.b)), needShareTrust: !acct?.shareTrust.has(poolId) });
+  const needMore = pv && ((bal.data?.a ?? 0) < pv.maxAmountA || (bal.data?.b ?? 0) < pv.maxAmountB);
+  const blocked = !verified && !ack;
+  const spotTxt = pool ? `1 ${pool.a.code} = ${fmt(spot(pool), 6)} ${pool.b.code}` : null;
+
+  return (
+    <div className="card glow" style={{ marginBottom: 16 }} data-testid="pool-panel">
+      <div className="row between" style={{ flexWrap: "wrap", gap: 8 }}>
+        <h2 style={{ margin: 0 }}><AssetChip net={net} a={pair.a} size={24} /> / <AssetChip net={net} a={pair.b} size={24} /></h2>
+        <span className={`pill ${verified ? "green" : "pink"}`}>{verified ? "✔ both assets verified" : "contains an unverified asset"}</span>
+      </div>
+      <p className="muted mono" style={{ fontSize: "0.72rem", wordBreak: "break-all" }}>Pool id {poolId}</p>
+      {!pool && !looked.loading && <div className="notice">No pool exists for this pair yet. Your first deposit creates it and sets its starting price from the two amounts you enter, so enter the market ratio: anyone can trade against a mispriced pool.</div>}
+      {pool && <div className="l-est"><div><span className="muted l-tiny">Reserves</span><b className="mono">{amt(pool.reserveA)} {pool.a.code} / {amt(pool.reserveB)} {pool.b.code}</b></div><div><span className="muted l-tiny">Spot price</span><b className="mono">{spotTxt}</b></div><div><span className="muted l-tiny">Fee</span><b className="mono">0.30%</b></div><div><span className="muted l-tiny">Total shares</span><b className="mono">{amt(pool.totalShares)}</b></div></div>}
+      {!verified && <label className="row" style={{ gap: 8, margin: "8px 0", fontSize: "0.85rem" }}><input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} data-testid="unverified-ack" /> I checked the issuers myself and accept the risk of an unverified asset.</label>}
+      <Tabs value={mode} onChange={setMode} options={[{ v: "deposit", label: "Deposit" }, { v: "withdraw", label: "Withdraw" }]} />
+      <div className="field" style={{ marginTop: 10 }}>
+        <label>Max slippage: {fmt(slip / 100, 2)}%</label>
+        <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+          {[50, 100, 200].map((s) => <button key={s} className={`chip ${slip === s ? "on" : ""}`} onClick={() => setSlip(s)}>{s / 100}%</button>)}
+          <input className="input" style={{ maxWidth: 110 }} type="number" min={0.01} max={50} step={0.1} value={slip / 100} onChange={(e) => setSlip(Math.round(Math.min(Math.max(Number(e.target.value) || 0.01, 0.01), 50) * 100))} aria-label="Slippage percent" data-testid="slippage-input" />
+        </div>
+        <p className="muted" style={{ fontSize: "0.74rem", margin: "4px 0 0" }}>{mode === "deposit" ? "The deposit fails instead of executing outside the price range ±slippage around the price you saw." : "The withdrawal fails if you would receive less than the minimum amounts shown."}</p>
+      </div>
+
+      {mode === "deposit" ? (
+        <>
+          <div className="grid g-2">
+            <div className="field"><label>{pair.a.code} {bal.data?.a != null && <span className="muted">· balance {fmt(bal.data.a, 4)}</span>}</label>
+              <input className="input" inputMode="decimal" value={driver === "A" ? amount : pv ? String(Number(pv.amountA.toFixed(7))) : ""} onChange={(e) => { setDriver("A"); setAmount(e.target.value); }} data-testid="dep-a" /></div>
+            <div className="field"><label>{pair.b.code} {bal.data?.b != null && <span className="muted">· balance {fmt(bal.data.b, 4)}</span>}</label>
+              <input className="input" inputMode="decimal" value={pool ? (driver === "B" ? amount : pv ? String(Number(pv.amountB.toFixed(7))) : "") : other} onChange={(e) => { if (pool) { setDriver("B"); setAmount(e.target.value); } else setOther(e.target.value); }} data-testid="dep-b" /></div>
+          </div>
+          {pv && (
+            <div className="l-est" data-testid="dep-preview">
+              <div><span className="muted l-tiny">You get (est.)</span><b className="mono">{fmt(pv.shares, 4)} shares</b></div>
+              <div><span className="muted l-tiny">Pool share after</span><b className="mono">{fmt(pv.poolShareAfter * 100, 4)}%</b></div>
+              <div><span className="muted l-tiny">Price range accepted</span><b className="mono">{fmt(pv.minPrice, 6)} to {fmt(pv.maxPrice, 6)} {pair.a.code}/{pair.b.code}</b></div>
+              <div><span className="muted l-tiny">New reserve locked</span><b className="mono">{fmt(cost.total, 1)} XLM</b></div>
+            </div>
+          )}
+          {cost.total > 0 && <p className="muted" style={{ fontSize: "0.76rem" }}>This also adds {[cost.trustlines > 0 ? "missing asset trustlines" : "", cost.shareTrust > 0 ? "the pool-share trustline (counts as 2 entries)" : ""].filter(Boolean).join(" and ")}, locking {fmt(cost.total, 1)} XLM of reserve (0.5 XLM per entry) while you hold them. Keep {fmt(BASE_RESERVE, 1)} XLM or more spare for fees.</p>}
+          {needMore && w.address && <div className="notice warn" style={{ fontSize: "0.8rem" }}>Your balance looks too low for this deposit.</div>}
+          {!w.address ? <button className="btn block" onClick={() => w.openModal()}>Sign in to deposit</button> : (
+            <button className="btn block" data-testid="deposit-btn" disabled={tx.busy || !pv || blocked || !!needMore} onClick={() => tx.run("deposit", async () => {
+              const r = await buildDepositTx(net, w.address!, pair.a, pair.b, pv!);
+              const res = await submitSignedXdr(await w.sign(r.xdr));
+              onDone();
+              return res.hash;
+            })}>{pool ? "Deposit" : "Create pool & deposit"}</button>
+          )}
+        </>
+      ) : (
+        <>
+          {!w.address ? <button className="btn block" onClick={() => w.openModal()}>Sign in to withdraw</button> : mine <= 0 ? <p className="muted">You hold no shares of this pool.</p> : (
+            <>
+              <div className="field"><label>Withdraw {pct}% of your {fmt(mine, 4)} shares</label><input type="range" min={1} max={100} value={pct} onChange={(e) => setPct(Number(e.target.value))} data-testid="wd-pct" /></div>
+              {wd && (
+                <div className="l-est" data-testid="wd-preview">
+                  <div><span className="muted l-tiny">You receive (est.)</span><b className="mono">{amt(wd.amountA)} {pair.a.code} + {amt(wd.amountB)} {pair.b.code}</b></div>
+                  <div><span className="muted l-tiny">Minimum accepted</span><b className="mono">{amt(wd.minAmountA)} {pair.a.code} + {amt(wd.minAmountB)} {pair.b.code}</b></div>
+                </div>
+              )}
+              {pct === 100 && <label className="row" style={{ gap: 8, fontSize: "0.85rem" }}><input type="checkbox" checked={closeTl} onChange={(e) => setCloseTl(e.target.checked)} /> Also close the pool-share trustline (frees its 1 XLM reserve)</label>}
+              <button className="btn block" data-testid="withdraw-btn" disabled={tx.busy || !wd || !pool} style={{ marginTop: 8 }} onClick={() => tx.run("withdraw", async () => {
+                const xdr = await buildWithdrawTx(net, w.address!, pool!, wd!, pct === 100 && closeTl);
+                const res = await submitSignedXdr(await w.sign(xdr));
+                onDone();
+                return res.hash;
+              })}>Withdraw</button>
+            </>
+          )}
+        </>
+      )}
+      <TxStatus status={tx.status} />
+      {tx.status && /: confirmed \((\w+)\)/.test(tx.status) && <p className="muted" style={{ fontSize: "0.76rem" }}>Find it in your <Link to="/activity">Activity</Link> tab.</p>}
+    </div>
   );
 }

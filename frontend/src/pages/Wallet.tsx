@@ -55,7 +55,7 @@ export default function Wallet() {
   );
 }
 
-function Receive({ address, funded, acct }: { address: string; funded: boolean | null; acct: ReturnType<typeof useAccount> }) {
+export function Receive({ address, funded, acct }: { address: string; funded: boolean | null; acct: ReturnType<typeof useAccount> }) {
   const w = useWallet();
   const [res, setRes] = useState<Result>(null);
   const [busy, setBusy] = useState(false);

@@ -13,6 +13,7 @@ import Merch from "./pages/Merch";
 import News from "./pages/News";
 import Wallet from "./pages/Wallet";
 import Account from "./pages/Account";
+import Buy from "./pages/Buy";
 import Swap from "./pages/Swap";
 import ComingSoon from "./pages/ComingSoon";
 import { REDIRECTS } from "./lib/nav";
@@ -37,7 +38,7 @@ export default function App() {
           <Route path="/swap" element={<Swap />} />
           <Route path="/referral" element={<ComingSoon kicker="Referral" title="Referral program" links={[{ to: "/holders", label: "Holder rewards" }]}>Invite people with your link. It will go live after the first mainnet holder-reward run, and the terms may change.</ComingSoon>} />
           <Route path="/activity" element={<ComingSoon kicker="Activity" title="Activity" links={[{ to: "/exchange", label: "Exchange" }, { to: "/pools", label: "Pools" }]}>Your trades, pool deposits and withdrawals, and rewards in one timeline, plus a network-wide view.</ComingSoon>} />
-          <Route path="/buy" element={<ComingSoon kicker="Buy" title="Buy XLM" links={[{ to: "/markets", label: "Markets" }]}>How to get XLM into your Quasaria address with a card from a third-party provider, and how to set up USDC.</ComingSoon>} />
+          <Route path="/buy" element={<Buy />} />
           <Route path="/about" element={<ComingSoon kicker="About" title="About Quasaria" links={[{ to: "/", label: "Home" }, { to: "/holders", label: "Holder rewards" }]}>Quasaria is a self-banking decentralized exchange on Stellar where you trade, earn, and stay in full control of your keys.</ComingSoon>} />
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/account" element={<Account />} />

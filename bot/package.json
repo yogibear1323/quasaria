@@ -1,21 +1,17 @@
 {
-  "name": "quasaria-bot",
+  "name": "quasaria-oracle-keeper",
   "version": "0.1.0",
   "private": true,
-  "description": "Quasaria off-chain bot + keeper: grid / DCA / momentum leveraged strategies and a liquidation / SL-TP keeper (TESTNET only).",
+  "description": "Quasaria testnet maintenance: mock-oracle price feed and lending liquidation keeper (TESTNET only). Not a trading bot; the trading bots were removed 2026-10-18.",
   "type": "module",
   "engines": {
     "node": ">=22.12"
   },
   "scripts": {
-    "start": "tsx src/index.ts",
-    "paper": "tsx src/index.ts --mode paper --ticks 500",
-    "keeper": "tsx src/index.ts --keeper-only",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lending-keeper": "tsx src/lending/cli.ts lending-keeper",
-    "oracle-feed": "tsx src/lending/cli.ts oracle-feed",
-    "office": "tsx src/office/cli.ts"
+    "oracle-feed": "tsx src/lending/cli.ts oracle-feed"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^17.2.1"

@@ -13,7 +13,7 @@ const out = resolve(root, "screenshots");
 mkdirSync(out, { recursive: true });
 const BASE = process.env.BASE_URL || "http://127.0.0.1:4173";
 const ONLY = process.env.ONLY; // e.g. ONLY=landing to capture just the landing shots
-const pages = ONLY === "landing" ? [] : ["trade", "pools", "stake", "rewards", "referrals", "bots", "markets"];
+const pages = ONLY === "landing" ? [] : ["trade", "pools", "stake", "rewards", "referrals", "markets"];
 const BLUR = ".secret-value { filter: blur(9px) !important; color: transparent !important; text-shadow: 0 0 12px rgba(255,255,255,.8) !important; }";
 
 const browser = await chromium.launch();

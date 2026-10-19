@@ -12,7 +12,7 @@ export default function Referral() {
   return (
     <>
       <PageHead kicker="Referral" title="Referral program" right={<span className={`pill ${REFERRAL_LIVE ? "green" : "gold"}`} data-testid="referral-status">{REFERRAL_LIVE ? "Live" : "Coming after launch"}</span>}>
-        Invite someone to Quasaria. When they hold {CODE} and earn holder rewards, you earn a bonus on top and so do they. Bonuses are paid from the same {CODE} reward budget, not by taking anything from them.
+        Invite someone to Quasaria. When they hold {CODE} and earn holder rewards, you earn a bonus on top and so do they. Bonuses are extra {CODE} on top of the normal reward, and nobody's own reward is reduced.
       </PageHead>
 
       {!REFERRAL_LIVE && (

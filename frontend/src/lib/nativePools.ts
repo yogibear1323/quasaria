@@ -230,6 +230,7 @@ export const spot = (p: { reserveA: number; reserveB: number }) => (p.reserveA >
 export type Pricing = { xlmUsd: number | null };
 /** USD value of one unit of `a`: USD-pegged curated stablecoins = 1, XLM = pricing.xlmUsd. Otherwise null. */
 export function usdUnit(net: NetId, a: AssetRef, pricing: Pricing): number | null {
+  if (net !== "mainnet") return null; // testnet tokens have no value: never show a dollar figure for them
   if (!a.issuer) return pricing.xlmUsd;
   const v = verifyAsset(net, a);
   if (v.status === "verified" && v.asset.category === "stablecoin" && v.asset.peg === "USD") return 1;

@@ -71,3 +71,7 @@ html.frost .merch .btn.m-buy:disabled { background: rgba(190, 206, 230, 0.10); c
 }
 @media (prefers-contrast: more) { html.frost .merch .m-hero-yeti { display: none; } }
 @media (max-width: 520px) { html.frost .merch .m-kicker { gap: 10px; letter-spacing: 0.12em; font-size: 0.7rem; } html.frost .merch .m-kicker::before { display: none; } }
+
+/* deep-ink artwork (glacier white garments) needs a light backdrop, not the dark frost panel */
+html.frost .merch .m-main.art.light { background: repeating-conic-gradient(#E4ECF7 0 25%, #D5E0F0 0 50%) 0 0 / 28px 28px; }
+html.frost .merch .m-thumbs button.art.light { background: repeating-conic-gradient(#E4ECF7 0 25%, #D5E0F0 0 50%) 0 0 / 12px 12px; }

@@ -19,11 +19,11 @@ export const MERCH_CONTACT_EMAIL = "";
 export const NOTIFY_KEY = "quasaria.merch.notify.v1";
 
 export type Swatch = { id: string; name: string; hex: string };
-/** v4 palette: earthy clay/honey glow on umber, moss and sand. */
+/** Frost palette: silver / ice-blue glow on midnight navy, glacier slate and glacier white. */
 export const SWATCH: Record<string, Swatch> = {
-  black: { id: "black", name: "Umber", hex: "#231a12" },
-  navy: { id: "navy", name: "Moss", hex: "#2F3A26" },
-  pearl: { id: "pearl", name: "Sand", hex: "#E9DFCC" },
+  black: { id: "black", name: "Midnight Navy", hex: "#16213B" },
+  navy: { id: "navy", name: "Glacier Slate", hex: "#2F4468" },
+  pearl: { id: "pearl", name: "Glacier White", hex: "#E8F0FA" },
 };
 
 export type Category = "tees" | "hoodies" | "jackets" | "caps" | "accessories";
@@ -45,31 +45,31 @@ export type Product = {
 };
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
-/** Frost-backdrop renders (same garments and print art as mockups/, navy-steel studio backdrop instead of umber). */
-const mk = (name: string) => merchImg(`mockups-frost/${name}.webp`);
+/** Frost renders: cool garment colourways (midnight navy / glacier slate / glacier white), silver and ice-blue Q art, navy-steel studio backdrop. */
+const mk = (name: string) => merchImg(`mockups-icy/${name}.webp`);
 const per = (base: string, colors: string[]) => Object.fromEntries(colors.map((c) => [c, mk(`${base}-${c}`)]));
-/** Print artwork (all v4 art is light/glow ink, shown on a dark backdrop). */
-const art = (file: string, alt: string) => ({ src: merchImg(`designs/${file}.webp`), alt, art: true });
+/** Print artwork: silver / ice-blue glow ink on a dark backdrop; `-ink` files are deep-navy ink for glacier white, shown on a light backdrop. */
+const art = (file: string, alt: string) => ({ src: merchImg(`designs-icy/${file}.webp`), alt, art: true, ...(file.includes("-ink") ? { light: true } : {}) });
 
 export const PRODUCTS: Product[] = [
   {
     id: "glow-hoodie", name: "Glow Hoodie", tagline: "The glowing Singularity Q over a clean white wordmark. Nothing else.", category: "hoodies", examplePrice: 64,
     colors: [SWATCH.black, SWATCH.navy], sizes: SIZES, mockups: per("hoodie", ["black", "navy"]),
     extras: [art("glow-lockup-center-chest-12x14in", "Centre-chest artwork: glowing Q + wordmark")],
-    details: ["Centre-chest print, about 12 in wide", "Heavyweight fleece (example blank)", "White underbase so the glow stays bright on umber"], badge: "Headline",
+    details: ["Centre-chest print, about 12 in wide", "Heavyweight fleece (example blank)", "White underbase so the glow stays bright on midnight navy"], badge: "Headline",
   },
   {
-    id: "pearl-tee", name: "Sand Iridescent Tee", tagline: "An oversized sand tee with a shifting sheen, a small full-colour Q on the chest and a honey wordmark on the sleeve.", category: "tees", examplePrice: 42,
+    id: "pearl-tee", name: "Glacier Iridescent Tee", tagline: "An oversized glacier-white tee with a shifting sheen, a small deep-ink Q on the chest and an ink wordmark on the sleeve.", category: "tees", examplePrice: 42,
     colors: [SWATCH.pearl], sizes: SIZES, mockups: { pearl: mk("pearl-tee") },
     extras: [
-      art("chest-q-left-4x4in", "Left-chest Singularity Q"),
-      art("sleeve-wordmark-cyan-4x1.2in", "Sleeve wordmark, honey"),
+      art("chest-q-left-4x4in-ink", "Left-chest Singularity Q, deep ink"),
+      art("sleeve-wordmark-ink-4x1.2in", "Sleeve wordmark, deep ink"),
       art("neck-label-2x0.75in", "Inside neck label"),
     ],
-    details: ["Left-chest Q, about 3.5 in", "Honey wordmark on the left sleeve", "Iridescent specialty blank (example); a sand tee is the fallback"], badge: "Headline",
+    details: ["Left-chest Q, about 3.5 in", "Deep-ink wordmark on the left sleeve", "Iridescent specialty blank (example); a glacier-white tee is the fallback"], badge: "Headline",
   },
   {
-    id: "glow-bomber", name: "Singularity Bomber", tagline: "A moss bomber with the Q and wordmark on a chest patch and a vertical Quasaria beside the zip.", category: "jackets", examplePrice: 98,
+    id: "glow-bomber", name: "Singularity Bomber", tagline: "A glacier-slate bomber with the Q and wordmark on a chest patch and a vertical Quasaria beside the zip.", category: "jackets", examplePrice: 98,
     colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("bomber", ["navy", "black"]),
     extras: [
       art("bomber-chest-patch-3x3.5in", "Chest patch: Q + wordmark"),
@@ -86,13 +86,13 @@ export const PRODUCTS: Product[] = [
       art("back-glow-q-15x18in", "Back artwork: large glowing Q"),
       art("chest-q-left-4x4in", "Left-chest Q"),
     ],
-    details: ["Full-back print + left-chest Q", "Umber only, so the glow can do the work"], badge: "Essential",
+    details: ["Full-back print + left-chest Q", "Midnight navy only, so the glow can do the work"], badge: "Essential",
   },
   {
     id: "sleeve-tee", name: "Sleeve Wordmark Tee", tagline: "A small Q on the chest and the Quasaria wordmark down the sleeve.", category: "tees", examplePrice: 30,
     colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("sleeve-tee", ["navy", "black"]),
-    extras: [art("sleeve-wordmark-white-4x1.2in", "Sleeve wordmark, white (navy)"), art("sleeve-wordmark-cyan-4x1.2in", "Sleeve wordmark, cyan (black)")],
-    details: ["Left-chest Q + sleeve wordmark", "Sand wordmark on moss, honey on umber"],
+    extras: [art("sleeve-wordmark-white-4x1.2in", "Sleeve wordmark, white (glacier slate)"), art("sleeve-wordmark-cyan-4x1.2in", "Sleeve wordmark, ice blue (midnight navy)")],
+    details: ["Left-chest Q + sleeve wordmark", "White wordmark on glacier slate, ice blue on midnight navy"],
   },
   {
     id: "speed-of-light-tee", name: "Speed of Light Tee", tagline: "The glowing Q, a single light streak and one quiet line of type.", category: "tees", examplePrice: 32,
@@ -103,7 +103,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "level-up-tee", name: "Level Up Tee", tagline: "The glowing Q inside a single XP ring. Learn it, try it once, level up.", category: "tees", examplePrice: 32,
     colors: [SWATCH.black, SWATCH.pearl], sizes: SIZES, mockups: per("level-up", ["black", "pearl"]),
-    extras: [art("level-up-minimal-15x18in", "Front artwork")],
+    extras: [art("level-up-minimal-15x18in", "Front artwork"), art("level-up-minimal-15x18in-ink", "Front artwork, deep ink (glacier white)")],
     details: ["Front print, art kept to about 11 in", "Inspired by the in-app quests (XP itself has no monetary value)"], badge: "Game layer",
   },
   {
@@ -119,13 +119,13 @@ export const PRODUCTS: Product[] = [
       { src: mk("cap-black-lockup"), alt: "Alternative: Q + wordmark" },
       art("cap-embroidery-q-3color-600dpi", "Embroidery artwork, 3 threads"),
     ],
-    details: ["Clay, honey and sand threads (3 max)", "Adjustable strap"],
+    details: ["Silver-blue, ice-blue and white threads (3 max)", "Adjustable strap"],
   },
   {
-    id: "glow-mug", name: "Glow Mug", tagline: "Umber 11 oz ceramic with the glowing Q on one side and the wordmark on the other.", category: "accessories", examplePrice: 18,
+    id: "glow-mug", name: "Glow Mug", tagline: "Midnight navy 11 oz ceramic with the glowing Q on one side and the wordmark on the other.", category: "accessories", examplePrice: 18,
     colors: [SWATCH.black], sizes: ["11 oz"], mockups: { black: mk("mug-glow-front") },
     extras: [{ src: mk("mug-glow-back"), alt: "Other side: wordmark" }, art("mug-11oz-wrap-glow-black", "Full mug wrap artwork")],
-    details: ["Full wrap on umber ceramic", "Dishwasher & microwave safe (example blank)"],
+    details: ["Full wrap on midnight navy ceramic", "Dishwasher & microwave safe (example blank)"],
   },
   {
     id: "sticker-sheet", name: "Logo Sticker Sheet", tagline: "Eight logo stickers: the glowing Q, lockups and wordmarks.", category: "accessories", examplePrice: 8,
@@ -144,8 +144,8 @@ export const CATEGORIES: { id: "all" | Category; label: string }[] = [
   { id: "accessories", label: "Stickers & mugs" },
 ];
 
-/** The 3-up store banner: Glow hoodie, sand tee, bomber. */
-export const HERO_IMG = merchImg("hero/merch-hero-v4.webp");
+/** The 3-up store banner: Glow hoodie, glacier tee, bomber. */
+export const HERO_IMG = merchImg("hero/merch-hero-v4-icy.webp");
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export type NotifyEntry = { email: string; product: string; at: number };

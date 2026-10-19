@@ -57,7 +57,7 @@ const front = (c, key) => () => M.tee({ color: G[c], art: svgs[key], placement: 
 export const MOCKUPS = [
   ["hoodie-black", () => M.hoodie({ color: G.black, art: svgs["glow-lockup"] })],
   ["hoodie-navy", () => M.hoodie({ color: G.navy, art: svgs["glow-lockup"] })],
-  ["pearl-tee", () => M.tee({ color: G.pearl, art: svgs["chest-mark"], placement: "chest", sleeve: svgs["sleeve-cyan"], label: svgs["neck-label"], pearl: true })],
+  ["pearl-tee", () => M.tee({ color: G.pearl, art: svgs["chest-mark-ink"], placement: "chest", sleeve: svgs["sleeve-ink"], label: svgs["neck-label"], pearl: true })],
   ["bomber-navy", () => M.bomber({ color: G.navy, patch: svgs["bomber-patch"], placket: svgs["bomber-placket"], label: svgs["neck-label"] })],
   ["bomber-black", () => M.bomber({ color: G.black, patch: svgs["bomber-patch"], placket: svgs["bomber-placket"], label: svgs["neck-label"] })],
   ["backglow-tee-black-front", () => M.tee({ color: G.black, art: svgs["chest-mark"], placement: "chest", label: svgs["neck-label"] })],
@@ -67,7 +67,7 @@ export const MOCKUPS = [
   ["speed-of-light-black", front("black", "speed-of-light")],
   ["speed-of-light-navy", front("navy", "speed-of-light")],
   ["level-up-black", front("black", "level-up")],
-  ["level-up-pearl", front("pearl", "level-up")],
+  ["level-up-pearl", front("pearl", "level-up-ink")],
   ["stardust-navy", front("navy", "stardust")],
   ["stardust-black", front("black", "stardust")],
   ["cap-black", () => M.cap({ color: G.black, art: svgs["cap-mark-3c"] })],
@@ -96,18 +96,18 @@ async function sheetPage(html, out, w, h = 800, full = true) {
   await p.screenshot({ path: out, fullPage: full });
   await ctx.close();
 }
-const css = `body{margin:0;background:#090807;color:#f6eae5;font:15px/1.35 system-ui,sans-serif;padding:36px}h1{margin:0 0 6px;font-size:28px}p{margin:0 0 24px;color:#bcaa96}
-.g{display:grid;gap:18px}.c{background:#16130f;border:1px solid #312a22;border-radius:14px;overflow:hidden}.c img{display:block;width:100%}.c div{padding:10px 12px;font-size:13px;color:#e9cabd}`;
+const css = `body{margin:0;background:#05080b;color:#e7eff4;font:15px/1.35 system-ui,sans-serif;padding:36px}h1{margin:0 0 6px;font-size:28px}p{margin:0 0 24px;color:#9ea9b4}
+.g{display:grid;gap:18px}.c{background:#0b121a;border:1px solid #192a3a;border-radius:14px;overflow:hidden}.c img{display:block;width:100%}.c div{padding:10px 12px;font-size:13px;color:#c6d6e0}`;
 if (want("sheets")) {
   const cells = MOCKUPS.map(([n]) => `<div class="c"><img src="mockup-${n}.png"><div>${n}</div></div>`).join("");
-  await sheetPage(`<style>${css}.g{grid-template-columns:repeat(6,1fr)}</style><h1>Quasaria merch v4 — mockups</h1><p>${MOCKUPS.length} programmatic studio mockups · minimal, logo-led · black / navy / pearl · example products, not for sale yet</p><div class="g">${cells}</div>`, resolve(SHOTS, "merch-contact-sheet-v4.png"), 2000);
-  const dcells = DESIGNS.filter((d) => d.id !== "sticker-sheet").map((d) => `<div class="c"><div style="background:${d.id.startsWith("sticker") ? "#907b64" : "#231a12"};padding:14px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><img style="max-width:100%;max-height:100%;width:auto" src="${pathToFileURL(resolve(PRINT, "png", d.file + ".png")).href}"></div><div>${d.file}<br><span style="color:#b39e87">${d.w}×${d.h} · ${d.kind}</span></div></div>`).join("");
+  await sheetPage(`<style>${css}.g{grid-template-columns:repeat(6,1fr)}</style><h1>Quasaria merch v4 — mockups</h1><p>${MOCKUPS.length} programmatic studio mockups · minimal, logo-led · midnight navy / glacier slate / glacier white · example products, not for sale yet</p><div class="g">${cells}</div>`, resolve(SHOTS, "merch-contact-sheet-v4.png"), 2000);
+  const dcells = DESIGNS.filter((d) => d.id !== "sticker-sheet").map((d) => `<div class="c"><div style="background:${d.id.startsWith("sticker") ? "#6b7a89" : "#16213b"};padding:14px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><img style="max-width:100%;max-height:100%;width:auto" src="${pathToFileURL(resolve(PRINT, "png", d.file + ".png")).href}"></div><div>${d.file}<br><span style="color:#909daa">${d.w}×${d.h} · ${d.kind}</span></div></div>`).join("");
   await sheetPage(`<style>${css}.g{grid-template-columns:repeat(6,1fr)}</style><h1>Quasaria merch v4 — print designs</h1><p>Full-resolution print PNGs (transparent) rendered from outlined SVG</p><div class="g">${dcells}</div>`, resolve(SHOTS, "merch-designs-overview-v4.png"), 2000);
   console.log("sheets done");
 }
 if (want("hero")) {
   const panels = ["hoodie-black", "pearl-tee", "bomber-navy"].map((n) => `<img src="mockup-${n}.png">`).join("");
-  await sheetPage(`<style>html,body{margin:0;background:#0E0C0A}.h{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding:24px;width:2400px;box-sizing:border-box}.h img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:28px;box-shadow:0 0 0 1px #ffffff14}</style><div class="h">${panels}</div>`, resolve(SHOTS, "merch-hero-v4.png"), 2400, 2 * 24 + Math.round((2400 - 4 * 24) / 3), false);
+  await sheetPage(`<style>html,body{margin:0;background:#070C11}.h{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding:24px;width:2400px;box-sizing:border-box}.h img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:28px;box-shadow:0 0 0 1px #ffffff14}</style><div class="h">${panels}</div>`, resolve(SHOTS, "merch-hero-v4.png"), 2400, 2 * 24 + Math.round((2400 - 4 * 24) / 3), false);
   console.log("hero done");
 }
 
@@ -129,11 +129,11 @@ converted to outlines, so no fonts are needed. Regenerate with \`scripts/merch/b
 only type on the core pieces. The three slogan tees (Speed of Light, Level Up, Stardust to Quasar)
 are kept but reduced to one glowing Q, one simple graphic element and one short line of type.
 
-* **Palette:** logo violet \`#B8603A\` → cyan \`#D9973A\` glow, white \`#FFFFFF\`.
-  Garments: **Black** \`#231a12\`, **Navy** \`#2F3A26\`, **Pearl** (iridescent white, \`#E9DFCC\` base).
-* **Pearl iridescent tee** is a specialty blank (pearlescent / iridescent-finish fabric) and is not a
+* **Palette (frost):** silver-blue \`#8FA6C8\` → ice blue \`#BFE3F7\` glow, white \`#FFFFFF\`; deep-ink variants (navy \`#16305C\`) for light garments.
+  Garments: **Midnight Navy** \`#16213B\`, **Glacier Slate** \`#2F4468\`, **Glacier White** (iridescent white, \`#E8F0FA\` base).
+* **Glacier iridescent tee** is a specialty blank (pearlescent / iridescent-finish fabric) and is not a
   standard Printful/Printify DTG blank. Source it from a cut-and-sew or specialty supplier, or fall
-  back to a white or "pearl"/ash heavyweight tee (the chest Q and cyan sleeve file work on white).
+  back to a white or ice-grey heavyweight tee (use the \`-ink\` chest Q and sleeve files on white).
 * **SVG** = master vector files (glow uses SVG gradients/blur). For embroidery use the flat
   \`*-embroidery-*\` / \`bomber-*-600dpi\` files and send them for digitising.
 * **PNG** = transparent, sRGB, tagged 300 DPI (embroidery files 600 DPI). The glow contains
@@ -143,14 +143,14 @@ are kept but reduced to one glowing Q, one simple graphic element and one short 
 
 | Product | Placement |
 |---|---|
-| Glow hoodie (black, navy) | \`glow-lockup\` centre chest, ~12 in wide |
-| Pearl iridescent tee | \`chest-q\` left chest (~3.5 in) + \`sleeve-wordmark-cyan\` on the wearer's left sleeve + \`neck-label\` inside neck |
-| Back Glow tee (black) | \`chest-q\` left chest + \`back-glow-q\` full back |
-| Sleeve tee (navy, black) | \`chest-q\` left chest + sleeve wordmark (white on navy, cyan on black) |
+| Glow hoodie (midnight navy, glacier slate) | \`glow-lockup\` centre chest, ~12 in wide |
+| Glacier iridescent tee | \`chest-q-left-4x4in-ink\` left chest (~3.5 in) + \`sleeve-wordmark-ink\` on the wearer's left sleeve + \`neck-label\` inside neck |
+| Back Glow tee (midnight navy) | \`chest-q\` left chest + \`back-glow-q\` full back |
+| Sleeve tee (glacier slate, midnight navy) | \`chest-q\` left chest + sleeve wordmark (white on slate, ice blue on midnight) |
 | Speed of Light / Level Up / Stardust to Quasar tees | \`*-minimal\` full front, 15 × 18 in area (art is kept inside ~11 in) |
-| Bomber (navy, black) | see below |
-| Cap (black, navy) | \`cap-embroidery-q-3color\` or \`cap-embroidery-lockup\`, front, ≤ 3 threads |
-| Mug (black 11 oz) | \`mug-11oz-wrap-glow-black\` full wrap |
+| Bomber (glacier slate, midnight navy) | see below |
+| Cap (midnight navy, glacier slate) | \`cap-embroidery-q-3color\` or \`cap-embroidery-lockup\`, front, ≤ 3 threads |
+| Mug (midnight navy 11 oz) | \`mug-11oz-wrap-glow-black\` full wrap |
 | Sticker sheet | \`sticker-sheet-5.5x8.5in\`, kiss-cut |
 
 ## Bomber jacket (Printful embroidered bomber)
@@ -175,7 +175,7 @@ ${rows}
 
 ## Individual die-cut stickers (300 DPI)
 
-SVGs include the magenta \`#C4704A\` **CutContour** hairline (2.5 mm white border, 1.5 mm bleed).
+SVGs include the magenta \`#FF00FF\` **CutContour** hairline (2.5 mm white border, 1.5 mm bleed).
 PNGs are the finished look (white border, no bleed/cut line).
 
 | Files | Sticker | Size |
@@ -184,10 +184,10 @@ ${srows}
 
 ## Before ordering
 
-1. Order a physical sample of each item: the violet → cyan glow shifts on DTG, and navy and
-   pearl blanks vary by supplier.
+1. Order a physical sample of each item: the silver → ice-blue glow shifts on DTG, and navy,
+   slate and white blanks vary by supplier.
 2. Re-check each provider's current templates (mug wrap, cap and bomber areas vary by blank).
-3. Embroidery threads: violet ≈ \`#B8603A\`, turquoise/cyan ≈ \`#D9973A\`, white. Caps ≤ 3 threads.
+3. Embroidery threads: silver-blue ≈ \`#8FA6C8\`, ice blue ≈ \`#BFE3F7\`, white. Caps ≤ 3 threads.
 `);
   console.log("README written");
 }

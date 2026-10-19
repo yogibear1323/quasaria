@@ -33,10 +33,11 @@ const iridescent = (id) => `<linearGradient id="${id}ir" x1="150" y1="120" x2="8
 const TEE = "M392 112C425 164 575 164 608 112L706 138C770 158 836 205 884 268L818 400C794 386 764 370 740 360C743 525 747 705 752 888C600 904 400 904 248 888C253 705 257 525 260 360C236 370 206 386 182 400L116 268C164 205 230 158 294 138Z";
 const TEE_BACK = "M392 112C430 132 570 132 608 112L706 138C770 158 836 205 884 268L818 400C794 386 764 370 740 360C743 525 747 705 752 888C600 904 400 904 248 888C253 705 257 525 260 360C236 370 206 386 182 400L116 268C164 205 230 158 294 138Z";
 /** placement: front | chest | back | none. sleeve: art on the wearer's-left sleeve. label: neck label art. */
-export function tee({ color, art, placement = "front", sleeve, label, pearl = false, aspect = 5400 / 4500 }) {
+export function tee({ color, art, placement = "front", sleeve, label, pearl = false, aspect = 5400 / 4500, box, crisp = false }) {
   const back = placement === "back", path = back ? TEE_BACK : TEE, L = lum(color);
-  const pw = placement === "chest" ? 96 : 360, ph = placement === "chest" ? 96 : pw * aspect;
-  const px = placement === "chest" ? 556 : 500 - pw / 2, py = placement === "chest" ? 222 : back ? 190 : 214;
+  let pw = placement === "chest" ? 96 : 360, ph = placement === "chest" ? 96 : pw * aspect;
+  let px = placement === "chest" ? 556 : 500 - pw / 2, py = placement === "chest" ? 222 : back ? 190 : 214;
+  if (box) [px, py, pw, ph] = box; // optional explicit art box [x, y, w, h] in scene units (yeti line); crisp: pearl sheen goes under the art, not over it
   const sh = L > 0.5 ? 0.22 : 0.36;
   const folds = `<g filter="url(#tsoft)" fill="none" stroke-linecap="round">
     <path d="M300 395C330 530 318 660 345 840" stroke="#000" stroke-opacity="${sh}" stroke-width="22"/>
@@ -61,12 +62,13 @@ export function tee({ color, art, placement = "front", sleeve, label, pearl = fa
   <path d="${path}" fill="${color}"/>
   <g clip-path="url(#tclip)"><rect width="1000" height="1000" fill="${color}"/>
     ${pearl ? `<rect x="-200" y="-200" width="1400" height="1400" fill="url(#tir)" filter="url(#tirid)" style="mix-blend-mode:multiply" opacity=".9"/>` : ""}
+    ${pearl && crisp ? `<rect x="-200" y="-200" width="1400" height="1400" fill="url(#tir)" filter="url(#tirid)" style="mix-blend-mode:screen" opacity=".35"/>` : ""}
     ${art && placement !== "none" ? img("t", art, px, py, pw, ph, 'opacity=".97"') : ""}
     ${sleeve ? `<g transform="translate(810 322) rotate(-60)">${img("t", sleeve, -58, -17, 116, 35)}</g>` : ""}
     ${fabric("t", color)}
     ${folds}
     <rect width="1000" height="1000" fill="url(#tcyl)"/><rect width="1000" height="1000" fill="url(#tvert)"/>
-    ${pearl ? `<rect x="-200" y="-200" width="1400" height="1400" fill="url(#tir)" filter="url(#tirid)" style="mix-blend-mode:screen" opacity=".35"/>` : ""}
+    ${pearl && !crisp ? `<rect x="-200" y="-200" width="1400" height="1400" fill="url(#tir)" filter="url(#tirid)" style="mix-blend-mode:screen" opacity=".35"/>` : ""}
     <path d="M294 138C279 228 262 300 260 360M706 138C721 228 738 300 740 360" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2.5"/>
     <path d="M186 378L122 268M814 378L878 268" fill="none" stroke="#fff" stroke-opacity=".06" stroke-width="2" stroke-dasharray="5 5"/>
     <path d="M252 870C400 885 600 885 748 870" fill="none" stroke="${L > 0.5 ? "#000" : "#fff"}" stroke-opacity=".1" stroke-width="2" stroke-dasharray="6 6"/>

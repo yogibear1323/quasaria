@@ -11,22 +11,58 @@
  * optional thumbnail are kept: full articles are never stored or republished.
  */
 
-/** Feeds. Every URL was checked on 2026-09-29 (HTTP 200, valid RSS). None of them sends
- * Access-Control-Allow-Origin, so browsers on github.io can't read them directly (`cors: false`);
- * they are fetched at build time. `filter: true` = general crypto feed, keep only Stellar items. */
+/**
+ * Feeds. Every URL below was probed on 2026-10-18 (HTTP 200, valid RSS/Atom, fresh items). None sends
+ * Access-Control-Allow-Origin for github.io (except the status API, read live in the browser), so the
+ * scheduled "Stellar news" workflow (scripts/fetch-news-snapshot.mjs) fetches them and commits news.json.
+ *
+ *  kind "blog"    editorial posts (RSS)             kind "release"  GitHub release notes (Atom)
+ *  kind "status"  Stellar status incidents (Atom)   kind "outlet"   third-party crypto press (RSS)
+ *  filter: true   keep only items that are about Stellar / XLM / Soroban
+ *  tags           category tags every item of the source gets (more are added from keywords)
+ *  maxAgeDays / maxItems  per-source freshness window and cap, so busy sources can't flood the list
+ *
+ * Sources that were probed and DROPPED (see docs/news-pipeline.md): developers.stellar.org blog feed (404),
+ * stellar-protocol releases (no releases published), soroban-examples (last release 2025), the Stellar
+ * Community Fund site (no feed; SCF recaps come through the Stellar Community Medium feed), X/Twitter via
+ * Nitter (410 Gone, no public RSS), r/Stellar (user posts, price chatter, blocks CI IPs).
+ */
 export const NEWS_SOURCES = [
-  { id: "sdf", name: "Stellar Development Foundation", home: "https://stellar.org/blog", feed: "https://stellar.org/blog/rss.xml", filter: false, cors: false },
-  { id: "stellar-community", name: "Stellar Community (Medium)", home: "https://medium.com/stellar-community", feed: "https://medium.com/feed/stellar-community", filter: false, cors: false },
-  { id: "cointelegraph", name: "Cointelegraph", home: "https://cointelegraph.com/tags/stellar", feed: "https://cointelegraph.com/rss/tag/stellar", filter: false, cors: false },
-  { id: "coindesk", name: "CoinDesk", home: "https://www.coindesk.com", feed: "https://www.coindesk.com/arc/outboundfeeds/rss/", filter: true, cors: false },
-  { id: "decrypt", name: "Decrypt", home: "https://decrypt.co", feed: "https://decrypt.co/feed", filter: true, cors: false },
+  { id: "sdf", name: "Stellar Development Foundation", home: "https://stellar.org/blog", feed: "https://stellar.org/blog/rss.xml", kind: "blog", filter: false, tags: [], maxAgeDays: 365, maxItems: 20 },
+  { id: "sdf-dev", name: "Stellar Developers blog", home: "https://stellar.org/blog/developers", feed: "https://stellar.org/blog/developers/rss.xml", kind: "blog", filter: false, tags: ["developers"], maxAgeDays: 365, maxItems: 20 },
+  { id: "stellar-core", name: "stellar-core releases", label: "Stellar Core", home: "https://github.com/stellar/stellar-core/releases", feed: "https://github.com/stellar/stellar-core/releases.atom", kind: "release", filter: false, tags: ["protocol"], maxAgeDays: 150, maxItems: 5 },
+  { id: "stellar-horizon", name: "Horizon releases", label: "Horizon", home: "https://github.com/stellar/stellar-horizon/releases", feed: "https://github.com/stellar/stellar-horizon/releases.atom", kind: "release", filter: false, tags: ["protocol"], maxAgeDays: 150, maxItems: 4 },
+  { id: "stellar-rpc", name: "Stellar RPC releases", label: "Stellar RPC", home: "https://github.com/stellar/stellar-rpc/releases", feed: "https://github.com/stellar/stellar-rpc/releases.atom", kind: "release", filter: false, tags: ["protocol", "developers"], maxAgeDays: 150, maxItems: 4 },
+  { id: "soroban-sdk", name: "Soroban Rust SDK releases", label: "Soroban Rust SDK", home: "https://github.com/stellar/rs-soroban-sdk/releases", feed: "https://github.com/stellar/rs-soroban-sdk/releases.atom", kind: "release", filter: false, tags: ["developers"], maxAgeDays: 120, maxItems: 4 },
+  { id: "js-stellar-sdk", name: "JavaScript Stellar SDK releases", label: "JS Stellar SDK", home: "https://github.com/stellar/js-stellar-sdk/releases", feed: "https://github.com/stellar/js-stellar-sdk/releases.atom", kind: "release", filter: false, tags: ["developers"], maxAgeDays: 120, maxItems: 4 },
+  { id: "stellar-cli", name: "Stellar CLI releases", label: "Stellar CLI", home: "https://github.com/stellar/stellar-cli/releases", feed: "https://github.com/stellar/stellar-cli/releases.atom", kind: "release", filter: false, tags: ["developers"], maxAgeDays: 120, maxItems: 3 },
+  { id: "stellar-status", name: "Stellar Status", home: "https://status.stellar.org", feed: "https://status.stellar.org/history.atom", kind: "status", filter: false, tags: ["network-status"], maxAgeDays: 180, maxItems: 8 },
+  { id: "stellar-community", name: "Stellar Community (Medium)", home: "https://medium.com/stellar-community", feed: "https://medium.com/feed/stellar-community", kind: "blog", filter: false, tags: ["ecosystem"], maxAgeDays: 365, maxItems: 12 },
+  { id: "cointelegraph", name: "Cointelegraph", home: "https://cointelegraph.com/tags/stellar", feed: "https://cointelegraph.com/rss/tag/stellar", kind: "outlet", filter: true, tags: ["ecosystem"], maxAgeDays: 120, maxItems: 8 },
+  { id: "coindesk", name: "CoinDesk", home: "https://www.coindesk.com", feed: "https://www.coindesk.com/arc/outboundfeeds/rss/", kind: "outlet", filter: true, tags: ["ecosystem"], maxAgeDays: 120, maxItems: 5 },
+  { id: "decrypt", name: "Decrypt", home: "https://decrypt.co", feed: "https://decrypt.co/feed", kind: "outlet", filter: true, tags: ["ecosystem"], maxAgeDays: 120, maxItems: 5 },
 ];
+
+/** Where the live status line comes from (Atlassian Statuspage JSON; sends CORS *). */
+export const STATUS_SUMMARY_URL = "https://status.stellar.org/api/v2/summary.json";
+export const STATUS_PAGE_URL = "https://status.stellar.org";
+
+/** Category tags (chip order). */
+export const NEWS_TAGS = [
+  { id: "protocol", label: "Protocol" },
+  { id: "developers", label: "Developers" },
+  { id: "ecosystem", label: "Ecosystem" },
+  { id: "mainnet", label: "Mainnet events" },
+  { id: "network-status", label: "Network status" },
+];
+const TAG_IDS = new Set(NEWS_TAGS.map((t) => t.id));
+const KINDS = new Set(["blog", "release", "status", "outlet"]);
 
 export const EXCERPT_MAX = 200;
 export const TITLE_MAX = 180;
 export const MAX_PER_SOURCE = 20;
-export const MAX_ITEMS = 60;
-/** Items older than this are dropped. */
+export const MAX_ITEMS = 100;
+/** Items older than this are dropped (a source can set a shorter window). */
 export const MAX_AGE_DAYS = 365;
 
 // ---------------------------------------------------------------- text
@@ -196,6 +232,83 @@ export function isStellarRelated(item) {
   return false;
 }
 
+/**
+ * Off-message items we never publish, whatever the source: leverage / futures-trading promotion,
+ * "moon" hype and price-prediction clickbait. Deliberately narrow ("leverage" alone is a normal verb).
+ */
+const HYPE = [
+  /\bperps?\b/i,
+  /\bperpetual(?:s)?\b/i,
+  /\bleverag(?:e|ed|ing)[- ](?:trad\w*|position\w*|long|short|up to)\b/i,
+  /\b\d{1,3}\s?x\s+leverage\b/i,
+  /\bmargin[- ]trad\w*\b/i,
+  /\bfutures?\s+(?:trad\w*|contracts?|market|exchange)\b/i,
+  /\b(?:long|short)[- ]?(?:squeeze|liquidations?)\b/i,
+  /\bliquidations?\b.*\b(?:longs?|shorts?)\b/i,
+  /\bprice\s+(?:prediction|forecast|target|analysis)s?\b/i,
+  /\b(?:to the moon|moon(?:ing|shot)|pump(?:ing)?\s+(?:and|&)\s+dump|100x|1000x|get rich|guaranteed (?:returns?|profits?)|trading signals?|airdrop alert)\b/i,
+  /\bwill (?:XLM|Stellar)\b.*\b(?:hit|reach|surge|explode|soar|crash)\b/i,
+  /\bXLM\b.*\b(?:vs\.?|versus)\b.*\b(?:XRP|SOL|ADA)\b/i,
+];
+/** Is this item promotional / speculative noise? */
+export function isHype(item) {
+  const text = `${item?.title ?? ""} . ${item?.excerpt ?? ""}`;
+  return HYPE.some((re) => re.test(text));
+}
+
+/** GitHub tags like v29.0.0-rc.1, 28.0.0-internal, archive-node-beta are not announcements. */
+export function isPrerelease(item) {
+  const tag = decodeURIComponent(String(item?.url ?? "").split("/tag/")[1] ?? "");
+  const t = `${tag} ${item?.title ?? ""}`;
+  return /(?:^|[-_.\s])(?:rc|alpha|beta|preview|pre|internal|nightly|snapshot|dev)(?:[-_.\d\s]|$)/i.test(t);
+}
+
+/** "v30.0.0" → "Stellar Core v30.0.0 released" (release sources only). */
+export function releaseTitle(rawTitle, label) {
+  const t = String(rawTitle ?? "").trim();
+  if (!label) return t;
+  const ver = t.replace(new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`, "i"), "").replace(/^V(?=\d)/, "v");
+  const v = /^\d/.test(ver) ? `v${ver}` : ver;
+  return `${label} ${v} released`;
+}
+
+/** Strip the generic heading GitHub release bodies start with. */
+export function releaseSummary(text) {
+  return String(text ?? "")
+    .replace(/^(?:#+\s*)?(?:what(?:['’]s| is)?\s+changed|release\s+notes|changelog|stellar[- ]cli\s+v?[\d.]+\s*[—-]\s*release notes)\s*/i, "")
+    .replace(/^(?:fixed|added|changed|security|removed|deprecated|features|bug fixes|stability improvements|highlights)\s+(?=[A-Z])/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const MAINNET_RE = /\bmainnet\b|\b(?:now|is|are|goes?|went) live on stellar\b|\bupgrade vote\b|\bvalidators? (?:vote|voted)\b|\bprotocol\s*\d{2}\b.*\b(?:upgrade|vote|activat\w+|go(?:es)? live)\b|\bnetwork upgrade\b/i;
+const PROTOCOL_RE = /\bprotocol\s*\d{2}\b|\bCAP-\d{3,4}\b|\bSEP-\d{2,4}\b|\bstellar[- ]core\b|\bconsensus\b|\bvalidators?\b|\bnetwork upgrade\b|\bhorizon\b|\bsoroban (?:host|env)\b/i;
+const DEV_RE = /\b(?:SDK|CLI|API|RPC|smart contracts?|developer preview|dev tools?|Soroban)\b/i;
+
+/** Category tags for one item: the source's own tags plus keyword- and URL-derived ones. Always >= 1. */
+export function tagItem(item, source) {
+  const tags = new Set(source?.tags ?? []);
+  const text = `${item.title ?? ""} . ${item.excerpt ?? ""}`;
+  const path = (() => {
+    try {
+      return new URL(item.url).pathname;
+    } catch {
+      return "";
+    }
+  })();
+  if (/\/blog\/developers\//.test(path)) tags.add("developers");
+  if (/\/blog\/(?:ecosystem|foundation-news|case-studies|community)\//.test(path)) tags.add("ecosystem");
+  if (source?.kind === "status") tags.add("network-status");
+  if (source?.kind !== "release") {
+    if (PROTOCOL_RE.test(text)) tags.add("protocol");
+    if (source?.kind === "blog" && DEV_RE.test(item.title ?? "")) tags.add("developers");
+  }
+  if (source?.kind === "release" && /\bprotocol\s*\d{2}\b/i.test(text)) tags.add("protocol");
+  if (MAINNET_RE.test(text)) tags.add("mainnet");
+  if (!tags.size) tags.add("ecosystem");
+  return NEWS_TAGS.map((t) => t.id).filter((id) => tags.has(id));
+}
+
 // ---------------------------------------------------------------- merge
 const normTitle = (t) => String(t).toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
 function normUrl(u) {
@@ -229,13 +342,16 @@ export function sanitizeItem(x) {
     image: img && img.startsWith("https://") ? img : null,
     source: toPlainText(x.source).slice(0, 40) || "unknown",
     sourceName: toPlainText(x.sourceName).slice(0, 60) || "Unknown",
+    kind: KINDS.has(x.kind) ? x.kind : "blog",
+    tags: (Array.isArray(x.tags) ? x.tags : []).map((t) => String(t)).filter((t) => TAG_IDS.has(t)).filter((t, i, a) => a.indexOf(t) === i),
   };
 }
 
 /**
- * Raw items from several feeds → the news list: Stellar filter for `filter` sources,
- * drop undated / too old / future-dated items, de-dupe by URL and by headline
- * (first source in NEWS_SOURCES order wins), newest first, capped.
+ * Raw items from several feeds → the news list. Per source: Stellar filter (general feeds), hype filter,
+ * pre-releases dropped, release titles/summaries normalised, undated / too old (per-source window) /
+ * future-dated items dropped, capped per source. Across sources: de-duped by URL and by headline
+ * (first source in NEWS_SOURCES order wins), tagged, sorted newest first, capped at maxItems.
  */
 export function mergeNews(itemsBySource, { sources = NEWS_SOURCES, now = Date.now(), maxItems = MAX_ITEMS, maxPerSource = MAX_PER_SOURCE, maxAgeDays = MAX_AGE_DAYS } = {}) {
   const seenUrl = new Set();
@@ -244,15 +360,30 @@ export function mergeNews(itemsBySource, { sources = NEWS_SOURCES, now = Date.no
   const ids = [...new Set([...sources.map((s) => s.id), ...Object.keys(itemsBySource)])];
   for (const id of ids) {
     const src = sources.find((s) => s.id === id);
+    const cap = Math.min(src?.maxItems ?? maxPerSource, maxPerSource);
+    const ageDays = Math.min(src?.maxAgeDays ?? maxAgeDays, maxAgeDays);
     let n = 0;
     const list = [...(itemsBySource[id] ?? [])].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
     for (const raw of list) {
-      if (n >= maxPerSource) break;
-      if (src?.filter && !isStellarRelated(raw)) continue;
-      const it = sanitizeItem({ ...raw, id: undefined, source: raw.source ?? id, sourceName: raw.sourceName ?? src?.name });
+      if (n >= cap) break;
+      const isRelease = src?.kind === "release";
+      if (isRelease && isPrerelease(raw)) continue;
+      let r = raw;
+      if (isRelease) r = { ...raw, title: releaseTitle(raw.title, src.label), excerpt: truncate(releaseSummary(raw.excerpt), EXCERPT_MAX) };
+      if (src?.filter && !isStellarRelated(r)) continue;
+      // Hype in the headline: always dropped. Hype only in the blurb: third-party outlets are dropped, but an
+      // official post (SDF blog, releases, status) keeps its headline and loses the blurb, so a real network
+      // event (e.g. "Chainlink is now live on Stellar") isn't lost over one word in its summary.
+      if (isHype({ title: r.title })) continue;
+      if (isHype({ excerpt: r.excerpt })) {
+        if (src?.kind === "outlet" || !src) continue;
+        r = { ...r, excerpt: "" };
+      }
+      if (src?.kind === "release" || src?.kind === "status") r = { ...r, image: null };
+      const it = sanitizeItem({ ...r, id: undefined, source: raw.source ?? id, sourceName: raw.sourceName ?? src?.name, kind: src?.kind, tags: tagItem(r, src) });
       if (!it) continue;
       const t = Date.parse(it.publishedAt);
-      if (t > now + 3600_000 || t < now - maxAgeDays * 86_400_000) continue;
+      if (t > now + 3600_000 || t < now - ageDays * 86_400_000) continue;
       const ku = normUrl(it.url), kt = normTitle(it.title);
       if (seenUrl.has(ku) || seenTitle.has(kt)) continue;
       seenUrl.add(ku);
@@ -261,7 +392,27 @@ export function mergeNews(itemsBySource, { sources = NEWS_SOURCES, now = Date.no
       n++;
     }
   }
-  return out.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, maxItems);
+  return out.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt) || a.id.localeCompare(b.id)).slice(0, maxItems);
+}
+
+/** Atlassian Statuspage summary.json → the one-line network status (or null when it isn't a valid summary). */
+export function parseStatusSummary(j) {
+  const ind = String(j?.status?.indicator ?? "");
+  const desc = toPlainText(j?.status?.description);
+  if (!["none", "minor", "major", "critical", "maintenance"].includes(ind) || !desc) return null;
+  const upd = Date.parse(j?.page?.updated_at);
+  const issues = [
+    ...(Array.isArray(j?.incidents) ? j.incidents : []),
+    ...(Array.isArray(j?.scheduled_maintenances) ? j.scheduled_maintenances.filter((m) => m?.status === "in_progress") : []),
+  ]
+    .map((i) => truncate(toPlainText(i?.name), 90))
+    .filter(Boolean)
+    .slice(0, 3);
+  const bad = (Array.isArray(j?.components) ? j.components : [])
+    .filter((c) => c && c.group !== true && c.status && c.status !== "operational")
+    .map((c) => truncate(toPlainText(c.name), 60))
+    .slice(0, 5);
+  return { indicator: ind, description: truncate(desc, 80), updatedAt: Number.isFinite(upd) ? new Date(upd).toISOString() : null, url: "https://status.stellar.org", issues, degraded: bad };
 }
 
 /** "just now", "5m ago", "2h ago", "3d ago", else a short date. */

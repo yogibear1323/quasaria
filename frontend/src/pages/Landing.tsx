@@ -23,8 +23,7 @@ import WorldMap, { type MapPin } from "../components/WorldMap";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
 import SizzleReel from "../components/SizzleReel";
 import { FeedBadge } from "../components/ui";
-import { NewsDisclaimer, NewsGrid, NewsHeader, NewsSources } from "../components/News";
-import { useNews } from "../lib/news";
+import { NewsStrip } from "../components/News";
 import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
 import { parseOutline } from "../lib/landingCopy";
 import { SIZZLE_COPY } from "../lib/sizzle";
@@ -175,25 +174,7 @@ function MarketsPreview() {
 
 // ---------------------------------------------------------------- news (15 in the outline)
 function NewsPreview() {
-  const news = useNews();
-  return (
-    <div>
-      <div className="row between l-wrap" style={{ marginBottom: 14 }}>
-        <NewsHeader state={news} />
-        <Link to="/news" className="btn ghost small">See all news →</Link>
-      </div>
-      {news.status === "loading" ? (
-        <p className="muted">Loading Stellar news…</p>
-      ) : news.status === "error" ? (
-        <p className="muted">Stellar news is unavailable right now. <Link to="/news">Try the news page →</Link></p>
-      ) : (
-        <NewsGrid items={news.items.slice(0, 6)} now={news.now} empty="No Stellar stories right now." />
-      )}
-      <p className="muted l-tiny news-foot">
-        <NewsSources sources={news.sources} /> <NewsDisclaimer /> <Link to="/news">See all news →</Link>
-      </p>
-    </div>
-  );
+  return <NewsStrip />;
 }
 
 // ---------------------------------------------------------------- 3. trade

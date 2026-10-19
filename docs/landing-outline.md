@@ -2,8 +2,8 @@
 
 1. Hero
 Headline: Your keys, your XLM.
-Pitch: Connect your own Stellar wallet. Quasaria never holds your keys or your XLM when you trade.
-Visual: the animated quasar scene with the illustrative logo, a live XLM price ticker, and two buttons, "Launch app" and "Create a wallet". Add a small "Testnet beta" badge until the live launch.
+Pitch: Quasaria never holds your keys or your XLM when you trade: you hold the secret key and sign everything in your own browser.
+Visual: the animated quasar scene with the illustrative logo, a live XLM price ticker, and two buttons, "Launch app" and "Create an account". Add a small "Testnet beta" badge until the live launch.
 
 2. Markets
 Headline: Every Stellar market in one view.
@@ -27,50 +27,35 @@ Visual: a logo grid with "Verified by issuer" badges, and a world map that highl
 
 6. Liquidity rewards
 Headline: Earn fees by powering the pools.
-Pitch: Add your tokens to a liquidity pool and earn a share of every swap that pool makes. You can withdraw at any time.
-Visual: a pool list with an interactive fee estimator, clearly labeled as an estimate and not a promise.
+Pitch: Add both sides of a pair to a Stellar-native liquidity pool and earn a share of every swap that pool makes. You choose the price bounds, and you can withdraw at any time.
+Visual: a multi-asset pool browser (pairs, reserves, 24-hour volume, fee APR estimate) with deposit and withdraw screens, clearly labeled as an estimate and not a promise.
 
-7. Staking rewards
-Headline: Stake selected tokens, earn rewards.
-Pitch: Lock selected tokens into staking pools to earn rewards, with optional longer locks for higher rates.
-Visual: the orbital rings scene, with a lock-period slider that shows how rewards change.
+7. Holder rewards (GLACIERQ)
+Headline: Hold GLACIERQ, get paid daily.
+Pitch: Hold at least 1,000,000 GLACIERQ and receive GLACIERQ every day: about 5 percent a year from 1 million tokens and about 7 percent a year from 10 million. Paid by plain payments from a finite reward reserve, with no smart contract. Rewards are not guaranteed, they put more tokens into circulation, and a daily cap can reduce them.
+Visual: a tier table, a daily-reward estimator labeled as an estimate, and a plain finite-reserve, dilution and not-guaranteed disclosure.
 
-8. Holder rewards (QFX)
-Headline: One XLM in, one QFX out. Fully backed.
-Pitch: QFX, Quasaria's reward token, is pegged 1:1 to XLM: it is only minted when the same amount of XLM is deposited, and you can redeem it for XLM at any time. Holders earn a capped, variable rate paid from a pre-funded reserve, never from new unbacked tokens; when the reserve runs out, rewards stop.
-Visual: live proof of reserves (XLM held vs QFX supply) with a link to Mint/Redeem, a growth chart with example numbers clearly marked as illustrations, and a "how the backing and the yield work" explainer.
-
-9. Trading bots and leverage
-Headline: Let a bot trade while you sleep.
-Pitch: Set up grid, DCA, or momentum bots with optional leverage up to 20 times, and stop-loss and take-profit orders enforced on-chain. Your bot can trade for you but can never withdraw your funds.
-Visual: a strategy picker with a simulated performance preview, and a prominent risk warning about leverage.
-
-10. Referral program
-Headline: Share Quasaria, earn from every trade.
-Pitch: Invite friends with your link and earn 20 percent of the trading fees they pay, paid automatically on-chain.
-Visual: a referral link generator with a copy button and a simple earnings dashboard preview.
-
-11. Open data
+8. Open data
 Headline: Built on open, public data.
 Pitch: Market prices and asset info come from the stellarchain.io public data feed, while every trade settles directly on Stellar's own network, so everything we show you can be checked.
 Visual: a simple diagram of the data sources and settlement path, with stellarchain.io attribution.
 
-12. Transparency and security
+9. Transparency and security
 Headline: Nothing hidden, everything on-chain.
-Pitch: Every Quasaria contract is public on the Stellar ledger, so anyone can inspect exactly how the pools, staking, and rewards work.
+Pitch: Every Quasaria contract is public on the Stellar ledger, so anyone can inspect exactly how the pools and rewards work.
 Visual: links to each contract on a block explorer, plus an honest audit status line that says "not yet audited" until an audit is done.
 
-13. FAQ
+10. FAQ
 Headline: Questions, answered.
 Pitch: Short answers to what first-time visitors ask most, such as what happens if they lose their key, what fees are, and whether their money is safe.
 Visual: an accordion list of questions.
 
-14. Final call to action and footer
+11. Final call to action and footer
 Headline: Your first trade is a few clicks away.
-Pitch: Create a wallet in seconds and start trading on Stellar with full control of your funds.
-Visual: repeat "Launch app" and "Create a wallet" buttons over the starfield. Footer carries the risk disclosure: Quasaria is experimental software, nothing on the site is financial advice, and leverage and yield carry real risk of loss and may be regulated where you live.
+Pitch: Create an account in seconds and start trading on Stellar with full control of your funds.
+Visual: repeat "Launch app" and "Create an account" buttons over the starfield. Footer carries the risk disclosure: Quasaria is experimental software, nothing on the site is financial advice, and liquidity pools and token rewards carry real risk of loss and may be regulated where you live.
 
-15. Stellar news
+12. Stellar news
 Headline: Latest from Stellar.
 Pitch: Fresh headlines about Stellar, XLM and Soroban from the Stellar Development Foundation, the Stellar community and crypto news outlets, refreshed through the day.
 Visual: six news cards (headline, source, relative time, a short excerpt and an optional thumbnail) that open the original article in a new tab, an "Updated" time, the source list, a note that news comes from third-party sources and isn't endorsement or financial advice, and a "See all news" link to the /news page.

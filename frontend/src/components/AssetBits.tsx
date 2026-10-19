@@ -1,9 +1,11 @@
+import { GLACIERQ_ICON_128, isRewardAsset } from "../lib/rewards";
 import { useEffect, useRef, useState } from "react";
 import type { MarketRow } from "../lib/markets";
 
 /** Asset logo from stellarchain tomlInfo (https only), with a monogram fallback. */
-export function AssetLogo({ code, logo, size = 24 }: { code: string; logo?: string | null; size?: number }) {
+export function AssetLogo({ code, logo, size = 24, issuer }: { code: string; logo?: string | null; size?: number; issuer?: string | null }) {
   const [broken, setBroken] = useState(false);
+  if (isRewardAsset(code, issuer)) logo = GLACIERQ_ICON_128;
   if (logo && !broken)
     return <img src={logo} alt="" width={size} height={size} loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} style={{ borderRadius: "50%", background: "#ffffff", boxShadow: "inset 0 0 0 1px rgba(139,115,86,.35)", objectFit: "contain", flex: "none" }} />;
   return (

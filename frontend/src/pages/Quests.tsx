@@ -13,13 +13,12 @@ const GROUPS: { kind: QuestKind; title: string; blurb: string }[] = [
 
 const RISKS: { t: string; d: string }[] = [
   { t: "Testnet only", d: "Quasaria runs on Stellar testnet during the beta. Testnet tokens are free and have no real value; the network can be reset at any time." },
-  { t: "Unaudited software", d: "The Soroban contracts have not been audited. Bugs can lock or lose funds. Never treat testnet behaviour as a guarantee for mainnet." },
-  { t: "Leverage can liquidate you", d: "Leverage multiplies losses as well as gains. At 5× a 20% move against you can wipe out your margin, and positions are liquidated when the health factor drops below 1.0." },
+  { t: "Unaudited software", d: "Quasaria has not been audited. Bugs can lock or lose funds. Never treat testnet behaviour as a guarantee for mainnet." },
   { t: "Impermanent loss", d: "Liquidity providers can end up with less value than simply holding when prices move apart. Fees may or may not make up for it." },
-  { t: "Rewards come from finite reserves", d: "Staking and QFX holder rewards are paid from pre-funded reserves. When a reserve runs dry, rewards stop, so today's APR is not a promise." },
+  { t: "Rewards come from a finite reserve", d: "GLACIERQ holder rewards are paid from a finite reserve and are capped per day. They are not guaranteed, they dilute holders who do not receive them, and today's rate is not a promise." },
   { t: "Slippage & price impact", d: "Large swaps against thin pools move the price. Set a max slippage so a swap fails instead of filling at a bad rate." },
   { t: "Your keys, your responsibility", d: "Quasaria never sees your secret key. If you lose it, nobody can recover the account. Back it up offline." },
-  { t: "Not financial advice", d: "Nothing in Quasaria is financial advice. Leveraged and yield products may be regulated or restricted where you live." },
+  { t: "Not financial advice", d: "Nothing in Quasaria is financial advice. Liquidity pools and token rewards may be regulated or restricted where you live." },
 ];
 
 /** /quests — mission control: level, streak, quests, badges and the risk guide. Purely cosmetic, stored locally. */
@@ -35,7 +34,7 @@ export default function Quests() {
         Learn how Quasaria works, try each feature once on testnet and build safe habits. XP rewards understanding, never money.
       </PageHead>
 
-      <div className="notice xp-disclaimer" role="note"><b>XP is not money.</b> {XP_NOTE} There are no leaderboards, and nothing here rewards trade volume, leverage or deposit size.</div>
+      <div className="notice xp-disclaimer" role="note"><b>XP is not money.</b> {XP_NOTE} There are no leaderboards, and nothing here rewards trade volume or deposit size.</div>
 
       <div className="grid g-main-side" style={{ marginBottom: 16 }}>
         <div className="card glow q-profile" data-testid="quest-profile">
@@ -116,7 +115,7 @@ export default function Quests() {
             <h2>How XP works</h2>
             <ul className="calc-notes" style={{ margin: 0 }}>
               <li>Rewards <b>learning and safe habits</b>: the risk guide, calculators, a slippage guard, daily check-ins.</li>
-              <li>On-chain quests count <b>once</b>, for any amount. Volume, trade count, leverage and deposit size never earn XP.</li>
+              <li>On-chain quests count <b>once</b>, for any amount. Volume, trade count and deposit size never earn XP.</li>
               <li>No leaderboards and no rankings by money.</li>
               <li>Progress is saved per wallet address in this browser's localStorage only.</li>
             </ul>

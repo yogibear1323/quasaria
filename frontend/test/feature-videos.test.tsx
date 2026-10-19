@@ -9,7 +9,7 @@ const pub = (p: string) => new URL(`../public${p}`, import.meta.url);
 
 describe("landing feature videos", () => {
   it("ships compressed 16:9 + 9:16 mp4s and small posters for every feature under public/media/features", () => {
-    expect(FEATURE_VIDEOS.length).toBeGreaterThanOrEqual(8);
+    expect(FEATURE_VIDEOS.length).toBeGreaterThanOrEqual(3);
     for (const v of FEATURE_VIDEOS) {
       for (const a of ["16x9", "9x16"] as const) {
         const mp4 = pub(featureSrc(v, a, "/"));
@@ -30,9 +30,8 @@ describe("landing feature videos", () => {
     expect(html).toContain('loading="lazy"');
     expect(html).toMatch(/<source media="\(max-width: 720px\)" srcSet="[^"]*-9x16-frost-poster\.jpg"/i);
     for (const v of FEATURE_VIDEOS) expect(html).toContain(fmtRuntime(v.seconds));
-    expect(html).toContain("Live on testnet");
     expect(html).not.toContain("In development");
-    expect(html).toContain("Leverage amplifies losses");
+    expect(html).toContain("impermanent loss");
   });
   it("sits between the sizzle reel and markets, with approved wording", () => {
     const watch = landing.indexOf('<Section id="watch"');

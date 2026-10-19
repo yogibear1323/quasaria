@@ -22,10 +22,8 @@ describe("game engine (cosmetic XP layer)", () => {
 
   it("only maps one-time, non-leverage transactions to quests", () => {
     expect(questForTx("swap")).toBe("first-swap");
-    expect(questForTx("Mint QFX")).toBe("first-mint");
     expect(questForTx("native LP deposit")).toBe("first-lp");
-    expect(questForTx("stake")).toBe("first-stake");
-    for (const l of ["open position", "set operator", "close", "buy offer", "sell offer", "withdraw", "unstake", "claim", "Redeem QFX", "Credit yield", "set referrer"]) expect(questForTx(l)).toBeNull();
+    for (const l of ["open position", "set operator", "close", "buy offer", "sell offer", "withdraw", "unstake", "claim", "Mint QFX", "stake", "lend supply"]) expect(questForTx(l)).toBeNull();
     // a second swap earns nothing
     const s = complete(emptyState(), "first-swap").state;
     expect(complete(s, "first-swap").state.xp).toBe(s.xp);

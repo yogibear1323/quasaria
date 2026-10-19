@@ -10,10 +10,10 @@ import "../theme/space-yeti.css";
 
 /** Per-page prop for the header space yeti (same suit everywhere; small variety by route). */
 const YETI_BY_PATH: [RegExp, YetiProp, boolean][] = [
-  [/\/perps\/chart/, "chart", true], [/\/perps/, "chart", false], [/\/trade/, "coin", false], [/\/pools/, "seed", true],
-  [/\/lending/, "coin", true], [/\/earn/, "seed", false], [/\/calculators/, "paper", true], [/\/stake/, "coin", true],
-  [/\/rewards/, "trophy", true], [/\/referrals/, "flag", true], [/\/back-office/, "mug", false],
-  [/\/bots/, "wrench", true], [/\/quests/, "flag", false], [/\/merch/, "bag", true], [/\/news/, "paper", false],
+  [/\/trade/, "coin", false], [/\/pools/, "seed", true],
+  [/\/earn/, "seed", false], [/\/calculators/, "paper", true],
+  [/\/holders/, "trophy", true],
+  [/\/quests/, "flag", false], [/\/merch/, "bag", true], [/\/news/, "paper", false],
 ];
 export function yetiFor(path: string): { prop: YetiProp; mirror: boolean } {
   for (const [re, prop, mirror] of YETI_BY_PATH) if (re.test(path)) return { prop, mirror };
@@ -107,18 +107,6 @@ export function TxStatus({ status }: { status: string | null }) {
         </span>
       )}
       <span>{status}</span>
-    </div>
-  );
-}
-
-export function RiskWarning({ children }: { children?: ReactNode }) {
-  return (
-    <div className="risk" role="alert">
-      <strong>⚠ HIGH RISK — EXPERIMENTAL, UNAUDITED, TESTNET ONLY</strong>
-      <div style={{ marginTop: 6, fontSize: "0.9rem" }}>
-        {children ??
-          "Leveraged trading can lose more than you expect, very fast. Positions are liquidated when the health factor drops below 1.0. Automated bots can malfunction, act on stale oracle prices, or trade into losses. Nothing here is financial advice; leveraged derivatives may be restricted or illegal where you live."}
-      </div>
     </div>
   );
 }

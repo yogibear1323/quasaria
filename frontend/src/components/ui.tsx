@@ -10,7 +10,7 @@ import "../theme/space-yeti.css";
 
 /** Per-page prop for the header space yeti (same suit everywhere; small variety by route). */
 const YETI_BY_PATH: [RegExp, YetiProp, boolean][] = [
-  [/\/trade/, "coin", false], [/\/pools/, "seed", true],
+  [/\/(trade|exchange|swap)/, "coin", false], [/\/about/, "flag", true], [/\/(activity|referral|buy)/, "paper", false], [/\/pools/, "seed", true],
   [/\/earn/, "seed", false], [/\/calculators/, "paper", true],
   [/\/holders/, "trophy", true],
   [/\/quests/, "flag", false], [/\/merch/, "bag", true], [/\/news/, "paper", false],

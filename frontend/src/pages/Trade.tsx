@@ -1,38 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { Asset } from "@stellar/stellar-sdk";
 import { PageHead, Stat, Tabs, TxStatus, useTx } from "../components/ui";
 import OrderBook from "../components/OrderBook";
 import PriceChart from "../components/PriceChart";
-import { ASSETS, assetFromKey, assetKeyOf, buildLimitOrder, buildPathPayment, buildTrustline, fetchBalances, fetchOrderBook, fetchTradeCandles, findStrictSendPath, hasTrustline, submitSignedXdr } from "../lib/stellar";
+import { ASSETS, assetFromKey, assetKeyOf, buildLimitOrder, fetchOrderBook, fetchTradeCandles, submitSignedXdr } from "../lib/stellar";
 import { useSearchParams } from "react-router-dom";
 import { AssetPicker, toOption, type PickerOption } from "../components/AssetBits";
 import { loadMarkets, type MarketRow } from "../lib/markets";
 import { STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
-import { demoBook, demoCandles, DEMO_POOLS, type Book } from "../lib/demo";
-import { ammAmountOut, priceImpact } from "../lib/math";
-import { CONTRACTS, CONTRACTS_CONFIGURED, NETWORK_PASSPHRASE } from "../lib/config";
-import { addr, i128, invokeContract, u64, vecAddr } from "../lib/soroban";
-import { fmt, fmtCompact, toUnits } from "../lib/format";
-import { readPool, useChain } from "../lib/chain";
-import { ASSET_LIST, assetByTestnetKey, badgeOf, findRoute, testnetKey, type ListedAsset } from "../lib/assets";
+import { demoBook, demoCandles, type Book } from "../lib/demo";
+import { fmt } from "../lib/format";
+import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
 
 /** Curated asset list (stablecoins + popular assets, v3 pools) as picker options. */
 const CURATED_OPTS: PickerOption[] = ASSET_LIST.filter((a) => a.testnet.kind !== "native").map((a) => ({ key: testnetKey(a), code: a.code, sub: `${badgeOf(a).text}${a.org ? ` · ${a.org}` : ""}`, logo: a.logo }));
-/** Chain the AMM quote along a router path (token ids in order). */
-async function quoteRoute(pools: string[], tokenIn: string, amountIn: number) {
-  let tok = tokenIn, amt = amountIn, impact = 0;
-  const hops: { reserveIn: number; reserveOut: number }[] = [];
-  for (const id of pools) {
-    const p = await readPool(id);
-    const aIn = p.tokenA === tok;
-    const rIn = aIn ? p.reserveA : p.reserveB, rOut = aIn ? p.reserveB : p.reserveA;
-    impact = 1 - (1 - impact) * (1 - priceImpact(amt, rIn, rOut, p.feeBps));
-    amt = ammAmountOut(amt, rIn, rOut, p.feeBps);
-    tok = aIn ? p.tokenB : p.tokenA;
-    hops.push({ reserveIn: rIn, reserveOut: rOut });
-  }
-  return { out: amt, impact, hops };
-}
 
 const px = (v: number) => (v >= 0.01 ? fmt(v, 5) : v.toPrecision(4));
 const DEFAULT_BASE = "XLM";
@@ -80,88 +60,7 @@ function LimitPanel({ book, baseKey, quoteKey, BASE, QUOTE }: { book: Book; base
   );
 }
 
-function SwapPanel({ baseKey, quoteKey }: { baseKey: string; quoteKey: string }) {
-  const [route, setRoute] = useState<"amm" | "sdex">("amm");
-  const [amountIn, setAmountIn] = useState("500");
-  const [slippage, setSlippage] = useState(0.5);
-  const tx = useTx(route === "amm");
-  // Router path for the picked pair over the curated v3 pools (else the XLM→QUSD core pool below).
-  const from: ListedAsset | undefined = assetByTestnetKey(baseKey), to: ListedAsset | undefined = assetByTestnetKey(quoteKey);
-  const path = from && to ? findRoute(from.id, to.id) : null;
-  const rq = useChain(() => (path && from ? quoteRoute(path.pools, from.testnet.sac!, Number(amountIn) || 0) : Promise.reject(new Error("no route"))), [path?.pools.join(","), amountIn]);
-  const [bal, setBal] = useState<Awaited<ReturnType<typeof fetchBalances>> | null>(null);
-  useEffect(() => {
-    if (tx.wallet.address && to && to.testnet.issuer) fetchBalances(tx.wallet.address).then(setBal).catch(() => setBal(null));
-  }, [tx.wallet.address, to?.id]);
-  const needTrust = to && to.testnet.issuer && bal && !hasTrustline(bal, new Asset(to.testnet.code, to.testnet.issuer));
-  const live = useChain(() => readPool(CONTRACTS.pools[0]), []);
-  const pool = live.data
-    ? (() => {
-        const xlmIsA = live.data.tokenA === CONTRACTS.xlmSac;
-        return { reserveA: xlmIsA ? live.data.reserveA : live.data.reserveB, reserveB: xlmIsA ? live.data.reserveB : live.data.reserveA, feeBps: live.data.feeBps };
-      })()
-    : DEMO_POOLS[0];
-  const routed = route === "amm" && path && from && to;
-  const out = routed ? rq.data?.out ?? 0 : ammAmountOut(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
-  const impact = routed ? rq.data?.impact ?? 0 : priceImpact(Number(amountIn), pool.reserveA, pool.reserveB, pool.feeBps);
-  const minOut = out * (1 - slippage / 100);
-  const payCode = routed ? from!.code : "XLM", getCode = routed ? to!.code : route === "amm" ? "QUSD" : "USDC";
-  return (
-    <>
-      <Tabs value={route} onChange={setRoute} options={[{ v: "amm", label: "Soroban AMM" }, { v: "sdex", label: "SDEX path" }]} />
-      <div className="field"><label>You pay ({payCode})</label><input className="input" value={amountIn} onChange={(e) => setAmountIn(e.target.value)} /></div>
-      <div style={{ textAlign: "center", fontSize: "1.4rem", color: "var(--quasar)", textShadow: "var(--glow-cyan)" }}>⇣</div>
-      <div className="field"><label>You receive (est. {getCode})</label><input className="input" readOnly value={out > 0 && out < 0.01 ? out.toPrecision(4) : fmt(out, 4)} /></div>
-      <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Price impact</span><span className={impact > 0.01 ? "neg mono" : "mono"}>{fmt(impact * 100, 3)}%</span></div>
-      {routed && <div className="row between" style={{ fontSize: "0.82rem" }} data-testid="swap-route"><span className="muted">Router path</span><span className="mono">{[from!.code, ...path!.via, to!.code].join(" → ")} · {path!.pools.length} pool{path!.pools.length > 1 ? "s" : ""} {rq.live ? "· live" : ""}</span></div>}
-      {routed && (from!.testnet.kind === "mirror" || to!.testnet.kind === "mirror") && <div className="muted" style={{ fontSize: "0.72rem" }}>{[from!, to!].filter((x) => x.testnet.kind === "mirror").map((x) => `${x.code} = testnet mirror of ${x.code} (no value)`).join(" · ")}</div>}
-      {routed && needTrust && <div className="notice warn" style={{ fontSize: "0.78rem" }}>Receiving {to!.testnet.code} needs a trustline. <button className="btn small" disabled={tx.busy} onClick={() => tx.run(`trustline ${to!.testnet.code}`, async () => (await submitSignedXdr(await tx.wallet.sign(await buildTrustline(tx.wallet.address!, new Asset(to!.testnet.code, to!.testnet.issuer!))))).hash.slice(0, 10))}>Add trustline</button></div>}
-      {route === "amm" && !routed && <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Pool reserves</span><span className="mono">{fmtCompact(pool.reserveA)} XLM / {fmtCompact(pool.reserveB)} QUSD {live.live ? "· live" : "· demo"}</span></div>}
-      <div className="row between" style={{ fontSize: "0.82rem" }}><span className="muted">Fee (0.30%, 20% to referrer)</span><span className="mono">{fmt(Number(amountIn) * 0.003, 4)} {payCode}</span></div>
-      <div className="field" style={{ marginTop: 10 }}>
-        <label>Max slippage: {slippage}%</label>
-        <input type="range" min={0.1} max={5} step={0.1} value={slippage} onChange={(e) => setSlippage(Number(e.target.value))} />
-      </div>
-      <button
-        className="btn block"
-        disabled={tx.busy}
-        onClick={() =>
-          tx.run("swap", async () => {
-            const me = tx.wallet.address!;
-            if (route === "sdex") {
-              const p = await findStrictSendPath(ASSETS.XLM, Number(amountIn), ASSETS.USDC);
-              if (!p) throw new Error("no SDEX path found");
-              const path = p.path.map((a) => (a.asset_type === "native" ? Asset.native() : new Asset(a.asset_code, a.asset_issuer)));
-              const xdr = await buildPathPayment(me, ASSETS.XLM, Number(amountIn), ASSETS.USDC, Number(p.destination_amount) * (1 - slippage / 100), path);
-              return (await submitSignedXdr(await tx.wallet.sign(xdr))).hash.slice(0, 10);
-            }
-            const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
-            if (routed) {
-              if (!(minOut > 0)) throw new Error("no live quote for this route yet");
-              const rr = await invokeContract(me, tx.wallet.sign, CONTRACTS.router, "swap_exact_in", [
-                addr(me), vecAddr(path!.pools), addr(from!.testnet.sac!), i128(toUnits(Number(amountIn))), i128(toUnits(minOut) > 0n ? toUnits(minOut) : 1n), u64(deadline),
-              ]);
-              return rr.hash.slice(0, 10);
-            }
-            const r = await invokeContract(me, tx.wallet.sign, CONTRACTS.router, "swap_exact_in", [
-              addr(me), vecAddr([CONTRACTS.pools[0]]), addr(CONTRACTS.xlmSac || (await xlmSacId())), i128(toUnits(Number(amountIn))), i128(toUnits(minOut)), u64(deadline),
-            ]);
-            return r.hash.slice(0, 10);
-          })
-        }
-      >
-        Swap {route === "amm" ? "via router" : "via SDEX"}
-      </button>
-      <TxStatus status={tx.status} />
-    </>
-  );
-}
-
-async function xlmSacId() {
-  return Asset.native().contractId(NETWORK_PASSPHRASE);
-}
-
-export default function Trade() {
+export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {}) {
   const [params, setParams] = useSearchParams();
   const baseKey = params.get("base") || DEFAULT_BASE;
   const quoteKey = params.get("quote") || (baseKey === DEFAULT_BASE ? DEFAULT_QUOTE : "XLM");
@@ -188,7 +87,6 @@ export default function Trade() {
 
   const [book, setBook] = useState<Book>(() => (isDefault ? demoBook() : { bids: [], asks: [], source: "horizon" }));
   const [liveCandles, setLiveCandles] = useState<ReturnType<typeof demoCandles> | null>(null);
-  const [tab, setTab] = useState<"limit" | "swap">("limit");
   useEffect(() => {
     let alive = true;
     const b = assetFromKey(baseKey), q = assetFromKey(quoteKey);
@@ -226,8 +124,8 @@ export default function Trade() {
 
   return (
     <>
-      <PageHead kicker="Scene · Quasar Core" title="Trade" right={<span className="pill cyan">{CONTRACTS_CONFIGURED ? "Router + AMM live on testnet" : "AMM: demo reserves"}</span>}>
-        Order-book trading on Stellar's native SDEX plus instant swaps through Quasaria's Soroban AMM router.
+      <PageHead kicker="Exchange" title="Exchange" right={<span className="pill gold" data-mode={mode}>Testnet · unaudited</span>}>
+        Order-book trading on Stellar's native decentralized exchange (SDEX): order book, price history and limit orders.
       </PageHead>
       <div className="grid g-trade">
         <div className="card"><h2>Order book</h2><OrderBook book={book} base={BASE} quote={QUOTE} />{!book.bids.length && !book.asks.length && <p className="muted">No offers on the testnet SDEX for this pair.</p>}</div>
@@ -248,15 +146,14 @@ export default function Trade() {
             {candles.length ? <PriceChart candles={candles} /> : <div className="muted" style={{ height: 220, display: "grid", placeItems: "center" }}>No price history for {BASE}/{QUOTE} on testnet yet.</div>}
             <div className="muted" style={{ fontSize: "0.7rem", textAlign: "right" }}>{chartSource} · asset list, logos & org names: {STELLARCHAIN_ATTRIBUTION}</div>
           </div>
-          <div className="grid g-3">
+          <div className="grid g-2">
             <div className="card"><Stat label="SDEX" value="Offers" sub="manageBuy/SellOffer, auto trustlines" /></div>
             <div className="card"><Stat label="Paths" value="Best route" sub="strict-send path payments via Horizon" /></div>
-            <div className="card"><Stat label="AMM" value="x·y=k" sub="0.30% fee → LPs, 20% of fee → referrer" /></div>
           </div>
         </div>
         <div className="card">
-          <Tabs value={tab} onChange={setTab} options={[{ v: "limit", label: "Limit (SDEX)" }, { v: "swap", label: "Swap" }]} />
-          {tab === "limit" ? <LimitPanel key={`${baseKey}/${quoteKey}`} book={book} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} /> : <SwapPanel baseKey={baseKey} quoteKey={quoteKey} />}
+          <h2 style={{ marginTop: 0 }}>Limit order (SDEX)</h2>
+          <LimitPanel key={`${baseKey}/${quoteKey}`} book={book} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} />
         </div>
       </div>
     </>

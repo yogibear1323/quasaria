@@ -3,14 +3,12 @@ import { PageHead } from "../components/ui";
 import { NONCUSTODIAL_NOTE } from "../components/AccountModal";
 import { MAINNET_BROWSE, MAINNET_SIGNING } from "../lib/nativePools";
 import { networkStatus } from "../lib/networkStatus";
-import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, pctYear } from "../lib/rewards";
+import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, REFERRAL_TERMS, pctYear } from "../lib/rewards";
 import { fmt, fmtCompact } from "../lib/format";
 
 export const ABOUT_TAGLINE = "Quasaria is a self-banking decentralized exchange on Stellar where you trade, earn, and stay in full control of your keys.";
 
-const REFERRAL_FACTS = {
-  referrerPct: 10, referrerDays: 365, refereePct: 10, refereeMonths: 6, perReferralCap: 100_000, perReferrerDay: 25_000,
-} as const;
+const REFERRAL_FACTS = REFERRAL_TERMS;
 
 function Section({ id, n, title, children, link }: { id: string; n: number; title: string; children: React.ReactNode; link?: { to: string; label: string } }) {
   return (

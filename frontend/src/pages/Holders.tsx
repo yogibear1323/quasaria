@@ -98,6 +98,22 @@ export default function Holders() {
         )}
       </div>
 
+      <div className="card" style={{ marginTop: 16 }} data-testid="tier-table">
+        <h2 style={{ marginTop: 0 }}>Who qualifies and what it pays</h2>
+        <div style={{ overflowX: "auto" }}>
+          <table className="t">
+            <thead><tr><th>Tier</th><th>Balance</th><th>Rate</th><th>Per day</th><th>Daily reward at the lowest balance</th></tr></thead>
+            <tbody>
+              <tr><td>Below the minimum</td><td className="mono">under {fmtCompact(REWARD_MIN_BALANCE)}</td><td className="mono">none</td><td className="mono">0</td><td className="mono">0</td></tr>
+              {REWARD_TIERS.map((t) => (
+                <tr key={t.name}><td>{t.name}</td><td className="mono">{fmtCompact(t.min)}{Number.isFinite(t.max) ? ` to under ${fmtCompact(t.max)}` : " and above"}</td><td className="mono">{pctYear(t.apr)}% a year</td><td className="mono">{pctDay(t.apr)}%</td><td className="mono">{fmt(dailyReward(t.min), 2)} {REWARD_ASSET_CODE}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="muted l-tiny" style={{ marginBottom: 0 }}>The rate applies to your whole balance, not just the part above the line. Based on the lower of two daily snapshots. Not guaranteed; the daily cap can scale every reward down.</p>
+      </div>
+
       <div className="grid g-2" style={{ marginTop: 16 }}>
         <div className="card" data-testid="how-it-works">
           <h2 style={{ marginTop: 0 }}>How the daily payments work</h2>

@@ -10,8 +10,9 @@ const src = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const html = renderToStaticMarkup(<MemoryRouter><WalletProvider><Buy /></WalletProvider></MemoryRouter>);
 
 describe("Buy page", () => {
-  it("lists exactly the three verified provider pages as plain new-tab links", () => {
-    expect(BUY_PROVIDERS.map((p) => p.url)).toEqual(["https://www.coinbase.com/price/stellar", "https://www.kraken.com/buy/xlm", "https://www.moonpay.com/buy/xlm"]);
+  it("lists exactly the two verified exchange pages (Coinbase, Kraken; no MoonPay) as plain new-tab links", () => {
+    expect(BUY_PROVIDERS.map((p) => p.url)).toEqual(["https://www.coinbase.com/price/stellar", "https://www.kraken.com/buy/xlm"]);
+    expect(src("../src/pages/Buy.tsx") + src("../src/lib/buyProviders.ts") + src("../src/lib/coindisco.ts") + src("../src/components/BuyWidget.tsx")).not.toMatch(/moonpay/i);
     for (const p of BUY_PROVIDERS) expect(html).toMatch(new RegExp(`href="${p.url.replace(/[./]/g, "\\$&")}" target="_blank" rel="noopener noreferrer"`));
   });
   it("carries the neutral third-party note and the network heads-up", () => {
@@ -23,9 +24,10 @@ describe("Buy page", () => {
     expect(html).toContain("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN");
     expect(html).toContain("GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5");
   });
-  it("has no embeds, affiliate/referral params, rewards wording or backend calls", () => {
-    const all = src("../src/pages/Buy.tsx") + src("../src/lib/buyProviders.ts");
-    expect(all).not.toMatch(/iframe|<script|fetch\(|affiliate(?!d)|referral|\bref=|utm_|GLACIERQ|\bAPY\b/i);
-    expect(html).not.toMatch(/iframe|GLACIERQ|referral/i);
+  it("has no affiliate/referral params, rewards wording or backend calls; the only embed is the Coindisco widget", () => {
+    const all = src("../src/pages/Buy.tsx") + src("../src/lib/buyProviders.ts") + src("../src/lib/coindisco.ts") + src("../src/components/BuyWidget.tsx");
+    expect(all).not.toMatch(/<script|fetch\(|affiliate(?!d)|referral|[?&]ref=|utm_|GLACIERQ|\bAPY\b|wl_(test|prod)_|signature/i);
+    expect(src("../src/pages/Buy.tsx")).not.toMatch(/iframe/);
+    expect(html).not.toMatch(/GLACIERQ|referral/i);
   });
 });

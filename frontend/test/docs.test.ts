@@ -11,7 +11,7 @@ describe("go-live docs", () => {
   });
   it("legal note names the Buy page and each merch 'Stellar' slogan", () => {
     const d = doc("legal-review.md");
-    for (const k of ["Buy page", "Self-Banking on Stellar", "Level Up on Stellar", "Born on Stellar", "Stellar Development Foundation", "Coinbase, Kraken and MoonPay"]) expect(d, k).toContain(k);
+    for (const k of ["Buy page", "Self-Banking on Stellar", "Level Up on Stellar", "Born on Stellar", "Stellar Development Foundation", "Coindisco", "Coinbase and Kraken", "KYB"]) expect(d, k).toContain(k);
   });
   it("market-order doc keeps the revisit-before-mainnet note and its history", () => {
     const d = doc("market-orders.md");

@@ -162,3 +162,31 @@ describe("merch yeti line (yeti is the hero print, the Q is the supporting mark)
     expect(page).toMatch(/Coming soon/);
   });
 });
+
+describe("merch tee slogans (one small Stellar / exchange line per tee, no promises)", () => {
+  const SLOGANS: Record<string, string> = {
+    "pearl-tee": "Self-Banking on Stellar",
+    "back-glow-tee": "Your Keys. Your XLM.",
+    "sleeve-tee": "Order Book Climber",
+    "speed-of-light-tee": "Swap at Light Speed",
+    "level-up-tee": "Level Up on Stellar",
+    "stardust-quasar-tee": "Born on Stellar",
+  };
+  it("each tee has its own distinct 2-4 word slogan, shown in its details", () => {
+    for (const [id, slogan] of Object.entries(SLOGANS)) {
+      const p = PRODUCTS.find((x) => x.id === id)!;
+      expect(p.slogan, id).toBe(slogan);
+      expect(p.details.join(" "), id).toContain(slogan);
+      expect(slogan.split(/\s+/).length, id).toBeGreaterThanOrEqual(2);
+      expect(slogan.split(/\s+/).length, id).toBeLessThanOrEqual(4);
+    }
+    expect(new Set(PRODUCTS.map((p) => p.slogan).filter(Boolean)).size).toBe(Object.keys(SLOGANS).length);
+  });
+  it("slogans make no price, yield or investment promises", () => {
+    for (const p of PRODUCTS) if (p.slogan) expect(p.slogan).not.toMatch(/moon|free money|yield|apy|profit|earn|rich|guarantee|gain|hodl|lambo/i);
+  });
+  it("the slogan art exists and the left-chest badge file is unchanged in name", () => {
+    for (const f of ["chest-yeti-badge-center-slogan-ink-9x10in", "back-neck-slogan-white-4x0.6in", "chest-yeti-badge-left-4x4in"]) expect(existsSync(resolve(PUBLIC, `merch-assets/designs-yeti/${f}.webp`)), f).toBe(true);
+    expect(existsSync(resolve(PUBLIC, "merch-assets/mockups-yeti/sleeve-tee-navy-back.webp"))).toBe(true);
+  });
+});

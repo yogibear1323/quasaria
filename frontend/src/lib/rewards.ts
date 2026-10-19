@@ -62,3 +62,15 @@ export const REWARD_DISCLOSURE =
 
 /** Annual rate as a clean percent number (0.07 -> 7, never 7.000000000000001). */
 export const pctYear = (apr: number) => Math.round(apr * 10000) / 100;
+
+/**
+ * Referral program terms, CONFIRMED by Robert (2026-10-18). Not live: it starts after the first mainnet holder-reward run.
+ * Mirrors scripts/rewards/core.mjs. Flip REFERRAL_LIVE only when the payer account and binding reader are running.
+ */
+export const REFERRAL_LIVE = false;
+export const REFERRAL_TERMS = {
+  referrerPct: 10, referrerDays: 365, refereePct: 10, refereeDays: 180, refereeMonths: 6,
+  perReferralCap: 100_000, perReferrerDay: 25_000, subBudgetDay: 1_000_000,
+  refereeMinBalance: 1_000_000, refereeHoldHours: 48, referrerMinBalance: 100_000, referrerMinAgeDays: 14,
+  bindWindowDays: 30, payoutLagDays: 7, bindKey: "quasaria:ref",
+} as const;

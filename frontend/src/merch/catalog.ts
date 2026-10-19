@@ -1,7 +1,7 @@
 /**
  * Quasaria merch catalogue (preview). Nothing here is for sale yet: there is no
  * checkout, no payment and no backend. Prices are EXAMPLES for layout only.
- * Artwork: scripts/merch/ (print files are generated outside the repo).
+ * Artwork: scripts/merch/ (print files are generated outside the repo). Yeti line: scripts/merch/yeti.mjs.
  */
 const BASE = (import.meta.env?.BASE_URL ?? "/").replace(/\/?$/, "/");
 export const merchImg = (path: string) => `${BASE}merch-assets/${path}`;
@@ -45,93 +45,95 @@ export type Product = {
 };
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
-/** Frost renders: cool garment colourways (midnight navy / glacier slate / glacier white), silver and ice-blue Q art, navy-steel studio backdrop. */
-const mk = (name: string) => merchImg(`mockups-icy/${name}.webp`);
+/** Yeti-line renders: cool garment colourways (midnight navy / glacier slate / glacier white), the parka yeti as the hero print with the Q as a small supporting mark, navy-steel studio backdrop. (mockups-icy/ = the earlier Q line, kept.) */
+const mk = (name: string) => merchImg(`mockups-yeti/${name}.webp`);
 const per = (base: string, colors: string[]) => Object.fromEntries(colors.map((c) => [c, mk(`${base}-${c}`)]));
-/** Print artwork: silver / ice-blue glow ink on a dark backdrop; `-ink` files are deep-navy ink for glacier white, shown on a light backdrop. */
-const art = (file: string, alt: string) => ({ src: merchImg(`designs-icy/${file}.webp`), alt, art: true, ...(file.includes("-ink") ? { light: true } : {}) });
+/** Print artwork: the frost-lit yeti on a dark backdrop; `-ink` files are the light-garment (navy badge / deep ink) versions for glacier white, shown on a light backdrop. */
+const art = (file: string, alt: string) => ({ src: merchImg(`designs-yeti/${file}.webp`), alt, art: true, ...(file.includes("-ink") ? { light: true } : {}) });
 
 export const PRODUCTS: Product[] = [
   {
-    id: "glow-hoodie", name: "Glow Hoodie", tagline: "The glowing Singularity Q over a clean white wordmark. Nothing else.", category: "hoodies", examplePrice: 64,
+    id: "glow-hoodie", name: "Glow Hoodie", tagline: "The glowing yeti in its frost-lit parka over a clean white wordmark. Nothing else.", category: "hoodies", examplePrice: 64,
     colors: [SWATCH.black, SWATCH.navy], sizes: SIZES, mockups: per("hoodie", ["black", "navy"]),
-    extras: [art("glow-lockup-center-chest-12x14in", "Centre-chest artwork: glowing Q + wordmark")],
-    details: ["Centre-chest print, about 12 in wide", "Heavyweight fleece (example blank)", "White underbase so the glow stays bright on midnight navy"], badge: "Headline",
+    extras: [art("glow-lockup-yeti-center-chest-12x14in", "Centre-chest artwork: glowing yeti + wordmark")],
+    details: ["Centre-chest yeti print, about 12 in wide", "Heavyweight fleece (example blank)", "White underbase so the glow stays bright on midnight navy"], badge: "Headline",
   },
   {
-    id: "pearl-tee", name: "Glacier Iridescent Tee", tagline: "An oversized glacier-white tee with a shifting sheen, a small deep-ink Q on the chest and an ink wordmark on the sleeve.", category: "tees", examplePrice: 42,
+    id: "pearl-tee", name: "Glacier Iridescent Tee", tagline: "An oversized glacier-white tee with a shifting sheen, a navy yeti badge on the chest and a small Q with an ink wordmark on the sleeve.", category: "tees", examplePrice: 42,
     colors: [SWATCH.pearl], sizes: SIZES, mockups: { pearl: mk("pearl-tee") },
     extras: [
-      art("chest-q-left-4x4in-ink", "Left-chest Singularity Q, deep ink"),
-      art("sleeve-wordmark-ink-4x1.2in", "Sleeve wordmark, deep ink"),
+      art("chest-yeti-badge-center-ink-9x9in", "Centre-chest yeti badge, navy disc for glacier white"),
+      art("sleeve-q-wordmark-ink-4x1.2in", "Sleeve Q + wordmark, deep ink"),
       art("neck-label-2x0.75in", "Inside neck label"),
     ],
-    details: ["Left-chest Q, about 3.5 in", "Deep-ink wordmark on the left sleeve", "Iridescent specialty blank (example); a glacier-white tee is the fallback"], badge: "Headline",
+    details: ["Centre-chest yeti badge, about 9 in", "Deep-ink Q and wordmark on the left sleeve", "Iridescent specialty blank (example); a glacier-white tee is the fallback"], badge: "Headline",
   },
   {
-    id: "glow-bomber", name: "Singularity Bomber", tagline: "A glacier-slate bomber with the Q and wordmark on a chest patch and a vertical Quasaria beside the zip.", category: "jackets", examplePrice: 98,
+    id: "glow-bomber", name: "Singularity Bomber", tagline: "A glacier-slate bomber with the yeti and wordmark on a chest patch and a vertical Quasaria beside the zip.", category: "jackets", examplePrice: 98,
     colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("bomber", ["navy", "black"]),
     extras: [
-      art("bomber-chest-patch-3x3.5in", "Chest patch: Q + wordmark"),
-      art("bomber-chest-embroidery-4x4in-600dpi", "Chest embroidery, 3 threads"),
+      art("bomber-chest-patch-yeti-3x3.5in", "Chest patch: yeti + wordmark"),
+      art("bomber-chest-embroidery-4x4in-600dpi", "Alternative chest embroidery: the Q, 3 threads"),
       art("bomber-placket-wordmark-vertical-1x4in-600dpi", "Vertical wordmark embroidery"),
     ],
-    details: ["Embroidered chest (max 4 × 4 in) or a sewn-on patch", "Vertical wordmark in 1 white thread", "Sleeve utility pocket (example blank)"], badge: "New",
+    details: ["Sewn-on yeti chest patch (or a 3-thread Q embroidery, max 4 × 4 in)", "Vertical wordmark in 1 white thread", "Sleeve utility pocket (example blank)"], badge: "New",
   },
   {
-    id: "back-glow-tee", name: "Back Glow Tee", tagline: "A small Q on the chest and a large glowing Q across the back.", category: "tees", examplePrice: 34,
+    id: "back-glow-tee", name: "Back Glow Tee", tagline: "A small yeti badge on the chest and a large glowing yeti across the back.", category: "tees", examplePrice: 34,
     colors: [SWATCH.black], sizes: SIZES, mockups: { black: mk("backglow-tee-black-back") },
     extras: [
-      { src: mk("backglow-tee-black-front"), alt: "Front: left-chest Q" },
-      art("back-glow-q-15x18in", "Back artwork: large glowing Q"),
-      art("chest-q-left-4x4in", "Left-chest Q"),
+      { src: mk("backglow-tee-black-front"), alt: "Front: left-chest yeti badge" },
+      art("back-glow-yeti-15x18in", "Back artwork: large glowing yeti"),
+      art("chest-yeti-badge-left-4x4in", "Left-chest yeti badge"),
     ],
-    details: ["Full-back print + left-chest Q", "Midnight navy only, so the glow can do the work"], badge: "Essential",
+    details: ["Full-back yeti print + left-chest yeti badge", "Midnight navy only, so the glow can do the work"], badge: "Essential",
   },
   {
-    id: "sleeve-tee", name: "Sleeve Wordmark Tee", tagline: "A small Q on the chest and the Quasaria wordmark down the sleeve.", category: "tees", examplePrice: 30,
+    id: "sleeve-tee", name: "Sleeve Wordmark Tee", tagline: "A small yeti badge on the chest and the Q with the Quasaria wordmark down the sleeve.", category: "tees", examplePrice: 30,
     colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("sleeve-tee", ["navy", "black"]),
-    extras: [art("sleeve-wordmark-white-4x1.2in", "Sleeve wordmark, white (glacier slate)"), art("sleeve-wordmark-cyan-4x1.2in", "Sleeve wordmark, ice blue (midnight navy)")],
-    details: ["Left-chest Q + sleeve wordmark", "White wordmark on glacier slate, ice blue on midnight navy"],
+    extras: [art("sleeve-q-wordmark-white-4x1.2in", "Sleeve Q + wordmark, white (glacier slate)"), art("sleeve-q-wordmark-cyan-4x1.2in", "Sleeve Q + wordmark, ice blue (midnight navy)")],
+    details: ["Left-chest yeti badge + sleeve Q and wordmark", "White wordmark on glacier slate, ice blue on midnight navy"],
   },
   {
-    id: "speed-of-light-tee", name: "Speed of Light Tee", tagline: "The glowing Q, a single light streak and one quiet line of type.", category: "tees", examplePrice: 32,
+    id: "speed-of-light-tee", name: "Speed of Light Tee", tagline: "The glowing yeti, a single light streak and one quiet line of type.", category: "tees", examplePrice: 32,
     colors: [SWATCH.black, SWATCH.navy], sizes: SIZES, mockups: per("speed-of-light", ["black", "navy"]),
-    extras: [art("speed-of-light-minimal-15x18in", "Front artwork")],
-    details: ["Front print, art kept to about 11 in", "Stellar settles in about 5 seconds, which is close enough"],
+    extras: [art("speed-of-light-yeti-15x18in", "Front artwork: yeti")],
+    details: ["Front yeti print, art kept to about 11 in", "Stellar settles in about 5 seconds, which is close enough"],
   },
   {
-    id: "level-up-tee", name: "Level Up Tee", tagline: "The glowing Q inside a single XP ring. Learn it, try it once, level up.", category: "tees", examplePrice: 32,
+    id: "level-up-tee", name: "Level Up Tee", tagline: "The yeti inside a single XP ring. Learn it, try it once, level up.", category: "tees", examplePrice: 32,
     colors: [SWATCH.black, SWATCH.pearl], sizes: SIZES, mockups: per("level-up", ["black", "pearl"]),
-    extras: [art("level-up-minimal-15x18in", "Front artwork"), art("level-up-minimal-15x18in-ink", "Front artwork, deep ink (glacier white)")],
-    details: ["Front print, art kept to about 11 in", "Inspired by the in-app quests (XP itself has no monetary value)"], badge: "Game layer",
+    extras: [art("level-up-yeti-15x18in", "Front artwork: yeti in an XP ring"), art("level-up-yeti-15x18in-ink", "Front artwork, navy yeti badge (glacier white)")],
+    details: ["Front yeti print, art kept to about 11 in", "Inspired by the in-app quests (XP itself has no monetary value)"], badge: "Game layer",
   },
   {
-    id: "stardust-quasar-tee", name: "Stardust to Quasar Tee", tagline: "Four specks of stardust growing into the glowing Q, with one line of type.", category: "tees", examplePrice: 32,
+    id: "stardust-quasar-tee", name: "Stardust to Quasar Tee", tagline: "Four specks of stardust growing into the glowing yeti, with one line of type.", category: "tees", examplePrice: 32,
     colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("stardust", ["navy", "black"]),
-    extras: [art("stardust-to-quasar-minimal-15x18in", "Front artwork")],
-    details: ["Front print, art kept to about 11 in", "From stardust to quasar, the five in-app ranks in one line"],
+    extras: [art("stardust-to-quasar-yeti-15x18in", "Front artwork: yeti")],
+    details: ["Front yeti print, art kept to about 11 in", "From stardust to quasar, the five in-app ranks in one line"],
   },
   {
-    id: "singularity-cap", name: "Embroidered Q Cap", tagline: "The Singularity Q in three threads on a low-profile cap. Wordmark version included.", category: "caps", examplePrice: 28,
+    id: "singularity-cap", name: "Embroidered Q Cap", tagline: "The Singularity Q in three threads on a low-profile cap, with a round yeti patch version and a wordmark version.", category: "caps", examplePrice: 28,
     colors: [SWATCH.black, SWATCH.navy], sizes: ["One size"], mockups: per("cap", ["black", "navy"]),
     extras: [
+      { src: mk("cap-black-yeti-patch"), alt: "Alternative: round yeti patch" },
       { src: mk("cap-black-lockup"), alt: "Alternative: Q + wordmark" },
+      art("cap-patch-yeti-3in-round", "Yeti patch artwork, 3 in round"),
       art("cap-embroidery-q-3color-600dpi", "Embroidery artwork, 3 threads"),
     ],
-    details: ["Silver-blue, ice-blue and white threads (3 max)", "Adjustable strap"],
+    details: ["Silver-blue, ice-blue and white threads (3 max)", "Yeti photo patch option (woven or sublimated)", "Adjustable strap"],
   },
   {
-    id: "glow-mug", name: "Glow Mug", tagline: "Midnight navy 11 oz ceramic with the glowing Q on one side and the wordmark on the other.", category: "accessories", examplePrice: 18,
+    id: "glow-mug", name: "Glow Mug", tagline: "Midnight navy 11 oz ceramic with the glowing yeti on one side and the Q over the wordmark on the other.", category: "accessories", examplePrice: 18,
     colors: [SWATCH.black], sizes: ["11 oz"], mockups: { black: mk("mug-glow-front") },
-    extras: [{ src: mk("mug-glow-back"), alt: "Other side: wordmark" }, art("mug-11oz-wrap-glow-black", "Full mug wrap artwork")],
+    extras: [{ src: mk("mug-glow-back"), alt: "Other side: Q + wordmark" }, art("mug-11oz-wrap-yeti-navy", "Full mug wrap artwork: yeti + Q")],
     details: ["Full wrap on midnight navy ceramic", "Dishwasher & microwave safe (example blank)"],
   },
   {
-    id: "sticker-sheet", name: "Logo Sticker Sheet", tagline: "Eight logo stickers: the glowing Q, lockups and wordmarks.", category: "accessories", examplePrice: 8,
+    id: "sticker-sheet", name: "Logo Sticker Sheet", tagline: "Eight logo stickers: two yeti badges, the Q, lockups and wordmarks.", category: "accessories", examplePrice: 8,
     colors: [], sizes: ["5.5 × 8.5 in sheet"], mockups: { default: mk("stickers-laptop") },
-    extras: [{ src: mk("stickers-sheet"), alt: "The full sheet" }, art("sticker-sheet-5.5x8.5in-preview", "Sticker artwork")],
-    details: ["8 kiss-cut vinyl stickers", "Logo and wordmark only"], badge: "Laptop-ready",
+    extras: [{ src: mk("stickers-sheet"), alt: "The full sheet" }, art("sticker-sheet-5.5x8.5in-preview", "Sticker artwork: yeti badges + Q")],
+    details: ["8 kiss-cut vinyl stickers", "Yeti badges, Q and wordmark only"], badge: "Laptop-ready",
   },
 ];
 
@@ -144,8 +146,8 @@ export const CATEGORIES: { id: "all" | Category; label: string }[] = [
   { id: "accessories", label: "Stickers & mugs" },
 ];
 
-/** The 3-up store banner: Glow hoodie, glacier tee, bomber. */
-export const HERO_IMG = merchImg("hero/merch-hero-v4-icy.webp");
+/** The 3-up store banner: yeti hoodie, glacier tee, bomber. */
+export const HERO_IMG = merchImg("hero/merch-hero-v4-yeti.webp");
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export type NotifyEntry = { email: string; product: string; at: number };

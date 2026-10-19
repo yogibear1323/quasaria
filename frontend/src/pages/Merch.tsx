@@ -29,7 +29,7 @@ export default function Merch() {
           <div className="m-hero-copy">
             <div className="l-kicker m-kicker"><img className="m-mark" src={MERCH_MARK} alt="" width={28} height={28} />Quasaria Supply · coming soon</div>
             <h1 id="m-hero-title">Wear the <span className="grad-text">Singularity</span>.</h1>
-            <p>A minimal line built around the glowing Singularity Q: the Glow hoodie, a glacier iridescent tee and a slate bomber, plus tees, caps, a mug and stickers in midnight navy, glacier slate and glacier white. It's a preview for now. Nothing is for sale and every price is an example.</p>
+            <p>A minimal line built around the Quasaria yeti, with the glowing Singularity Q as the small supporting mark: the Glow hoodie, a glacier iridescent tee and a slate bomber, plus tees, caps, a mug and stickers in midnight navy, glacier slate and glacier white. It's a preview for now. Nothing is for sale and every price is an example.</p>
             <div className="m-hero-pills">
               <span className="pill cyan">Preview · not for sale yet</span>
               <span className="pill">Example prices</span>
@@ -67,7 +67,7 @@ export default function Merch() {
       <div className="m-how">
         {[
           ["Printed on demand", "Each item would be made when it's ordered, so there's no warehouse of unsold stock."],
-          ["Original artwork", "Every design is drawn in-house from the Quasaria mark. No third-party logos."],
+          ["Original artwork", "Every design is built in-house from the Quasaria yeti and the Q mark. No third-party logos."],
           ["Just merch", "Buying merch would never earn XP, badges or tokens. XP only rewards learning and trying things once."],
         ].map(([t, d]) => (
           <div className="card m-how-item" key={t}><h3>{t}</h3><p className="muted">{d}</p></div>

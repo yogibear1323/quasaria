@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { CATEGORIES, SWATCH, MERCH_APPLE_ICON, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, MERCH_MARK_LG, NOTIFY_KEY, PRODUCTS, readNotify, saveNotify } from "../src/merch/catalog";
+import { CATEGORIES, HERO_IMG, SWATCH, MERCH_APPLE_ICON, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, MERCH_MARK_LG, NOTIFY_KEY, PRODUCTS, readNotify, saveNotify } from "../src/merch/catalog";
 
 const PUBLIC = resolve(__dirname, "../public");
 const local = (url: string) => resolve(PUBLIC, url.replace(/^\/+/, ""));
@@ -42,7 +42,7 @@ describe("merch catalogue (preview storefront)", () => {
     const text = JSON.stringify(PRODUCTS.map((p) => ({ n: p.name, t: p.tagline, d: p.details, c: p.colors.map((c) => c.name), x: p.extras.map((e) => e.alt) })));
     expect(text).not.toMatch(/umber|moss|sand\b|honey|clay|terracotta/i);
     for (const p of PRODUCTS) for (const src of [...Object.values(p.mockups), ...p.extras.map((x) => x.src)]) {
-      expect(src, src).toMatch(/mockups-icy|designs-icy/);
+      expect(src, src).toMatch(/mockups-yeti|designs-yeti/);
     }
   });
 
@@ -98,5 +98,67 @@ describe("merch v4 line (minimal, logo-led)", () => {
   it("ships the 3-up hero banner", async () => {
     const { HERO_IMG } = await import("../src/merch/catalog");
     expect(existsSync(local(HERO_IMG))).toBe(true);
+  });
+});
+
+describe("merch yeti line (yeti is the hero print, the Q is the supporting mark)", () => {
+  const imgs = (p: (typeof PRODUCTS)[number]) => [...Object.values(p.mockups), ...p.extras.map((x) => x.src)];
+
+  it("every product shows yeti imagery from mockups-yeti/ and designs-yeti/ (never the earlier Q-only folders)", () => {
+    for (const p of PRODUCTS) {
+      for (const src of Object.values(p.mockups)) expect(src, `${p.id} mockup`).toContain("/mockups-yeti/");
+      for (const src of imgs(p)) {
+        expect(src, `${p.id}: ${src}`).toMatch(/\/(mockups|designs)-yeti\//);
+        expect(src).not.toMatch(/mockups-icy|designs-icy|mockups-frost|\/mockups\/|\/designs\//);
+        expect(existsSync(local(src)), src).toBe(true);
+      }
+    }
+    expect(HERO_IMG).toContain("merch-hero-v4-yeti");
+    expect(existsSync(local(HERO_IMG))).toBe(true);
+  });
+
+  it("every product's copy tells you the yeti is on it (tees, hoodie, bomber, cap, mug, stickers)", () => {
+    for (const p of PRODUCTS) {
+      const copy = [p.tagline, ...p.details, ...p.extras.map((x) => x.alt)].join(" ");
+      expect(copy, p.id).toMatch(/yeti/i);
+    }
+    // the five tee designs lead with the yeti; the Q is only a supporting mark on them
+    for (const id of ["pearl-tee", "back-glow-tee", "sleeve-tee", "speed-of-light-tee", "level-up-tee", "stardust-quasar-tee"]) {
+      const p = PRODUCTS.find((x) => x.id === id)!;
+      expect(p.tagline.toLowerCase(), id).toContain("yeti");
+      expect(p.tagline, `${id} tagline no longer leads with the glowing Q`).not.toMatch(/glowing Q\b/);
+    }
+  });
+
+  it("the yeti cut-out source and the generated yeti print art are in place and not the raw photo", () => {
+    const asset = resolve(__dirname, "../../scripts/merch/assets/yeti-bust-cutout.webp");
+    expect(existsSync(asset)).toBe(true);
+    const buf = readFileSync(asset);
+    expect(buf.subarray(0, 4).toString()).toBe("RIFF");
+    expect(buf.subarray(8, 12).toString()).toBe("WEBP");
+    expect(buf.subarray(12, 16).toString(), "WebP must be VP8X so it carries an alpha channel").toBe("VP8X");
+    expect(buf[20] & 0x10, "alpha flag").toBeTruthy();
+    expect(statSync(asset).size).toBeLessThan(3_000_000);
+    for (const f of ["glow-lockup-yeti-center-chest-12x14in", "back-glow-yeti-15x18in", "chest-yeti-badge-left-4x4in", "chest-yeti-badge-center-ink-9x9in", "bomber-chest-patch-yeti-3x3.5in", "mug-11oz-wrap-yeti-navy"]) {
+      expect(existsSync(resolve(PUBLIC, `merch-assets/designs-yeti/${f}.webp`)), f).toBe(true);
+    }
+  });
+
+  it("the old Q-line folders are untouched (kept as backups)", () => {
+    for (const d of ["mockups-icy", "designs-icy", "mockups", "designs"]) expect(existsSync(resolve(PUBLIC, "merch-assets", d)), d).toBe(true);
+  });
+
+  it("yeti copy keeps the bans (no Beacons / perps / bots) and the cool palette", () => {
+    const text = JSON.stringify(PRODUCTS);
+    expect(text).not.toMatch(/beacon|perps|trading bot|polybot|umber|moss|sand\b|clay|terracotta/i);
+    const page = readFileSync(resolve(__dirname, "../src/pages/Merch.tsx"), "utf8");
+    expect(page).not.toMatch(/beacon|perps|trading bot|polybot/i);
+    expect(page).toMatch(/Quasaria yeti/);
+  });
+
+  it("the Coming soon buttons are still disabled", () => {
+    const page = readFileSync(resolve(__dirname, "../src/pages/Merch.tsx"), "utf8");
+    expect(page).toMatch(/disabled/);
+    expect(page).toMatch(/Coming soon/);
   });
 });

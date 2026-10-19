@@ -1,6 +1,7 @@
 // Build the Quasaria merch line: print SVG/PNG files (outside the repo), web
 // WebP versions (frontend/public/merch-assets), product mockups and contact sheets.
 //
+//   MERCH_LINE=yeti MERCH_WEB_SUFFIX=-yeti ...  → the yeti line (see yeti.mjs, yeti-cutout.py)
 //   cd frontend && OPENTYPE_PATH=/path/to/opentype.js node ../scripts/merch/build-merch.mjs
 //   python3 ../scripts/merch/post-merch.py      # 300/600 DPI tags + WebP (needs Pillow)
 //
@@ -11,8 +12,13 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { root } from "./lib.mjs";
-import { DESIGNS, STICKERS, stickerSvg } from "./designs.mjs";
+import { DESIGNS as BASE_DESIGNS, STICKERS as BASE_STICKERS, stickerSvg } from "./designs.mjs";
 import * as M from "./mockups.mjs";
+
+// MERCH_LINE=yeti builds the yeti line (scripts/merch/yeti.mjs): yeti hero art, Q as the supporting mark.
+const YETI = process.env.MERCH_LINE === "yeti" ? await import("./yeti.mjs") : null;
+const DESIGNS = YETI?.DESIGNS ?? BASE_DESIGNS;
+const STICKERS = YETI?.STICKERS ?? BASE_STICKERS;
 
 const PRINT = process.env.MERCH_PRINT_DIR || "/workspace/quasaria-merch/print";
 const SHOTS = process.env.MERCH_SHOTS_DIR || "/workspace/redesign-shots/merch";
@@ -54,7 +60,7 @@ if (want("print")) {
 const G = M.GARMENT;
 const L = (id, x, y, rot) => ({ ...stickerWeb[id], x, y, rot });
 const front = (c, key) => () => M.tee({ color: G[c], art: svgs[key], placement: "front", label: svgs["neck-label"], pearl: c === "pearl" });
-export const MOCKUPS = [
+export const MOCKUPS = YETI ? YETI.mockups({ svgs, stickerWeb }) : [
   ["hoodie-black", () => M.hoodie({ color: G.black, art: svgs["glow-lockup"] })],
   ["hoodie-navy", () => M.hoodie({ color: G.navy, art: svgs["glow-lockup"] })],
   ["pearl-tee", () => M.tee({ color: G.pearl, art: svgs["chest-mark-ink"], placement: "chest", sleeve: svgs["sleeve-ink"], label: svgs["neck-label"], pearl: true })],

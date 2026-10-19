@@ -107,7 +107,7 @@ export const STICKERS = [
   { id: "q-mono", name: "Q mono white", shape: rr(340, 340, 86), draw: () => `${fill(rr(340, 340, 86), "#1E2D4D")}${flatMark(-120, -120, 240, { ring: "#fff", tail: "#fff", core: "#fff", glint: "#fff" })}` },
   { id: "q-square", name: "Glow Q (square)", shape: rr(340, 340, 86), draw: (p) => `${fill(rr(340, 340, 86), "#0F1830")}${glowMark(-130, -130, 260, p, { halo: 0.9 })}` },
 ];
-const SHEET_POS = { "glow-q": [470, 390], "q-diecut": [1210, 390], "lockup-dark": [825, 900], "lockup-navy": [825, 1260], "wordmark-white": [825, 1600], "wordmark-cyan": [825, 1920], "q-mono": [470, 2320], "q-square": [1180, 2320] };
+export const SHEET_POS = { "glow-q": [470, 390], "q-diecut": [1210, 390], "lockup-dark": [825, 900], "lockup-navy": [825, 1260], "wordmark-white": [825, 1600], "wordmark-cyan": [825, 1920], "q-mono": [470, 2320], "q-square": [1180, 2320] };
 export function stickerGroup(st, { cut = true, bleed = 18, border = 30 } = {}) {
   const p = `s-${st.id}`;
   return `<path d="${shapePath(st.shape, border + bleed)}" fill="#fff"/>` + st.draw(p) + (cut ? `<path d="${shapePath(st.shape, border)}" fill="none" stroke="#FF00FF" stroke-width="2" class="cut"/>` : "");
@@ -116,8 +116,8 @@ export function stickerSvg(st, opts = {}) {
   const pad = 30 + (opts.bleed ?? 18) + 4, [bw, bh] = shapeBox(st.shape), w = Math.ceil(bw + 2 * pad), h = Math.ceil(bh + 2 * pad);
   return { w, h, svg: svgDoc(w, h, `<g transform="translate(${w / 2} ${h / 2})">${stickerGroup(st, opts)}</g>`, { title: `Quasaria sticker — ${st.name}`, desc: `Die-cut sticker at 300 DPI. ${opts.cut === false ? "" : "Magenta (#FF00FF) hairline = CutContour; white border 30 px (2.5 mm) + 18 px bleed."}` }) };
 }
-function stickerSheet({ cut }) {
-  const g = STICKERS.map((st) => { const [x, y] = SHEET_POS[st.id]; return `<g transform="translate(${x} ${y})">${stickerGroup(st, { cut, bleed: cut ? 18 : 0 })}</g>`; }).join("\n");
+export function stickerSheet({ cut, list = STICKERS, pos = SHEET_POS }) {
+  const g = list.map((st) => { const [x, y] = pos[st.id]; return `<g transform="translate(${x} ${y})">${stickerGroup(st, { cut, bleed: cut ? 18 : 0 })}</g>`; }).join("\n");
   return svgDoc(1650, 2550, g, { title: `Quasaria logo sticker sheet (5.5 × 8.5 in @ 300 DPI)${cut ? " with cut lines" : ""}`, desc: "8 logo and wordmark stickers" });
 }
 

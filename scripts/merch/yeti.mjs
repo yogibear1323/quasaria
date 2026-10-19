@@ -9,7 +9,7 @@
 // Used by build-merch.mjs when MERCH_LINE=yeti.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { r2, svgDoc, V2, wordmarkC, flatMark, glowMark, text, blur, holo, root } from "./lib.mjs";
+import { r2, svgDoc, V2, wordmarkC, flatMark, glowMark, text, fit, blur, holo, root } from "./lib.mjs";
 import { DESIGNS as BASE, STICKERS as BASE_STICKERS, SHEET_POS as BASE_POS, stickerSheet } from "./designs.mjs";
 import * as M from "./mockups.mjs";
 
@@ -54,20 +54,24 @@ const chestBadge = () => svgDoc(1200, 1200, badge(600, 600, 520, "cb"), { title:
 const chestBadgeInk = () => svgDoc(1200, 1200, badge(600, 600, 520, "cbi", { ink: true }), { title: "Quasaria — left-chest yeti badge, light-garment version (4 × 4 in @ 300 DPI)", desc: "Same badge without the bright halo, for glacier white" });
 /** Centre-chest yeti badge (9 in) for the glacier-white iridescent tee. */
 const centerBadgeInk = () => svgDoc(2700, 2700, badge(1350, 1350, 1190, "ccb", { ink: true }), { title: "Quasaria — centre-chest yeti badge, light-garment version (9 × 9 in @ 300 DPI)", desc: "Navy disc keeps the white fur legible on glacier white" });
+/** Glacier-white tee: centre-chest navy badge (unchanged) with one small ink line under it. */
+const centerBadgeSlogan = () => svgDoc(2700, 3000, `${badge(1350, 1350, 1190, "ccs", { ink: true })}${text("SELF-BANKING ON STELLAR", { w: 500, size: 110, x: 1350, y: 2840, tracking: 0.32, fill: "#1E3A66" })}`, { title: "Quasaria — centre-chest yeti badge + slogan, light-garment version (9 × 10 in @ 300 DPI)", desc: "Navy yeti badge with one small ink line under it: Self-banking on Stellar" });
+/** Small back-neck print (4 × 0.6 in): one line of type for the sleeve-wordmark tee. */
+const backNeck = (fill, ink) => () => svgDoc(1200, 180, text("ORDER BOOK CLIMBER", { w: 500, size: Math.min(62, fit("ORDER BOOK CLIMBER", 900, { w: 500, tracking: 0.32 })), x: 600, y: 112, tracking: 0.32, fill }), { title: `Quasaria — back-neck slogan, ${ink} (4 × 0.6 in @ 300 DPI)`, desc: "Small line under the collar: Order book climber" });
 /** Sleeve lockup (4 × 1.2 in): small supporting Q + wordmark. */
 const sleeveLockup = (fill, tag, q) => () => svgDoc(1200, 360, flatMark(60, 85, 190, q) + wordmarkC(745, 180, 850, fill), { title: `Quasaria — sleeve Q + wordmark, ${tag} (4 × 1.2 in @ 300 DPI)`, desc: "Small supporting Singularity Q with the exact brand wordmark for the upper sleeve" });
 const INK_Q = { ring: "#1E3A66", tail: "#2B4A7C", core: "#16305C", glint: "#2B4A7C" };
 /** Full back (15 × 18 in): big glowing yeti, small wordmark. */
-const backYeti = () => svgDoc(W, H, `${yeti(W / 2, 380, 4100, "by")}${wordmarkC(W / 2, 4080, 1500, "#fff")}${caption("SINGULARITY SERIES", W / 2, 4430, 90)}`, { title: "Quasaria — back yeti print (15 × 18 in @ 300 DPI)", desc: "Large glowing yeti bust, small wordmark" });
+const backYeti = () => svgDoc(W, H, `${yeti(W / 2, 380, 4100, "by")}${wordmarkC(W / 2, 4080, 1500, "#fff")}${caption("YOUR KEYS. YOUR XLM.", W / 2, 4430, 100)}`, { title: "Quasaria — back yeti print (15 × 18 in @ 300 DPI)", desc: "Large glowing yeti bust, small wordmark" });
 function speedYeti() {
   const w = 3300, x = W / 2, y = 800, h = (w * YH) / YW, cy = y + h * 0.4;
   const body = `<defs><linearGradient id="slst" x1="200" y1="0" x2="4300" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8FA6C8" stop-opacity="0"/><stop offset=".3" stop-color="#8FA6C8" stop-opacity=".7"/><stop offset=".5" stop-color="#FFFFFF"/><stop offset=".7" stop-color="#BFE3F7" stop-opacity=".7"/><stop offset="1" stop-color="#BFE3F7" stop-opacity="0"/></linearGradient>${blur("slb", 18)}</defs>
 <rect x="200" y="${r2(cy - 14)}" width="4100" height="28" rx="14" fill="url(#slst)" filter="url(#slb)"/>
 <rect x="200" y="${r2(cy - 5)}" width="4100" height="10" rx="5" fill="url(#slst)"/>
 ${yeti(x, y, w, "sy")}
-${caption("TRADE AT THE SPEED OF LIGHT", W / 2, 3900, 120, V2.text)}
+${caption("SWAP AT LIGHT SPEED", W / 2, 3900, 120, V2.text)}
 ${wordmarkC(W / 2, 4260, 900, V2.text2)}`;
-  return svgDoc(W, H, body, { title: "Quasaria — Speed of Light, yeti (minimal)", desc: "Glowing yeti with a single light streak behind it, one line of type" });
+  return svgDoc(W, H, body, { title: "Quasaria — Speed of Light, yeti (minimal)", desc: "Glowing yeti with a single light streak behind it, one small line of type: Swap at Light Speed" });
 }
 function levelYeti(ink = false) {
   const cx = W / 2, cy = 2050, R = 1500, a0 = -90, a1 = -90 + 360 * 0.86;
@@ -78,7 +82,7 @@ function levelYeti(ink = false) {
 <path d="M${sx} ${sy}A${R} ${R} 0 1 1 ${ex} ${ey}" fill="none" stroke="url(#luring)" stroke-width="40" stroke-linecap="round"/>
 <circle cx="${ex}" cy="${ey}" r="46" fill="${ink ? "#16305C" : "#fff"}"/>
 ${ink ? badge(cx, cy, 1270, "ly", { ink: true }) : yeti(cx, cy - h * 0.5, w, "ly")}
-${text("LEVEL UP", { w: 500, size: 150, x: cx, y: 3950, tracking: 0.32, fill: ink ? "#16305C" : V2.text })}
+${text("LEVEL UP ON STELLAR", { w: 500, size: 120, x: cx, y: 3950, tracking: 0.32, fill: ink ? "#16305C" : V2.text })}
 ${wordmarkC(cx, 4300, 900, ink ? "#2B4A7C" : V2.text2)}`;
   return svgDoc(W, H, body, { title: `Quasaria — Level Up, yeti (minimal${ink ? ", deep ink" : ""})`, desc: "Yeti inside a single XP ring, one line of type" });
 }
@@ -88,7 +92,7 @@ function stardustYeti() {
   const body = `<path d="M600 3200Q1200 2750 1500 2600" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="10" stroke-dasharray="2 44" stroke-linecap="round"/>
 ${dots}
 ${yeti(cx, y, w, "sd")}
-${caption("FROM STARDUST TO QUASAR", W / 2, 3900, 120, V2.text)}
+${caption("BORN ON STELLAR", W / 2, 3900, 120, V2.text)}
 ${wordmarkC(W / 2, 4260, 900, V2.text2)}`;
   return svgDoc(W, H, body, { title: "Quasaria — From Stardust to Quasar, yeti (minimal)", desc: "Four dots of stardust growing into the glowing yeti, one line of type" });
 }
@@ -130,6 +134,8 @@ const R = {
 export const DESIGNS = [
   ...BASE.filter((d) => !d.id.startsWith("sticker-sheet")).map((d) => (R[d.id] ? { ...d, ...R[d.id] } : d)),
   { id: "badge-center-ink", file: "chest-yeti-badge-center-ink-9x9in", w: 2700, h: 2700, svg: centerBadgeInk, kind: "Tee · centre chest (DTG)", garments: "Glacier White", note: "9 in navy yeti badge for the light tee." },
+  { id: "badge-center-slogan", file: "chest-yeti-badge-center-slogan-ink-9x10in", w: 2700, h: 3000, svg: centerBadgeSlogan, kind: "Tee · centre chest (DTG)", garments: "Glacier White", note: "The 9 in navy badge plus the small line “Self-banking on Stellar” underneath, in deep ink." },
+  { id: "back-neck-slogan", file: "back-neck-slogan-white-4x0.6in", w: 1200, h: 180, svg: backNeck("#E3EAF4", "white"), kind: "Tee · back neck, below the collar (DTG)", garments: "Midnight Navy, Glacier Slate", note: "Small line “Order book climber”, about 3.5 in of type, centred 2 in below the collar." },
   { id: "cap-patch-yeti", file: "cap-patch-yeti-3in-round", w: 900, h: 900, svg: capPatch, kind: "Cap · front patch (woven/sublimated)", garments: "Midnight Navy, Glacier Slate cap", note: "Photo patch alternative to the embroidered Q." },
   { id: "sticker-sheet", file: "sticker-sheet-5.5x8.5in-print-with-cutlines", w: 1650, h: 2550, svg: () => stickerSheet({ cut: true, list: STICKERS, pos: SHEET_POS }), kind: "Stickers · sheet", garments: "White vinyl, kiss-cut", note: "Magenta #FF00FF hairlines = CutContour, 18 px bleed." },
   { id: "sticker-sheet-preview", file: "sticker-sheet-5.5x8.5in-preview", w: 1650, h: 2550, svg: () => stickerSheet({ cut: false, list: STICKERS, pos: SHEET_POS }), kind: "Stickers · sheet", garments: "—", note: "Preview without cut lines." },
@@ -144,13 +150,14 @@ export function mockups({ svgs, stickerWeb }) {
   return [
     ["hoodie-black", () => M.hoodie({ color: G.black, art: svgs["glow-lockup"] })],
     ["hoodie-navy", () => M.hoodie({ color: G.navy, art: svgs["glow-lockup"] })],
-    ["pearl-tee", () => M.tee({ color: G.pearl, art: svgs["badge-center-ink"], placement: "front", box: [388, 226, 224, 224], sleeve: svgs["sleeve-ink"], label: svgs["neck-label"], pearl: true, crisp: true })],
+    ["pearl-tee", () => M.tee({ color: G.pearl, art: svgs["badge-center-slogan"], placement: "front", box: [388, 226, 224, 249], sleeve: svgs["sleeve-ink"], label: svgs["neck-label"], pearl: true, crisp: true })],
     ["bomber-navy", () => M.bomber({ color: G.navy, patch: svgs["bomber-patch"], placket: svgs["bomber-placket"], label: svgs["neck-label"] })],
     ["bomber-black", () => M.bomber({ color: G.black, patch: svgs["bomber-patch"], placket: svgs["bomber-placket"], label: svgs["neck-label"] })],
     ["backglow-tee-black-front", () => M.tee({ color: G.black, art: svgs["chest-mark"], placement: "chest", label: svgs["neck-label"] })],
     ["backglow-tee-black-back", () => M.tee({ color: G.black, art: svgs["back-glow"], placement: "back" })],
     ["sleeve-tee-navy", () => M.tee({ color: G.navy, art: svgs["chest-mark"], placement: "chest", sleeve: svgs["sleeve-white"], label: svgs["neck-label"] })],
     ["sleeve-tee-black", () => M.tee({ color: G.black, art: svgs["chest-mark"], placement: "chest", sleeve: svgs["sleeve-cyan"], label: svgs["neck-label"] })],
+    ["sleeve-tee-navy-back", () => M.tee({ color: G.navy, art: svgs["back-neck-slogan"], placement: "back", box: [430, 168, 140, 21], crisp: true })],
     ["speed-of-light-black", front("black", "speed-of-light")],
     ["speed-of-light-navy", front("navy", "speed-of-light")],
     ["level-up-black", front("black", "level-up")],

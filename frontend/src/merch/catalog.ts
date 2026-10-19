@@ -41,6 +41,8 @@ export type Product = {
   /** Extra gallery images (artwork, alternate views). */
   extras: { src: string; alt: string; art?: boolean; light?: boolean }[];
   details: string[];
+  /** Tee slogan: one small line of type (2 to 4 words, no price / yield / investment claims). */
+  slogan?: string;
   badge?: string;
 };
 
@@ -62,11 +64,12 @@ export const PRODUCTS: Product[] = [
     id: "pearl-tee", name: "Glacier Iridescent Tee", tagline: "An oversized glacier-white tee with a shifting sheen, a navy yeti badge on the chest and a small Q with an ink wordmark on the sleeve.", category: "tees", examplePrice: 42,
     colors: [SWATCH.pearl], sizes: SIZES, mockups: { pearl: mk("pearl-tee") },
     extras: [
-      art("chest-yeti-badge-center-ink-9x9in", "Centre-chest yeti badge, navy disc for glacier white"),
+      art("chest-yeti-badge-center-slogan-ink-9x10in", "Centre-chest yeti badge with the small line “Self-Banking on Stellar”, deep ink"),
+      art("chest-yeti-badge-center-ink-9x9in", "Centre-chest yeti badge, navy disc for glacier white (no line of type)"),
       art("sleeve-q-wordmark-ink-4x1.2in", "Sleeve Q + wordmark, deep ink"),
       art("neck-label-2x0.75in", "Inside neck label"),
     ],
-    details: ["Centre-chest yeti badge, about 9 in", "Deep-ink Q and wordmark on the left sleeve", "Iridescent specialty blank (example); a glacier-white tee is the fallback"], badge: "Headline",
+    details: ["Centre-chest yeti badge, about 9 in, with a small deep-ink line under it: “Self-Banking on Stellar”", "Deep-ink Q and wordmark on the left sleeve", "Iridescent specialty blank (example); a glacier-white tee is the fallback"], badge: "Headline", slogan: "Self-Banking on Stellar",
   },
   {
     id: "glow-bomber", name: "Singularity Bomber", tagline: "A glacier-slate bomber with the yeti and wordmark on a chest patch and a vertical Quasaria beside the zip.", category: "jackets", examplePrice: 98,
@@ -86,31 +89,31 @@ export const PRODUCTS: Product[] = [
       art("back-glow-yeti-15x18in", "Back artwork: large glowing yeti"),
       art("chest-yeti-badge-left-4x4in", "Left-chest yeti badge"),
     ],
-    details: ["Full-back yeti print + left-chest yeti badge", "Midnight navy only, so the glow can do the work"], badge: "Essential",
+    details: ["Full-back yeti print + left-chest yeti badge", "A small line under the back print: “Your Keys. Your XLM.”", "Midnight navy only, so the glow can do the work"], badge: "Essential", slogan: "Your Keys. Your XLM.",
   },
   {
     id: "sleeve-tee", name: "Sleeve Wordmark Tee", tagline: "A small yeti badge on the chest and the Q with the Quasaria wordmark down the sleeve.", category: "tees", examplePrice: 30,
     colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("sleeve-tee", ["navy", "black"]),
-    extras: [art("sleeve-q-wordmark-white-4x1.2in", "Sleeve Q + wordmark, white (glacier slate)"), art("sleeve-q-wordmark-cyan-4x1.2in", "Sleeve Q + wordmark, ice blue (midnight navy)")],
-    details: ["Left-chest yeti badge + sleeve Q and wordmark", "White wordmark on glacier slate, ice blue on midnight navy"],
+    extras: [{ src: mk("sleeve-tee-navy-back"), alt: "Back: small “Order Book Climber” line under the collar (yeti badge on the chest)" }, art("back-neck-slogan-white-4x0.6in", "Back-neck line “Order Book Climber”, white"), art("sleeve-q-wordmark-white-4x1.2in", "Sleeve Q + wordmark, white (glacier slate)"), art("sleeve-q-wordmark-cyan-4x1.2in", "Sleeve Q + wordmark, ice blue (midnight navy)")],
+    details: ["Left-chest yeti badge + sleeve Q and wordmark", "White wordmark on glacier slate, ice blue on midnight navy", "A small line under the back collar: “Order Book Climber”"], slogan: "Order Book Climber",
   },
   {
     id: "speed-of-light-tee", name: "Speed of Light Tee", tagline: "The glowing yeti, a single light streak and one quiet line of type.", category: "tees", examplePrice: 32,
     colors: [SWATCH.black, SWATCH.navy], sizes: SIZES, mockups: per("speed-of-light", ["black", "navy"]),
     extras: [art("speed-of-light-yeti-15x18in", "Front artwork: yeti")],
-    details: ["Front yeti print, art kept to about 11 in", "Stellar settles in about 5 seconds, which is close enough"],
+    details: ["Front yeti print, art kept to about 11 in", "Stellar settles in about 5 seconds, which is close enough", "One small line of type: “Swap at Light Speed”"], slogan: "Swap at Light Speed",
   },
   {
     id: "level-up-tee", name: "Level Up Tee", tagline: "The yeti inside a single XP ring. Learn it, try it once, level up.", category: "tees", examplePrice: 32,
     colors: [SWATCH.black, SWATCH.pearl], sizes: SIZES, mockups: per("level-up", ["black", "pearl"]),
     extras: [art("level-up-yeti-15x18in", "Front artwork: yeti in an XP ring"), art("level-up-yeti-15x18in-ink", "Front artwork, navy yeti badge (glacier white)")],
-    details: ["Front yeti print, art kept to about 11 in", "Inspired by the in-app quests (XP itself has no monetary value)"], badge: "Game layer",
+    details: ["Front yeti print, art kept to about 11 in", "One small line of type: “Level Up on Stellar”", "Inspired by the in-app quests (XP itself has no monetary value)"], badge: "Game layer", slogan: "Level Up on Stellar",
   },
   {
     id: "stardust-quasar-tee", name: "Stardust to Quasar Tee", tagline: "Four specks of stardust growing into the glowing yeti, with one line of type.", category: "tees", examplePrice: 32,
     colors: [SWATCH.navy, SWATCH.black], sizes: SIZES, mockups: per("stardust", ["navy", "black"]),
     extras: [art("stardust-to-quasar-yeti-15x18in", "Front artwork: yeti")],
-    details: ["Front yeti print, art kept to about 11 in", "From stardust to quasar, the five in-app ranks in one line"],
+    details: ["Front yeti print, art kept to about 11 in", "One small line of type: “Born on Stellar”", "Stardust is the first of the five in-app ranks"], slogan: "Born on Stellar",
   },
   {
     id: "singularity-cap", name: "Embroidered Q Cap", tagline: "The Singularity Q in three threads on a low-profile cap, with a round yeti patch version and a wordmark version.", category: "caps", examplePrice: 28,

@@ -71,7 +71,8 @@ if (total === 0 && !locked) {
 }
 // 3. referral payer float (30M) from the reserve
 const payerAcc = await server.loadAccount(pub("referral_payer"));
-if (Number(bal(payerAcc, "GLACIERQ", pub("issuer"))) < 30_000_000 && Number(bal(reserveAcc, "GLACIERQ", pub("issuer"))) > 0) {
+const reserveNow = await server.loadAccount(pub("reward_reserve")); // reload: the balance read before issuance is stale on a first run
+if (Number(bal(payerAcc, "GLACIERQ", pub("issuer"))) < 30_000_000 && Number(bal(reserveNow, "GLACIERQ", pub("issuer"))) > 0) {
   await tx("reward_reserve", [Operation.payment({ destination: pub("referral_payer"), asset: GQ, amount: "30000000" })]);
   log("referral payer float: 30,000,000 GLACIERQ from the reserve");
 }

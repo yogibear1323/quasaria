@@ -89,13 +89,20 @@ export function filterItems(items: ActivityItem[], f: "all" | ActivityKind): Act
 /** One item per transaction+kind per account view: a multi-op transaction would otherwise repeat the same line. */
 export function dedupe(items: ActivityItem[]): ActivityItem[] { const seen = new Set<string>(); return items.filter((i) => { const k = `${i.id}`; if (seen.has(k)) return false; seen.add(k); return true; }); }
 
-export async function fetchActivity(net: NetId, address: string | null, limit = 100): Promise<ActivityItem[]> {
+/** Raw operations (joined with their transactions) for one account, newest first, or for the whole network when address is null. */
+export async function fetchOps(net: NetId, address: string | null, limit = 100): Promise<OpRec[]> {
   const h = NETS[net].horizon;
   const url = address ? `${h}/accounts/${address}/operations?order=desc&limit=${limit}&join=transactions` : `${h}/operations?order=desc&limit=${limit}&join=transactions`;
   const r = await fetch(url);
   if (r.status === 404 && address) return [];
   if (!r.ok) throw new Error(`Horizon returned ${r.status}`);
-  const j = (await r.json()) as { _embedded: { records: OpRec[] } };
-  const cfg: RewardCfg = { code: REWARD_ASSET_CODE, issuer: REWARD_ISSUER[net], reserve: REWARD_RESERVE[net] };
-  return dedupe(j._embedded.records.map((rec) => classifyOp(rec, address, cfg)).filter((x): x is ActivityItem => !!x));
+  return ((await r.json()) as { _embedded: { records: OpRec[] } })._embedded.records;
+}
+
+export const rewardCfg = (net: NetId): RewardCfg => ({ code: REWARD_ASSET_CODE, issuer: REWARD_ISSUER[net], reserve: REWARD_RESERVE[net] });
+
+export async function fetchActivity(net: NetId, address: string | null, limit = 100): Promise<ActivityItem[]> {
+  const recs = await fetchOps(net, address, limit);
+  const cfg = rewardCfg(net);
+  return dedupe(recs.map((rec) => classifyOp(rec, address, cfg)).filter((x): x is ActivityItem => !!x));
 }

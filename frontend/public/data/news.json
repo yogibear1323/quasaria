@@ -1,0 +1,906 @@
+{
+ "version": 2,
+ "generatedAt": "2026-10-19T02:05:36.967Z",
+ "networkStatus": {
+  "indicator": "none",
+  "description": "All Systems Operational",
+  "updatedAt": "2026-10-19T00:34:23.716Z",
+  "url": "https://status.stellar.org",
+  "issues": [],
+  "degraded": []
+ },
+ "sources": [
+  {
+   "id": "sdf",
+   "name": "Stellar Development Foundation",
+   "kind": "blog",
+   "home": "https://stellar.org/blog",
+   "feed": "https://stellar.org/blog/rss.xml",
+   "count": 10,
+   "ok": true
+  },
+  {
+   "id": "sdf-dev",
+   "name": "Stellar Developers blog",
+   "kind": "blog",
+   "home": "https://stellar.org/blog/developers",
+   "feed": "https://stellar.org/blog/developers/rss.xml",
+   "count": 5,
+   "ok": true
+  },
+  {
+   "id": "stellar-core",
+   "name": "stellar-core releases",
+   "kind": "release",
+   "home": "https://github.com/stellar/stellar-core/releases",
+   "feed": "https://github.com/stellar/stellar-core/releases.atom",
+   "count": 5,
+   "ok": true
+  },
+  {
+   "id": "stellar-horizon",
+   "name": "Horizon releases",
+   "kind": "release",
+   "home": "https://github.com/stellar/stellar-horizon/releases",
+   "feed": "https://github.com/stellar/stellar-horizon/releases.atom",
+   "count": 4,
+   "ok": true
+  },
+  {
+   "id": "stellar-rpc",
+   "name": "Stellar RPC releases",
+   "kind": "release",
+   "home": "https://github.com/stellar/stellar-rpc/releases",
+   "feed": "https://github.com/stellar/stellar-rpc/releases.atom",
+   "count": 4,
+   "ok": true
+  },
+  {
+   "id": "soroban-sdk",
+   "name": "Soroban Rust SDK releases",
+   "kind": "release",
+   "home": "https://github.com/stellar/rs-soroban-sdk/releases",
+   "feed": "https://github.com/stellar/rs-soroban-sdk/releases.atom",
+   "count": 4,
+   "ok": true
+  },
+  {
+   "id": "js-stellar-sdk",
+   "name": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "home": "https://github.com/stellar/js-stellar-sdk/releases",
+   "feed": "https://github.com/stellar/js-stellar-sdk/releases.atom",
+   "count": 4,
+   "ok": true
+  },
+  {
+   "id": "stellar-cli",
+   "name": "Stellar CLI releases",
+   "kind": "release",
+   "home": "https://github.com/stellar/stellar-cli/releases",
+   "feed": "https://github.com/stellar/stellar-cli/releases.atom",
+   "count": 3,
+   "ok": true
+  },
+  {
+   "id": "stellar-status",
+   "name": "Stellar Status",
+   "kind": "status",
+   "home": "https://status.stellar.org",
+   "feed": "https://status.stellar.org/history.atom",
+   "count": 2,
+   "ok": true
+  },
+  {
+   "id": "stellar-community",
+   "name": "Stellar Community (Medium)",
+   "kind": "blog",
+   "home": "https://medium.com/stellar-community",
+   "feed": "https://medium.com/feed/stellar-community",
+   "count": 9,
+   "ok": true
+  },
+  {
+   "id": "cointelegraph",
+   "name": "Cointelegraph",
+   "kind": "outlet",
+   "home": "https://cointelegraph.com/tags/stellar",
+   "feed": "https://cointelegraph.com/rss/tag/stellar",
+   "count": 4,
+   "ok": true
+  },
+  {
+   "id": "coindesk",
+   "name": "CoinDesk",
+   "kind": "outlet",
+   "home": "https://www.coindesk.com",
+   "feed": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+   "count": 0,
+   "ok": true
+  },
+  {
+   "id": "decrypt",
+   "name": "Decrypt",
+   "kind": "outlet",
+   "home": "https://decrypt.co",
+   "feed": "https://decrypt.co/feed",
+   "count": 0,
+   "ok": true
+  }
+ ],
+ "items": [
+  {
+   "id": "l9wvg7",
+   "title": "Stellar Core v30.0.0 released",
+   "url": "https://github.com/stellar/stellar-core/releases/tag/v30.0.0",
+   "publishedAt": "2026-10-16T21:09:15.000Z",
+   "excerpt": "This release bumps the protocol to version 30, which includes CAP-0084 (Muxed Contract Addresses), CAP-0087 (Host functions for ML-DSA signature verification) and CAP-0088…",
+   "image": null,
+   "source": "stellar-core",
+   "sourceName": "stellar-core releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "k2os3d",
+   "title": "Chainlink is now live on Stellar, unleashing a new wave of DeFi innovation across a $4B+ RWA ecosystem",
+   "url": "https://stellar.org/blog/foundation-news/chainlink-is-now-live-on-stellar-unleashing-a-new-wave-of-defi-innovation",
+   "publishedAt": "2026-10-13T21:23:46.000Z",
+   "excerpt": "",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/803480d883b1481c6dbb9f429c8dd348ba8743d2-1024x768.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem",
+    "mainnet"
+   ]
+  },
+  {
+   "id": "1h00ubs",
+   "title": "Soroban Rust SDK v29.0.1 released",
+   "url": "https://github.com/stellar/rs-soroban-sdk/releases/tag/v29.0.1",
+   "publishedAt": "2026-10-12T22:19:44.000Z",
+   "excerpt": "Update soroban-env to 29.0.1 #2129 Contains a fix to the wasmi runtime that was included, v29.0.0 erroneously contained the wasmi runtime from v28. Full Changelog: v29.0.0...v29.0.1",
+   "image": null,
+   "source": "soroban-sdk",
+   "sourceName": "Soroban Rust SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "1lappca",
+   "title": "Stellar RPC v29.0.1 released",
+   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v29.0.1",
+   "publishedAt": "2026-10-12T20:14:27.000Z",
+   "excerpt": "Fixed The protocol 29 preflight host is now soroban-env-host 29.0.1, which builds against the same soroban-wasmi as the protocol 29 host in stellar-core 29.0.0. The protocol 28 host is now built…",
+   "image": null,
+   "source": "stellar-rpc",
+   "sourceName": "Stellar RPC releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "1ha0g0r",
+   "title": "Soroban Rust SDK v29.0.0 released",
+   "url": "https://github.com/stellar/rs-soroban-sdk/releases/tag/v29.0.0",
+   "publishedAt": "2026-10-07T20:29:27.000Z",
+   "excerpt": "Update soroban-env crates to 29.0.0 cca906d Full Changelog: v28.0.0...v29.0.0",
+   "image": null,
+   "source": "soroban-sdk",
+   "sourceName": "Soroban Rust SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "15cal1l",
+   "title": "Stellar Core v29.0.0 released",
+   "url": "https://github.com/stellar/stellar-core/releases/tag/v29.0.0",
+   "publishedAt": "2026-10-05T19:19:08.000Z",
+   "excerpt": "Improve DEX offer crossing accuracy. by @dmkozh P29 bump by @sisuresh Don't count pool hops against limit by @sisuresh Bump env to internal v29 by @sisuresh Remove hash-of-hash…",
+   "image": null,
+   "source": "stellar-core",
+   "sourceName": "stellar-core releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "1a6o84l",
+   "title": "Horizon v29.0.0 released",
+   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v29.0.0",
+   "publishedAt": "2026-10-01T20:24:16.000Z",
+   "excerpt": "This release adds support for Protocol 29. What's Changed add socket tier 1 reachability analysis by @kanwalpreetd in #201 build(deps): bump github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream…",
+   "image": null,
+   "source": "stellar-horizon",
+   "sourceName": "Horizon releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "1lkpb19",
+   "title": "Stellar RPC v29.0.0 released",
+   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v29.0.0",
+   "publishedAt": "2026-10-01T20:15:43.000Z",
+   "excerpt": "Stellar RPC: Protocol 29 Added Support for Protocol 29 (#1058). Fixed Performance improvements to getLatestLedger (#941). Contributors @cjonas9 @kanwalpreetd @karthikiyer56 @marwen-abid Full…",
+   "image": null,
+   "source": "stellar-rpc",
+   "sourceName": "Stellar RPC releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "3v12g6",
+   "title": "JS Stellar SDK v16.3.1 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v16.3.1",
+   "publishedAt": "2026-10-01T16:56:28.000Z",
+   "excerpt": "v16.3.1 Fixed Asset.compare() orders two assets with the same code by their issuers' key bytes, as stellar-core does, instead of by the G… strkey text. The two orders can differ, so decoding a valid…",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "17ww0tu",
+   "title": "JS Stellar SDK v17.2.1 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.2.1",
+   "publishedAt": "2026-10-01T00:37:29.000Z",
+   "excerpt": "v17.2.1 Fixed Asset.compare() orders two assets with the same code by their issuers' key bytes, as stellar-core does, instead of by the G… strkey text. The two orders can differ, so…",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "186vmit",
+   "title": "JS Stellar SDK v17.2.0 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.2.0",
+   "publishedAt": "2026-09-28T21:56:19.000Z",
+   "excerpt": "v17.2.0 Added A stellar-contract-bindings-typescript binary implementing the Stellar CLI plugin convention, reachable as stellar contract bindings typescript. It delegates to stellar-js generate…",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "1mc4htr",
+   "title": "Soroban Rust SDK v28",
+   "url": "https://stellar.org/blog/developers/soroban-rust-sdk-v28",
+   "publishedAt": "2026-09-28T16:20:46.000Z",
+   "excerpt": "What contract developers need to know about Soroban Rust SDK v28: spec shaking v2, migration-friendly contract data, sparse events, executable references, and native contract uploads in tests.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/264a703e7b995d9d7f0a7801ea69ea22f7286eb1-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "14d0o4y",
+   "title": "Stellar CLI v28.1.0 released",
+   "url": "https://github.com/stellar/stellar-cli/releases/tag/v28.1.0",
+   "publishedAt": "2026-09-26T17:18:48.000Z",
+   "excerpt": "🪙 Token commands The stellar token implements SEP-41, so you can inspect and manage tokens without dropping down to raw contract invocations: stellar token name, stellar token symbol…",
+   "image": null,
+   "source": "stellar-cli",
+   "sourceName": "Stellar CLI releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "80i468",
+   "title": "SCF #45 Round Recap",
+   "url": "https://medium.com/stellar-community/scf-45-round-recap-1ecf281821ab",
+   "publishedAt": "2026-09-23T21:05:56.000Z",
+   "excerpt": "The Stellar Community Fund is excited to announce the results of SCF #45. This round, 40 projects were awarded across the Open, Integration, and RFP tracks, totaling approximately $4.04M worth of…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*XZpEYyMI9J1MkLLjx8oXyw.png",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "n08p2p",
+   "title": "Practical Confidential Stablecoins: An Issuer-Controlled Architecture",
+   "url": "https://stellar.org/blog/developers/practical-confidential-stablecoins-an-issuer-controlled-architecture",
+   "publishedAt": "2026-09-22T16:00:13.000Z",
+   "excerpt": "How OpenZeppelin's confidential token for Stellar hides balances and amounts while preserving the account controls and scoped audit visibility issuers need.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/69e18d7f527e6bcfa8f95c47b1b8e39d74f67f32-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "1b6t2aw",
+   "title": "Soroban Rust SDK v28.0.0 released",
+   "url": "https://github.com/stellar/rs-soroban-sdk/releases/tag/v28.0.0",
+   "publishedAt": "2026-09-18T03:34:58.000Z",
+   "excerpt": "This is a release supporting Protocol 28. Upgrading requires changes to some contracts. See the migration guide for the full detail on each breaking change below. Breaking changes Build contracts…",
+   "image": null,
+   "source": "soroban-sdk",
+   "sourceName": "Soroban Rust SDK releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "860249",
+   "title": "Mainnet Adapter, Protocol 28 Upgrade Vote",
+   "url": "https://status.stellar.org/incidents/b0j6rd8gtsvb",
+   "publishedAt": "2026-09-16T17:05:07.000Z",
+   "excerpt": "Sep 16, 17:05 UTC Completed - The scheduled maintenance has been completed. Sep 16, 17:00 UTC In progress - Scheduled maintenance is currently in progress. We will provide updates as necessary. Aug…",
+   "image": null,
+   "source": "stellar-status",
+   "sourceName": "Stellar Status",
+   "kind": "status",
+   "tags": [
+    "protocol",
+    "mainnet",
+    "network-status"
+   ]
+  },
+  {
+   "id": "3wry08",
+   "title": "JS Stellar SDK v17.1.0 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.1.0",
+   "publishedAt": "2026-09-14T21:59:18.000Z",
+   "excerpt": "v17.1.0 Added getClaimableBalanceIdFromResult(result, opIndex): reads the claimable balance ID created by a CreateClaimableBalance operation out of a submitted transaction's xdr.TransactionResult…",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "1rq3syg",
+   "title": "Real-Time Prices for Stellar’s $4B Tokenized Assets Economy",
+   "url": "https://stellar.org/blog/developers/real-time-prices-for-stellars-4b-tokenized-assets-economy",
+   "publishedAt": "2026-09-12T11:37:56.000Z",
+   "excerpt": "Pyth Pro is live on Stellar mainnet. How the pull oracle works, how to verify the deployment yourself without spending a stroop, and how to choose an oracle.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/19f194fb1dd1860807c7b80f49f218835cb6cdf8-1024x768.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "developers",
+    "mainnet"
+   ]
+  },
+  {
+   "id": "l9vc9p",
+   "title": "A Bank-Issued Stablecoin Moves Real Money on Stellar",
+   "url": "https://stellar.org/blog/ecosystem/a-bank-issued-stablecoin-moves-real-money-on-stellar",
+   "publishedAt": "2026-09-09T18:29:07.000Z",
+   "excerpt": "U.S. Bank completed its first pilot transaction on the Stellar network, using USBDC, its proprietary dollar-backed stablecoin, to move a cross-border payment between its entities in North America…",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/bbf3adcc73ac5d5c54a589d5536399845c6907e5-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "r6kid7",
+   "title": "US Bank tests proprietary stablecoin in cross-border Stellar transaction",
+   "url": "https://cointelegraph.com/news/us-bank-launches-usbdc-stablecoin-with-live-cross-border-payment",
+   "publishedAt": "2026-09-09T16:37:08.000Z",
+   "excerpt": "The pilot moved USBDC between the bank’s North American and European entities on the public Stellar blockchain.",
+   "image": "https://s3-images.ctmedia.io/media/article-covers/2026/09/01M23ENPDH8G235APECM7VERGK/cross-border-transaction-stablecoin-swift-2.png",
+   "source": "cointelegraph",
+   "sourceName": "Cointelegraph",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "x7yccn",
+   "title": "USDT0 is now live on Stellar",
+   "url": "https://stellar.org/blog/foundation-news/usdt0-is-now-live-on-stellar",
+   "publishedAt": "2026-09-02T00:46:53.000Z",
+   "excerpt": "USDT0 is now live on Stellar, bringing access to global USDT liquidity for payments, DeFi, and emerging-market use cases.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/6a98cd24b9b768659e1fdfaee93d75d498340ea2-1024x768.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem",
+    "mainnet"
+   ]
+  },
+  {
+   "id": "8mlxmx",
+   "title": "Stellar Core v28.0.1 released",
+   "url": "https://github.com/stellar/stellar-core/releases/tag/v28.0.1",
+   "publishedAt": "2026-09-01T07:01:54.000Z",
+   "excerpt": "Stability Improvements Deduplicate query messages 13758a2 Skip background tx sig verification for unauthenticated peers af933c1 Clamp additions in tx set fee summing functions bcb1371 Full…",
+   "image": null,
+   "source": "stellar-core",
+   "sourceName": "stellar-core releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "k809um",
+   "title": "Stellar tokenized RWA market more than quadruples to nearly $4B",
+   "url": "https://cointelegraph.com/markets/stellar-tokenized-rwa-market-nears-4b-after-fourfold-2026-growth",
+   "publishedAt": "2026-08-29T19:12:42.000Z",
+   "excerpt": "Stellar’s real-world asset market has expanded rapidly this year as institutional adoption and tokenization activity grow across the network.",
+   "image": "https://s3-images.ctmedia.io/media/article-covers/2026/08/01M17DHDVASPVRK9KZ8KYFMNK1/hi-how-binance-plans-to-bring-tokenized-us-stocks-3.png",
+   "source": "cointelegraph",
+   "sourceName": "Cointelegraph",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "9pc1s5",
+   "title": "Horizon v28.0.1 released",
+   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v28.0.1",
+   "publishedAt": "2026-08-27T21:01:33.000Z",
+   "excerpt": "Point integration tests at stellar-core 28.0.1 stable and stellar-rpc 28.0.1 by @karthikiyer56 in #224 Full Changelog: v28.0.0...v28.0.1",
+   "image": null,
+   "source": "stellar-horizon",
+   "sourceName": "Horizon releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "lg5eql",
+   "title": "Stellar RPC v28.0.1 released",
+   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v28.0.1",
+   "publishedAt": "2026-08-27T18:41:17.000Z",
+   "excerpt": "Bump grpc, go-jose and opentelemetry to latest by @Shaptic in #958 Point integration tests at stellar-core 28.0.1 stable by @karthikiyer56 in #957 Full Changelog: v28.0.0...v28.0.1",
+   "image": null,
+   "source": "stellar-rpc",
+   "sourceName": "Stellar RPC releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "1v95zqq",
+   "title": "Testnet Adapter, Protocol 28 Upgrade",
+   "url": "https://status.stellar.org/incidents/svgqjdzmtfsp",
+   "publishedAt": "2026-08-27T17:05:08.000Z",
+   "excerpt": "Aug 27, 17:05 UTC Completed - The scheduled maintenance has been completed. Aug 27, 17:00 UTC In progress - Scheduled maintenance is currently in progress. We will provide updates as necessary. Aug…",
+   "image": null,
+   "source": "stellar-status",
+   "sourceName": "Stellar Status",
+   "kind": "status",
+   "tags": [
+    "protocol",
+    "mainnet",
+    "network-status"
+   ]
+  },
+  {
+   "id": "1wqb5nd",
+   "title": "Stellar CLI v28.0.0 released",
+   "url": "https://github.com/stellar/stellar-cli/releases/tag/v28.0.0",
+   "publishedAt": "2026-08-26T19:22:42.000Z",
+   "excerpt": "🚀 New Features 📦 Build contracts in a container — stellar contract build can now run inside a container, giving you reproducible builds without fussing over…",
+   "image": null,
+   "source": "stellar-cli",
+   "sourceName": "Stellar CLI releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "a3xaaz",
+   "title": "Developer Preview: Stellar Private Payments",
+   "url": "https://stellar.org/blog/developers/developer-preview-stellar-private-payments",
+   "publishedAt": "2026-08-25T12:22:44.000Z",
+   "excerpt": "Stellar's Developer Preview introduces Stellar Private Payments—a Nethermind-built privacy pool that gives payments counterparty-level privacy on public rails.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/10070c3216d2314e97716c8103eb9bf7a0c28f40-1024x768.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "ifrkwy",
+   "title": "The world's government debt is coming onchain. It's choosing Stellar.",
+   "url": "https://stellar.org/blog/ecosystem/the-worlds-government-debt-is-coming-onchain-its-choosing-stellar",
+   "publishedAt": "2026-08-20T15:04:37.000Z",
+   "excerpt": "Stellar holds more tokenized non-US government debt than any other blockchain, a lead it has held since February. Here's what's behind the number.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/74d00e4a37671571b84d24279c94de7138328aef-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "9fcg36",
+   "title": "Horizon v28.0.0 released",
+   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v28.0.0",
+   "publishedAt": "2026-08-20T00:37:40.000Z",
+   "excerpt": "Bump core to v27.1.0 for CI. by @dmkozh in #198 Decompose Horizon integration tests into a callable workflow by @Shaptic in #202 Protocol 28 GA: remaining pins + release workflow fix…",
+   "image": null,
+   "source": "stellar-horizon",
+   "sourceName": "Horizon releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "l65t1m",
+   "title": "Stellar RPC v28.0.0 released",
+   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v28.0.0",
+   "publishedAt": "2026-08-17T17:57:22.000Z",
+   "excerpt": "Stellar RPC: Protocol 28 Added XDR has been updated to support Protocol 28 (CAP-0083, CAP-0085) (#913). The preflight hosts have been rotated to soroban-env-host 28.0.1 (27.0.1 for the previous…",
+   "image": null,
+   "source": "stellar-rpc",
+   "sourceName": "Stellar RPC releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "1kuafn2",
+   "title": "No one to call",
+   "url": "https://stellar.org/blog/ecosystem/no-one-to-call",
+   "publishedAt": "2026-08-14T16:51:28.000Z",
+   "excerpt": "A corporate-controlled blockchain gives institutions a counterparty to call. It also gives them a counterparty who can change the terms.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/0e5080ea32f29c59a57211503e1380114a60e884-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "vnlacn",
+   "title": "2+ Years of Neural Quorum Governance",
+   "url": "https://medium.com/stellar-community/2-years-of-neural-quorum-governance-7bddd319a8cb",
+   "publishedAt": "2026-08-13T21:03:20.000Z",
+   "excerpt": "A Retrospective on SCF’s Reputation-Based Governance Mechanism Executive Summary Since October 2023, the Stellar Community Fund (SCF) has used Neural Quorum Governance (NQG) to signal community…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*da0T9Nm1WSEuatP6ax0FDg.png",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "8cmbxy",
+   "title": "Stellar Core v28.0.0 released",
+   "url": "https://github.com/stellar/stellar-core/releases/tag/v28.0.0",
+   "publishedAt": "2026-08-13T20:05:30.000Z",
+   "excerpt": "Protocol 28 This release bumps the protocol to version 28, which includes CAP-0083, CAP-0085, and CAP-0086. Stability improvements Add GHA to invoke RPC integration tests on commits to master by…",
+   "image": null,
+   "source": "stellar-core",
+   "sourceName": "stellar-core releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "1x31vab",
+   "title": "Soroban Rust SDK v27.0.6 released",
+   "url": "https://github.com/stellar/rs-soroban-sdk/releases/tag/v27.0.6",
+   "publishedAt": "2026-08-13T02:15:09.000Z",
+   "excerpt": "Error on contracttrait without a trait impl (#1992) Show a constructor and event publishing in the front page docs example (#2001) Full Changelog: v27.0.5...v27.0.6",
+   "image": null,
+   "source": "soroban-sdk",
+   "sourceName": "Soroban Rust SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "sfpl08",
+   "title": "Horizon v27.0.1 released",
+   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v27.0.1",
+   "publishedAt": "2026-08-12T22:18:37.000Z",
+   "excerpt": "Horizon 27.0.1: SDK v0.6.1 bump + backported ingestion fixes by @karthikiyer56 in #220 Full Changelog: v27.0.0...v27.0.1",
+   "image": null,
+   "source": "stellar-horizon",
+   "sourceName": "Horizon releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "tayd5b",
+   "title": "Adapter, Protocol 28 Upgrade Guide",
+   "url": "https://stellar.org/blog/developers/adapter-protocol-28-upgrade-guide",
+   "publishedAt": "2026-08-12T17:15:55.000Z",
+   "excerpt": "Prepare for Adapter, Protocol 28 on Stellar: key dates, release links, preparation steps for SDKs, infrastructure, and validators, and a summary of breaking changes.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/2011949a40caa4bb29d0b30c6ce7c475e3e188d0-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "protocol",
+    "developers",
+    "mainnet"
+   ]
+  },
+  {
+   "id": "161t87i",
+   "title": "Introducing Adapter, Protocol 28 on Stellar",
+   "url": "https://stellar.org/blog/developers/introducing-adapter-protocol-28-on-stellar",
+   "publishedAt": "2026-08-12T16:36:14.000Z",
+   "excerpt": "Adapter (Protocol 28) is a builder-focused Stellar upgrade: faster consensus, atomic upgrades for contract fleets, and migration-friendly contract data.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/e15adf6bb28e17ce71ad1757a4493fe8790bb747-2048x1536.png",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
+   "kind": "blog",
+   "tags": [
+    "protocol",
+    "developers",
+    "mainnet"
+   ]
+  },
+  {
+   "id": "15w1bu3",
+   "title": "Stellar CLI v27.1.0 released",
+   "url": "https://github.com/stellar/stellar-cli/releases/tag/v27.1.0",
+   "publishedAt": "2026-07-31T13:55:51.000Z",
+   "excerpt": "Tokens & Assets stellar token transfer — transfer tokens for SEP-41 and Stellar Asset Contracts (#2644) stellar token balance — new command to check token…",
+   "image": null,
+   "source": "stellar-cli",
+   "sourceName": "Stellar CLI releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "1dbbg8n",
+   "title": "SCF #44 Round Recap",
+   "url": "https://medium.com/stellar-community/scf-44-round-recap-b5e8acd87045",
+   "publishedAt": "2026-07-24T15:25:07.000Z",
+   "excerpt": "The Stellar Community Fund (SCF) is an open-application awards program that draws on community input to support developers and startups building on Stellar. The SCF Build Award operates in 6-week…",
+   "image": "https://cdn-images-1.medium.com/max/1024/0*HBGvb6IiUAnVmL6V",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "yhs584",
+   "title": "Tradable’s $1B Stellar deal adds to institutional tokenization boom",
+   "url": "https://cointelegraph.com/news/tradables-1b-stellar-deal-adds-to-institutional-tokenization-boom",
+   "publishedAt": "2026-07-16T16:19:16.000Z",
+   "excerpt": "Tradable will bring up to $1 billion in private credit assets to Stellar, extending the blockchain’s push into institutional finance and tokenized real-world assets.",
+   "image": "https://s3-images.ctmedia.io/media/article-covers/hi-what-are-smart-contracts-stellar.jpg",
+   "source": "cointelegraph",
+   "sourceName": "Cointelegraph",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "1b2obot",
+   "title": "Monitoring Stellar with Hypernative",
+   "url": "https://stellar.org/blog/developers/monitoring-stellar-with-hypernative",
+   "publishedAt": "2026-07-13T16:28:47.000Z",
+   "excerpt": "A hands-on tutorial for setting up onchain monitoring on Stellar with Hypernative, from large XLM transfer alerts to Blend pool utilization monitoring.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/0fe460f3614c65eed872e12ecd44e6f3cac35897-2048x1536.png",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
+   "kind": "blog",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "mdnfbo",
+   "title": "Flying blind: Why onchain monitoring is your instrument panel",
+   "url": "https://stellar.org/blog/developers/flying-blind-why-onchain-monitoring-is-your-instrument-panel",
+   "publishedAt": "2026-07-13T16:12:48.000Z",
+   "excerpt": "Onchain monitoring is your instrument panel. Why builders and users alike need real-time visibility, and how a threat model maps directly to what to watch.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/ea20861e859848757c09249ddf23a6e89dcde972-2048x1536.png",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
+   "kind": "blog",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "130se6h",
+   "title": "UN agency moves Stellar blockchain payment initiative beyond pilot stage",
+   "url": "https://cointelegraph.com/news/undp-moves-stellar-blockchain-payment-initiative-beyond-pilot-stage",
+   "publishedAt": "2026-07-06T17:08:57.000Z",
+   "excerpt": "The UN Development Programme said blockchain payment pilots in five countries cut costs, improved resilience and will now inform wider use across its humanitarian and development programs.",
+   "image": "https://s3-images.ctmedia.io/media/article-covers/cube-blockchain-science-scientist-un-1.png",
+   "source": "cointelegraph",
+   "sourceName": "Cointelegraph",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "23i77x",
+   "title": "Developer Preview: Confidential Tokens on Stellar",
+   "url": "https://stellar.org/blog/developers/developer-preview-confidential-tokens-on-stellar",
+   "publishedAt": "2026-06-26T18:16:39.000Z",
+   "excerpt": "Stellar's Developer Preview introduces Confidential Tokens—an OpenZeppelin contract suite adding private balances and transfer amounts to any SEP-41 token.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/5d477724193dd9f555dae9ebdf5340a32bed7f5b-1024x768.png",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
+   "kind": "blog",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "hnq7y8",
+   "title": "Stellar Core v27.1.0 released",
+   "url": "https://github.com/stellar/stellar-core/releases/tag/v27.1.0",
+   "publishedAt": "2026-06-25T19:51:14.000Z",
+   "excerpt": "Delete .github/workflows/claude-review.yml by @leighmcculloch in #5314 apply-load: use the operator-configured NETWORK_PASSPHRASE by @tamirms in #5319 Bump min overlay version to v26…",
+   "image": null,
+   "source": "stellar-core",
+   "sourceName": "stellar-core releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "85mvn8",
+   "title": "SCF #43 Round Recap",
+   "url": "https://medium.com/stellar-community/scf-43-round-recap-62942f07757e",
+   "publishedAt": "2026-06-02T21:39:51.000Z",
+   "excerpt": "The Stellar Community Fund (SCF) is an open-application awards program that draws on community input to support developers and startups building on Stellar. The SCF Build Award operates in 6-week…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*jIJxt0y5YIU5PQs87EN0IQ.png",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "htfbo0",
+   "title": "Decentralization in the Real World: Security, Politics, and Purpose on Stellar",
+   "url": "https://stellar.org/blog/developers/decentralization-in-the-real-world-security-politics-purpose",
+   "publishedAt": "2026-05-05T02:45:09.000Z",
+   "excerpt": "Nicolas Barry on why decentralization is not a node-count contest—and why geo-political resilience, security, and mission alignment matter most when the real world pushes back.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/74d00e4a37671571b84d24279c94de7138328aef-2048x1536.png",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
+   "kind": "blog",
+   "tags": [
+    "developers"
+   ]
+  },
+  {
+   "id": "azr6vc",
+   "title": "SCF #42 Round Recap",
+   "url": "https://medium.com/stellar-community/scf-42-round-recap-2400da87b250",
+   "publishedAt": "2026-04-24T22:14:30.000Z",
+   "excerpt": "The Stellar Community Fund (SCF) is an open-application awards program that draws on community input to support developers and startups building on Stellar. The SCF Build Award operates in 6-week…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*mj9N_gi3pNOOBHjxhMhTfQ.png",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "tdvdpk",
+   "title": "SCF #41 Round Recap",
+   "url": "https://medium.com/stellar-community/scf-41-round-recap-319b63ca1218",
+   "publishedAt": "2026-03-30T17:14:24.000Z",
+   "excerpt": "The Stellar Community Fund (SCF) is an open-application awards program that draws on community input to support developers and startups building on Stellar. The SCF Build Award operates in 6-week…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*qBnoYVaGwOS_fDbebw2Tdw.png",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "1h8q6ax",
+   "title": "Stellar Community Fund — 2025 Impact Report",
+   "url": "https://medium.com/stellar-community/stellar-community-fund-2025-impact-report-6f6c6361aaca",
+   "publishedAt": "2026-03-30T15:04:50.000Z",
+   "excerpt": "The Stellar Community Fund (SCF) is an award program operated by the Stellar Development Foundation (SDF), and leverages community input to fund and support companies and teams building on Stellar…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*Wxa41aXpjWQyiIDbCyYy-w.jpeg",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "rc0j5d",
+   "title": "SCF #40 Round Recap",
+   "url": "https://medium.com/stellar-community/scf-40-round-recap-c01b44d85a04",
+   "publishedAt": "2025-12-18T18:19:16.000Z",
+   "excerpt": "The Stellar Community Fund (SCF) is an open-application awards program that draws on community input to support developers and startups building on Stellar. The SCF Build Award operates in 6-week…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*Zve-GxURGTzyDzl0laa-kQ.png",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "1f45lhx",
+   "title": "SCF #39 Round Recap",
+   "url": "https://medium.com/stellar-community/scf-39-round-recap-e211cdd5eb80",
+   "publishedAt": "2025-10-31T20:29:48.000Z",
+   "excerpt": "The Stellar Community Fund (SCF) is an open-application awards program that draws on community input to support developers and startups building on Stellar. The SCF Build Award operates in 6-week…",
+   "image": "https://cdn-images-1.medium.com/max/1024/1*X6bdv67bEQYv2bDbdzUaAQ.png",
+   "source": "stellar-community",
+   "sourceName": "Stellar Community (Medium)",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  }
+ ]
+}

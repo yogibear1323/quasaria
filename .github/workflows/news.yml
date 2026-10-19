@@ -1,0 +1,77 @@
+name: Stellar news
+
+# Keeps the site's News page and home-page news strip current without manual work.
+#
+# Every 3 hours (and on demand) a Node script fetches the public Stellar feeds, sanitizes / filters /
+# de-dupes them and writes ONE static file, news.json. The file lives on its own `news-data` branch, and
+# a commit is made only when the content changed ([skip ci]). The site then
+#   * reads news.json straight from that branch at runtime (raw.githubusercontent.com, CORS *), so new
+#     items show up within minutes, and
+#   * gets a bundled copy of it in every Pages build (pages.yml), which is the same-origin fallback.
+# After a change this workflow also dispatches the Pages deploy, so the bundled copy updates right away.
+#
+# Scheduled workflows always run from the default branch. GitHub pauses schedules after 60 days without
+# repository activity; any commit or manual run re-enables them. No secrets are used: the script makes
+# anonymous GET requests, and the push uses the built-in GITHUB_TOKEN.
+
+on:
+  schedule:
+    - cron: "17 */3 * * *" # off the hour: avoids GitHub's top-of-hour cron backlog
+  workflow_dispatch:
+
+permissions:
+  contents: write # push the news-data branch
+  actions: write # dispatch the Pages deploy after a change
+
+concurrency:
+  group: stellar-news
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Check out the news-data branch (create it on first run)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin news-data >/dev/null 2>&1; then
+            git fetch --depth=1 origin news-data:refs/remotes/origin/news-data
+            git worktree add -B news-data ../news-data origin/news-data
+          else
+            git worktree add --detach ../news-data
+            git -C ../news-data checkout --orphan news-data
+            git -C ../news-data rm -rf --quiet . || true
+          fi
+
+      - name: Fetch, normalize and write news.json
+        run: node frontend/scripts/fetch-news-snapshot.mjs ../news-data/news.json --seed frontend/public/data/news.json --strict
+
+      - name: Commit news.json if it changed
+        id: commit
+        working-directory: ../news-data
+        run: |
+          git add news.json
+          if git diff --cached --quiet; then
+            echo "No news changes; nothing to commit."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -q -m "news: update $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]"
+            git push origin news-data
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Committed $(git rev-parse --short HEAD) to news-data." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Redeploy the site so the bundled copy is fresh too
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref "${{ github.event.repository.default_branch }}"

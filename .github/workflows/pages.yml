@@ -45,15 +45,28 @@ jobs:
         run: node scripts/fetch-market-snapshot.mjs
         continue-on-error: true
         timeout-minutes: 3
-      # Stellar news: public RSS feeds (SDF blog, Stellar Community on Medium,
-      # Cointelegraph's Stellar tag, CoinDesk + Decrypt filtered to Stellar/XLM/Soroban)
-      # -> public/data/news-snapshot.json. None of the feeds allow CORS from github.io,
-      # so the browser reads this bundled file. Keeps each failed source's previous
-      # items and always exits 0; continue-on-error is a second safety net.
-      - name: Stellar news snapshot (RSS -> public/data)
-        run: node scripts/fetch-news-snapshot.mjs
+      # Stellar news: the scheduled "Stellar news" workflow (news.yml) fetches the public feeds every 3 hours and
+      # commits news.json to the `news-data` branch (only when it changed). Bundle its latest copy into this build
+      # as the same-origin fallback; the browser also reads the branch file live. Without the branch (or if the
+      # checkout fails) the news.json committed on main is used.
+      - uses: actions/checkout@v7
+        with:
+          ref: news-data
+          path: .news-data
         continue-on-error: true
-        timeout-minutes: 3
+      - name: Bundle the latest news.json
+        working-directory: .
+        run: |
+          node -e '
+            const fs = require("fs");
+            const read = (f) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return null; } };
+            const next = read(".news-data/news.json");
+            const cur = read("frontend/public/data/news.json");
+            if (next && Array.isArray(next.items) && (!cur || Date.parse(next.generatedAt) >= Date.parse(cur.generatedAt))) {
+              fs.copyFileSync(".news-data/news.json", "frontend/public/data/news.json");
+              console.log("bundled news.json from news-data:", next.generatedAt, next.items.length, "items");
+            } else console.log("keeping the committed news.json:", cur && cur.generatedAt);
+          '
       - name: Build (served under /<repo>/)
         run: npm run build
         env:

@@ -57,5 +57,5 @@ Visual: repeat "Launch app" and "Create an account" buttons over the starfield. 
 
 12. Stellar news
 Headline: Latest from Stellar.
-Pitch: Fresh headlines about Stellar, XLM and Soroban from the Stellar Development Foundation, the Stellar community and crypto news outlets, refreshed through the day.
-Visual: six news cards (headline, source, relative time, a short excerpt and an optional thumbnail) that open the original article in a new tab, an "Updated" time, the source list, a note that news comes from third-party sources and isn't endorsement or financial advice, and a "See all news" link to the /news page.
+Pitch: Protocol releases, developer updates, ecosystem news and live network status for Stellar, collected automatically from the Stellar Development Foundation, GitHub release notes, the Stellar status page and the community, every 3 hours.
+Visual: a network status line, category chips and six news cards (headline, source, local time, a short excerpt, category tags and an optional thumbnail) that open the original article in a new tab, an "Updated" time, the source list, a note that news comes from third-party sources and isn't endorsement or financial advice, and a "See all news" link to the /news page.

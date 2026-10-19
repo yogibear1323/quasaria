@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { CATEGORIES, NOTIFY_KEY, PRODUCTS, readNotify, saveNotify } from "../src/merch/catalog";
+import { CATEGORIES, MERCH_APPLE_ICON, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, MERCH_MARK_LG, NOTIFY_KEY, PRODUCTS, readNotify, saveNotify } from "../src/merch/catalog";
 
 const PUBLIC = resolve(__dirname, "../public");
 const local = (url: string) => resolve(PUBLIC, url.replace(/^\/+/, ""));
@@ -23,6 +23,13 @@ describe("merch catalogue (preview storefront)", () => {
     for (const p of PRODUCTS) for (const src of [...Object.values(p.mockups), ...p.extras.map((x) => x.src)]) {
       expect(existsSync(local(src)), src).toBe(true);
     }
+  });
+
+  it("the store carries the yeti brand mark (icons exist) and no removed-feature copy", () => {
+    for (const u of [MERCH_MARK, MERCH_MARK_LG, MERCH_FAVICON_SVG, MERCH_FAVICON_PNG, MERCH_APPLE_ICON]) expect(existsSync(local(u)), u).toBe(true);
+    expect(existsSync(resolve(PUBLIC, "merch-assets/brand/og-merch.jpg"))).toBe(true);
+    const src = ["../src/pages/Merch.tsx", "../src/merch/catalog.ts", "../src/theme/merch.css", "../src/theme/merch-frost.css"].map((f) => readFileSync(resolve(__dirname, f), "utf8")).join("\n");
+    expect(src).not.toMatch(/perps|beacon|trading bot|polybot/i);
   });
 
   it("no public/ folder collides with an SPA route (GitHub Pages deep links)", () => {

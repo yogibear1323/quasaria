@@ -1,13 +1,14 @@
 // Programmatic product mockups (v4): photographic-style studio renders in a 1000×1000 scene.
-// Dark grey spotlight backdrop, garment silhouettes with procedural fabric (turbulence →
+// Frost (navy-steel) spotlight backdrop; garment colours and print art are unchanged.
+// Garment silhouettes with procedural fabric (turbulence →
 // diffuse lighting) plus hand-placed folds, the EXACT print artwork displaced by the same
 // fabric so it sits in the cloth, and an iridescent sheen for the pearl tee.
 const uri = (svg) => `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 export const GARMENT = { black: "#231a12", navy: "#2F3A26", pearl: "#E9DFCC" };
-export const STUDIO_BG = "#0E0C0A";
+export const STUDIO_BG = "#0A1224";
 const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255; };
 
-const studio = (id) => `<defs><radialGradient id="${id}bg" cx="500" cy="300" r="780" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7C6A56"/><stop offset=".38" stop-color="#42392E"/><stop offset=".72" stop-color="#1C1814"/><stop offset="1" stop-color="#1C150F"/></radialGradient>
+const studio = (id) => `<defs><radialGradient id="${id}bg" cx="500" cy="300" r="780" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5A7099"/><stop offset=".38" stop-color="#27375A"/><stop offset=".72" stop-color="#101A33"/><stop offset="1" stop-color="#0A1224"/></radialGradient>
 <linearGradient id="${id}floor" x1="0" y1="760" x2="0" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>
 <filter id="${id}soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
 <filter id="${id}b8" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
@@ -211,7 +212,7 @@ export function mug({ wrap, center = 700, body = "#181410", wrapW = 2700, wrapH 
 }
 
 // ------------------------------------------------------------------ stickers on a laptop / sticker sheet on a desk
-const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="1000" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4A3F33"/><stop offset="1" stop-color="#12100D"/></linearGradient>
+const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="1000" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3A4E75"/><stop offset="1" stop-color="#0B1428"/></linearGradient>
 <radialGradient id="${id}vig" cx="500" cy="480" r="700" gradientUnits="userSpaceOnUse"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
 <filter id="${id}sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#000" flood-opacity=".45"/></filter>
 <filter id="${id}b20" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
@@ -220,11 +221,11 @@ const desk = (id) => `<defs><linearGradient id="${id}desk" x1="0" y1="0" x2="100
 /** stickers: [{ svg, w, h, x, y, rot }] in 300-DPI px; scale maps px → scene units. */
 export function laptop({ stickers, scale = 0.24 }) {
   const items = stickers.map((s) => `<g transform="translate(${s.x} ${s.y}) rotate(${s.rot})" filter="url(#lsh)"><image href="${uri(s.svg)}" x="${(-s.w * scale) / 2}" y="${(-s.h * scale) / 2}" width="${s.w * scale}" height="${s.h * scale}"/></g>`).join("");
-  return scene(`${desk("l")}<defs><linearGradient id="llid" x1="140" y1="200" x2="860" y2="820" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#786754"/><stop offset=".5" stop-color="#54483b"/><stop offset="1" stop-color="#3b3329"/></linearGradient>
+  return scene(`${desk("l")}<defs><linearGradient id="llid" x1="140" y1="200" x2="860" y2="820" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#97A6C2"/><stop offset=".5" stop-color="#66769A"/><stop offset="1" stop-color="#3F4D6F"/></linearGradient>
   <linearGradient id="lsheen" x1="140" y1="200" x2="600" y2="700" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
   <g transform="rotate(-6 500 500)">
     <rect x="130" y="205" width="740" height="500" rx="28" fill="#000" opacity=".6" filter="url(#lb20)" transform="translate(8 22)"/>
-    <rect x="120" y="190" width="760" height="512" rx="28" fill="#2a241d"/>
+    <rect x="120" y="190" width="760" height="512" rx="28" fill="#1A2338"/>
     <rect x="124" y="192" width="752" height="506" rx="26" fill="url(#llid)"/>
     <rect x="124" y="192" width="752" height="506" rx="26" fill="#fff" filter="url(#lnoise)" opacity=".08"/>
     ${items}

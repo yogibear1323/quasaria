@@ -9,6 +9,7 @@ import { loadMarkets, type MarketRow } from "../lib/markets";
 import { STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
 import { demoBook, demoCandles, type Book } from "../lib/demo";
 import { fmt } from "../lib/format";
+import { XLM_LOGO } from "../lib/xlm";
 import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
 
 /** Curated asset list (stablecoins + popular assets, v3 pools) as picker options. */
@@ -17,7 +18,7 @@ const CURATED_OPTS: PickerOption[] = ASSET_LIST.filter((a) => a.testnet.kind !==
 const px = (v: number) => (v >= 0.01 ? fmt(v, 5) : v.toPrecision(4));
 const DEFAULT_BASE = "XLM";
 const DEFAULT_QUOTE = assetKeyOf(ASSETS.USDC);
-const XLM_OPT: PickerOption = { key: "XLM", code: "XLM", sub: "Stellar Lumens (native)", logo: null };
+const XLM_OPT: PickerOption = { key: "XLM", code: "XLM", sub: "Stellar Lumens (native)", logo: XLM_LOGO };
 const USDC_OPT: PickerOption = { key: DEFAULT_QUOTE, code: "USDC", sub: "Circle testnet issuer", logo: null };
 
 function LimitPanel({ book, baseKey, quoteKey, BASE, QUOTE }: { book: Book; baseKey: string; quoteKey: string; BASE: string; QUOTE: string }) {

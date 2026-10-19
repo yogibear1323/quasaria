@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="XLM, native Stellar Lumens">
+  <circle cx="64" cy="64" r="62" fill="#0b1428"/>
+  <circle cx="64" cy="64" r="62" fill="none" stroke="#c8d8f0" stroke-opacity=".35" stroke-width="2"/>
+  <ellipse cx="64" cy="64" rx="38" ry="15" fill="none" stroke="#e3eaf4" stroke-width="5" transform="rotate(-24 64 64)"/>
+  <path d="M64 30l7.5 22.5L94 60l-22.5 7.5L64 90l-7.5-22.5L34 60l22.5-7.5z" fill="#e3eaf4"/>
+</svg>

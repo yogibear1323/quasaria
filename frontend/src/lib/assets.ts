@@ -11,6 +11,7 @@
  * unit-tested; UI helpers live in components/AssetSelect.tsx.
  */
 import doc from "../config/testnet-assets.json";
+import { XLM_LOGO } from "./xlm";
 
 export type AssetCategory = "stablecoin" | "popular" | "base";
 export type TestnetKind = "native" | "real" | "mirror" | "demo";
@@ -37,7 +38,7 @@ type Doc = { assets: ListedAsset[]; pools: ListedPool[]; retired?: { note: strin
 const D = doc as unknown as Doc;
 
 /** Every listed asset that has a usable testnet token contract. */
-export const ASSET_LIST: ListedAsset[] = D.assets.filter((a) => a.testnet.sac);
+export const ASSET_LIST: ListedAsset[] = D.assets.filter((a) => a.testnet.sac).map((a) => (a.testnet.kind === "native" && a.id === "XLM" && !a.logo ? { ...a, logo: XLM_LOGO } : a));
 /** Deployed + seeded v3 pools only. */
 export const POOL_LIST: ListedPool[] = D.pools.filter((p) => p.pool && p.seeded);
 export const RETIRED_POOLS = D.retired?.pools ?? [];

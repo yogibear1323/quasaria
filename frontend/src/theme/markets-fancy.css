@@ -31,8 +31,8 @@
 
 /* table polish */
 .mk-page .mk-table thead th { position: sticky; top: var(--topbar-h, 64px); z-index: 2; background: #f3eadb; color: #43362a; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid rgba(139, 115, 86, 0.35); }
-.mk-page .mk-table tbody tr[data-testid="market-row"]:nth-child(even) > td { background: rgba(239, 229, 211, 0.45); }
-.mk-page .mk-table tbody tr[data-testid="market-row"]:hover > td { background: rgba(242, 184, 75, 0.14); }
+.mk-page .mk-table tbody tr:is([data-testid="market-row"],[data-testid="xlm-row"]):nth-child(even) > td { background: rgba(239, 229, 211, 0.45); }
+.mk-page .mk-table tbody tr:is([data-testid="market-row"],[data-testid="xlm-row"]):hover > td { background: rgba(242, 184, 75, 0.14); }
 .mk-page .mk-table tbody td { border-bottom: 1px solid rgba(139, 115, 86, 0.14); }
 .mk-page .mk-table .c-asset b { font-family: var(--font-display); letter-spacing: -0.01em; }
 .mk-page .mk-table .c-rank { color: #6b5638; }

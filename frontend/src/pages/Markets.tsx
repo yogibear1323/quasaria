@@ -10,6 +10,8 @@ import { hms, LIVE_ASSET_COUNT as LIVE_N, MAINNET_USDC_ISSUER, REFRESH_MS, snaps
 import { OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
 import MarketsHero from "../components/MarketsHero";
+import XlmRow from "../components/XlmRow";
+import { xlmMatches } from "../lib/xlm";
 import SpaceYeti from "../components/SpaceYeti";
 import "../theme/markets-fancy.css";
 
@@ -208,6 +210,7 @@ export default function Markets() {
               <tbody>
                 {live.mode === "loading" && !allRows.length && <><tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>{Array.from({ length: 8 }, (_, i) => <tr key={i} className="mk-skrow" aria-hidden="true"><td colSpan={13}><i className="mk-sk" /></td></tr>)}</>}
                 {live.mode !== "loading" && !allRows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
+                {page === 1 && xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} change24h={liveXlm?.change24h ?? null} live={!!liveXlm} asOf={liveXlm ? undefined : snapXlm ? (snapXlm.source === "snapshot" ? snapshotLabel(snapXlm.snapshotAt) : `as of ${asOf(snapXlm.updatedAt)}`) : undefined} onExchange={() => nav("/exchange")} />}
                 {liveRows.map((r) => {
                   const snapRow = r.source === "snapshot";
                   const snapTip = `saved snapshot (${snapTime(live.snapshotAt)})`;
@@ -288,6 +291,7 @@ export default function Markets() {
               </thead>
               <tbody>
                 {!data && <tr><td colSpan={13} className="muted">Loading market data…</td></tr>}
+                {xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} live={false} asOf={xlm?.price ? (xlm.source === "stellarchain" ? "stellarchain.io" : "Horizon testnet") : undefined} onExchange={() => nav("/exchange")} />}
                 {data?.rows.map((r) => (
                   <tr key={r.key} data-testid="market-row">
                     <td data-label="#" className="c-rank mono muted">{r.rank ?? "—"}</td>

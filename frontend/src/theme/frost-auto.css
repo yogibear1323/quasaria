@@ -197,8 +197,8 @@ html.frost .mk-mover:hover { border-color: hsla(208, 45%, 72.0%, 0.55); box-shad
 html.frost .mk-mover:focus-visible { outline: 2px solid hsla(208, 45%, 72.0%, 0.6); }
 html.frost .mk-mover-id small { color: hsla(205, 60%, 82.0%, 1); }
 html.frost .mk-page .mk-table thead th { background: hsla(222, 42%, 12.3%, 0.86); color: hsla(216, 30%, 89.5%, 1); border-bottom: 1px solid hsla(214, 30%, 72.0%, 0.455); }
-html.frost .mk-page .mk-table tbody tr[data-testid="market-row"]:nth-child(even) > td { background: hsla(222, 42%, 13.1%, 0.427); }
-html.frost .mk-page .mk-table tbody tr[data-testid="market-row"]:hover > td { background: hsla(210, 50%, 46.6%, 0.14); }
+html.frost .mk-page .mk-table tbody tr:is([data-testid="market-row"],[data-testid="xlm-row"]):nth-child(even) > td { background: hsla(222, 42%, 13.1%, 0.427); }
+html.frost .mk-page .mk-table tbody tr:is([data-testid="market-row"],[data-testid="xlm-row"]):hover > td { background: hsla(210, 50%, 46.6%, 0.14); }
 html.frost .mk-page .mk-table tbody td { border-bottom: 1px solid hsla(214, 30%, 72.0%, 0.182); }
 html.frost .mk-page .mk-table .c-rank { color: hsla(205, 60%, 82.0%, 1); }
 html.frost .mk-page .mk-pager .pg-btn { border: 1px solid hsla(214, 30%, 72.0%, 0.39); background: hsla(222, 42%, 10.0%, 0.86); color: hsla(216, 30%, 89.5%, 1); }
@@ -285,7 +285,7 @@ html.frost .about-head img { background: hsla(222, 42%, 9.0%, 0.86); box-shadow:
 html.frost .mk-beyond-list li { background: hsla(222, 42%, 9.0%, 0.86); }
 @media (max-width: 1099px) { html.frost .mk-table thead .th-sort { background: hsla(222, 42%, 9.0%, 0.86); } }
 @media (max-width: 1099px) { html.frost .mk-table thead .th-sort.on { border-color: hsla(208, 45%, 72.0%, 0.6); box-shadow: 0 0 0 2px hsla(226, 60%, 3.0%, 0.3); } }
-@media (max-width: 1099px) { html.frost .mk-table tbody tr[data-testid="market-row"] { background: hsla(222, 42%, 9.0%, 0.874); box-shadow: 0 8px 20px -18px hsla(226, 60%, 3.0%, 0.6); } }
+@media (max-width: 1099px) { html.frost .mk-table tbody tr:is([data-testid="market-row"],[data-testid="xlm-row"]) { background: hsla(222, 42%, 9.0%, 0.874); box-shadow: 0 8px 20px -18px hsla(226, 60%, 3.0%, 0.6); } }
 html.frost .world-bg { background: radial-gradient(1100px 600px at 80% -10%, hsla(210, 50%, 54.4%, 0.14), transparent 60%),
   radial-gradient(900px 600px at -10% 20%, hsla(210, 50%, 32.1%, 0.12), transparent 60%),
   linear-gradient(180deg, hsla(222, 42%, 10.2%, 0.86) 0%, hsla(222, 42%, 11.1%, 0.86) 55%, hsla(222, 42%, 12.2%, 0.86) 100%); }

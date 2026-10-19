@@ -34,6 +34,7 @@ export const NAV_MORE: { to: string; label: string; scene: Scene }[] = [
 ];
 /** Shown only once a keypair is active (header account menu and the mobile menu). */
 export const NAV_KEY: { to: string; label: string; scene: Scene }[] = [
+  { to: "/account", label: "Account", scene: "orbits" },
   { to: "/wallet", label: "Send / receive", scene: "orbits" },
 ];
 /** Old URLs that redirect (query string is kept, e.g. /trade?base=… → /exchange?base=…). */

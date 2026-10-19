@@ -32,11 +32,15 @@ export const NAV_MORE: { to: string; label: string; scene: Scene }[] = [
   { to: "/merch", label: "Merch", scene: "nebula" },
   { to: "/calculators", label: "Calculators", scene: "orbits" },
 ];
+/** Shown only once a keypair is active (header account menu and the mobile menu). */
+export const NAV_KEY: { to: string; label: string; scene: Scene }[] = [
+  { to: "/wallet", label: "Send / receive", scene: "orbits" },
+];
 /** Old URLs that redirect (query string is kept, e.g. /trade?base=… → /exchange?base=…). */
 export const REDIRECTS: Record<string, string> = { "/trade": "/exchange", "/app": "/exchange" };
 
 export const isActive = (path: string, to: string) => path === to || path.startsWith(`${to}/`);
 export function sceneFor(path: string): Scene {
   if (path.startsWith("/calculators")) return "orbits";
-  return [...NAV_ALL, ...NAV_MORE].find((n) => isActive(path, n.to))?.scene ?? "quasar";
+  return [...NAV_ALL, ...NAV_MORE, ...NAV_KEY].find((n) => isActive(path, n.to))?.scene ?? "quasar";
 }

@@ -1,12 +1,13 @@
 import { explorerAccountUrl } from "../lib/explorer";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import AccountModal from "./AccountModal";
+import { CopyButton } from "./CopyButton";
 import logo from "../assets/logo-light.svg";
 import { MERCH_MARK } from "../merch/catalog";
 import { Orbits } from "./Quasar";
-import { NAV_GROUP, NAV_MORE, NAV_REST, NAV_SWAP, isActive, sceneFor } from "../lib/nav";
+import { NAV_GROUP, NAV_KEY, NAV_MORE, NAV_REST, NAV_SWAP, isActive, sceneFor } from "../lib/nav";
 import WorldBackground from "../world/WorldBackground";
 import WorldNav from "../world/WorldNav";
 import { useWallet } from "../lib/wallet";
@@ -59,7 +60,7 @@ export function MainNav({ path }: { path: string }) {
 }
 
 /** Phone / tablet menu: the same order, every item top-level. */
-export function MobileMenu({ path, defaultOpen = false }: { path: string; defaultOpen?: boolean }) {
+export function MobileMenu({ path, defaultOpen = false, signedIn = false }: { path: string; defaultOpen?: boolean; signedIn?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   const [top, setTop] = useState(64);
   const btn = useRef<HTMLButtonElement>(null);
@@ -77,6 +78,7 @@ export function MobileMenu({ path, defaultOpen = false }: { path: string; defaul
         {NAV_REST.map((n) => <NavLink key={n.to} to={n.to} className={`mm-item ${cls(n.to)}`}>{n.label}</NavLink>)}
         <div className="mm-more muted">More</div>
         {NAV_MORE.map((n) => <NavLink key={n.to} to={n.to} className={`mm-item ${cls(n.to)}`}>{n.label}</NavLink>)}
+        {signedIn && NAV_KEY.map((n) => <NavLink key={n.to} to={n.to} className={`mm-item ${cls(n.to)}`} data-testid="mm-key-link">{n.label}</NavLink>)}
       </nav>
     </>
   );
@@ -99,7 +101,8 @@ function WalletButton() {
         </button>
         {menu && (
           <div className="card acct-menu" role="menu" onMouseLeave={() => setMenu(false)}>
-            <button className="btn small ghost" onClick={() => navigator.clipboard?.writeText(w.address!).catch(() => void 0)}>Copy address</button>
+            {NAV_KEY.map((n) => <Link key={n.to} className="btn small ghost" to={n.to} role="menuitem" onClick={() => setMenu(false)} data-testid="acct-menu-link">{n.label}</Link>)}
+            <CopyButton value={w.address} label="Copy address" />
             <button className="btn small ghost" onClick={() => { setMenu(false); w.openModal("fund"); }}>Receive / fund (QR)</button>
             <a className="btn small ghost" href={explorerAccountUrl(w.address, "testnet") ?? undefined} target="_blank" rel="noopener noreferrer">View on StellarChain ↗</a>
             <button className="btn small ghost" onClick={() => { setMenu(false); w.disconnect(); }}>Sign out of this tab</button>
@@ -143,7 +146,7 @@ export default function Layout() {
           </NavLink>
           <WorldNav />
           <MainNav path={loc.pathname} />
-          <MobileMenu path={loc.pathname} />
+          <MobileMenu path={loc.pathname} signedIn={!!w.address} />
           <XlmTicker />
           <span className="net-badge">Testnet</span>
           <LevelBadge />

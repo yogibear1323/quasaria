@@ -704,3 +704,14 @@ main.pg-main > *:not(.pg-orbits) { position: relative; z-index: 1; }
 .l-keysstrip-copy .l-pitch { margin: 0; max-width: 720px; }
 .l-keysstrip-cta { display: flex; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 640px) { .l-keysstrip { padding: 16px; } .l-keysstrip-cta { width: 100%; } .l-keysstrip-cta .btn { flex: 1 1 140px; text-align: center; } }
+
+/* Wallet / Account */
+.addr-full { word-break: break-all; font-size: 0.9rem; line-height: 1.5; padding: 12px 14px; border-radius: 12px; background: var(--bg-sunken); border: 1px solid var(--line); }
+.copyrow { display: inline-flex; align-items: center; }
+/* Compact label/value rows: thin rules, label left, value right (dense, scannable). */
+.kv { display: block; }
+.kv > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.kv > div:last-child { border-bottom: 0; }
+.kv dt { color: var(--text-2); font-size: 0.82rem; flex: none; }
+.kv dd { margin: 0; text-align: right; font-weight: 600; min-width: 0; }
+.kv dd.wrap { word-break: break-all; font-size: 0.8rem; }

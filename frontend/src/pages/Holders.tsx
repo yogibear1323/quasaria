@@ -5,8 +5,7 @@ import { AssetLogo } from "../components/AssetBits";
 import { useWallet } from "../lib/wallet";
 import { fmt, fmtCompact, short } from "../lib/format";
 import {
-  GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_MIN_BALANCE, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, dailyReward, reserveYearsAtCap, tierFor,
-} from "../lib/rewards";
+  GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_MIN_BALANCE, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, dailyReward, reserveYearsAtCap, tierFor, pctYear } from "../lib/rewards";
 import { fetchReserveStatus, fetchRewardBalance, fetchRewardHistory, rewardsLive, type Payment, type ReserveStatus } from "../lib/holders";
 
 const NET = "testnet" as const; // mainnet is switched on only when the reward accounts exist and signing is enabled
@@ -41,7 +40,7 @@ export default function Holders() {
   return (
     <>
       <PageHead kicker="Holders" title={`${REWARD_ASSET_CODE} holder rewards`} right={<span className="pill gold">Testnet · unaudited</span>}>
-        <span className="row" style={{ gap: 8, display: "inline-flex" }}><AssetLogo code={REWARD_ASSET_CODE} issuer={REWARD_ISSUER[NET] ?? "-"} logo={GLACIERQ_ICON_128} size={22} />Glacier ({REWARD_ASSET_CODE}): a daily payment for holders of 1,000,000 or more.</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}><AssetLogo code={REWARD_ASSET_CODE} issuer={REWARD_ISSUER[NET] ?? "-"} logo={GLACIERQ_ICON_128} size={22} />Glacier ({REWARD_ASSET_CODE}): a daily payment for holders of 1,000,000 or more.</span>
       </PageHead>
 
       <div className="notice" role="note" data-testid="holders-disclosure" style={{ marginBottom: 16 }}><b>Plainly:</b> {REWARD_DISCLOSURE} Rewards come from a finite reserve, not from revenue.</div>
@@ -57,7 +56,7 @@ export default function Holders() {
             <>
               <div className="l-est">
                 <div><span className="muted l-tiny">Balance</span><b className="mono">{bal.loading ? "…" : fmt(balance, 2)} {REWARD_ASSET_CODE}</b></div>
-                <div><span className="muted l-tiny">Tier</span><b className="mono">{tier ? `${tier.name} · ${tier.apr * 100}%/yr` : "none"}</b></div>
+                <div><span className="muted l-tiny">Tier</span><b className="mono">{tier ? `${tier.name} · ${pctYear(tier.apr)}%/yr` : "none"}</b></div>
                 <div><span className="muted l-tiny">Est. reward / day</span><b className="mono">{fmt(daily, 2)}</b></div>
               </div>
               <p className="muted l-tiny">{tier ? `Daily rate ${pctDay(tier.apr)}% on your whole balance (estimate; the daily cap can reduce it).` : `No reward under ${fmtCompact(REWARD_MIN_BALANCE)} ${REWARD_ASSET_CODE}.`}{nextTier ? ` Next tier at ${fmtCompact(nextTier.min)} (${nextTier.apr * 100}%/yr).` : ""}</p>
@@ -104,7 +103,7 @@ export default function Holders() {
           <ul className="muted" style={{ paddingLeft: 18, fontSize: "0.9rem" }}>
             <li>Once a day (about 00:30 UTC) a script takes a snapshot of {REWARD_ASSET_CODE} holders from Horizon and pays each qualifying holder with an ordinary Stellar payment from the reward account. No smart contract is involved.</li>
             <li>Each payment carries the memo <span className="mono">{REWARD_ASSET_CODE}:YYYY-MM-DD</span>, and a ledger of paid days stops a rerun from paying twice.</li>
-            <li>Rates: <b>{REWARD_TIERS[0].apr * 100}% a year</b> from 1M to under 10M ({pctDay(REWARD_TIERS[0].apr)}% a day) and <b>{REWARD_TIERS[1].apr * 100}% a year</b> from 10M ({pctDay(REWARD_TIERS[1].apr)}% a day), flat on the whole balance. Nothing under 1M.</li>
+            <li>Rates: <b>{pctYear(REWARD_TIERS[0].apr)}% a year</b> from 1M to under 10M ({pctDay(REWARD_TIERS[0].apr)}% a day) and <b>{pctYear(REWARD_TIERS[1].apr)}% a year</b> from 10M ({pctDay(REWARD_TIERS[1].apr)}% a day), flat on the whole balance. Nothing under 1M.</li>
             <li>The total paid in a day is capped at {fmtCompact(TOKENOMICS.dailyCap)} {REWARD_ASSET_CODE}. If the computed total is higher, every reward is scaled down pro rata.</li>
             <li>The issuer, the reserve, the treasury and liquidity-pool accounts are excluded.</li>
             <li>Rewards are paid from a finite reserve, not from revenue, and are not guaranteed.</li>

@@ -59,3 +59,6 @@ export const dailyReward = (balance: number) => {
 };
 export const REWARD_DISCLOSURE =
   "Rewards are paid from a finite reserve account, so they put more GLACIERQ into circulation and dilute holders who do not receive them. They are not guaranteed: the program can change or stop, a payment can be skipped or delayed, and a daily emission cap can reduce everyone's reward pro rata. Rates are annual rates applied daily; they do not compound automatically. Nothing here is financial advice.";
+
+/** Annual rate as a clean percent number (0.07 -> 7, never 7.000000000000001). */
+export const pctYear = (apr: number) => Math.round(apr * 10000) / 100;

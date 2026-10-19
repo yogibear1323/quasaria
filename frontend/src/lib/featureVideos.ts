@@ -12,9 +12,9 @@ export type FeatureVideo = {
 };
 
 export const FEATURE_VIDEOS: FeatureVideo[] = [
-  { id: "01-swaps", title: "Swaps", seconds: 27 },
-  { id: "02-liquidity-pools", title: "Liquidity pools", seconds: 30 },
-  { id: "09-markets-news", title: "Markets & Stellar news", seconds: 28 },
+  { id: "01-swaps", title: "Swaps", seconds: 30 },
+  { id: "02-liquidity-pools", title: "Liquidity pools", seconds: 32 },
+  { id: "09-markets-news", title: "Markets & Stellar news", seconds: 29 },
 ];
 
 export const FEATURE_VIDEOS_COPY = {
@@ -27,6 +27,6 @@ export const FEATURE_VIDEOS_COPY = {
 const base = (): string => (import.meta.env?.BASE_URL as string | undefined) ?? "/";
 
 export type Aspect = "16x9" | "9x16";
-export const featureSrc = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}-frost.mp4`;
-export const featurePoster = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}-frost-poster.jpg`;
+export const featureSrc = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}-frost-v2.mp4`;
+export const featurePoster = (v: FeatureVideo, a: Aspect, b: string = base()) => `${b}media/features/${v.id}-${a}-frost-v2-poster.jpg`;
 export const fmtRuntime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;

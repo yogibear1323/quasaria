@@ -46,6 +46,11 @@ describe("holder and referral earnings", () => {
       pay("5", "GLACIERQ:2026-10-03", { asset_issuer: OTH }), pay("6", "GLACIERQ:2026-10-03", { from: OTH }), pay("7", "hello"), pay("8", "GLACIERQ:2026-10-03", { to: OTH })], ME, cfg);
     expect(t).toEqual({ reward: 150, referrer: 10, referee: 5, count: 4 });
   });
+  it("counts referral payments from the separate payer only", () => {
+    const c2: RewardCfg = { ...cfg, payer: OTH };
+    const t = paymentTotals([pay("1", "GLACIERQ-REF:2026-10-02", { from: OTH, amount: "10" }), pay("2", "GLACIERQ-BOOST:2026-10-02", { from: OTH, amount: "5" }), pay("3", "GLACIERQ-REF:2026-10-02", { amount: "99" }), pay("4", "GLACIERQ:2026-10-02", { from: OTH, amount: "77" }), pay("5", "GLACIERQ:2026-10-02", { amount: "20" })], ME, c2);
+    expect(t).toEqual({ reward: 20, referrer: 10, referee: 5, count: 3 });
+  });
   it("shows not-live and coming-after-launch states honestly", () => {
     expect(T(<HolderEarnings live={false} address={ME} balance={null} totals={{ reward: 0, referrer: 0, referee: 0, count: 0 }} />)).toMatch(/Not live yet.*5% a year from 1M, 7% a year from 10M, not guaranteed/);
     expect(T(<ReferralEarnings address={ME} totals={{ reward: 0, referrer: 12.5, referee: 1, count: 2 }} />)).toMatch(/Coming after launch.*12\.50 GLACIERQ/);

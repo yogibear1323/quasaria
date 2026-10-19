@@ -4,7 +4,7 @@
  * Transaction links are NOT built here: the page renders every hash through TxLink -> explorerTxUrl (StellarChain only).
  */
 import { NETS, type NetId } from "./nativePools";
-import { REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_RESERVE } from "./rewards";
+import { REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_PAYER, REWARD_RESERVE } from "./rewards";
 
 export type ActivityKind = "swap" | "order" | "pool" | "reward" | "referral" | "payment";
 export const ACTIVITY_FILTERS: { v: "all" | ActivityKind; label: string }[] = [
@@ -26,7 +26,12 @@ export type OpRec = {
   reserves_deposited?: { asset: string; amount: string }[]; reserves_received?: { asset: string; amount: string }[];
   reserves_max?: { asset: string; amount: string }[]; reserves_min?: { asset: string; amount: string }[];
 };
-export type RewardCfg = { code: string; issuer: string | null; reserve: string | null };
+export type RewardCfg = { code: string; issuer: string | null; reserve: string | null; payer?: string | null };
+/** Holder rewards must come from the reserve; referral payments come from the separate referral payer (falls back to the reserve when none is configured). */
+export const senderOk = (kind: "reward" | "referrer" | "referee", from: string | undefined, cfg: RewardCfg) => {
+  const want = kind === "reward" ? cfg.reserve : cfg.payer ?? cfg.reserve;
+  return !want || from === want;
+};
 
 const code = (t?: string, c?: string) => (t === "native" ? "XLM" : c ?? "?");
 const num = (s?: string) => { const n = Number(s); return Number.isFinite(n) ? n : 0; };
@@ -69,8 +74,8 @@ export function classifyOp(r: OpRec, me: string | null, cfg: RewardCfg = { code:
       return { ...base, kind: "pool", mine: mine(r.source_account), title: `Pool withdrawal: ${reserves(r.reserves_received) || reserves(r.reserves_min)}`, detail: `${r.shares ? `${nice(r.shares)} shares · ` : ""}by ${sh(r.source_account)}` };
     case "payment": {
       const c = code(r.asset_type, r.asset_code), memo = classifyMemo(r.transaction?.memo);
-      const verified = c === cfg.code && !!cfg.issuer && r.asset_issuer === cfg.issuer && (!cfg.reserve || r.from === cfg.reserve);
-      if (memo && verified) {
+      const verified = c === cfg.code && !!cfg.issuer && r.asset_issuer === cfg.issuer;
+      if (memo && verified && senderOk(memo.kind, r.from, cfg)) {
         const kind = memo.kind === "reward" ? "reward" : "referral";
         const t = memo.kind === "reward" ? "Holder reward" : memo.kind === "referrer" ? "Referral bonus (referrer)" : "Referral boost (referee)";
         return { ...base, kind, mine: mine(r.to), title: `${t}: ${nice(r.amount)} ${c}`, detail: `for ${memo.day} · to ${sh(r.to)}` };
@@ -99,7 +104,7 @@ export async function fetchOps(net: NetId, address: string | null, limit = 100):
   return ((await r.json()) as { _embedded: { records: OpRec[] } })._embedded.records;
 }
 
-export const rewardCfg = (net: NetId): RewardCfg => ({ code: REWARD_ASSET_CODE, issuer: REWARD_ISSUER[net], reserve: REWARD_RESERVE[net] });
+export const rewardCfg = (net: NetId): RewardCfg => ({ code: REWARD_ASSET_CODE, issuer: REWARD_ISSUER[net], reserve: REWARD_RESERVE[net], payer: REWARD_PAYER[net] });
 
 export async function fetchActivity(net: NetId, address: string | null, limit = 100): Promise<ActivityItem[]> {
   const recs = await fetchOps(net, address, limit);

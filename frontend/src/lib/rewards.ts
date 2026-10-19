@@ -41,6 +41,11 @@ export const REWARD_RESERVE: Record<"testnet" | "mainnet", string | null> = {
   testnet: (import.meta.env.VITE_REWARD_RESERVE_TESTNET as string) || (testnetCfg as { reserve?: string | null }).reserve || null,
   mainnet: (import.meta.env.VITE_REWARD_RESERVE_MAINNET as string) || null,
 };
+/** Public referral-payer account per network (a separate account from the reserve; null until it exists). */
+export const REWARD_PAYER: Record<"testnet" | "mainnet", string | null> = {
+  testnet: (import.meta.env.VITE_REWARD_PAYER_TESTNET as string) || (testnetCfg as { payer?: string | null }).payer || null,
+  mainnet: (import.meta.env.VITE_REWARD_PAYER_MAINNET as string) || null,
+};
 /** Daily payout time (UTC). One payment per holder per UTC day, memo `GLACIERQ:YYYY-MM-DD`. */
 export const PAYOUT_UTC = { hour: 0, minute: 30 } as const;
 export const memoFor = (day: string) => `${REWARD_ASSET_CODE}:${day}`;

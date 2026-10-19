@@ -11,4 +11,4 @@
 | Excluded from rewards | issuer, reserve, treasury, referral payer, pool accounts |
 | Transparency | each batch has a manifest whose sha256 is committed on chain (`manifest-sha256`); memos `GLACIERQ:YYYY-MM-DD`, `GLACIERQ-REF:`, `GLACIERQ-BOOST:` |
 
-Wording rules for the site: say "5% a year from 1M, 7% a year from 10M, not guaranteed"; never "APY", never imply a return. Single source of truth in code: `frontend/src/lib/rewards.ts`; script maths: `frontend/scripts/rewards/core.mjs` (see `docs/rewards-scripts.md`).
+Wording rules for the site: say "5% a year from 1M, 7% a year from 10M, not guaranteed"; no compounding-yield jargon and never imply a return. Single source of truth in code: `frontend/src/lib/rewards.ts`; script maths: `frontend/scripts/rewards/core.mjs` (see `docs/rewards-scripts.md`).

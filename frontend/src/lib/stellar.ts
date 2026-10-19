@@ -5,7 +5,9 @@
  */
 import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Operation, TransactionBuilder, Memo, getLiquidityPoolId } from "@stellar/stellar-sdk";
 import { HORIZON_URL, NETWORK_PASSPHRASE, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "./config";
-import { demoBook, type Book } from "./demo";
+
+export type Level = { price: number; amount: number };
+export type Book = { bids: Level[]; asks: Level[]; source: "horizon" };
 
 export const horizon = new Horizon.Server(HORIZON_URL);
 
@@ -18,18 +20,17 @@ export const PAIRS = [
   { base: "XLM", quote: "USDC" },
 ];
 
-/** `demoFallback`: show the demo book when Horizon is empty/unreachable (default pair only). */
-export async function fetchOrderBook(base: Asset, quote: Asset, demoFallback = true): Promise<Book> {
+/** Live SDEX order book from Horizon (empty book when there are no offers or Horizon is unreachable). */
+export async function fetchOrderBook(base: Asset, quote: Asset): Promise<Book> {
   const empty: Book = { bids: [], asks: [], source: "horizon" };
-  if (OFFLINE_DEMO) return demoFallback ? demoBook() : empty;
+  if (OFFLINE_DEMO) return empty;
   try {
     const ob = await horizon.orderbook(base, quote).limit(15).call();
     const bids = ob.bids.map((b) => ({ price: Number(b.price), amount: Number(b.amount) / Number(b.price) }));
     const asks = ob.asks.map((a) => ({ price: Number(a.price), amount: Number(a.amount) }));
-    if (!bids.length && !asks.length) return demoFallback ? demoBook() : empty;
     return { ...cleanBook(bids, asks), source: "horizon" };
   } catch {
-    return demoFallback ? demoBook() : empty;
+    return empty;
   }
 }
 
@@ -119,11 +120,24 @@ export async function buildCancelOffer(pubkey: string, offer: { id: string; sell
     .toXDR();
 }
 
-/** Best SDEX+AMM path via Horizon strict-send path finding. */
+/** Best path across the order book and native pools via Horizon strict-send path finding. */
 export async function findStrictSendPath(from: Asset, amount: number, to: Asset) {
   const r = await horizon.strictSendPaths(from, amount.toFixed(7), [to]).call();
   return r.records[0];
 }
+
+export type SwapQuote = { sendAmount: number; destAmount: number; path: Asset[]; rate: number };
+/** Quote for sending `amount` of `from` and receiving `to`, or null when no path exists. */
+export async function quoteSwap(from: Asset, amount: number, to: Asset): Promise<SwapQuote | null> {
+  if (!(amount > 0)) return null;
+  const p = await findStrictSendPath(from, amount, to);
+  if (!p) return null;
+  const path = p.path.map((a) => (a.asset_type === "native" ? Asset.native() : new Asset(a.asset_code, a.asset_issuer)));
+  const dest = Number(p.destination_amount);
+  return { sendAmount: amount, destAmount: dest, path, rate: dest / amount };
+}
+/** Minimum received after a slippage tolerance in percent (0.5 = 0.5%). Floors at 7 decimals so the bound is never looser than asked. */
+export const minReceived = (dest: number, slippagePct: number) => Math.floor(dest * (1 - Math.min(Math.max(slippagePct, 0), 50) / 100) * 1e7) / 1e7;
 
 export async function buildPathPayment(pubkey: string, from: Asset, amount: number, to: Asset, minOut: number, path: Asset[]) {
   const balances = await fetchBalances(pubkey);

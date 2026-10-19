@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useWallet } from "../lib/wallet";
-import { CONTRACTS_CONFIGURED } from "../lib/config";
 import { snapshotLabel, type DataSource } from "../lib/stellarchain";
 import { TX_EVENT } from "../game/GameProvider";
 import { CountUpText } from "../game/widgets";
 import { burst } from "../game/fx";
+import { TxLink } from "./TxLink";
 import SpaceYeti, { type YetiProp } from "./SpaceYeti";
 import "../theme/space-yeti.css";
 
@@ -13,7 +13,7 @@ const YETI_BY_PATH: [RegExp, YetiProp, boolean][] = [
   [/\/trade/, "coin", false], [/\/pools/, "seed", true],
   [/\/earn/, "seed", false], [/\/calculators/, "paper", true],
   [/\/holders/, "trophy", true],
-  [/\/quests/, "flag", false], [/\/merch/, "bag", true], [/\/news/, "paper", false],
+  [/\/quests/, "flag", false], [/\/about/, "flag", true], [/\/merch/, "bag", true], [/\/news/, "paper", false],
 ];
 export function yetiFor(path: string): { prop: YetiProp; mirror: boolean } {
   for (const [re, prop, mirror] of YETI_BY_PATH) if (re.test(path)) return { prop, mirror };
@@ -57,21 +57,14 @@ export function Tabs<T extends string>({ value, options, onChange }: { value: T;
   );
 }
 
-/**
- * Wraps a transaction action with wallet / config guards and status text.
- * `needsContracts` = the action calls Soroban contracts (vs classic SDEX ops).
- */
-export function useTx(needsContracts = true) {
+/** Wraps a transaction action with a wallet guard and status text. */
+export function useTx() {
   const w = useWallet();
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const run = async (label: string, fn: () => Promise<string | void>) => {
     if (!w.address) {
       setStatus("Read-only mode: create a keypair or sign in with your secret key to sign this transaction.");
-      return;
-    }
-    if (needsContracts && !CONTRACTS_CONFIGURED) {
-      setStatus("Contracts not configured. Run scripts/deploy-testnet.sh and restart the dev server.");
       return;
     }
     setBusy(true);
@@ -99,6 +92,7 @@ export function TxStatus({ status }: { status: string | null }) {
     if (r) burst(r.left + r.width / 2, r.top + r.height / 2, 40);
   }, [ok, status]);
   if (!status) return null;
+  const hashAt = /\(([0-9a-f]{64})\)/.exec(status); // a confirmed transaction: show it as a StellarChain link
   return (
     <div ref={el} className={`notice ${ok ? "tx-ok" : ""}`} style={{ marginTop: 12 }} role="status">
       {ok && (
@@ -106,27 +100,16 @@ export function TxStatus({ status }: { status: string | null }) {
           <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" /><path d="m7.5 12.5 3 3 6-7" /></svg>
         </span>
       )}
-      <span>{status}</span>
+      <span>{hashAt ? <>{status.slice(0, hashAt.index)}(<TxLink hash={hashAt[1]} />){status.slice(hashAt.index + hashAt[0].length)}</> : status}</span>
     </div>
   );
 }
 
 /** Small badge telling the user where a panel's numbers come from. */
 export function SourceTag({ live, loading, error, what }: { live: boolean; loading?: boolean; error?: string | null; what?: string }) {
-  if (loading) return <span className="pill">⟳ reading testnet…</span>;
-  if (live) return <span className="pill green" title={what}>● live · Soroban testnet</span>;
-  return <span className="pill pink" title={error ?? "contracts not configured"}>demo data{error ? " (RPC error)" : ""}</span>;
-}
-
-/** "Viewing public demo account" note for read-only mode. */
-export function ViewerNote({ address, isDemo, role }: { address: string; isDemo: boolean; role: string }) {
-  if (!isDemo || !address) return null;
-  return (
-    <p className="muted" style={{ fontSize: "0.78rem", margin: "6px 0 0" }}>
-      Read-only: showing the public seeded {role} account{" "}
-      <a className="mono" href={`https://stellar.expert/explorer/testnet/account/${address}`} target="_blank" rel="noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Create an account or connect a wallet to see your own.
-    </p>
-  );
+  if (loading) return <span className="pill">⟳ reading Horizon…</span>;
+  if (live) return <span className="pill green" title={what}>● live · Horizon</span>;
+  return <span className="pill pink" title={error ?? "unavailable"}>unavailable{error ? " (Horizon error)" : ""}</span>;
 }
 
 /** Market-data provenance: live stellarchain.io, expired browser cache, or the build-time snapshot. */

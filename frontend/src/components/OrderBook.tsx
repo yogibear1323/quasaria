@@ -1,4 +1,4 @@
-import type { Book } from "../lib/demo";
+import type { Book } from "../lib/stellar";
 import { fmt } from "../lib/format";
 
 export default function OrderBook({ book, base, quote, onPick }: { book: Book; base: string; quote: string; onPick?: (p: number) => void }) {

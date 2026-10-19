@@ -8,6 +8,7 @@ import WorldBackground, { type Scene } from "../world/WorldBackground";
 import WorldNav from "../world/WorldNav";
 import { useWallet } from "../lib/wallet";
 import { short } from "../lib/format";
+import { explorerAccountUrl } from "../lib/explorer";
 import { OFFLINE_DEMO } from "../lib/config";
 import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
 import { useXlmUsd } from "../lib/markets";
@@ -46,9 +47,10 @@ const NAV: { to: string; label: string; scene: Scene }[] = [
   { to: "/quests", label: "Quests", scene: "constellation" },
   { to: "/merch", label: "Merch", scene: "nebula" },
   { to: "/news", label: "News", scene: "constellation" },
+  { to: "/about", label: "About", scene: "constellation" },
 ];
 
-const QUICK = new Set(["/markets", "/trade", "/pools", "/earn", "/holders"]);
+const QUICK = new Set(["/markets", "/trade", "/pools", "/earn", "/holders", "/news", "/about"]);
 
 export function sceneFor(path: string): Scene {
   if (path.startsWith("/calculators")) return "orbits";
@@ -68,7 +70,7 @@ function WalletButton() {
           <div className="card acct-menu" role="menu" onMouseLeave={() => setMenu(false)}>
             <button className="btn small ghost" onClick={() => navigator.clipboard?.writeText(w.address!).catch(() => void 0)}>Copy address</button>
             <button className="btn small ghost" onClick={() => { setMenu(false); w.openModal("fund"); }}>Receive / fund (QR)</button>
-            <a className="btn small ghost" href={`https://stellar.expert/explorer/testnet/account/${w.address}`} target="_blank" rel="noreferrer">View on stellar.expert ↗</a>
+            <a className="btn small ghost" href={explorerAccountUrl(w.address) ?? "#"} target="_blank" rel="noopener noreferrer">View on StellarChain ↗</a>
             <button className="btn small ghost" onClick={() => { setMenu(false); w.disconnect(); }}>Sign out of this tab</button>
             <button className="btn small ghost neg" onClick={() => { if (window.confirm("Forget this key? It is removed from this tab and any encrypted copy is deleted from this browser. Make sure your secret key is saved: Quasaria cannot recover it.")) { setMenu(false); w.forgetKey(); } }}>Forget this key</button>
           </div>

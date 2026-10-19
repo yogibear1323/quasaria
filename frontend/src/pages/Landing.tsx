@@ -1,6 +1,6 @@
 /**
  * Public landing page ("/"). Copy comes verbatim from docs/landing-outline.md.
- * Real data where it exists (stellarchain.io, Horizon/Soroban testnet, the
+ * Real data where it exists (stellarchain.io, Horizon testnet, the
  * generated stablecoin pair list, deployed contract IDs); everything
  * illustrative is labelled as an example / estimate / simulation.
  */
@@ -10,7 +10,6 @@ import "../theme/space-yeti.css";
 import { Link, useNavigate } from "react-router-dom";
 import outlineMd from "../../../docs/landing-outline.md?raw";
 import pairsDoc from "../../../docs/stablecoin-pairs.json";
-import { POOL_LIST, assetById } from "../lib/assets";
 import logo from "../assets/logo-light.svg";
 import WorldBackground, { type Scene } from "../world/WorldBackground";
 import WorldList from "../world/WorldList";
@@ -33,23 +32,20 @@ import FeatureVideos from "../components/FeatureVideos";
 import { useWallet } from "../lib/wallet";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
-import { ASSETS, fetchOrderBook, horizon } from "../lib/stellar";
-import { readPool, useChain, type PoolInfo } from "../lib/chain";
-import { CONTRACTS, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
-import { ammAmountOut } from "../lib/math";
+import { ASSETS, fetchOrderBook, horizon, quoteSwap, type Book } from "../lib/stellar";
+import { useAsync } from "../lib/useAsync";
+import { OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
+import { loadCuratedPools, type PoolRow } from "../lib/nativePools";
 import { REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TOTAL_SUPPLY, TOKENOMICS, dailyReward, tierFor, pctYear } from "../lib/rewards";
 import { fmt, fmtCompact, short } from "../lib/format";
-import type { Book } from "../lib/demo";
+import { explorerAccountUrl } from "../lib/explorer";
 
 const COPY = parseOutline(outlineMd);
-const [POOL_XLM_QUSD = ""] = CONTRACTS.pools;
 const S = (n: number) => COPY.find((c) => c.n === n) ?? { n, title: "", headline: "", pitch: "", visual: "" };
 
 type Pair = (typeof pairsDoc.pairs)[number];
 const PAIRS = pairsDoc.pairs as Pair[];
 const VERIFIED = PAIRS.filter((p) => p.verified && p.primary);
-// v3 asset pools (the v2 XLM/stablecoin pools are retired; see deployments/testnet-assets.json → retired)
-const TESTNET_POOLS = POOL_LIST.map((p) => ({ pool: p.pool, code: p.base, mock: assetById(p.base)?.testnet.kind === "mirror" }));
 
 // ---------------------------------------------------------------- shell bits
 function Section({ id, n, scene, onScene, children, kicker, wide, unnumbered, headline, pitch }: { id: string; n: number; scene: Scene; onScene: (s: Scene) => void; children: ReactNode; kicker?: string; wide?: boolean; unnumbered?: boolean; headline?: string; pitch?: string }) {
@@ -200,30 +196,29 @@ function NewsPreview() {
 function TradePreview() {
   const [book, setBook] = useState<Book | null>(null);
   const [ledger, setLedger] = useState<{ seq: number; gap: number | null } | null>(null);
-  const pool = useChain(() => readPool(POOL_XLM_QUSD), []);
   const [amt, setAmt] = useState(100);
   useEffect(() => {
-    fetchOrderBook(ASSETS.XLM, ASSETS.USDC, true).then(setBook);
+    fetchOrderBook(ASSETS.XLM, ASSETS.USDC).then(setBook);
     if (OFFLINE_DEMO) return;
     horizon.ledgers().order("desc").limit(2).call().then((r) => {
       const [a, b] = r.records;
       setLedger({ seq: a.sequence, gap: b ? (Date.parse(a.closed_at) - Date.parse(b.closed_at)) / 1000 : null });
     }).catch(() => void 0);
   }, []);
-  const p = pool.data;
-  const xlmIsA = p ? p.tokenA === CONTRACTS.xlmSac : true;
-  const out = p ? ammAmountOut(amt, xlmIsA ? p.reserveA : p.reserveB, xlmIsA ? p.reserveB : p.reserveA, p.feeBps) : null;
+  const quote = useAsync(async () => { await new Promise((r) => setTimeout(r, 300)); return amt > 0 ? quoteSwap(ASSETS.XLM, amt, ASSETS.USDC) : null; }, [amt]);
+  const out = quote.data?.destAmount ?? null;
   return (
     <div className="l-grid-2">
       <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>SDEX order book · XLM/USDC</h3>{book && <Label kind={book.source === "horizon" ? "live" : "example"}>{book.source === "horizon" ? "Horizon testnet" : "demo book"}</Label>}</div>
+        <div className="row between"><h3 style={{ margin: 0 }}>Order book · XLM/USDC</h3>{book && <Label kind="live">Horizon testnet</Label>}</div>
         {book ? <OrderBook book={{ ...book, bids: book.bids.slice(0, 6), asks: book.asks.slice(0, 6) }} base="XLM" quote="USDC" /> : <p className="muted">Loading order book…</p>}
+        {book && !book.bids.length && !book.asks.length && <p className="muted l-tiny">No offers on the testnet order book for this pair right now.</p>}
       </div>
       <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Swap · XLM → QUSD</h3><Label kind={pool.live ? "live" : "example"}>{pool.live ? "Soroban pool reserves" : "loading"}</Label></div>
+        <div className="row between"><h3 style={{ margin: 0 }}>Swap · XLM → USDC</h3><Label kind={quote.live ? "live" : "example"}>{quote.live ? "Horizon path finder" : "loading"}</Label></div>
         <div className="field" style={{ marginTop: 12 }}><label>You pay (XLM)</label><input className="input" type="number" min={0} value={amt} onChange={(e) => setAmt(Math.max(0, Number(e.target.value)))} /></div>
-        <div className="field"><label>You receive (QUSD, quote)</label><div className="input mono">{out !== null ? fmt(out, 4) : "—"}</div></div>
-        <p className="muted l-tiny">Quote from the live XLM/QUSD AMM pool on testnet{p ? ` (reserves ${fmtCompact(xlmIsA ? p.reserveA : p.reserveB)} XLM / ${fmtCompact(xlmIsA ? p.reserveB : p.reserveA)} QUSD, fee ${p.feeBps / 100}%)` : ""}. QUSD is Quasaria's testnet demo stablecoin.</p>
+        <div className="field"><label>You receive (USDC, quote)</label><div className="input mono">{out !== null ? fmt(out, 4) : quote.loading ? "…" : "no route"}</div></div>
+        <p className="muted l-tiny">Quote from Stellar's own path finder, which uses the order book and the native liquidity pools together. Testnet USDC has no real value.</p>
         <div className="l-settle" aria-label="Animation: an order settling on the ledger">
           <span className="s1">✍ Signed</span><span className="s2">→ Submitted</span><span className="s3">→ In ledger ✓</span>
         </div>
@@ -235,11 +230,28 @@ function TradePreview() {
 }
 
 // ---------------------------------------------------------------- 4. keys
+/** "Your keys, your XLM" moved out of the hero (the hero copy is fixed): a prominent strip directly beneath it. */
+export function KeysStrip() {
+  const w = useWallet();
+  return (
+    <section className="card glow l-keysstrip" aria-labelledby="keys-strip-h" data-testid="keys-strip">
+      <div className="l-keysstrip-copy">
+        <h2 id="keys-strip-h" className="l-h2">Your keys, your XLM.</h2>
+        <p className="l-pitch">Quasaria never holds your keys or your XLM when you trade: you hold the secret key and sign everything in your own browser. Nobody can recover it for you, so save it.</p>
+      </div>
+      <div className="l-keysstrip-cta">
+        {!w.address && <button className="btn" onClick={() => w.openModal("create")}>Create a keypair</button>}
+        <Link className="btn ghost" to="/wallet">Send / receive</Link>
+      </div>
+    </section>
+  );
+}
+
 function KeysVisual() {
   const w = useWallet();
   const steps = [
     { t: "Generate", d: "Your browser creates a secret key and public address with Web Crypto. Nothing is sent anywhere.", i: "✦" },
-    { t: "Back up", d: "Save the secret, then prove it with a quick backup check. Optionally encrypt it on this device with a password.", i: "lock" },
+    { t: "Back up", d: "Your browser shows the secret once. Save it and tick the box. Optionally encrypt a copy in this browser with a passphrase.", i: "lock" },
     { t: "Trade", d: "Sign transactions locally. On testnet, Friendbot funds your new account with free test XLM.", i: "⇄" },
   ];
   return (
@@ -256,8 +268,8 @@ function KeysVisual() {
       </div>
       <div className="l-callout">
         <div className="l-callout-big">What we store about you: nothing.</div>
-        <p className="muted">No server-side accounts, emails or key copies. If you tick "remember on this device", the encrypted key stays in your own browser's storage (PBKDF2-SHA256 → AES-256-GCM).</p>
-        {!w.address && <button className="btn" onClick={() => w.openModal("create")}>Create an account</button>}
+        <p className="muted">No server-side accounts, emails or key copies. By default your key lives only in this tab. If you add a passphrase, an encrypted copy stays in your own browser's storage (PBKDF2-SHA256 → AES-256-GCM), and "Forget this key" deletes it.</p>
+        {!w.address && <button className="btn" onClick={() => w.openModal("create")}>Create a keypair</button>}
       </div>
     </div>
   );
@@ -320,48 +332,40 @@ function StablecoinVisual() {
 }
 
 // ---------------------------------------------------------------- 6. liquidity
-type PoolRow = { id: string; label: string; mock: boolean; info: PoolInfo };
-async function readLandingPools(): Promise<PoolRow[]> {
-  const list = [{ id: POOL_XLM_QUSD, label: "XLM/QUSD", mock: false }, ...TESTNET_POOLS.slice(0, 5).map((p) => ({ id: p.pool!, label: `XLM/${p.code}`, mock: p.mock }))];
-  const rows = await Promise.all(list.map(async (l) => ({ ...l, info: await readPool(l.id) })));
-  return rows;
-}
-
 function LiquidityVisual() {
-  const pools = useChain(readLandingPools, []);
+  const pools = useAsync(async () => (await loadCuratedPools("testnet")).filter((p) => p.reserveA > 0), []);
   const [sel, setSel] = useState(0);
   const [deposit, setDeposit] = useState(1000);
   const [volume, setVolume] = useState(2_000);
-  const row = pools.data?.[sel];
-  const xlmSide = row ? (row.info.tokenA === CONTRACTS.xlmSac ? row.info.reserveA : row.info.reserveB) : 0;
+  const rows: PoolRow[] = pools.data ?? [];
+  const row = rows[sel];
+  const xlmSide = row ? (!row.a.issuer ? row.reserveA : !row.b.issuer ? row.reserveB : 0) : 0;
   const tvlXlm = xlmSide * 2;
-  const share = row ? deposit / (tvlXlm + deposit) : 0;
-  const feeRate = row ? row.info.feeBps / 10_000 : 0.003;
+  const share = row && tvlXlm > 0 ? deposit / (tvlXlm + deposit) : 0;
+  const feeRate = row ? row.feeBp / 10_000 : 0.003;
   const daily = volume * feeRate * share;
   return (
     <div className="l-grid-2">
       <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Pools on testnet</h3><Label kind={pools.live ? "live" : "example"}>{pools.loading ? "reading…" : pools.live ? "Soroban reserves" : "unavailable"}</Label></div>
+        <div className="row between"><h3 style={{ margin: 0 }}>Pools on testnet</h3><Label kind={pools.live ? "live" : "example"}>{pools.loading ? "reading…" : pools.live ? "Horizon native pools" : "unavailable"}</Label></div>
         <table className="t l-click" style={{ marginTop: 8 }}>
           <thead><tr><th>Pool</th><th>Reserves</th><th>Fee</th></tr></thead>
           <tbody>
-            {pools.data?.map((p, i) => {
-              const xa = p.info.tokenA === CONTRACTS.xlmSac;
-              return (
-                <tr key={p.id} onClick={() => setSel(i)} className={i === sel ? "l-sel" : ""}>
-                  <td><b>{p.label}</b> {p.mock && <span className="pill l-tiny">testnet mirror of {p.label.split("/")[1]}</span>}</td>
-                  <td className="mono l-tiny">{fmtCompact(xa ? p.info.reserveA : p.info.reserveB)} XLM / {fmtCompact(xa ? p.info.reserveB : p.info.reserveA)}</td>
-                  <td className="mono">{p.info.feeBps / 100}%</td>
-                </tr>
-              );
-            })}
-            {!pools.data && <tr><td colSpan={3} className="muted">{pools.loading ? "Reading pools…" : "Pools unavailable."}</td></tr>}
+            {rows.map((p, i) => (
+              <tr key={p.id} onClick={() => setSel(i)} className={i === sel ? "l-sel" : ""}>
+                <td><b>{p.a.code}/{p.b.code}</b></td>
+                <td className="mono l-tiny">{fmtCompact(p.reserveA)} {p.a.code} / {fmtCompact(p.reserveB)} {p.b.code}</td>
+                <td className="mono">{p.feeBp / 100}%</td>
+              </tr>
+            ))}
+            {!pools.loading && !rows.length && <tr><td colSpan={3} className="muted">No verified-pair pools on testnet yet. The first deposit creates one.</td></tr>}
+            {pools.loading && <tr><td colSpan={3} className="muted">Reading pools…</td></tr>}
           </tbody>
         </table>
         <Link to="/pools" className="btn ghost small" style={{ marginTop: 10, display: "inline-block" }}>All pools →</Link>
       </div>
       <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Fee estimator {row ? `· ${row.label}` : ""}</h3><Label kind="estimate" /></div>
+        <div className="row between"><h3 style={{ margin: 0 }}>Fee estimator {row ? `· ${row.a.code}/${row.b.code}` : ""}</h3><Label kind="estimate" /></div>
         <div className="field" style={{ marginTop: 12 }}><label>Your deposit (total value, XLM)</label><input className="input" type="number" min={0} value={deposit} onChange={(e) => setDeposit(Math.max(0, Number(e.target.value)))} /></div>
         <div className="field"><label>Assumed daily swap volume (XLM) · your assumption</label><input type="range" min={0} max={100_000} step={500} value={volume} onChange={(e) => setVolume(Number(e.target.value))} /><span className="mono l-tiny">{fmt(volume, 0)} XLM / day</span></div>
         <div className="l-est">
@@ -370,7 +374,7 @@ function LiquidityVisual() {
           <div><span className="muted l-tiny">Est. fees / 30 days</span><b className="mono">{fmt(daily * 30, 2)} XLM</b></div>
           <div><span className="muted l-tiny">Est. APR</span><b className="mono">{deposit > 0 ? fmt((daily * 365 / deposit) * 100, 2) : "0.00"}%</b></div>
         </div>
-        <p className="muted l-tiny">Estimate only, not a promise: it assumes the volume you entered, constant prices and your pool share at today's live reserves. It ignores impermanent loss, Withdraw any time.</p>
+        <p className="muted l-tiny">Estimate only, not a promise: it assumes the volume you entered, constant prices and your pool share at today's live reserves. It ignores impermanent loss. Withdraw any time. Pools are Stellar's native pools, not a Quasaria contract.</p>
       </div>
     </div>
   );
@@ -419,7 +423,7 @@ function OpenDataVisual() {
         <div className="l-arrow">→ display only →</div>
         <div className="l-node core"><img src={logo} alt="" width={40} /><b>Quasaria app</b><span className="muted l-tiny">runs in your browser; signs locally</span></div>
         <div className="l-arrow">→ signed transactions →</div>
-        <div className="l-node"><b>Stellar network</b><span className="muted l-tiny">Horizon (SDEX order books, native pools) · Soroban RPC (Quasaria contracts)</span></div>
+        <div className="l-node"><b>Stellar network</b><span className="muted l-tiny">Horizon: order books, native liquidity pools and plain payments. No Quasaria contract</span></div>
         <div className="l-arrow">→ settles on →</div>
         <div className="l-node"><b>The ledger</b><span className="muted l-tiny">public, verifiable on any explorer</span></div>
       </div>
@@ -432,8 +436,8 @@ function OpenDataVisual() {
 function TransparencyVisual() {
   const links: [string, string][] = [
     ["Stellar network (Horizon, testnet)", "https://horizon-testnet.stellar.org"],
-    ["Explorer (stellar.expert, testnet)", "https://stellar.expert/explorer/testnet"],
-    ...(REWARD_ISSUER.testnet ? ([[`${REWARD_ASSET_CODE} issuer (testnet)`, `https://stellar.expert/explorer/testnet/account/${REWARD_ISSUER.testnet}`]] as [string, string][]) : []),
+    ["Explorer (StellarChain, testnet)", "https://testnet.stellarchain.io"],
+    ...(REWARD_ISSUER.testnet ? ([[`${REWARD_ASSET_CODE} issuer (testnet)`, explorerAccountUrl(REWARD_ISSUER.testnet) ?? "#"]] as [string, string][]) : []),
   ];
   return (
     <div className="card">
@@ -478,7 +482,7 @@ export default function Landing() {
   const [scene, setScene] = useState<Scene>("quasar");
   const onScene = useMemo(() => (s: Scene) => setScene(s), []);
   useEffect(() => {
-    document.title = "Quasaria · Trade at the speed of light on Stellar";
+    document.title = "Quasaria · Trade on the Stellar Decentralized Exchange";
   }, []);
   const hero = S(1);
   const cta = S(11);
@@ -500,7 +504,6 @@ export default function Landing() {
               <span className="net-badge">Testnet beta</span>
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
-              <p className="muted l-tiny l-custody" data-testid="hero-custody-note">Non-custodial: you hold the secret key. Pools and holder rewards use plain Stellar operations, with no smart contract. Testnet beta.</p>
               <CtaButtons />
               <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span><SpaceYeti prop="coin" className="sy-inline" /></div>
             </div>
@@ -508,6 +511,8 @@ export default function Landing() {
               <Suspense fallback={<div className="globe-loading" aria-hidden />}><Globe /></Suspense>
             </div>
           </section>
+
+          <KeysStrip />
 
           <section className="l-world" aria-labelledby="world-h">
             <h2 id="world-h" className="l-h2">Explore the world of Quasaria</h2>
@@ -540,7 +545,7 @@ export default function Landing() {
           <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
           <p><b>Risk disclosure.</b> Quasaria is experimental software. Nothing on this site is financial advice. Liquidity pools and token rewards carry real risk of loss and may be regulated where you live.</p>
           <p><b>Audit status:</b> not yet audited. Testnet beta: tokens on Stellar testnet have no real value.</p>
-          <p className="muted">{STELLARCHAIN_ATTRIBUTION} · Settlement: Stellar network · <a href="https://stellar.expert/explorer/testnet" target="_blank" rel="noreferrer">stellar.expert</a> · <Link to="/trade">Launch app</Link></p>
+          <p className="muted">{STELLARCHAIN_ATTRIBUTION} · Settlement: Stellar network · <a href="https://testnet.stellarchain.io" target="_blank" rel="noopener noreferrer">stellarchain.io (testnet)</a> · <Link to="/trade">Launch app</Link></p>
         </footer>
       </div>
     </>

@@ -1,9 +1,9 @@
 # Quasaria landing page outline (approved copy)
 
 1. Hero
-Headline: Your keys, your XLM.
-Pitch: Quasaria never holds your keys or your XLM when you trade: you hold the secret key and sign everything in your own browser.
-Visual: the animated quasar scene with the illustrative logo, a live XLM price ticker, and two buttons, "Launch app" and "Create an account". Add a small "Testnet beta" badge until the live launch.
+Headline: Trade on the Stellar Decentralized Exchange.
+Pitch: Quasaria is a client for the Stellar network. Send, receive, and trade assets on the Stellar network easily with Quasaria.
+Visual: the animated quasar scene with the illustrative logo, a live XLM price ticker, and two buttons, "Launch app" and "Create an account". Add a small "Testnet beta" badge until the live launch. Directly beneath the hero, a prominent "Your keys, your XLM." strip: Quasaria never holds your keys or your XLM when you trade; you hold the secret key and sign everything in your own browser (with Send / Receive shortcuts).
 
 2. Markets
 Headline: Every Stellar market in one view.

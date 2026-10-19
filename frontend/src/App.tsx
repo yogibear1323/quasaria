@@ -11,6 +11,7 @@ import Calculators from "./pages/Calculators";
 import Quests from "./pages/Quests";
 import Merch from "./pages/Merch";
 import News from "./pages/News";
+import About from "./pages/About";
 import { GameProvider } from "./game/GameProvider";
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/quests" element={<Quests />} />
           <Route path="/merch" element={<Merch />} />
           <Route path="/news" element={<News />} />
+          <Route path="/about" element={<About />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHead } from "../components/ui";
+import { TxLink } from "../components/TxLink";
 import { AssetLogo } from "../components/AssetBits";
 import { useWallet } from "../lib/wallet";
 import { fmt, fmtCompact, short } from "../lib/format";
@@ -90,7 +91,7 @@ export default function Holders() {
               <thead><tr><th>Day (UTC)</th><th>Amount</th><th>Memo</th><th>Transaction</th></tr></thead>
               <tbody>{hist.data.map((p) => (
                 <tr key={p.id}><td className="mono">{p.day ?? p.at.slice(0, 10)}</td><td className="mono pos">+{fmt(p.amount, 4)} {REWARD_ASSET_CODE}</td><td className="mono muted">{p.memo ?? ""}</td>
-                  <td><a className="mono" href={`https://stellar.expert/explorer/${NET}/tx/${p.tx}`} target="_blank" rel="noreferrer">{p.tx.slice(0, 8)}… ↗</a></td></tr>
+                  <td><TxLink hash={p.tx} net={NET} /></td></tr>
               ))}</tbody>
             </table>
           </div>

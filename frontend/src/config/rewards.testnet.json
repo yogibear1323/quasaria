@@ -1,1 +1,9 @@
-{ "_comment": "Public testnet reward-token accounts (throwaway testnet keys, held outside git). Filled in by the rewards tooling.", "issuer": null, "reserve": null }
+{
+  "_comment": "Public testnet reward-token accounts (throwaway testnet keys, held outside git). Filled in by scripts/rewards/testnet-setup.mjs.",
+  "issuer": "GAGJVGXFZBDKFQDURQEK7F5FSRFED3JNW5FG4TLQREWPQE26ATIGE3MX",
+  "reserve": "GBE7IFOUYSVQWMBHIVCLFTD2535ETY7RCGY7TCLUKS4GSTWQIOCCFGK5",
+  "treasury": "GC3EYIHK4OMBU2ZUKM6J4DFCB7ZCBKG4ORXLUJITVYI4OXWSNX5R5EGM",
+  "payer": "GDCDSWOCRDFVT632ILZJ3IDKBKHLUMJANSXU5NG5K5MZKN5IXYYC6QMQ",
+  "poolSeed": "GCNGGBTCUXWU3HVRJYOW6C3XAUZCYFF5BA6G75G4U37OEF6YLWI5DRZ7",
+  "poolId": "36b6240c88f8e45986b5c928fd80aefaac52051e9054bd659b2df641514458f0"
+}

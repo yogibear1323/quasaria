@@ -39,6 +39,7 @@ import { CONTRACTS, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
 import { ammAmountOut } from "../lib/math";
 import { REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TOTAL_SUPPLY, TOKENOMICS, dailyReward, tierFor, pctYear } from "../lib/rewards";
 import { fmt, fmtCompact, short } from "../lib/format";
+import { explorerAccountUrl } from "../lib/explorer";
 import type { Book } from "../lib/demo";
 
 const COPY = parseOutline(outlineMd);
@@ -415,8 +416,8 @@ function OpenDataVisual() {
 function TransparencyVisual() {
   const links: [string, string][] = [
     ["Stellar network (Horizon, testnet)", "https://horizon-testnet.stellar.org"],
-    ["Explorer (stellar.expert, testnet)", "https://stellar.expert/explorer/testnet"],
-    ...(REWARD_ISSUER.testnet ? ([[`${REWARD_ASSET_CODE} issuer (testnet)`, `https://stellar.expert/explorer/testnet/account/${REWARD_ISSUER.testnet}`]] as [string, string][]) : []),
+    ["Explorer (StellarChain.io, testnet)", "https://testnet.stellarchain.io"],
+    ...(REWARD_ISSUER.testnet ? ([[`${REWARD_ASSET_CODE} issuer (testnet)`, explorerAccountUrl(REWARD_ISSUER.testnet, "testnet") ?? "https://testnet.stellarchain.io"]] as [string, string][]) : []),
   ];
   return (
     <div className="card">
@@ -523,7 +524,7 @@ export default function Landing() {
           <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
           <p><b>Risk disclosure.</b> Quasaria is experimental software. Nothing on this site is financial advice. Liquidity pools and token rewards carry real risk of loss and may be regulated where you live.</p>
           <p><b>Audit status:</b> not yet audited. Testnet beta: tokens on Stellar testnet have no real value.</p>
-          <p className="muted">{STELLARCHAIN_ATTRIBUTION} · Settlement: Stellar network · <a href="https://stellar.expert/explorer/testnet" target="_blank" rel="noreferrer">stellar.expert</a> · <Link to="/trade">Launch app</Link></p>
+          <p className="muted">{STELLARCHAIN_ATTRIBUTION} · Settlement: Stellar network · <a href="https://testnet.stellarchain.io" target="_blank" rel="noopener noreferrer">StellarChain.io</a> · <Link to="/trade">Launch app</Link></p>
         </footer>
       </div>
     </>

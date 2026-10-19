@@ -20,3 +20,6 @@ export function xlmRowData(i: { usdPerXlm: number | null; change24h?: number | n
   const change = i.live && priceUsd !== null && i.change24h !== undefined && i.change24h !== null && Number.isFinite(i.change24h) ? i.change24h : null;
   return { priceUsd, change24h: change, source: priceUsd === null ? "none" : i.live ? "live" : "snapshot" };
 }
+
+/** Deep link that opens the XLM About panel in Markets. */
+export const XLM_ABOUT_PATH = "/markets?about=xlm";

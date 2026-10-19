@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { loadAbout, type AboutData } from "../lib/marketsFull";
 import { fmtCompact } from "../lib/format";
+import { explorerAssetUrl } from "../lib/explorer";
 
 const s = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 const yes = (v: boolean | undefined) => (v ? "yes" : "no");
@@ -37,7 +38,7 @@ export default function AssetAbout({ code, issuer, homeDomain, snapshotDesc, onC
           {s(c?.conditions) && <p className="muted" style={{ fontSize: "0.8rem" }}><b>Conditions:</b> {s(c?.conditions)}</p>}
           <dl className="about-facts">
             <dt>Code</dt><dd className="mono">{code}</dd>
-            <dt>Issuer</dt><dd className="mono" style={{ wordBreak: "break-all" }}><a href={`https://stellar.expert/explorer/public/asset/${code}-${issuer}`} target="_blank" rel="noreferrer">{issuer}</a></dd>
+            <dt>Issuer</dt><dd className="mono" style={{ wordBreak: "break-all" }}><a href={explorerAssetUrl(code, issuer, "mainnet") ?? undefined} target="_blank" rel="noopener noreferrer">{issuer}</a></dd>
             <dt>Home domain</dt><dd>{d.homeDomain ?? "—"}</dd>
             {c?.is_asset_anchored !== undefined && <><dt>Anchored</dt><dd>{String(c.is_asset_anchored) === "true" ? `yes${s(c.anchor_asset) ? ` · ${s(c.anchor_asset)}` : ""}${s(c.anchor_asset_type) ? ` (${s(c.anchor_asset_type)})` : ""}` : "no"}</dd></>}
             {d.horizon && <><dt>Holders (authorized trustlines)</dt><dd className="mono">{d.horizon.holders !== null ? fmtCompact(d.horizon.holders) : "—"}</dd>

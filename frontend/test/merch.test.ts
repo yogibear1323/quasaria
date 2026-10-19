@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { CATEGORIES, MERCH_APPLE_ICON, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, MERCH_MARK_LG, NOTIFY_KEY, PRODUCTS, readNotify, saveNotify } from "../src/merch/catalog";
+import { CATEGORIES, SWATCH, MERCH_APPLE_ICON, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, MERCH_MARK_LG, NOTIFY_KEY, PRODUCTS, readNotify, saveNotify } from "../src/merch/catalog";
 
 const PUBLIC = resolve(__dirname, "../public");
 const local = (url: string) => resolve(PUBLIC, url.replace(/^\/+/, ""));
@@ -30,6 +30,20 @@ describe("merch catalogue (preview storefront)", () => {
     expect(existsSync(resolve(PUBLIC, "merch-assets/brand/og-merch.jpg"))).toBe(true);
     const src = ["../src/pages/Merch.tsx", "../src/merch/catalog.ts", "../src/theme/merch.css", "../src/theme/merch-frost.css"].map((f) => readFileSync(resolve(__dirname, f), "utf8")).join("\n");
     expect(src).not.toMatch(/perps|beacon|trading bot|polybot/i);
+  });
+
+  it("colourways are the cool frost palette (no earthy swatches or copy)", () => {
+    const names = Object.values(SWATCH).map((s) => s.name);
+    expect(names).toEqual(["Midnight Navy", "Glacier Slate", "Glacier White"]);
+    for (const sw of Object.values(SWATCH)) {
+      const n = parseInt(sw.hex.slice(1), 16);
+      expect(n & 255, `${sw.name} should lean blue`).toBeGreaterThan(n >> 16);
+    }
+    const text = JSON.stringify(PRODUCTS.map((p) => ({ n: p.name, t: p.tagline, d: p.details, c: p.colors.map((c) => c.name), x: p.extras.map((e) => e.alt) })));
+    expect(text).not.toMatch(/umber|moss|sand\b|honey|clay|terracotta/i);
+    for (const p of PRODUCTS) for (const src of [...Object.values(p.mockups), ...p.extras.map((x) => x.src)]) {
+      expect(src, src).toMatch(/mockups-icy|designs-icy/);
+    }
   });
 
   it("no public/ folder collides with an SPA route (GitHub Pages deep links)", () => {

@@ -18,8 +18,8 @@ const FONTS = {};
 const font = (w, fam = "sg") => (FONTS[`${fam}${w}`] ??= opentype.loadSync(fontFile(w, fam)));
 
 export const C = {
-  base: "#1e160e", ink: "#241b12", violet: "#B8603A", violetDeep: "#8a3a1c", lilac: "#D9A06A",
-  cyan: "#D9973A", ice: "#F6DFA8", white: "#ffffff", gold: "#FDE047", pink: "#E8BE7E", warm: "#FDE68A",
+  base: "#0f1830", ink: "#16213b", violet: "#8FA6C8", violetDeep: "#3f5a86", lilac: "#C9D5E6",
+  cyan: "#BFE3F7", ice: "#F2F6FC", white: "#ffffff", gold: "#EAF6FF", pink: "#DCE8F6", warm: "#E4F2FC",
 };
 export const r2 = (n) => Math.round(n * 100) / 100;
 
@@ -50,9 +50,12 @@ export const fit = (str, width, o = {}) => (width / measure(str, { ...o, size: 1
 // ------------------------------------------------------------------ mark
 const markSrc = readFileSync(resolve(root, "frontend/public/brand/concept-a-mark.svg"), "utf8");
 const markInner = markSrc.replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "").replace(/<title[\s\S]*?<\/title>|<desc[\s\S]*?<\/desc>/g, "");
-/** Full-colour Singularity Q, `size` px square with top-left at (x, y). */
-export function mark(x, y, size, p = "m") {
-  const inner = markInner.replace(/id="a-/g, `id="${p}-`).replace(/url\(#a-/g, `url(#${p}-`);
+/** Deep-ink recolour of the Q for light garments (glacier white): same shapes, navy-blue gradients. */
+const INK_MAP = { "#E3EAF4": "#2B4A7C", "#8FA6C8": "#1E3A66", "#C9D5E6": "#4A6FA5", "#F2F6FC": "#3A5C94", "#5B7299": "#142C52" };
+const inkInner = markInner.replace(/stop-color="(#[0-9A-Fa-f]{3,6})"/g, (m, c) => `stop-color="${c.toLowerCase() === "#fff" ? "#16305C" : INK_MAP[c.toUpperCase()] ?? c}"`);
+/** Full-colour Singularity Q, `size` px square with top-left at (x, y). `ink` = deep-blue variant for light garments. */
+export function mark(x, y, size, p = "m", { ink = false } = {}) {
+  const inner = (ink ? inkInner : markInner).replace(/id="a-/g, `id="${p}-`).replace(/url\(#a-/g, `url(#${p}-`);
   return `<svg x="${r2(x)}" y="${r2(y)}" width="${r2(size)}" height="${r2(size)}" viewBox="0 0 64 64" overflow="visible">${inner}</svg>`;
 }
 const pt = (a, rad) => [r2(32 + rad * Math.cos((a * Math.PI) / 180)), r2(32 + rad * Math.sin((a * Math.PI) / 180))];
@@ -111,11 +114,11 @@ export function stars(n, [x, y, w, h], { seed = 1, min = 2, max = 9, keep = () =
 
 // ------------------------------------------------------------------ ranks & badge glyphs (48 grid, white)
 export const RANKS = [
-  { name: "Stardust", levels: "1–2", grad: ["#f4e5de", "#8d7962"], icon: "stardust" },
-  { name: "Comet", levels: "3–4", grad: ["#f2c46e", "#5e6b3c"], icon: "comet" },
-  { name: "Nova", levels: "5–6", grad: ["#fde68a", "#d97706"], icon: "nova" },
-  { name: "Pulsar", levels: "7–8", grad: ["#f1d7b0", "#d99329"], icon: "pulsar" },
-  { name: "Quasar", levels: "9–10", grad: ["#c98a5a", "#5e6b3c"], icon: "quasar" },
+  { name: "Stardust", levels: "1–2", grad: ["#e1ebf1", "#697886"], icon: "stardust" },
+  { name: "Comet", levels: "3–4", grad: ["#a9d4f0", "#4a6e9a"], icon: "comet" },
+  { name: "Nova", levels: "5–6", grad: ["#e4f2fc", "#4f86b8"], icon: "nova" },
+  { name: "Pulsar", levels: "7–8", grad: ["#d7e6f6", "#5f9ac9"], icon: "pulsar" },
+  { name: "Quasar", levels: "9–10", grad: ["#a9bfdd", "#4a6e9a"], icon: "quasar" },
 ];
 export const GLYPH = {
   stardust: `<g fill="#fff" stroke="none"><circle cx="19" cy="20" r="2.6"/><circle cx="28" cy="15.5" r="1.7"/><circle cx="31" cy="26" r="3"/><circle cx="20.5" cy="30.5" r="2"/><circle cx="26" cy="34" r="1.4"/><circle cx="35" cy="33" r="1.6"/><path d="${sparkle(14.5, 34, 3.4)}"/></g>`,
@@ -131,7 +134,7 @@ export const GLYPH = {
   flame: `<path d="M24 12.5c1 4.5 7.5 7.4 7.5 13.5a7.5 7.5 0 0 1-15 0c0-3 1.6-5 3.4-6.4.2 2.2 1.2 3.6 2.6 4.1-.6-4.6 0-8.2 1.5-11.2z"/>`,
   bolt: `<path d="M26.5 12 17 26h7l-2.5 10L31 22h-7z" fill="#fff" stroke="none"/>`,
 };
-export const HUES = { violet: ["#c98a5a", "#9a4a26"], cyan: ["#f2c46e", "#5e6b3c"], gold: ["#fde68a", "#d97706"], green: ["#b6c293", "#586338"], rose: ["#ecc2b5", "#cb5633"] };
+export const HUES = { violet: ["#a9bfdd", "#5b7299"], cyan: ["#a9d4f0", "#4a6e9a"], gold: ["#e4f2fc", "#4f86b8"], green: ["#a8c4dc", "#3e6a92"], rose: ["#c6d6ee", "#6e8fc4"] };
 /** Glyph from GLYPH drawn in a 48 grid, centred on (cx, cy) at `scale`. */
 export const glyph = (name, cx, cy, scale, sw = 2) => `<g transform="translate(${r2(cx - 24 * scale)} ${r2(cy - 24 * scale)}) scale(${scale})" fill="none" stroke="#fff" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${GLYPH[name]}</g>`;
 /** Game-style hex badge (48 grid) centred on (cx, cy). */
@@ -194,9 +197,9 @@ export const pixelPlus = (x, y, px, fill) => `<path d="M${x} ${y - px}h${px}v${p
 /** v3 palette = the website's tokens only: near-black base, deep navy, the violet→cyan accent
  *  (same as the Singularity Q) and white / light-grey text. No warm or rainbow accents. */
 export const V2 = {
-  base: "#1E160E", navy: "#241B12", glass: "#231E19", glass2: "#292E1E", line: "#434C30",
-  violetHi: "#C98A5A", violet: "#B8603A", violetSoft: "#C27548", violetDeep: "#9A4A26", indigo: "#8A3A1C", lilac: "#D9A06A",
-  cyan: "#D9973A", ice: "#F6DFA8", text: "#FAF2EE", text2: "#DAA68F", text3: "#AA9379", ink: "#1E160E",
+  base: "#0F1830", navy: "#16213B", glass: "#121F2A", glass2: "#1E2D4D", line: "#33466B",
+  violetHi: "#A9BFDD", violet: "#8FA6C8", violetSoft: "#8FA6C8", violetDeep: "#5B7299", indigo: "#3F5A86", lilac: "#C9D5E6",
+  cyan: "#BFE3F7", ice: "#F2F6FC", text: "#F2F7FD", text2: "#B7C6DD", text3: "#8095B4", ink: "#0F1830",
 };
 /** Ink set: every v3 garment is dark (black / navy / charcoal / deep violet), so there is one ink. */
 export const INK = {
@@ -206,8 +209,8 @@ INK.light = INK.dark;
 /** Liquid-chrome vertical gradient for type between y0 (cap top) and y1 (baseline). */
 export function chrome(id, y0, y1, tone = "dark") {
   const s = tone === "dark"
-    ? [[0, "#FFFFFF"], [0.3, "#F6E8E3"], [0.47, "#BFAF9C"], [0.5, "#505C3B"], [0.55, "#E9CBBE"], [0.74, "#FCF7F5"], [1, "#E3BCAB"]]
-    : [[0, "#222719"], [0.32, "#5E5142"], [0.47, "#C2B2A0"], [0.5, "#FFFFFF"], [0.56, "#A15636"], [0.76, "#241F19"], [1, "#C3704C"]];
+    ? [[0, "#FFFFFF"], [0.3, "#E6EEF3"], [0.47, "#A3AEB8"], [0.5, "#4A5F85"], [0.55, "#C7D6E0"], [0.74, "#F6F9FB"], [1, "#B6CBD8"]]
+    : [[0, "#18233d"], [0.32, "#46505A"], [0.47, "#A7B1BB"], [0.5, "#FFFFFF"], [0.56, "#4B728C"], [0.76, "#121F2B"], [1, "#648FAB"]];
   return `<linearGradient id="${id}" x1="0" y1="${r2(y0)}" x2="0" y2="${r2(y1)}" gradientUnits="userSpaceOnUse">${s.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join("")}</linearGradient>`;
 }
 /** The site accent gradient (violet → cyan, as in --grad-accent) along a line. */
@@ -234,7 +237,7 @@ export const svgDoc = (w, h, body, { title = "", desc = "" } = {}) =>
 
 // ------------------------------------------------------------------ v4: exact brand wordmark + glowing mark
 const lockupSrc = readFileSync(resolve(root, "frontend/public/brand/concept-a-lockup-dark.svg"), "utf8");
-const WM_D = [...lockupSrc.matchAll(/<path d="([^"]+)" fill="#FBF4E6"/g)].pop()[1];
+const WM_D = [...lockupSrc.matchAll(/<path d="([^"]+)" fill="#EEF3FA"/g)].pop()[1];
 const WM = { x: 81.9, y: 18.37, w: 153.82, h: 33.97, base: 46.03 }; // bbox of the outlined wordmark in the lockup
 /** The exact Quasaria wordmark (outlined, from the brand lockup), top-left at (x, y), `width` wide. */
 export function wordmark(x, y, width, fill = "#fff", attrs = "") {
@@ -245,10 +248,10 @@ export const wordmarkH = (width) => (width / WM.w) * WM.h;
 /** Centred wordmark: returns path whose visual box is centred on (cx, cy). */
 export const wordmarkC = (cx, cy, width, fill, attrs) => wordmark(cx - width / 2, cy - wordmarkH(width) / 2, width, fill, attrs);
 /** The full-colour Singularity Q with a soft violet/cyan halo and bloom, `size` square at (x, y). */
-export function glowMark(x, y, size, p, { halo = 1, bloom = 0.75 } = {}) {
+export function glowMark(x, y, size, p, { halo = 1, bloom = 0.75, ink = false } = {}) {
   const cx = x + size / 2, cy = y + size / 2;
-  return `<defs><radialGradient id="${p}hl" cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#D9973A" stop-opacity="${r2(0.55 * halo)}"/><stop offset=".35" stop-color="#B8603A" stop-opacity="${r2(0.28 * halo)}"/><stop offset="1" stop-color="#B8603A" stop-opacity="0"/></radialGradient>` +
+  return `<defs><radialGradient id="${p}hl" cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${ink ? "#4F86B8" : "#BFE3F7"}" stop-opacity="${r2((ink ? 0.3 : 0.55) * halo)}"/><stop offset=".35" stop-color="#8FA6C8" stop-opacity="${r2(0.28 * halo)}"/><stop offset="1" stop-color="#8FA6C8" stop-opacity="0"/></radialGradient>` +
     `<filter id="${p}bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${r2(size * 0.035)}"/></filter></defs>` +
     `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(size * 0.78)}" fill="url(#${p}hl)"/>` +
-    (bloom ? `<g filter="url(#${p}bl)" opacity="${bloom}">${mark(x, y, size, p + "b")}</g>` : "") + mark(x, y, size, p + "m");
+    (bloom ? `<g filter="url(#${p}bl)" opacity="${bloom}">${mark(x, y, size, p + "b", { ink })}</g>` : "") + mark(x, y, size, p + "m", { ink });
 }

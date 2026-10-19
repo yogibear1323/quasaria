@@ -29,7 +29,7 @@ export default function Merch() {
           <div className="m-hero-copy">
             <div className="l-kicker m-kicker"><img className="m-mark" src={MERCH_MARK} alt="" width={28} height={28} />Quasaria Supply · coming soon</div>
             <h1 id="m-hero-title">Wear the <span className="grad-text">Singularity</span>.</h1>
-            <p>A minimal line built around the glowing Singularity Q: the Glow hoodie, a pearl iridescent tee and a navy bomber, plus tees, caps, a mug and stickers in black, navy and pearl. It's a preview for now. Nothing is for sale and every price is an example.</p>
+            <p>A minimal line built around the glowing Singularity Q: the Glow hoodie, a glacier iridescent tee and a slate bomber, plus tees, caps, a mug and stickers in midnight navy, glacier slate and glacier white. It's a preview for now. Nothing is for sale and every price is an example.</p>
             <div className="m-hero-pills">
               <span className="pill cyan">Preview · not for sale yet</span>
               <span className="pill">Example prices</span>
@@ -42,7 +42,7 @@ export default function Merch() {
           </div>
           <div className="m-hero-yeti" aria-hidden="true"><img src={YETI_LG} alt="" width={616} height={900} decoding="async" draggable={false} /></div>
         </div>
-        <div className="m-hero-art" role="img" aria-label="Glow hoodie, pearl iridescent tee and navy bomber">
+        <div className="m-hero-art" role="img" aria-label="Glow hoodie, glacier iridescent tee and slate bomber">
           {trio.map(([p, c]) => <img key={p.id} src={p.mockups[c]} alt="" width={900} height={900} loading="eager" decoding="async" />)}
         </div>
       </section>

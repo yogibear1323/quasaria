@@ -10,8 +10,10 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PRINT = os.environ.get("MERCH_PRINT_DIR", "/workspace/quasaria-merch/print")
 SHOTS = os.environ.get("MERCH_SHOTS_DIR", "/workspace/redesign-shots/merch")
 WEB = os.path.join(ROOT, "frontend", "public", "merch-assets")
-os.makedirs(os.path.join(WEB, "designs"), exist_ok=True)
-os.makedirs(os.path.join(WEB, "mockups"), exist_ok=True)
+# MERCH_WEB_SUFFIX="-icy" writes designs-icy/, mockups-icy/ and hero/merch-hero-v4-icy.webp so the earlier folders stay untouched.
+SFX = os.environ.get("MERCH_WEB_SUFFIX", "")
+os.makedirs(os.path.join(WEB, "designs" + SFX), exist_ok=True)
+os.makedirs(os.path.join(WEB, "mockups" + SFX), exist_ok=True)
 
 def web(src, dst, max_side, q):
     im = Image.open(src)
@@ -26,12 +28,12 @@ for f in sorted(glob.glob(os.path.join(PRINT, "png", "*.png")) + glob.glob(os.pa
     im.save(f, "PNG", dpi=(dpi, dpi), compress_level=7)
     name = os.path.basename(f)[:-4]
     if "/png/" in f.replace("\\", "/") and "stickers" not in f and "print-with-cutlines" not in name:
-        total += web(f, os.path.join(WEB, "designs", name + ".webp"), 1000, 84)
+        total += web(f, os.path.join(WEB, "designs" + SFX, name + ".webp"), 1000, 84)
 for f in sorted(glob.glob(os.path.join(SHOTS, "mockup-*.png"))):
-    total += web(f, os.path.join(WEB, "mockups", os.path.basename(f)[7:-4] + ".webp"), 900, 80)
+    total += web(f, os.path.join(WEB, "mockups" + SFX, os.path.basename(f)[7:-4] + ".webp"), 900, 80)
 hero = os.path.join(SHOTS, "merch-hero-v4.png")
 if os.path.exists(hero):
     os.makedirs(os.path.join(WEB, "hero"), exist_ok=True)
     im = Image.open(hero).convert("RGB"); im.thumbnail((1800, 1800), Image.LANCZOS)
-    dst = os.path.join(WEB, "hero", "merch-hero-v4.webp"); im.save(dst, "WEBP", quality=82, method=6); total += os.path.getsize(dst)
+    dst = os.path.join(WEB, "hero", "merch-hero-v4" + SFX + ".webp"); im.save(dst, "WEBP", quality=82, method=6); total += os.path.getsize(dst)
 print(f"web assets: {total/1024/1024:.2f} MB")

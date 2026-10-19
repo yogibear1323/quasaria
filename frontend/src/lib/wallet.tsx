@@ -11,7 +11,7 @@ import { NETWORK_PASSPHRASE, HORIZON_URL } from "./config";
 import { LocalKeySigner, type Signer } from "./signer";
 import { decryptSecret, encryptSecret, forgetStoredKey, loadStoredKey, saveStoredKey, type EncryptedKey } from "./keys";
 
-export type ModalIntent = "create" | "fund" | null;
+export type ModalIntent = "create" | "fund" | "unlock" | null;
 
 type WalletState = {
   address: string | null;
@@ -22,7 +22,7 @@ type WalletState = {
   /** Passphrase-encrypted key remembered in this browser (only the public address is readable). */
   stored: EncryptedKey | null;
   modalOpen: boolean;
-  /** Open the account modal; "create" jumps to new-key creation, "fund" to the QR / fund-address screen. */
+  /** Open the account modal; "create" ALWAYS goes to new-key creation (even with a saved key), "unlock" to the saved-key unlock, "fund" to the QR / fund-address screen, none to the chooser. */
   openModal: (intent?: unknown) => void;
   modalIntent: ModalIntent;
   closeModal: () => void;
@@ -39,6 +39,9 @@ type WalletState = {
 };
 
 const Ctx = createContext<WalletState | null>(null);
+/** Exposed for tests that need a specific wallet state (e.g. a saved key + "create" intent). */
+export const WalletContext = Ctx;
+export type { WalletState };
 
 export async function accountExists(address: string, f: typeof fetch = fetch): Promise<boolean | null> {
   try {
@@ -135,7 +138,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         stored,
         modalOpen,
         modalIntent,
-        openModal: (intent?: unknown) => { setModalIntent(intent === "create" || intent === "fund" ? intent : null); setModalOpen(true); },
+        openModal: (intent?: unknown) => { setModalIntent(intent === "create" || intent === "fund" || intent === "unlock" ? intent : null); setModalOpen(true); },
         closeModal: () => setModalOpen(false),
         loginWithSecret,
         unlockStored,

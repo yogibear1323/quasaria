@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useWallet } from "../lib/wallet";
+import { useWallet, type ModalIntent } from "../lib/wallet";
 import { downloadText, fundWithFriendbot, generateAccount, importSecret, isValidSecret, MIN_PASSWORD, type NewAccount } from "../lib/keys";
 import { NETWORK } from "../lib/config";
 import { short } from "../lib/format";
@@ -15,7 +15,7 @@ function Copy({ text, label = "Copy" }: { text: string; label?: string }) {
   return (
     <button className="btn small ghost" onClick={async () => {
       try { await navigator.clipboard.writeText(text); setOk(true); setTimeout(() => setOk(false), 1500); } catch { /* clipboard blocked */ }
-    }}>{ok ? "Copied ✦" : label}</button>
+    }} data-testid="copy-btn">{ok ? "Copied ✦" : label}</button>
   );
 }
 
@@ -43,15 +43,28 @@ function PassphraseFields({ value, onChange }: { value: { on: boolean; pw: strin
 const passError = (r: { on: boolean; pw: string; pw2: string }) =>
   !r.on ? null : r.pw.length < MIN_PASSWORD ? `Passphrase must be at least ${MIN_PASSWORD} characters.` : r.pw !== r.pw2 ? "Passphrases do not match." : null;
 
+/**
+ * Which screen the modal opens on. "Create" ALWAYS starts a new keypair, even when an encrypted key from an
+ * earlier session is saved in this browser; the unlock screen only opens for an explicit "unlock" intent.
+ * (Bug: a saved key used to send every Create click to "Unlock saved key", so the new secret never appeared.)
+ */
+export function initialModalState(intent: ModalIntent, hasStored: boolean, address: string | null, gen: () => NewAccount = generateAccount): { step: Step; acct: NewAccount | null } {
+  if (intent === "fund" && address) return { step: "fund", acct: { publicKey: address, secret: "" } };
+  if (intent === "create") {
+    try { return { step: "reveal", acct: gen() }; } catch { /* no Web Crypto: the chooser shows the error on click */ }
+  }
+  if (intent === "unlock" && hasStored) return { step: "unlock", acct: null };
+  return { step: "choose", acct: null };
+}
+
+/** A full key, wrapped in monospace so all 56 characters fit at 390 px. */
+function KeyBlock({ value, testid, masked = false }: { value: string; testid: string; masked?: boolean }) {
+  return <code className={`key-block mono${masked ? " masked" : ""}`} data-testid={testid}>{masked ? "•".repeat(value.length) : value}</code>;
+}
+
 export default function AccountModal() {
   const w = useWallet();
-  const [initial] = useState<{ step: Step; acct: NewAccount | null }>(() => {
-    if (w.modalIntent === "fund" && w.address) return { step: "fund", acct: { publicKey: w.address, secret: "" } };
-    if (w.modalIntent === "create" && !w.stored) {
-      try { return { step: "reveal", acct: generateAccount() }; } catch { /* no Web Crypto: the chooser shows the error on click */ }
-    }
-    return { step: w.stored ? "unlock" : "choose", acct: null };
-  });
+  const [initial] = useState<{ step: Step; acct: NewAccount | null }>(() => initialModalState(w.modalIntent, !!w.stored, w.address));
   const [step, setStep] = useState<Step>(initial.step);
   const [acct, setAcct] = useState<NewAccount | null>(initial.acct);
   const [saved, setSaved] = useState(false);
@@ -111,7 +124,7 @@ export default function AccountModal() {
           <div className="grid" style={{ gap: 10 }}>
             <button className="btn block" onClick={() => { try { setAcct(generateAccount()); setSaved(false); setRevealed(true); setErr(null); setStep("reveal"); } catch (x) { setErr((x as Error).message); } }}>✦ Create a new keypair</button>
             <button className="btn block ghost" onClick={() => setStep("import")}>Sign in with a secret key (S…)</button>
-            {w.stored && <button className="btn block ghost" onClick={() => setStep("unlock")}>Unlock the key kept in this browser ({short(w.stored.publicKey, 4)})</button>}
+            {w.stored && <button className="btn block ghost" onClick={() => { setErr(null); setStep("unlock"); }} data-testid="choose-unlock">Unlock saved key ({short(w.stored.publicKey, 4)})</button>}
             {err && <div className="notice warn">{err}</div>}
             <div className="notice" style={{ fontSize: "0.78rem" }}>On testnet, new accounts are funded automatically by Friendbot. <b>On mainnet</b> a new address does not exist on the ledger until someone sends it the minimum balance (1 XLM base reserve, plus 0.5 XLM per trustline or offer). There is no Friendbot.</div>
           </div>
@@ -119,23 +132,27 @@ export default function AccountModal() {
 
         {step === "reveal" && acct && (
           <>
-            <div className="risk" role="alert" style={{ marginBottom: 12 }}>
-              <strong>⚠ Save your secret key now. It is shown only here, once.</strong>
-              <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: "0.85rem" }}>
+            {w.stored && (
+              <div className="notice warn" data-testid="stored-key-note" style={{ fontSize: "0.82rem" }}>
+                A saved key for <span className="mono">{short(w.stored.publicKey, 4)}</span> is kept in this browser. This new account does <b>not</b> replace it unless you choose to keep an encrypted copy of the new key on the next step.
+              </div>
+            )}
+            <div className="field"><label>Public address (G…) — this is your account, safe to share</label>
+              <KeyBlock value={acct.publicKey} testid="new-address" />
+              <div className="row" style={{ marginTop: 6 }}><Copy text={acct.publicKey} label="Copy address" /></div>
+            </div>
+            <div className="secret-panel" data-testid="secret-panel" role="alert">
+              <strong>⚠ Your secret key (S…). Save it now. It is shown only here, once.</strong>
+              <KeyBlock value={acct.secret} testid="secret-value" masked={!revealed} />
+              <div className="row" style={{ marginTop: 6 }}>
+                <button className="btn small ghost" onClick={() => setRevealed((r) => !r)} data-testid="reveal-toggle">{revealed ? "Hide" : "Reveal"}</button>
+                <Copy text={acct.secret} label="Copy secret" />
+              </div>
+              <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: "0.85rem" }}>
                 <li>Anyone with this key controls the account and its funds. <b>Never share it.</b> No Quasaria team member will ever ask for it.</li>
-                <li>We cannot recover it. Lose it and the account is gone for good.</li>
+                <li><b>It cannot be recovered.</b> Quasaria never sees it. Lose it and the account is gone for good.</li>
                 <li>Store it offline (password manager or paper). Don't screenshot it.</li>
               </ul>
-            </div>
-            <div className="field"><label>Public address (G…) — this is your account, safe to share</label>
-              <div className="row"><input className="input mono" readOnly value={acct.publicKey} /><Copy text={acct.publicKey} /></div>
-            </div>
-            <div className="field"><label>Secret key (S…) — keep private</label>
-              <div className="row">
-                <input className="input mono secret-value" readOnly type={revealed ? "text" : "password"} value={acct.secret} autoComplete="off" spellCheck={false} data-testid="secret-value" />
-                <button className="btn small ghost" onClick={() => setRevealed((r) => !r)}>{revealed ? "Hide" : "Show"}</button>
-                <Copy text={acct.secret} />
-              </div>
             </div>
             <div className="row" style={{ marginBottom: 12 }}>
               <button className="btn small ghost" onClick={() => downloadText(`quasaria-${NETWORK}-${acct.publicKey.slice(0, 6)}.txt`, fileText(acct))}>⬇ Download backup file</button>
@@ -155,6 +172,11 @@ export default function AccountModal() {
           <>
             <p style={{ marginTop: 0 }}>By default your key stays in memory for this tab only (session-only). Optionally keep an encrypted copy in this browser.</p>
             <PassphraseFields value={pass} onChange={setPass} />
+            {w.stored && w.stored.publicKey !== acct.publicKey && (
+              <div className="notice warn" style={{ fontSize: "0.8rem" }} data-testid="replace-note">
+                {pass.on ? <>Saving replaces the encrypted key for <span className="mono">{short(w.stored.publicKey, 4)}</span> kept in this browser. Make sure you have that account's secret key.</> : <>The saved key for <span className="mono">{short(w.stored.publicKey, 4)}</span> stays in this browser unchanged.</>}
+              </div>
+            )}
             {err && <div className="notice warn">{err}</div>}
             <div className="row" style={{ marginTop: 12 }}>
               <button className="btn" disabled={busy} onClick={() => login(acct, true)}>{busy ? "Securing…" : pass.on ? "Encrypt & continue" : "Continue (session only)"}</button>
@@ -189,8 +211,8 @@ export default function AccountModal() {
                 setBusy(true); setErr(null);
                 try { await w.unlockStored(unlockPw); setUnlockPw(""); close(); } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
               }}>{busy ? "Unlocking…" : "Unlock"}</button>
-              <button className="btn ghost" onClick={() => setStep("choose")}>Other options</button>
-              <button className="btn ghost neg" onClick={() => { if (window.confirm("Forget this key? The encrypted copy is deleted from this browser. Make sure your secret key is saved.")) { w.forgetKey(); setStep("choose"); } }}>Forget this key</button>
+              <button className="btn ghost" onClick={() => { setErr(null); setStep("choose"); }} data-testid="unlock-other">Use a different account / Create new</button>
+              <button className="btn ghost neg" data-testid="forget-saved" onClick={() => { if (window.confirm("Forget the saved key? The encrypted copy is deleted from this browser. It cannot be recovered without its secret key (S…), so make sure you saved it.")) { w.forgetKey(); setStep("choose"); } }}>Forget saved key</button>
             </div>
           </>
         )}
@@ -202,7 +224,7 @@ export default function AccountModal() {
               <QrCode value={addrForFund} label="QR code of your Stellar address" />
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div className="field"><label>Your address (G…)</label>
-                  <div className="row"><input className="input mono" readOnly value={addrForFund} data-testid="fund-address" /><Copy text={addrForFund} /></div>
+                  <KeyBlock value={addrForFund} testid="fund-address" /><div className="row" style={{ marginTop: 6 }}><Copy text={addrForFund} label="Copy address" /></div>
                 </div>
                 <p className="muted" style={{ fontSize: "0.8rem" }}>
                   Status: {w.funded === true ? <b className="pos">on the ledger ✦ ready to use</b> : w.funded === false ? <b className="neg">not on the ledger yet. It is created by the first XLM sent to it</b> : "checking…"}

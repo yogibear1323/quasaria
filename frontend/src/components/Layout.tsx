@@ -8,7 +8,7 @@ import WorldBackground, { type Scene } from "../world/WorldBackground";
 import WorldNav from "../world/WorldNav";
 import { useWallet } from "../lib/wallet";
 import { short } from "../lib/format";
-import { CONTRACTS_CONFIGURED, OFFLINE_DEMO } from "../lib/config";
+import { OFFLINE_DEMO } from "../lib/config";
 import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
 import { useXlmUsd } from "../lib/markets";
 import { asOf, snapshotLabel } from "../lib/stellarchain";
@@ -61,25 +61,23 @@ function WalletButton() {
   if (w.address)
     return (
       <div className="row" style={{ position: "relative" }}>
-        {w.wrongNetwork && <span className="pill pink">Switch Freighter to TESTNET</span>}
-        <button className="btn ghost small mono" onClick={() => setMenu((m) => !m)} title="Account" aria-haspopup="menu">
-          ● {short(w.address, 5)} <span className="muted" style={{ fontSize: "0.65rem" }}>{w.kind === "local" ? "in-app key" : "Freighter"}</span>
+        <button className="btn ghost small mono" onClick={() => setMenu((m) => !m)} title="Account" aria-haspopup="menu" data-testid="account-button">
+          ● {short(w.address, 5)} <span className="muted" style={{ fontSize: "0.65rem" }}>your key</span>
         </button>
         {menu && (
           <div className="card acct-menu" role="menu" onMouseLeave={() => setMenu(false)}>
             <button className="btn small ghost" onClick={() => navigator.clipboard?.writeText(w.address!).catch(() => void 0)}>Copy address</button>
+            <button className="btn small ghost" onClick={() => { setMenu(false); w.openModal("fund"); }}>Receive / fund (QR)</button>
             <a className="btn small ghost" href={`https://stellar.expert/explorer/testnet/account/${w.address}`} target="_blank" rel="noreferrer">View on stellar.expert ↗</a>
-            <button className="btn small ghost" onClick={() => { setMenu(false); w.disconnect(); }}>{w.kind === "local" ? "Lock / sign out" : "Disconnect"}</button>
-            {w.stored && (
-              <button className="btn small ghost neg" onClick={() => { if (window.confirm("Remove the encrypted key from this device? Make sure your secret key is backed up.")) { setMenu(false); w.forgetDevice(); } }}>Forget this device</button>
-            )}
+            <button className="btn small ghost" onClick={() => { setMenu(false); w.disconnect(); }}>Sign out of this tab</button>
+            <button className="btn small ghost neg" onClick={() => { if (window.confirm("Forget this key? It is removed from this tab and any encrypted copy is deleted from this browser. Make sure your secret key is saved: Quasaria cannot recover it.")) { setMenu(false); w.forgetKey(); } }}>Forget this key</button>
           </div>
         )}
       </div>
     );
   return (
-    <button className="btn small" onClick={w.openModal} disabled={w.connecting}>
-      {w.stored ? "Unlock account" : "Create account"}
+    <button className="btn small" onClick={() => w.openModal()} data-testid="account-cta">
+      {w.stored ? "Unlock key" : "Create / sign in"}
     </button>
   );
 }
@@ -95,10 +93,14 @@ export default function Layout() {
     <>
       <WorldBackground scene={scene} />
       <div className="app">
-        {(!w.address || !CONTRACTS_CONFIGURED) && (
-          <div className="demo-banner">
-            {!w.address ? (CONTRACTS_CONFIGURED ? "Read-only mode — live Soroban TESTNET contracts, viewed through public seeded demo accounts. Create an in-app account or connect Freighter (TESTNET) to trade. " : "Read-only demo mode — create an account or connect Freighter (TESTNET) to trade. ") : ""}
-            {!CONTRACTS_CONFIGURED ? "Soroban contracts not configured: showing demo data (run scripts/deploy-testnet.sh)." : ""}
+        {!w.address && (
+          <div className="demo-banner" data-testid="readonly-banner">
+            Read-only mode. Create a keypair here, or sign in by pasting your secret key, to trade. Your key stays in your browser. Quasaria never holds your keys or your XLM.
+          </div>
+        )}
+        {w.address && w.funded === false && (
+          <div className="demo-banner" data-testid="fund-banner">
+            Your account is not on the ledger yet. Send it a little XLM to open it. <button className="btn small ghost" onClick={() => w.openModal("fund")}>Show address &amp; QR</button>
           </div>
         )}
         <header className="topbar">
@@ -120,8 +122,7 @@ export default function Layout() {
           <LevelBadge />
           <WalletButton />
         </header>
-        {w.error && !w.modalOpen && <div className="demo-banner">{w.error}</div>}
-        {w.modalOpen && <AccountModal />}
+                {w.modalOpen && <AccountModal />}
         <main className="pg-main">
           {loc.pathname !== "/" && <Orbits className="pg-orbits" />}
           <Outlet />

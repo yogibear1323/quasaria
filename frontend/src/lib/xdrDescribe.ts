@@ -158,7 +158,7 @@ export function hostFunctionLines(fn: xdr.HostFunction, prefix: string): string[
 }
 
 /**
- * The app's wallets (Freighter, in-app key) sign only the transaction envelope, which
+ * The app's signer (the in-browser keypair) sign only the transaction envelope, which
  * satisfies SOURCE_ACCOUNT auth and nothing else. If simulation asks for another arm
  * (legacy ADDRESS, CAP-71 ADDRESS_V2 / WITH_DELEGATES, or a future arm), stop before
  * the wallet prompt instead of letting the user pay for a transaction that must fail.

@@ -1,26 +1,17 @@
 /**
- * Signer abstraction shared by the Freighter extension and the in-app
- * (browser-held) key. Every transaction path in the app calls
- * `signer.signTransaction(xdr)` and never touches key material directly.
+ * Signer for Quasaria's keypair-only accounts. Every transaction path in the app
+ * calls `signer.signTransaction(xdr)` and never touches key material directly.
+ * There are no wallet extensions or third-party connectors: the key is the
+ * account's own secret, held in memory for this session (and, only if the user
+ * opts in, kept as a passphrase-encrypted blob in this browser).
  */
 import { Keypair, TransactionBuilder } from "@stellar/stellar-sdk";
-import { signTransaction as freighterSign } from "@stellar/freighter-api";
 
 export interface Signer {
-  readonly kind: "freighter" | "local";
+  readonly kind: "local";
   readonly address: string;
   /** Returns the signed transaction envelope XDR. */
   signTransaction(xdr: string): Promise<string>;
-}
-
-export class FreighterSigner implements Signer {
-  readonly kind = "freighter" as const;
-  constructor(readonly address: string, private readonly networkPassphrase: string, private readonly sign = freighterSign) {}
-  async signTransaction(xdr: string) {
-    const r = await this.sign(xdr, { networkPassphrase: this.networkPassphrase, address: this.address });
-    if (r.error) throw new Error(String((r.error as { message?: string }).message ?? r.error));
-    return r.signedTxXdr;
-  }
 }
 
 /**
@@ -38,13 +29,13 @@ export class LocalKeySigner implements Signer {
   }
 
   async signTransaction(xdr: string) {
-    if (!this.#kp) throw new Error("This in-app key has been locked; unlock it again to sign.");
+    if (!this.#kp) throw new Error("This key has been locked; unlock it again to sign.");
     const tx = TransactionBuilder.fromXDR(xdr, this.networkPassphrase);
     tx.sign(this.#kp);
     return tx.toXDR();
   }
 
-  /** Forget the key material (logout / lock). */
+  /** Forget the key material (sign out / lock). */
   destroy() {
     this.#kp = null;
   }

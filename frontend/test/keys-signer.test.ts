@@ -4,7 +4,7 @@ import {
   backupChallenge, checkBackup, decryptSecret, encryptSecret, forgetStoredKey, fundWithFriendbot, generateAccount, importSecret,
   KEYSTORE_KEY, loadStoredKey, saveStoredKey,
 } from "../src/lib/keys";
-import { FreighterSigner, LocalKeySigner, type Signer } from "../src/lib/signer";
+import { LocalKeySigner, type Signer } from "../src/lib/signer";
 
 const FAST = 1_000; // PBKDF2 iterations for tests only (app default is 600k)
 
@@ -111,12 +111,9 @@ describe("signers", () => {
     s.destroy();
     await expect(s.signTransaction(unsignedTx(a.publicKey).toXDR())).rejects.toThrow(/locked/);
   });
-  it("FreighterSigner goes through the same interface", async () => {
-    const a = generateAccount();
-    const fake = vi.fn(async (xdr: string) => ({ signedTxXdr: `signed:${xdr.length}`, signerAddress: a.publicKey }));
-    const s: Signer = new FreighterSigner(a.publicKey, Networks.TESTNET, fake as never);
-    expect(await s.signTransaction("AAAA")).toBe("signed:4");
-    expect(fake).toHaveBeenCalledWith("AAAA", { networkPassphrase: Networks.TESTNET, address: a.publicKey });
+  it("there is no wallet-extension signer: the module exports only the local key signer", async () => {
+    const mod = await import("../src/lib/signer");
+    expect(Object.keys(mod)).toEqual(["LocalKeySigner"]);
   });
 });
 

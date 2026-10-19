@@ -660,6 +660,7 @@ export default function Landing() {
               <span className="net-badge">Testnet beta</span>
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
+              <p className="muted l-tiny l-custody" data-testid="hero-custody-note">Trading is non-custodial. Staking, vaults and lending put funds into smart contracts (testnet).</p>
               <CtaButtons />
               <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span><SpaceYeti prop="coin" className="sy-inline" /></div>
             </div>

@@ -15,8 +15,8 @@ describe("landing outline (approved copy)", () => {
     }
   });
   it("keeps the approved text verbatim", () => {
-    expect(s[0].headline).toBe("Trade at the speed of light.");
-    expect(s[0].pitch).toBe("Non-Custodial Stellar Decentralized Exchange");
+    expect(s[0].headline).toBe("Your keys, your XLM.");
+    expect(s[0].pitch).toBe("Connect your own Stellar wallet. Quasaria never holds your keys or your XLM when you trade.");
     expect(s[3].headline).toBe("Your keys never leave your browser.");
     expect(s[13].headline).toBe("Your first trade is a few clicks away.");
     expect(s[14].headline).toBe("Latest from Stellar.");

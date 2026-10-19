@@ -1,8 +1,8 @@
 # Quasaria landing page outline (approved copy)
 
 1. Hero
-Headline: Trade at the speed of light.
-Pitch: Non-Custodial Stellar Decentralized Exchange
+Headline: Your keys, your XLM.
+Pitch: Connect your own Stellar wallet. Quasaria never holds your keys or your XLM when you trade.
 Visual: the animated quasar scene with the illustrative logo, a live XLM price ticker, and two buttons, "Launch app" and "Create a wallet". Add a small "Testnet beta" badge until the live launch.
 
 2. Markets

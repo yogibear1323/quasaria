@@ -111,6 +111,7 @@ export default function AccountModal() {
           <button className="btn small ghost" onClick={close} aria-label="Close">✕</button>
         </div>
         <p className="muted" style={{ fontSize: "0.8rem", marginTop: 0 }}>Non-custodial: keys are created and used only in this browser. No server, no account database, no key logging. We cannot see, reset or recover your key.</p>
+        <p className="notice" style={{ fontSize: "0.8rem", marginTop: 0 }} data-testid="wallet-noncustodial-note"><b>Your keys, your XLM.</b> Non-custodial: you sign every transaction in your own wallet (Freighter, or the key held in this browser). Staking, vaults and lending put funds into smart contracts{NETWORK === "testnet" ? " (testnet)" : ""}.</p>
 
         {step === "choose" && (
           <div className="grid" style={{ gap: 10 }}>

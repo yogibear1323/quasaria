@@ -695,3 +695,4 @@ main.pg-main > *:not(.pg-orbits) { position: relative; z-index: 1; }
   .lm-t.t td.lm-asset { justify-content: flex-start; text-align: left; border-bottom: 1px solid var(--line) !important; }
   .lm-t td.num > div { margin-left: 6px; }
 }
+.l-custody { margin: -8px 0 var(--s-5); max-width: 560px; }

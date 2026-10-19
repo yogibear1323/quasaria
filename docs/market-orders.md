@@ -23,6 +23,8 @@ Plain errors appear right away, before the confirm step: no trustline or balance
 * Market orders use the order book only (not the liquidity pools). Swaps (path payments) use both and have a user-set slippage limit on the Swap page.
 
 ### Before mainnet signing is enabled
+**History:** the instant, no-confirm version was built first (Robert's request), then Robert reversed it and asked for the confirm step back; the code and tests follow the confirm version. The no-confirm behaviour must not return without a fresh decision and a re-check of the mainnet risks below.
+
 Revisit the confirm-step design: this version asks for one confirm but gives the user no slippage control and does not show the band. For mainnet it should at least disclose the worst-case price and total before signing. `MAINNET_SIGNING` stays false until that is decided.
 
 ## Tests

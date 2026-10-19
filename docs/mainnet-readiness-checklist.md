@@ -3,6 +3,8 @@ title: "Quasaria: Mainnet Launch Audit & Readiness Checklist"
 subtitle: "Stellar DEX: 7 Soroban contracts, keeper bot, React/Vite frontend"
 date: "Prepared Saturday, Sep 26, 2026 (Arizona time, MST/UTC-7) at commit 2c2e803"
 ---
+> **Historical snapshot (October 2026, Soroban-era audit prep).** It describes the old contract/bot stack. The trading bots were removed on 2026-10-18 and the site now uses native Stellar pools, swaps and the order book. For the current go-live steps see `mainnet-switch-checklist.md`; for the legal questions see `legal-review.md`.
+
 
 > **What this is:** an internal readiness review and launch checklist. It is **not** an external security audit and it is **not** legal advice. Every status below is based on evidence gathered on Sep 26, 2026 from the repository at `/workspace/stellar-dex` (commit `2c2e803`, public repo `github.com/yogibear1323/quasaria`), read-only queries of the live **testnet** deployment, and tools run locally. Nothing was deployed, no funds were spent, mainnet was not touched, and no code was changed in the repository. Proof-of-concept tests were run in a scratch copy under `/tmp/poc` and are not in the repo.
 

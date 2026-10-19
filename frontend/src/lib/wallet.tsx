@@ -1,155 +1,147 @@
 /**
- * Wallet state for Quasaria. Two interchangeable signers:
- *   - in-app key (generated or imported in the browser, held in memory), and
- *   - the Freighter extension.
- * Both implement `Signer`, so every transaction path is identical. The app
- * works read-only without any signer.
+ * Wallet state for Quasaria: keypair-only accounts.
+ *
+ * The site generates a random Ed25519 keypair in the browser; the public key IS the account and the user saves
+ * the secret. Login is by pasting the secret. By default the key lives in memory for this tab only. If the user
+ * sets a passphrase, an AES-GCM blob (PBKDF2-SHA256) is kept in this browser's localStorage so they can unlock
+ * it next time; "Forget this key" removes it. There are no wallet extensions and no third-party connectors.
  */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { getAddress, getNetworkDetails, isConnected, requestAccess } from "@stellar/freighter-api";
-import { NETWORK_PASSPHRASE } from "./config";
-import { FreighterSigner, LocalKeySigner, type Signer } from "./signer";
+import { NETWORK_PASSPHRASE, HORIZON_URL } from "./config";
+import { LocalKeySigner, type Signer } from "./signer";
 import { decryptSecret, encryptSecret, forgetStoredKey, loadStoredKey, saveStoredKey, type EncryptedKey } from "./keys";
+
+export type ModalIntent = "create" | "fund" | null;
 
 type WalletState = {
   address: string | null;
   kind: Signer["kind"] | null;
-  available: boolean;
-  wrongNetwork: boolean;
-  connecting: boolean;
+  /** null = unknown/not checked, false = the address is not on the ledger yet (needs the minimum XLM), true = exists. */
+  funded: boolean | null;
   error: string | null;
-  /** Encrypted key remembered on this device (public address only is readable). */
+  /** Passphrase-encrypted key remembered in this browser (only the public address is readable). */
   stored: EncryptedKey | null;
-  /** Account modal visibility (create / import / Freighter / unlock). */
   modalOpen: boolean;
-  /** Open the account modal; pass "create" to jump straight into new-account creation. */
+  /** Open the account modal; "create" jumps to new-key creation, "fund" to the QR / fund-address screen. */
   openModal: (intent?: unknown) => void;
-  modalIntent: "create" | null;
+  modalIntent: ModalIntent;
   closeModal: () => void;
-  connect: () => Promise<void>;
-  loginWithSecret: (secret: string, rememberWithPassword?: string) => Promise<void>;
-  unlockStored: (password: string) => Promise<void>;
-  forgetDevice: () => void;
+  /** Sign in with a pasted secret. With `passphrase`, also keep an encrypted copy in this browser. */
+  loginWithSecret: (secret: string, passphrase?: string) => Promise<void>;
+  unlockStored: (passphrase: string) => Promise<void>;
+  /** "Forget this key": sign out and delete any encrypted copy from this browser. */
+  forgetKey: () => void;
+  /** Sign out of this tab (an encrypted copy, if you made one, stays for the next unlock). */
   disconnect: () => void;
+  /** Re-check whether the account exists on the ledger. */
+  refreshFunded: () => Promise<boolean | null>;
   sign: (xdr: string) => Promise<string>;
 };
 
 const Ctx = createContext<WalletState | null>(null);
 
+export async function accountExists(address: string, f: typeof fetch = fetch): Promise<boolean | null> {
+  try {
+    const r = await f(`${HORIZON_URL}/accounts/${address}`, { headers: { Accept: "application/json" } });
+    if (r.status === 404) return false;
+    return r.ok ? true : null;
+  } catch {
+    return null;
+  }
+}
+
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [signer, setSigner] = useState<Signer | null>(null);
-  const [available, setAvailable] = useState(false);
-  const [wrongNetwork, setWrongNetwork] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [funded, setFunded] = useState<boolean | null>(null);
+  const [error] = useState<string | null>(null);
   const [stored, setStored] = useState<EncryptedKey | null>(() => loadStoredKey());
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalIntent, setModalIntent] = useState<"create" | null>(null);
+  const [modalIntent, setModalIntent] = useState<ModalIntent>(null);
   const current = useRef<Signer | null>(null);
 
   const replaceSigner = useCallback((s: Signer | null) => {
     if (current.current instanceof LocalKeySigner && current.current !== s) current.current.destroy();
     current.current = s;
     setSigner(s);
+    setFunded(null);
   }, []);
 
   useEffect(() => {
-    let alive = true;
-    isConnected()
-      .then((r) => alive && setAvailable(Boolean(r.isConnected)))
-      .catch(() => alive && setAvailable(false));
     // drop in-memory key material when the tab goes away
     const onUnload = () => current.current instanceof LocalKeySigner && current.current.destroy();
     window.addEventListener("pagehide", onUnload);
-    return () => {
-      alive = false;
-      window.removeEventListener("pagehide", onUnload);
-    };
+    return () => window.removeEventListener("pagehide", onUnload);
   }, []);
 
-  const connect = useCallback(async () => {
-    setConnecting(true);
-    setError(null);
-    try {
-      const c = await isConnected();
-      if (!c.isConnected) {
-        setError("Freighter not detected — install it from freighter.app and switch it to TESTNET, or create an in-app account instead.");
-        return;
-      }
-      const r = await requestAccess();
-      if (r.error) throw new Error(String(r.error.message ?? r.error));
-      const a = r.address || (await getAddress()).address;
-      replaceSigner(new FreighterSigner(a, NETWORK_PASSPHRASE));
-      try {
-        const n = await getNetworkDetails();
-        setWrongNetwork(Boolean(n.networkPassphrase) && n.networkPassphrase !== NETWORK_PASSPHRASE);
-      } catch {
-        /* ignore */
-      }
-      setModalOpen(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setConnecting(false);
-    }
-  }, [replaceSigner]);
+  const address = signer?.address ?? null;
+  const refreshFunded = useCallback(async () => {
+    if (!address) return null;
+    const ok = await accountExists(address);
+    if (current.current?.address === address) setFunded(ok);
+    return ok;
+  }, [address]);
+
+  // While signed in with an unfunded account, poll until it appears on the ledger.
+  useEffect(() => {
+    if (!address) return;
+    let alive = true;
+    const tick = async () => { const ok = await accountExists(address); if (alive) setFunded(ok); return ok; };
+    tick();
+    const t = setInterval(async () => { if ((await tick()) === true) clearInterval(t); }, 8000);
+    return () => { alive = false; clearInterval(t); };
+  }, [address]);
 
   const loginWithSecret = useCallback(
-    async (secret: string, rememberWithPassword?: string) => {
-      const s = new LocalKeySigner(secret, NETWORK_PASSPHRASE);
-      if (rememberWithPassword) {
-        const blob = await encryptSecret(secret, rememberWithPassword);
+    async (secret: string, passphrase?: string) => {
+      const s = new LocalKeySigner(secret.trim(), NETWORK_PASSPHRASE);
+      if (passphrase) {
+        const blob = await encryptSecret(secret.trim(), passphrase);
         saveStoredKey(blob);
         setStored(blob);
       }
-      setWrongNetwork(false);
-      setError(null);
       replaceSigner(s);
     },
     [replaceSigner],
   );
 
   const unlockStored = useCallback(
-    async (password: string) => {
+    async (passphrase: string) => {
       const blob = loadStoredKey();
-      if (!blob) throw new Error("No key is remembered on this device.");
-      const secret = await decryptSecret(blob, password);
+      if (!blob) throw new Error("No encrypted key is kept in this browser.");
+      const secret = await decryptSecret(blob, passphrase);
       replaceSigner(new LocalKeySigner(secret, NETWORK_PASSPHRASE));
-      setError(null);
     },
     [replaceSigner],
   );
 
-  const forgetDevice = useCallback(() => {
+  const forgetKey = useCallback(() => {
     forgetStoredKey();
     setStored(null);
-    if (current.current?.kind === "local") replaceSigner(null);
+    replaceSigner(null);
   }, [replaceSigner]);
 
   const sign = useCallback(async (xdr: string) => {
-    if (!current.current) throw new Error("Connect a wallet or create an account first");
+    if (!current.current) throw new Error("Sign in with your key (or create one) first");
     return current.current.signTransaction(xdr);
   }, []);
 
   return (
     <Ctx.Provider
       value={{
-        address: signer?.address ?? null,
+        address,
         kind: signer?.kind ?? null,
-        available,
-        wrongNetwork,
-        connecting,
+        funded,
         error,
         stored,
         modalOpen,
         modalIntent,
-        openModal: (intent?: unknown) => { setModalIntent(intent === "create" ? "create" : null); setModalOpen(true); },
+        openModal: (intent?: unknown) => { setModalIntent(intent === "create" || intent === "fund" ? intent : null); setModalOpen(true); },
         closeModal: () => setModalOpen(false),
-        connect,
         loginWithSecret,
         unlockStored,
-        forgetDevice,
+        forgetKey,
         disconnect: () => replaceSigner(null),
+        refreshFunded,
         sign,
       }}
     >

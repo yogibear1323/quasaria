@@ -1,7 +1,7 @@
 /**
  * Classic Stellar (Horizon + SDEX) helpers: order books, trustlines, offers,
  * path payments. All transactions are built for TESTNET and signed by the
- * active signer (in-app key or Freighter, see lib/signer.ts).
+ * active signer (the account's own keypair, see lib/signer.ts).
  */
 import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Operation, TransactionBuilder, Memo, getLiquidityPoolId } from "@stellar/stellar-sdk";
 import { HORIZON_URL, NETWORK_PASSPHRASE, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "./config";

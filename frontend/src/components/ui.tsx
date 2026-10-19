@@ -67,7 +67,7 @@ export function useTx(needsContracts = true) {
   const [busy, setBusy] = useState(false);
   const run = async (label: string, fn: () => Promise<string | void>) => {
     if (!w.address) {
-      setStatus("Read-only mode: create an in-app account or connect Freighter (TESTNET) to sign this transaction.");
+      setStatus("Read-only mode: create a keypair or sign in with your secret key to sign this transaction.");
       return;
     }
     if (needsContracts && !CONTRACTS_CONFIGURED) {

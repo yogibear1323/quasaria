@@ -1,96 +1,85 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet } from "../lib/wallet";
-import { backupChallenge, challengeLabel, checkBackup, downloadText, fundWithFriendbot, generateAccount, importSecret, isValidSecret, MIN_PASSWORD, type NewAccount } from "../lib/keys";
+import { downloadText, fundWithFriendbot, generateAccount, importSecret, isValidSecret, MIN_PASSWORD, type NewAccount } from "../lib/keys";
 import { NETWORK } from "../lib/config";
 import { short } from "../lib/format";
+import QrCode from "./QrCode";
 
-type Step = "choose" | "reveal" | "verify" | "protect" | "import" | "unlock" | "done";
+type Step = "choose" | "reveal" | "protect" | "import" | "unlock" | "fund";
+
+export const NONCUSTODIAL_NOTE =
+  "Quasaria never holds your keys or your XLM when you trade. Your browser creates the keypair, you save the secret, and you sign every transaction yourself.";
 
 function Copy({ text, label = "Copy" }: { text: string; label?: string }) {
   const [ok, setOk] = useState(false);
   return (
     <button className="btn small ghost" onClick={async () => {
-      try {
-        await navigator.clipboard.writeText(text);
-        setOk(true);
-        setTimeout(() => setOk(false), 1500);
-      } catch {
-        /* clipboard blocked */
-      }
+      try { await navigator.clipboard.writeText(text); setOk(true); setTimeout(() => setOk(false), 1500); } catch { /* clipboard blocked */ }
     }}>{ok ? "Copied ✦" : label}</button>
   );
 }
 
-/** Password + confirm, optional ("remember on this device"). */
-function RememberFields({ value, onChange }: { value: { on: boolean; pw: string; pw2: string }; onChange: (v: { on: boolean; pw: string; pw2: string }) => void }) {
+/** Optional passphrase: leave off for a session-only key (the default). */
+function PassphraseFields({ value, onChange }: { value: { on: boolean; pw: string; pw2: string }; onChange: (v: { on: boolean; pw: string; pw2: string }) => void }) {
   return (
     <div className="card" style={{ padding: 14, marginTop: 10 }}>
       <label className="row" style={{ gap: 8, fontSize: "0.9rem" }}>
-        <input type="checkbox" checked={value.on} onChange={(e) => onChange({ ...value, on: e.target.checked })} />
-        Remember this key on this device (encrypted with a password)
+        <input type="checkbox" checked={value.on} onChange={(e) => onChange({ ...value, on: e.target.checked })} data-testid="remember-toggle" />
+        Keep an encrypted copy in this browser (protect it with a passphrase)
       </label>
       {value.on && (
         <div className="grid g-2" style={{ marginTop: 10 }}>
-          <div className="field"><label>Password (min {MIN_PASSWORD})</label><input className="input" type="password" autoComplete="new-password" value={value.pw} onChange={(e) => onChange({ ...value, pw: e.target.value })} /></div>
-          <div className="field"><label>Confirm password</label><input className="input" type="password" autoComplete="new-password" value={value.pw2} onChange={(e) => onChange({ ...value, pw2: e.target.value })} /></div>
+          <div className="field"><label>Passphrase (min {MIN_PASSWORD})</label><input className="input" type="password" autoComplete="new-password" value={value.pw} onChange={(e) => onChange({ ...value, pw: e.target.value })} /></div>
+          <div className="field"><label>Confirm passphrase</label><input className="input" type="password" autoComplete="new-password" value={value.pw2} onChange={(e) => onChange({ ...value, pw2: e.target.value })} /></div>
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.75rem", margin: "6px 0 0" }}>
-        Off by default: the key lives in memory and is gone when you close the tab. If on, it is encrypted in your browser (PBKDF2-SHA256, 600k iterations → AES-256-GCM) and stored only in this browser's localStorage. Anyone with your password and this device could unlock it.
+        Off by default: the key lives in memory and is gone when you close the tab, so you paste your secret to sign in next time. If on, it is encrypted in your browser (WebCrypto: PBKDF2-SHA256, 600k iterations → AES-256-GCM) and stored only in this browser. It still does not replace saving your secret: clearing browser data or forgetting the passphrase loses it.
       </p>
     </div>
   );
 }
 
-const rememberError = (r: { on: boolean; pw: string; pw2: string }) =>
-  !r.on ? null : r.pw.length < MIN_PASSWORD ? `Password must be at least ${MIN_PASSWORD} characters.` : r.pw !== r.pw2 ? "Passwords do not match." : null;
+const passError = (r: { on: boolean; pw: string; pw2: string }) =>
+  !r.on ? null : r.pw.length < MIN_PASSWORD ? `Passphrase must be at least ${MIN_PASSWORD} characters.` : r.pw !== r.pw2 ? "Passphrases do not match." : null;
 
 export default function AccountModal() {
   const w = useWallet();
-  // "Create a wallet" (landing page) jumps straight to a freshly generated key.
   const [initial] = useState<{ step: Step; acct: NewAccount | null }>(() => {
+    if (w.modalIntent === "fund" && w.address) return { step: "fund", acct: { publicKey: w.address, secret: "" } };
     if (w.modalIntent === "create" && !w.stored) {
-      try {
-        return { step: "reveal", acct: generateAccount() };
-      } catch {
-        /* no Web Crypto: fall back to the chooser, which shows the error on click */
-      }
+      try { return { step: "reveal", acct: generateAccount() }; } catch { /* no Web Crypto: the chooser shows the error on click */ }
     }
     return { step: w.stored ? "unlock" : "choose", acct: null };
   });
   const [step, setStep] = useState<Step>(initial.step);
   const [acct, setAcct] = useState<NewAccount | null>(initial.acct);
   const [saved, setSaved] = useState(false);
-  const [answer, setAnswer] = useState("");
-  const [remember, setRemember] = useState({ on: false, pw: "", pw2: "" });
+  const [pass, setPass] = useState({ on: false, pw: "", pw2: "" });
   const [importText, setImportText] = useState("");
   const [unlockPw, setUnlockPw] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [fund, setFund] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(true);
-  const challenge = useMemo(() => backupChallenge(), [acct?.secret]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const close = () => {
-    setAcct(null);
-    setImportText("");
-    w.closeModal();
-  };
+  const close = () => { setAcct(null); setImportText(""); w.closeModal(); };
 
-  const finish = async (a: NewAccount, isNew: boolean) => {
-    const e = rememberError(remember);
+  const login = async (a: NewAccount, isNew: boolean) => {
+    const e = passError(pass);
     if (e) return setErr(e);
     setBusy(true);
     setErr(null);
     try {
-      await w.loginWithSecret(a.secret, remember.on ? remember.pw : undefined);
-      setStep("done");
-      setAcct({ publicKey: a.publicKey, secret: "" }); // keep only the address for the summary
+      await w.loginWithSecret(a.secret, pass.on ? pass.pw : undefined);
+      setAcct({ publicKey: a.publicKey, secret: "" }); // from here on only the address is kept in the modal
       setImportText("");
+      setPass({ on: false, pw: "", pw2: "" });
+      setStep("fund");
       if (NETWORK === "testnet" && isNew) {
         setFund("Funding with Friendbot (testnet)…");
         fundWithFriendbot(a.publicKey)
-          .then((r) => setFund(r.alreadyFunded ? "Already funded." : "Funded with 10,000 test XLM by Friendbot ✦"))
+          .then((r) => { setFund(r.alreadyFunded ? "Already funded." : "Funded with 10,000 test XLM by Friendbot ✦"); w.refreshFunded(); })
           .catch((x) => setFund(`Friendbot failed: ${(x as Error).message}. You can retry from friendbot.stellar.org.`));
       }
     } catch (x) {
@@ -100,46 +89,50 @@ export default function AccountModal() {
     }
   };
 
+  // The fund screen closes itself once the account exists and the user has nothing left to do.
+  useEffect(() => { if (step === "fund") w.refreshFunded(); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const fileText = (a: NewAccount) =>
     `Quasaria — Stellar ${NETWORK.toUpperCase()} account backup\nCreated: ${new Date().toISOString()}\n\nPublic address (safe to share):\n${a.publicKey}\n\nSECRET KEY (never share, anyone with it controls the account):\n${a.secret}\n\nQuasaria cannot recover this key. Keep this file offline.\n`;
+
+  const title = step === "choose" ? "Get started" : step === "import" ? "Sign in with your secret key" : step === "unlock" ? "Unlock saved key" : step === "fund" ? "Fund your account" : step === "protect" ? "Protect this browser copy" : "Create account";
+  const addrForFund = acct?.publicKey ?? w.address ?? "";
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Account" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="card glow modal">
         <div className="row between" style={{ marginBottom: 8 }}>
-          <h2 style={{ margin: 0 }}>{step === "choose" ? "Get started" : step === "import" ? "Import secret key" : step === "unlock" ? "Unlock saved key" : step === "done" ? "You're in" : "Create account"}</h2>
+          <h2 style={{ margin: 0 }}>{title}</h2>
           <button className="btn small ghost" onClick={close} aria-label="Close">✕</button>
         </div>
-        <p className="muted" style={{ fontSize: "0.8rem", marginTop: 0 }}>Non-custodial: keys are created and used only in this browser. No server, no account database, no key logging. We cannot see, reset or recover your key.</p>
-        <p className="notice" style={{ fontSize: "0.8rem", marginTop: 0 }} data-testid="wallet-noncustodial-note"><b>Your keys, your XLM.</b> Non-custodial: you sign every transaction in your own wallet (Freighter, or the key held in this browser). Staking, vaults and lending put funds into smart contracts{NETWORK === "testnet" ? " (testnet)" : ""}.</p>
+        <p className="notice" style={{ fontSize: "0.8rem", marginTop: 0 }} data-testid="wallet-noncustodial-note"><b>Your keys, your XLM.</b> {NONCUSTODIAL_NOTE} We cannot see, reset or recover your key.</p>
 
         {step === "choose" && (
           <div className="grid" style={{ gap: 10 }}>
-            <button className="btn block" onClick={() => { setAcct(generateAccount()); setSaved(false); setRevealed(true); setStep("reveal"); }}>✦ Create a new account</button>
-            <button className="btn block ghost" onClick={() => setStep("import")}>Import a secret key (S…)</button>
-            <button className="btn block ghost" disabled={w.connecting} onClick={w.connect}>{w.connecting ? "Connecting…" : "Use Freighter extension"}</button>
-            {w.stored && <button className="btn block ghost" onClick={() => setStep("unlock")}>Unlock key saved on this device ({short(w.stored.publicKey, 4)})</button>}
-            {w.error && <div className="notice warn">{w.error}</div>}
-            <div className="notice" style={{ fontSize: "0.78rem" }}>On testnet, new accounts are funded automatically by Friendbot. <b>On mainnet</b> a new address does not exist on the ledger until someone sends it the minimum balance (currently 1 XLM base reserve, plus 0.5 XLM per trustline/offer) — there is no Friendbot.</div>
+            <button className="btn block" onClick={() => { try { setAcct(generateAccount()); setSaved(false); setRevealed(true); setErr(null); setStep("reveal"); } catch (x) { setErr((x as Error).message); } }}>✦ Create a new keypair</button>
+            <button className="btn block ghost" onClick={() => setStep("import")}>Sign in with a secret key (S…)</button>
+            {w.stored && <button className="btn block ghost" onClick={() => setStep("unlock")}>Unlock the key kept in this browser ({short(w.stored.publicKey, 4)})</button>}
+            {err && <div className="notice warn">{err}</div>}
+            <div className="notice" style={{ fontSize: "0.78rem" }}>On testnet, new accounts are funded automatically by Friendbot. <b>On mainnet</b> a new address does not exist on the ledger until someone sends it the minimum balance (1 XLM base reserve, plus 0.5 XLM per trustline or offer). There is no Friendbot.</div>
           </div>
         )}
 
         {step === "reveal" && acct && (
           <>
             <div className="risk" role="alert" style={{ marginBottom: 12 }}>
-              <strong>⚠ Save your secret key now — it is shown only here.</strong>
+              <strong>⚠ Save your secret key now. It is shown only here, once.</strong>
               <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: "0.85rem" }}>
-                <li>Anyone with this key controls the account and its funds. <b>Never share it</b> — no Quasaria team member will ever ask for it.</li>
+                <li>Anyone with this key controls the account and its funds. <b>Never share it.</b> No Quasaria team member will ever ask for it.</li>
                 <li>We cannot recover it. Lose it and the account is gone for good.</li>
                 <li>Store it offline (password manager or paper). Don't screenshot it.</li>
               </ul>
             </div>
-            <div className="field"><label>Public address (G…) — safe to share</label>
+            <div className="field"><label>Public address (G…) — this is your account, safe to share</label>
               <div className="row"><input className="input mono" readOnly value={acct.publicKey} /><Copy text={acct.publicKey} /></div>
             </div>
             <div className="field"><label>Secret key (S…) — keep private</label>
               <div className="row">
-                <input className="input mono secret-value" readOnly type={revealed ? "text" : "password"} value={acct.secret} autoComplete="off" spellCheck={false} />
+                <input className="input mono secret-value" readOnly type={revealed ? "text" : "password"} value={acct.secret} autoComplete="off" spellCheck={false} data-testid="secret-value" />
                 <button className="btn small ghost" onClick={() => setRevealed((r) => !r)}>{revealed ? "Hide" : "Show"}</button>
                 <Copy text={acct.secret} />
               </div>
@@ -149,26 +142,22 @@ export default function AccountModal() {
               <span className="muted" style={{ fontSize: "0.75rem" }}>Generated locally; never uploaded.</span>
             </div>
             <label className="row" style={{ gap: 8, fontSize: "0.88rem", marginBottom: 12 }}>
-              <input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} /> I have saved my secret key somewhere safe and understand it cannot be recovered.
+              <input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} data-testid="saved-checkbox" /> I saved my secret key somewhere safe. I understand it cannot be recovered.
             </label>
             <div className="row">
-              <button className="btn" disabled={!saved} onClick={() => { setAnswer(""); setErr(null); setStep("verify"); }}>Continue</button>
+              <button className="btn" disabled={!saved} onClick={() => { setErr(null); setStep("protect"); }}>Continue</button>
               <button className="btn ghost" onClick={() => { setAcct(null); setStep("choose"); }}>Back</button>
             </div>
           </>
         )}
 
-        {step === "verify" && acct && (
+        {step === "protect" && acct && (
           <>
-            <p>Backup check: type <b>{challengeLabel(challenge)}</b> of your secret key (counting the leading S as character 1).</p>
-            <div className="field"><label>{challenge.length} characters</label>
-              <input className="input mono secret-value" autoFocus maxLength={challenge.length} value={answer} onChange={(e) => setAnswer(e.target.value.toUpperCase())} autoComplete="off" spellCheck={false} />
-            </div>
-            {answer.length === challenge.length && !checkBackup(acct.secret, challenge, answer) && <div className="notice warn">That doesn't match. Check your backup.</div>}
-            <RememberFields value={remember} onChange={setRemember} />
+            <p style={{ marginTop: 0 }}>By default your key stays in memory for this tab only (session-only). Optionally keep an encrypted copy in this browser.</p>
+            <PassphraseFields value={pass} onChange={setPass} />
             {err && <div className="notice warn">{err}</div>}
             <div className="row" style={{ marginTop: 12 }}>
-              <button className="btn" disabled={busy || !checkBackup(acct.secret, challenge, answer)} onClick={() => finish(acct, true)}>{busy ? "Securing…" : "Finish & fund on testnet"}</button>
+              <button className="btn" disabled={busy} onClick={() => login(acct, true)}>{busy ? "Securing…" : pass.on ? "Encrypt & continue" : "Continue (session only)"}</button>
               <button className="btn ghost" onClick={() => setStep("reveal")}>Show key again</button>
             </div>
           </>
@@ -176,15 +165,15 @@ export default function AccountModal() {
 
         {step === "import" && (
           <>
-            <div className="risk" style={{ marginBottom: 12 }}><strong>Only import keys on a device you trust.</strong> The key stays in this browser and is never sent anywhere.</div>
+            <div className="risk" style={{ marginBottom: 12 }}><strong>Only paste your key on a device you trust.</strong> It stays in this browser and is never sent anywhere.</div>
             <div className="field"><label>Secret key (S…)</label>
-              <input className="input mono secret-value" type="password" autoComplete="off" spellCheck={false} value={importText} onChange={(e) => setImportText(e.target.value.trim())} placeholder="S…" />
+              <input className="input mono secret-value" type="password" autoComplete="off" spellCheck={false} value={importText} onChange={(e) => setImportText(e.target.value.trim())} placeholder="S…" data-testid="paste-secret" />
             </div>
             {importText && !isValidSecret(importText) && <div className="notice warn">Not a valid Stellar secret key.</div>}
-            <RememberFields value={remember} onChange={setRemember} />
+            <PassphraseFields value={pass} onChange={setPass} />
             {err && <div className="notice warn">{err}</div>}
             <div className="row" style={{ marginTop: 12 }}>
-              <button className="btn" disabled={busy || !isValidSecret(importText)} onClick={() => { try { finish(importSecret(importText), false); } catch (x) { setErr((x as Error).message); } }}>Import</button>
+              <button className="btn" disabled={busy || !isValidSecret(importText)} onClick={() => { try { login(importSecret(importText), false); } catch (x) { setErr((x as Error).message); } }}>Sign in</button>
               <button className="btn ghost" onClick={() => setStep("choose")}>Back</button>
             </div>
           </>
@@ -192,40 +181,47 @@ export default function AccountModal() {
 
         {step === "unlock" && w.stored && (
           <>
-            <p>Saved on this device: <span className="mono">{short(w.stored.publicKey, 6)}</span></p>
-            <div className="field"><label>Password</label><input className="input" type="password" autoComplete="current-password" value={unlockPw} onChange={(e) => setUnlockPw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (document.getElementById("unlock-btn") as HTMLButtonElement | null)?.click()} /></div>
+            <p>Encrypted key in this browser: <span className="mono">{short(w.stored.publicKey, 6)}</span></p>
+            <div className="field"><label>Passphrase</label><input className="input" type="password" autoComplete="current-password" value={unlockPw} onChange={(e) => setUnlockPw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (document.getElementById("unlock-btn") as HTMLButtonElement | null)?.click()} /></div>
             {err && <div className="notice warn">{err}</div>}
             <div className="row">
               <button id="unlock-btn" className="btn" disabled={busy || !unlockPw} onClick={async () => {
-                setBusy(true);
-                setErr(null);
-                try {
-                  await w.unlockStored(unlockPw);
-                  setUnlockPw("");
-                  close();
-                } catch (x) {
-                  setErr((x as Error).message);
-                } finally {
-                  setBusy(false);
-                }
+                setBusy(true); setErr(null);
+                try { await w.unlockStored(unlockPw); setUnlockPw(""); close(); } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
               }}>{busy ? "Unlocking…" : "Unlock"}</button>
               <button className="btn ghost" onClick={() => setStep("choose")}>Other options</button>
-              <button className="btn ghost neg" onClick={() => { if (window.confirm("Remove the encrypted key from this device? Make sure you have your secret key backed up.")) { w.forgetDevice(); setStep("choose"); } }}>Forget this device</button>
+              <button className="btn ghost neg" onClick={() => { if (window.confirm("Forget this key? The encrypted copy is deleted from this browser. Make sure your secret key is saved.")) { w.forgetKey(); setStep("choose"); } }}>Forget this key</button>
             </div>
           </>
         )}
 
-        {step === "done" && acct && (
-          <>
-            <p>Signed in with an in-app key. Address: <span className="mono">{acct.publicKey}</span> <Copy text={acct.publicKey} /></p>
-            {fund && <div className="notice">{fund}</div>}
-            <ul className="muted" style={{ fontSize: "0.85rem", paddingLeft: 18 }}>
-              <li>Transactions are signed locally in this tab — same flow as Freighter.</li>
-              <li>{w.stored?.publicKey === acct.publicKey ? "Encrypted copy saved on this device. Use “Forget this device” in the account menu to remove it." : "Key kept in memory only: closing or reloading the tab signs you out."}</li>
-              <li>On mainnet the account would need at least the minimum XLM balance before it exists on the ledger.</li>
+        {step === "fund" && addrForFund && (
+          <div data-testid="fund-screen">
+            <p style={{ marginTop: 0 }}>You're signed in. Your account is the address below:</p>
+            <div className="row" style={{ alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+              <QrCode value={addrForFund} label="QR code of your Stellar address" />
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div className="field"><label>Your address (G…)</label>
+                  <div className="row"><input className="input mono" readOnly value={addrForFund} data-testid="fund-address" /><Copy text={addrForFund} /></div>
+                </div>
+                <p className="muted" style={{ fontSize: "0.8rem" }}>
+                  Status: {w.funded === true ? <b className="pos">on the ledger ✦ ready to use</b> : w.funded === false ? <b className="neg">not on the ledger yet. It is created by the first XLM sent to it</b> : "checking…"}
+                </p>
+                {NETWORK === "testnet" ? (
+                  <>
+                    {fund && <div className="notice" style={{ fontSize: "0.8rem" }}>{fund}</div>}
+                    {w.funded === false && <button className="btn small" onClick={() => { setFund("Funding with Friendbot (testnet)…"); fundWithFriendbot(addrForFund).then(() => { setFund("Funded by Friendbot ✦"); w.refreshFunded(); }).catch((x) => setFund(`Friendbot failed: ${(x as Error).message}`)); }}>Fund with Friendbot (testnet)</button>}
+                  </>
+                ) : null}
+                <p className="muted" style={{ fontSize: "0.78rem" }}>Send at least 2 XLM to open the account (1 XLM base reserve, plus 0.5 XLM for each trustline or offer you add). Only send XLM or Stellar assets to this address.</p>
+              </div>
+            </div>
+            <div className="row" style={{ marginTop: 12 }}><button className="btn" onClick={close}>Done</button></div>
+            <ul className="muted" style={{ fontSize: "0.82rem", paddingLeft: 18 }}>
+              <li>Transactions are signed locally in this tab with your key.</li>
+              <li>{w.stored?.publicKey === addrForFund ? "An encrypted copy is kept in this browser. “Forget this key” in the account menu deletes it." : "Session-only: closing or reloading the tab signs you out. Paste your secret to sign in again."}</li>
             </ul>
-            <button className="btn" onClick={close}>Start trading</button>
-          </>
+          </div>
         )}
       </div>
     </div>

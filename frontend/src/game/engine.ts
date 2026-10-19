@@ -71,7 +71,7 @@ export type BadgeIcon = "spark" | "compass" | "shield" | "abacus" | "gauge" | "b
 
 const done = (s: GameState, id: string) => !!s.done[id];
 export const BADGES: Badge[] = [
-  { id: "first-light", name: "First Light", desc: "Connected a testnet wallet.", icon: "spark", hue: "cyan", when: (s) => done(s, "connect") },
+  { id: "first-light", name: "First Light", desc: "Signed in with a testnet keypair.", icon: "spark", hue: "cyan", when: (s) => done(s, "connect") },
   { id: "navigator", name: "Navigator", desc: "Toured every part of the app.", icon: "compass", hue: "violet", when: (s) => done(s, "explore") },
   { id: "risk-aware", name: "Risk Aware", desc: "Read the risk guide.", icon: "shield", hue: "green", when: (s) => done(s, "risk-guide") },
   { id: "calculated", name: "Calculated", desc: "Tried the liquidity calculator.", icon: "abacus", hue: "gold", when: (s) => CALCS.every((c) => done(s, `calc-${c}`)) },

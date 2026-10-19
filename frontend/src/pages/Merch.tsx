@@ -48,7 +48,7 @@ export default function Merch() {
       </section>
 
       <div className="notice m-note" role="note">
-        <b>Preview only.</b> You can't buy anything here yet: there is no checkout, no payment, and prices are examples for layout. "Notify me" saves your email <b>in this browser only</b>. Merch has nothing to do with QFX, XP or any token, and browsing it doesn't affect your testnet account.
+        <b>Preview only.</b> You can't buy anything here yet: there is no checkout, no payment, and prices are examples for layout. "Notify me" saves your email <b>in this browser only</b>. Merch has nothing to do with XP, GLACIERQ or any token, and browsing it doesn't affect your testnet account.
       </div>
 
       <div className="m-toolbar" id="m-grid">
@@ -81,7 +81,7 @@ export default function Merch() {
           <li><b>Example prices.</b> Prices, blanks, colours and sizes are placeholders for layout and may change or never ship.</li>
           <li><b>Mockups.</b> Product photos are computer-generated mockups of original Quasaria artwork, not photos of real stock.</li>
           <li><b>Notify me stays local.</b> Emails you enter are saved in this browser's localStorage only. They are never sent to a server, shared or used for marketing.</li>
-          <li><b>No token or XP link.</b> Merch is unrelated to QFX, XP, badges or any digital asset, and confers no rights, rewards or returns. Quasaria is an unaudited, testnet-only project.</li>
+          <li><b>No token or XP link.</b> Merch is unrelated to XP, badges, GLACIERQ or any digital asset, and confers no rights, rewards or returns. Quasaria is an unaudited, testnet-only project.</li>
           <li><b>Not affiliated.</b> Quasaria is not affiliated with or endorsed by the Stellar Development Foundation. "Stellar" is used only to describe the network the app runs on.</li>
         </ul>
       </footer>

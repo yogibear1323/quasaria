@@ -6,6 +6,14 @@
 const BASE = (import.meta.env?.BASE_URL ?? "/").replace(/\/?$/, "/");
 export const merchImg = (path: string) => `${BASE}merch-assets/${path}`;
 
+/** Store brand mark: square crop of the parka-yeti photo (same image as the GLACIERQ token icon). Replaces the Q on /merch. */
+export const MERCH_MARK = merchImg("brand/yeti-mark-192.png");
+export const MERCH_MARK_LG = merchImg("brand/yeti-mark-512.png");
+export const MERCH_FAVICON_SVG = merchImg("brand/favicon-yeti.svg");
+export const MERCH_FAVICON_PNG = merchImg("brand/favicon-yeti-32.png");
+export const MERCH_APPLE_ICON = merchImg("brand/apple-touch-yeti.png");
+export const MERCH_TITLE = "Quasaria Supply — merch preview (coming soon)";
+
 /** Optional contact address for a mailto "notify me". Leave empty to only save locally. */
 export const MERCH_CONTACT_EMAIL = "";
 export const NOTIFY_KEY = "quasaria.merch.notify.v1";
@@ -37,7 +45,8 @@ export type Product = {
 };
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
-const mk = (name: string) => merchImg(`mockups/${name}.webp`);
+/** Frost-backdrop renders (same garments and print art as mockups/, navy-steel studio backdrop instead of umber). */
+const mk = (name: string) => merchImg(`mockups-frost/${name}.webp`);
 const per = (base: string, colors: string[]) => Object.fromEntries(colors.map((c) => [c, mk(`${base}-${c}`)]));
 /** Print artwork (all v4 art is light/glow ink, shown on a dark backdrop). */
 const art = (file: string, alt: string) => ({ src: merchImg(`designs/${file}.webp`), alt, art: true });

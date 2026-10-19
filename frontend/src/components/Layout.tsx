@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import AccountModal from "./AccountModal";
 import logo from "../assets/logo-light.svg";
+import { MERCH_MARK } from "../merch/catalog";
 import { Orbits } from "./Quasar";
 import WorldBackground, { type Scene } from "../world/WorldBackground";
 import WorldNav from "../world/WorldNav";
@@ -87,6 +88,9 @@ export default function Layout() {
   const loc = useLocation();
   const w = useWallet();
   const scene = sceneFor(loc.pathname);
+  // The merch store carries the yeti mark (same image as the GLACIERQ token icon) instead of the Q.
+  const isMerch = loc.pathname === "/merch" || loc.pathname.startsWith("/merch/");
+  const mark = isMerch ? MERCH_MARK : logo;
   return (
     <>
       <WorldBackground scene={scene} />
@@ -99,7 +103,7 @@ export default function Layout() {
         )}
         <header className="topbar">
           <NavLink to="/" className="brand" aria-label="Quasaria home">
-            <img src={logo} alt="" />
+            <img src={mark} alt="" className={isMerch ? "is-yeti" : undefined} />
             <span className="word">Quasaria</span>
           </NavLink>
           <WorldNav />
@@ -124,7 +128,7 @@ export default function Layout() {
         </main>
         <footer>
           <div className="foot-inner">
-            <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
+            <span className="foot-brand"><img src={mark} alt="" className={isMerch ? "is-yeti" : undefined} />Quasaria</span>
             <span>
               Quasaria is an <b>unaudited, testnet-only</b> scaffold. Nothing here is financial advice. Liquidity pools and token rewards
               carry substantial risk of loss and may be regulated in your jurisdiction.

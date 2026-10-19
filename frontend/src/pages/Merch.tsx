@@ -1,33 +1,49 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { CATEGORIES, EMAIL_RE, HERO_IMG, MERCH_CONTACT_EMAIL, PRODUCTS, fmtExample, readNotify, saveNotify, type Category, type Product } from "../merch/catalog";
-import SpaceYeti from "../components/SpaceYeti";
-import "../theme/space-yeti.css";
+import { CATEGORIES, EMAIL_RE, MERCH_APPLE_ICON, MERCH_CONTACT_EMAIL, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, MERCH_TITLE, PRODUCTS, fmtExample, readNotify, saveNotify, type Category, type Product } from "../merch/catalog";
+import "../theme/merch-frost.css";
+
+const YETI_LG = `${(import.meta.env?.BASE_URL ?? "/").replace(/\/?$/, "/")}frost/yeti-cutout-lg.webp`;
+
+/** While the store is open: yeti favicon / touch icon / tab title (restored when you leave). */
+function useMerchHead() {
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = MERCH_TITLE;
+    const swaps: [string, string][] = [['link[rel="icon"][type="image/svg+xml"]', MERCH_FAVICON_SVG], ['link[rel="icon"][sizes="32x32"]', MERCH_FAVICON_PNG], ['link[rel="apple-touch-icon"]', MERCH_APPLE_ICON]];
+    const undo = swaps.flatMap(([sel, href]) => { const el = document.querySelector<HTMLLinkElement>(sel); if (!el) return []; const old = el.getAttribute("href") ?? ""; el.setAttribute("href", href); return [() => el.setAttribute("href", old)]; });
+    return () => { document.title = prevTitle; undo.forEach((f) => f()); };
+  }, []);
+}
 
 /** /merch — preview storefront. No checkout, no payments, no backend. */
 export default function Merch() {
   const [cat, setCat] = useState<"all" | Category>("all");
   const [open, setOpen] = useState<Product | null>(null);
+  useMerchHead();
+  const trio = [[PRODUCTS[0], "black"], [PRODUCTS[1], "pearl"], [PRODUCTS[2], "navy"]] as const;
   const list = useMemo(() => (cat === "all" ? PRODUCTS : PRODUCTS.filter((p) => p.category === cat)), [cat]);
   return (
     <div className="merch">
       <section className="m-hero card glow" aria-labelledby="m-hero-title">
-        <div className="m-hero-copy">
-          <div className="l-kicker">Quasaria Supply · coming soon</div>
-          <h1 id="m-hero-title">Wear the <span className="grad-text">Singularity</span>.</h1>
-          <p>A minimal line built around the glowing Singularity Q: the Glow hoodie, a pearl iridescent tee and a navy bomber, plus tees, caps, a mug and stickers in black, navy and pearl. It's a preview for now. Nothing is for sale and every price is an example.</p>
-          <div className="m-hero-pills">
-            <span className="pill cyan">Preview · not for sale yet</span>
-            <span className="pill">Example prices</span>
-            <span className="pill">No payments on this site</span>
+        <div className="m-hero-top">
+          <div className="m-hero-copy">
+            <div className="l-kicker m-kicker"><img className="m-mark" src={MERCH_MARK} alt="" width={28} height={28} />Quasaria Supply · coming soon</div>
+            <h1 id="m-hero-title">Wear the <span className="grad-text">Singularity</span>.</h1>
+            <p>A minimal line built around the glowing Singularity Q: the Glow hoodie, a pearl iridescent tee and a navy bomber, plus tees, caps, a mug and stickers in black, navy and pearl. It's a preview for now. Nothing is for sale and every price is an example.</p>
+            <div className="m-hero-pills">
+              <span className="pill cyan">Preview · not for sale yet</span>
+              <span className="pill">Example prices</span>
+              <span className="pill">No payments on this site</span>
+            </div>
+            <div className="row m-hero-cta">
+              <a className="btn" href="#m-grid" onClick={(e) => { e.preventDefault(); document.getElementById("m-grid")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }}>Browse the collection</a>
+              <button className="btn ghost" onClick={() => setOpen(PRODUCTS[0])}>See the Glow hoodie</button>
+            </div>
           </div>
-          <div className="row m-hero-cta">
-            <a className="btn" href="#m-grid" onClick={(e) => { e.preventDefault(); document.getElementById("m-grid")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }}>Browse the collection</a>
-            <button className="btn ghost" onClick={() => setOpen(PRODUCTS[0])}>See the Glow hoodie</button>
-            <SpaceYeti prop="bag" className="sy-inline" />
-          </div>
+          <div className="m-hero-yeti" aria-hidden="true"><img src={YETI_LG} alt="" width={616} height={900} decoding="async" draggable={false} /></div>
         </div>
-        <div className="m-hero-art">
-          <img src={HERO_IMG} alt="Glow hoodie, pearl iridescent tee and navy bomber" width={1800} height={612} />
+        <div className="m-hero-art" role="img" aria-label="Glow hoodie, pearl iridescent tee and navy bomber">
+          {trio.map(([p, c]) => <img key={p.id} src={p.mockups[c]} alt="" width={900} height={900} loading="eager" decoding="async" />)}
         </div>
       </section>
 

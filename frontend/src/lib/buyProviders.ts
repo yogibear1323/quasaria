@@ -1,4 +1,4 @@
-/** Plain outbound links to third-party XLM purchase pages (checked 2026-10-18). No embeds, referral codes, keys or backend calls. */
+/** Plain outbound links to third-party XLM purchase pages (checked 2026-10-18). Nothing is embedded or sent anywhere. */
 export const BUY_PROVIDERS = [
   { id: "coinbase", name: "Coinbase", url: "https://www.coinbase.com/price/stellar" },
   { id: "kraken", name: "Kraken", url: "https://www.kraken.com/buy/xlm" },

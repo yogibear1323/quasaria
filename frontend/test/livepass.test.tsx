@@ -25,3 +25,15 @@ describe("final live-site pass", () => {
     }
   });
 });
+
+import { usdUnit, tvlUsd, type PoolRow } from "../src/lib/nativePools";
+import { TESTNET_USDC_ISSUER } from "../src/lib/config";
+describe("testnet never shows dollar values", () => {
+  it("usdUnit is null on testnet even for XLM and the USDC stand-in; mainnet XLM still prices", () => {
+    expect(usdUnit("testnet", { code: "XLM", issuer: null }, { xlmUsd: 0.18 })).toBeNull();
+    expect(usdUnit("testnet", { code: "USDC", issuer: TESTNET_USDC_ISSUER }, { xlmUsd: 0.18 })).toBeNull();
+    expect(usdUnit("mainnet", { code: "XLM", issuer: null }, { xlmUsd: 0.18 })).toBe(0.18);
+    const p = { net: "testnet", a: { code: "XLM", issuer: null }, b: { code: "USDC", issuer: TESTNET_USDC_ISSUER }, reserveA: 1e6, reserveB: 1e6 } as unknown as PoolRow;
+    expect(tvlUsd(p, { xlmUsd: 0.18 })).toBeNull();
+  });
+});

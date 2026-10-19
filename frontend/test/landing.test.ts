@@ -15,8 +15,8 @@ describe("landing outline (approved copy)", () => {
     }
   });
   it("keeps the approved text verbatim", () => {
-    expect(s[0].headline).toBe("Your keys, your XLM.");
-    expect(s[0].pitch).toBe("Quasaria never holds your keys or your XLM when you trade: you hold the secret key and sign everything in your own browser.");
+    expect(s[0].headline).toBe("Trade on the Stellar Decentralized Exchange.");
+    expect(s[0].pitch).toBe("Quasaria is a client for the Stellar network. Send, receive, and trade assets on the Stellar network easily with Quasaria.");
     expect(s[3].headline).toBe("Your keys never leave your browser.");
     expect(s[10].headline).toBe("Your first trade is a few clicks away.");
     expect(s[11].headline).toBe("Latest from Stellar.");
@@ -25,5 +25,23 @@ describe("landing outline (approved copy)", () => {
   });
   it("ignores text before the first numbered section", () => {
     expect(parseOutline("# Title\nHeadline: stray\n1. A\nHeadline: H\nPitch: P\nVisual: V")).toEqual([{ n: 1, title: "A", headline: "H", pitch: "P", visual: "V" }]);
+  });
+  it("moves 'Your keys, your XLM' out of the hero into a strip directly beneath it, and updates title, description, OG and twitter tags", () => {
+    const land = readFileSync(new URL("../src/pages/Landing.tsx", import.meta.url), "utf8");
+    const heroEnd = land.indexOf("</section>", land.indexOf('className="l-hero"'));
+    const hero = land.slice(land.indexOf('className="l-hero"'), heroEnd);
+    expect(hero).not.toMatch(/Your keys, your XLM/);
+    expect(hero).not.toContain("hero-custody-note");
+    expect(land.slice(heroEnd, heroEnd + 120)).toMatch(/<KeysStrip \/>/);
+    expect(land).toMatch(/<h2 id="keys-strip-h" className="l-h2">Your keys, your XLM\.<\/h2>/);
+    const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+    const T = "Quasaria — Trade on the Stellar Decentralized Exchange";
+    const D = "Quasaria is a client for the Stellar network. Send, receive, and trade assets on the Stellar network easily with Quasaria.";
+    expect(html).toContain(`<title>${T}</title>`);
+    for (const k of ['name="description"', 'property="og:description"', 'name="twitter:description"']) expect(html).toMatch(new RegExp(`${k} content="${D.replace(/[.]/g, "\\.")}`));
+    for (const k of ['property="og:title"', 'name="twitter:title"']) expect(html).toContain(`${k} content="${T}"`);
+    expect(html).not.toMatch(/Your keys, your XLM|speed of light/);
+    expect(land).toContain(`document.title = "${T}"`);
+    expect(land).not.toMatch(/speed of light/);
   });
 });

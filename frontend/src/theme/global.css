@@ -696,3 +696,11 @@ main.pg-main > *:not(.pg-orbits) { position: relative; z-index: 1; }
 }
 @media (max-width: 1600px) { .wn-txt small { display: none; } }
 @media (max-width: 1480px) { .wn-txt { display: none; } .wn-btn { padding-right: 8px; } .topbar .net-badge { display: none; } }
+
+/* ---- "Your keys, your XLM" strip directly beneath the home hero */
+.l-keysstrip { display: flex; align-items: center; justify-content: space-between; gap: var(--s-6, 24px); flex-wrap: wrap; margin: 0 0 var(--s-8, 32px); padding: 22px 26px; }
+.l-keysstrip-copy { flex: 1 1 420px; min-width: 0; }
+.l-keysstrip-copy .l-h2 { margin: 0 0 6px; }
+.l-keysstrip-copy .l-pitch { margin: 0; max-width: 720px; }
+.l-keysstrip-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 640px) { .l-keysstrip { padding: 16px; } .l-keysstrip-cta { width: 100%; } .l-keysstrip-cta .btn { flex: 1 1 140px; text-align: center; } }

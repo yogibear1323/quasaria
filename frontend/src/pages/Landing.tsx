@@ -101,6 +101,23 @@ function Ticker() {
   );
 }
 
+/** "Your keys, your XLM" lives in a prominent strip directly beneath the hero (the hero copy itself is fixed). */
+export function KeysStrip() {
+  const w = useWallet();
+  return (
+    <section className="card glow l-keysstrip" aria-labelledby="keys-strip-h" data-testid="keys-strip">
+      <div className="l-keysstrip-copy">
+        <h2 id="keys-strip-h" className="l-h2">Your keys, your XLM.</h2>
+        <p className="l-pitch">Quasaria never holds your keys or your XLM when you trade: you hold the secret key and sign everything in your own browser. Nobody can recover it for you, so save it.</p>
+      </div>
+      <div className="l-keysstrip-cta">
+        {!w.address && <button className="btn" onClick={() => w.openModal("create")}>Create a keypair</button>}
+        <a className="btn ghost" href="#keys">How your keys work</a>
+      </div>
+    </section>
+  );
+}
+
 function CtaButtons() {
   const w = useWallet();
   return (
@@ -461,7 +478,7 @@ export default function Landing() {
   const [scene, setScene] = useState<Scene>("quasar");
   const onScene = useMemo(() => (s: Scene) => setScene(s), []);
   useEffect(() => {
-    document.title = "Quasaria · Trade at the speed of light on Stellar";
+    document.title = "Quasaria — Trade on the Stellar Decentralized Exchange";
   }, []);
   const hero = S(1);
   const cta = S(11);
@@ -484,7 +501,6 @@ export default function Landing() {
               <span className="net-badge">Testnet beta</span>
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
-              <p className="muted l-tiny l-custody" data-testid="hero-custody-note">Non-custodial: you hold the secret key. Pools and holder rewards use plain Stellar operations, with no smart contract. Testnet beta.</p>
               <CtaButtons />
               <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span><SpaceYeti prop="coin" className="sy-inline" /></div>
             </div>
@@ -492,6 +508,8 @@ export default function Landing() {
               <Suspense fallback={<div className="globe-loading" aria-hidden />}><Globe /></Suspense>
             </div>
           </section>
+
+          <KeysStrip />
 
           <section className="l-world" aria-labelledby="world-h">
             <h2 id="world-h" className="l-h2">Explore the world of Quasaria</h2>

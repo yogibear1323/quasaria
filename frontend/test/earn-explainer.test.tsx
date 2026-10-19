@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import Earn from "../src/pages/Earn";
+import { WalletProvider } from "../src/lib/wallet";
 
 describe("Earnings: How earnings work", () => {
-  const html = renderToStaticMarkup(<MemoryRouter><Earn /></MemoryRouter>);
+  const html = renderToStaticMarkup(<MemoryRouter><WalletProvider><Earn /></WalletProvider></MemoryRouter>);
   const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   it("states the confirmed tokenomics and rates", () => {
     expect(text).toMatch(/How earnings work/);

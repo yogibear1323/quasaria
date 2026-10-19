@@ -14,7 +14,7 @@ import "./theme/frost-auto.css";
 import "./theme/frost.css";
 import { WalletProvider } from "./lib/wallet";
 
-// Old hash-style links (/quasaria/#/beacons) → real path routes before the router mounts.
+// Old hash-style links (/quasaria/#/markets) → real path routes before the router mounts.
 {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const m = location.hash.match(/^#(\/[\w\-/]*)(\?.*)?$/);

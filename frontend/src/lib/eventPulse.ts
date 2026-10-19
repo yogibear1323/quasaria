@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CalibratedStatus, ChainTrade } from "./backOffice";
 
 /**
- * Beacons theme: "the glow is the proof". A pulse may only fire when a REAL event
+ * Back Office pulse: "the glow is the proof". A pulse may only fire when a REAL event
  * signature changes after the first observation (never on page load, never on a timer):
  *  - oracle: the on-chain oracle timestamp moved (a new price push landed)
  *  - fill:   a new on-chain desk trade tx appeared, or Orion's live slice logged a new fill

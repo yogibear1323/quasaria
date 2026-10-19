@@ -110,8 +110,8 @@
 .st-halted .bo-st.b { fill: #be123c; }
 .bo-dot { fill: #1b1640; }
 .bo-off { fill: #1b1640; opacity: .7; }
-.bo-beacon .bo-dome { fill: #dcd7f7; }
-.bo-beacon .bo-halo { fill: transparent; }
+.bo-lamp .bo-dome { fill: #dcd7f7; }
+.bo-lamp .bo-halo { fill: transparent; }
 .st-running .bo-dome { fill: #047857; opacity: .8; }
 .st-paused .bo-dome { fill: #b45309; opacity: .85; }
 .st-halted .bo-dome { fill: #be123c; }

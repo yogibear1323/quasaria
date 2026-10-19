@@ -96,7 +96,7 @@ function markA(id = "a", { glint = true } = {}) {
   ${glint ? `<path d="${sparkle(47.2, 13.6, 4.4)}" fill="url(#${id}-glint)"/>` : ""}`;
 }
 
-// ------------------------------------------------------------------ Concept B: "Beacon"
+// ------------------------------------------------------------------ Concept B: "Star core"
 // A tilted accretion disk wrapped around a star-bright core, with bipolar jets
 // firing perpendicular to the disk. The front half of the disk passes over the
 // core, giving depth. The most "cosmic" of the three.
@@ -187,7 +187,7 @@ const CONCEPTS = {
     },
   },
   b: {
-    name: "Beacon",
+    name: "Star core",
     desc: "Quasaria mark: a star-bright core inside a tilted accretion disk, firing bipolar relativistic jets.",
     mark: () => markB("b"),
     small: () => markB("bf"),

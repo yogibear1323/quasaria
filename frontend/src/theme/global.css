@@ -657,7 +657,7 @@ select.input option, select.input optgroup { background: var(--bg-elev); color: 
 .perps-demo-link b { color: #67e8f9; }
 .perps-demo-link:hover { border-color: rgba(34, 211, 238, 0.6); color: var(--text); }
 
-/* ---- Beacons charcoal + quasar echoes (inner pages): faint orbit rings, soft card glows, star haze. Backgrounds only. ---- */
+/* ---- Charcoal + quasar echoes (inner pages): faint orbit rings, soft card glows, star haze. Backgrounds only. ---- */
 main.pg-main { position: relative; }
 main.pg-main > *:not(.pg-orbits) { position: relative; z-index: 1; }
 .pg-orbits { top: -30px; right: -40px; width: min(460px, 60vw); height: min(460px, 60vw); opacity: .85; }

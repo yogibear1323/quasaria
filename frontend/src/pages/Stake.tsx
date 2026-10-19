@@ -34,7 +34,7 @@ export default function Stake() {
 
   return (
     <>
-      <PageHead kicker="Scene · Orbital Rings" title="Stake" right={<div className="row"><SourceTag {...chain} /><span className="pill gold">Admin-whitelisted orbits</span><Link className="pill cyan" to="/calculators?c=staking">🧮 Staking calculator</Link><Link className="pill cyan" to="/beacons">✦ Beacons (preview)</Link></div>}>
+      <PageHead kicker="Scene · Orbital Rings" title="Stake" right={<div className="row"><SourceTag {...chain} /><span className="pill gold">Admin-whitelisted orbits</span><Link className="pill cyan" to="/calculators?c=staking">🧮 Staking calculator</Link></div>}>
         Put whitelisted tokens into orbit. Each pool streams its own reward rate from a pre-funded reserve; some pools have lock periods for boosted rewards.
       </PageHead>
       <div className="grid g-3">

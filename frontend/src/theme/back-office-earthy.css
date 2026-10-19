@@ -69,8 +69,8 @@
 .bo-st.b { fill: #f6efe1; }
 .st-halted .bo-st.b { fill: #f08a7a; }
 .bo-dot { fill: #2a2a20; } .bo-off { fill: #2a2a20; }
-.bo-beacon rect { fill: #6b5638; }
-.bo-beacon .bo-dome { fill: #d8c7a8; }
+.bo-lamp rect { fill: #6b5638; }
+.bo-lamp .bo-dome { fill: #d8c7a8; }
 .st-running .bo-dome { fill: #4f6b2c; } .st-paused .bo-dome { fill: #c27a1a; } .st-halted .bo-dome { fill: #9f1d2b; }
 .st-halted .bo-halo { fill: rgba(196,80,60,.45); }
 
@@ -127,7 +127,7 @@
 .dd-tbl td.ok { color: #3f5a24; }
 .dd-dot { fill: rgba(138,58,28,.75); }
 
-/* ---- .bo.bk (shared Back Office/Beacons surface tokens) → earthy ---- */
+/* ---- .bo.bk (shared Back Office surface tokens) → earthy ---- */
 .bo.bk {
   --bk-bg: #fffdf8; --bk-s1: rgba(255,252,245,.92); --bk-s2: #f6efe2; --bk-s3: #efe4d0;
   --bk-line: #d9ccb6; --bk-line-2: #c4b398;

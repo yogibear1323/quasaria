@@ -49,8 +49,8 @@ html.frost .bo-st.b { fill: hsla(222, 42%, 11.7%, 0.86); }
 html.frost .st-halted .bo-st.b { fill: hsla(210, 50%, 53.2%, 1); }
 html.frost .bo-dot { fill: hsla(222, 45%, 14.5%, 1); }
 html.frost .bo-off { fill: hsla(222, 45%, 14.5%, 1); }
-html.frost .bo-beacon rect { fill: hsla(210, 50%, 25.0%, 1); }
-html.frost .bo-beacon .bo-dome { fill: hsla(210, 50%, 56.5%, 1); }
+html.frost .bo-lamp rect { fill: hsla(210, 50%, 25.0%, 1); }
+html.frost .bo-lamp .bo-dome { fill: hsla(210, 50%, 56.5%, 1); }
 html.frost .st-running .bo-dome { fill: hsla(210, 50%, 25.0%, 1); }
 html.frost .st-paused .bo-dome { fill: hsla(210, 50%, 32.4%, 1); }
 html.frost .st-halted .bo-dome { fill: hsla(210, 50%, 27.6%, 1); }
@@ -144,7 +144,7 @@ html.frost .bo-st.b { fill: hsla(222, 42%, 11.4%, 0.86); }
 html.frost .st-halted .bo-st.b { fill: hsla(210, 50%, 30.6%, 1); }
 html.frost .bo-dot { fill: hsla(210, 50%, 25.0%, 1); }
 html.frost .bo-off { fill: hsla(210, 50%, 25.0%, 1); }
-html.frost .bo-beacon .bo-dome { fill: hsla(222, 42%, 12.3%, 0.86); }
+html.frost .bo-lamp .bo-dome { fill: hsla(222, 42%, 12.3%, 0.86); }
 html.frost .st-running .bo-dome { fill: hsla(210, 50%, 25.0%, 1); }
 html.frost .st-paused .bo-dome { fill: hsla(210, 50%, 27.8%, 1); }
 html.frost .st-halted .bo-dome { fill: hsla(210, 50%, 30.6%, 1); }

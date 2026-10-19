@@ -122,7 +122,7 @@ export function RobotDesk({ d, i, now, selected, onSelect, tradesLoaded, example
       <span className="bo-scene">
         <svg className="bo-svg" viewBox="0 0 240 156" aria-hidden>
           <rect className="bo-wall" x="3" y="4" width="234" height="102" rx="10" />
-          <g className="bo-beacon">
+          <g className="bo-lamp">
             <circle className="bo-halo" cx="17" cy="17" r="9" />
             <rect x="10" y="18" width="14" height="4" rx="1.5" fill="#2a2f4c" />
             <path className="bo-dome" d="M11.5 18 a5.5 5.5 0 0 1 11 0z" />

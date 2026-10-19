@@ -1,5 +1,5 @@
 /* =====================================================================
-   Back Office — "Beacons" theme layer (scoped to .bo.bk; no other page changes).
+   Back Office — surface theme layer (scoped to .bo.bk; no other page changes).
    Near-black, violet primary, cyan secondary, flat surfaces, hairlines.
    The only glow is .bk-pulse, applied for ~1.8s when a REAL event lands
    (oracle push, on-chain fill, Orion decision). Nothing glows at idle.
@@ -109,33 +109,6 @@
   .bo.bk .bk-pulse { animation: none; outline: 1px solid var(--bk-cyan); outline-offset: 2px; }
 }
 
-/* ---- Beacons (preview) panel ---- */
-.bk-preview { margin: 18px 0 8px; background: var(--bk-s1); border: 1px solid var(--bk-line-2); border-radius: var(--bk-r-lg); padding: 14px 16px; }
-.bk-preview-h { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.bk-preview h2 { margin: 0; display: flex; align-items: center; gap: 8px; }
-.bk-chip { font: 600 10px var(--bk-font-num); letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: var(--bk-r-sm); border: 1px solid; }
-.bk-chip-preview { color: var(--bk-violet-hi); border-color: rgba(139,124,255,.45); background: var(--bk-violet-dim); }
-.bk-chip-notlive { color: var(--bk-warn); border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.06); }
-.bk-tagline { margin: 10px 0 2px; font: 600 14px var(--bk-font-ui); color: var(--bk-cyan-hi); }
-.bk-sub { margin: 0 0 12px; font-size: 12.5px; color: var(--bk-text-2); max-width: 760px; }
-.bk-tiers { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
-.bk-tier { background: var(--bk-s2); border: 1px solid var(--bk-line); border-top: 2px solid var(--tc); border-radius: var(--bk-r-md); padding: 9px 10px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.bk-tier b { font: 600 15px var(--bk-font-num); color: var(--bk-text); }
-.bk-tier b small { font-size: 9.5px; color: var(--bk-text-3); }
-.bk-tier.t1, .bk-tier-badge.t1 { --tc: var(--tier-1); } .bk-tier.t2, .bk-tier-badge.t2 { --tc: var(--tier-2); } .bk-tier.t3, .bk-tier-badge.t3 { --tc: var(--tier-3); }
-.bk-tier.t4, .bk-tier-badge.t4 { --tc: var(--tier-4); } .bk-tier.t5, .bk-tier-badge.t5 { --tc: var(--tier-5); } .bk-tier.t6, .bk-tier-badge.t6 { --tc: var(--tier-6); }
-.bk-tier-badge { display: inline-flex; align-items: center; gap: 6px; font: 600 11px var(--bk-font-num); letter-spacing: .06em; text-transform: uppercase; color: var(--tc); }
-.bk-tier-badge i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--tc); background: transparent; }
-.bk-mut { font-size: 10.5px; color: var(--bk-text-3); }
-.bk-src-tbl { margin-top: 6px; border: 1px solid var(--bk-line); border-radius: var(--bk-r-md); overflow: hidden; font: 500 12px var(--bk-font-num); }
-.bk-src-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1.4fr; gap: 8px; padding: 6px 10px; border-bottom: 1px solid #dcd7f7; color: var(--bk-text-2); }
-.bk-src-row:last-child { border-bottom: 0; }
-.bk-src-row.hd { background: var(--bk-s2); color: var(--bk-text-3); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
-.bk-empty { margin: 8px 0 0; font-size: 11.5px; color: var(--bk-text-3); }
-@media (max-width: 960px) { .bk-tiers { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .bk-tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bk-src-row { grid-template-columns: 1.6fr .8fr .8fr; } .bk-src-row > span:nth-child(4) { display: none; } }
-.bk-rules { margin: 0 0 12px; padding-left: 18px; font-size: 12px; color: var(--bk-text-2); display: grid; gap: 2px; }
-
 /* ---- Quasar hero (Back Office information dashboard) ---- */
 .bk-hero { position: relative; margin: -8px -16px 16px; padding: 18px 16px 4px; border-radius: 22px; overflow: hidden; isolation: isolate; border: 1px solid rgba(139,124,255,.18); background: #ffffff; }
 .bk-hero-in { position: relative; z-index: 1; }
@@ -143,7 +116,6 @@
 .bo.bk .bk-hero .bo-t { background: radial-gradient(120% 90% at 0% 0%, rgba(139,124,255,.10), transparent 60%), rgba(255, 255, 255, 0.92); }
 .bo.bk .bk-hero .bo-t:nth-child(4) { background: radial-gradient(120% 90% at 0% 0%, rgba(34,211,238,.10), transparent 60%), rgba(255, 255, 255, 0.92); }
 .bo.bk .bo-floor { background: radial-gradient(60% 40% at 100% 0%, rgba(139,124,255,.08), transparent 70%), var(--bk-s1); }
-.bk-preview { background: radial-gradient(50% 60% at 100% 0%, rgba(34,211,238,.07), transparent 70%), var(--bk-s1); }
 @media (max-width: 760px) { .bk-hero { margin: -4px -8px 12px; padding: 14px 10px 2px; border-radius: 16px; } }
 .bk-hero .qz-obj { top: 30%; right: 6%; width: min(40vw, 480px); }
 .bo.bk .bk-hero .bo-b { background-color: #f6f5ff; }

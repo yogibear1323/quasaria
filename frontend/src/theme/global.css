@@ -570,6 +570,7 @@ select.input option, select.input optgroup { background: var(--bg-elev); color: 
 
 @media (max-width: 1600px) {
   .topbar .pill[data-testid="xlm-ticker"] .muted { display: none; }
+  .topbar [data-testid="account-button"] .muted { display: none; } /* keeps the whole nav visible (About) when signed in at 1440 */
   .nav a { padding: 7px 5px; font-size: 0.84rem; } /* 11 links (incl. News) still fit at 1440 */
 }
 @media (max-width: 1439px) and (min-width: 721px) {

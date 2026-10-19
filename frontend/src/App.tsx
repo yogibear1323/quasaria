@@ -13,6 +13,7 @@ import Merch from "./pages/Merch";
 import News from "./pages/News";
 import Wallet from "./pages/Wallet";
 import Account from "./pages/Account";
+import Swap from "./pages/Swap";
 import ComingSoon from "./pages/ComingSoon";
 import { REDIRECTS } from "./lib/nav";
 import { GameProvider } from "./game/GameProvider";
@@ -33,7 +34,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/markets" element={<Markets />} />
           <Route path="/exchange" element={<Trade mode="exchange" />} />
-          <Route path="/swap" element={<ComingSoon kicker="Swap" title="Swap" links={[{ to: "/exchange", label: "Open Exchange" }, { to: "/pools", label: "Pools" }]}>A simple swap: pick what you send and what you want, see the quote and your slippage limit, then confirm.</ComingSoon>} />
+          <Route path="/swap" element={<Swap />} />
           <Route path="/referral" element={<ComingSoon kicker="Referral" title="Referral program" links={[{ to: "/holders", label: "Holder rewards" }]}>Invite people with your link. It will go live after the first mainnet holder-reward run, and the terms may change.</ComingSoon>} />
           <Route path="/activity" element={<ComingSoon kicker="Activity" title="Activity" links={[{ to: "/exchange", label: "Exchange" }, { to: "/pools", label: "Pools" }]}>Your trades, pool deposits and withdrawals, and rewards in one timeline, plus a network-wide view.</ComingSoon>} />
           <Route path="/buy" element={<ComingSoon kicker="Buy" title="Buy XLM" links={[{ to: "/markets", label: "Markets" }]}>How to get XLM into your Quasaria address with a card from a third-party provider, and how to set up USDC.</ComingSoon>} />

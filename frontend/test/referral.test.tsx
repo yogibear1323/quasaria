@@ -38,7 +38,7 @@ describe("Holders page tiers", () => {
     expect(t).toMatch(/Who qualifies and what it pays/);
     expect(t).toMatch(/1M to under 10M/); expect(t).toMatch(/10M and above/);
     expect(t).toMatch(/5% a year/); expect(t).toMatch(/7% a year/);
-    expect(t).toMatch(/Not live yet: the reserve balance, runway and payouts/);
+    expect(t).toMatch(/Not live yet: the reserve balance, runway and payouts|Reward reserve/); // live on testnet once the public reward config is published
     expect(t).not.toMatch(/\bAPY\b/);
   });
 });

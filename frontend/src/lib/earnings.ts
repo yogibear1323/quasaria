@@ -5,7 +5,7 @@
  * plus nothing else). It is exact for the operations we can see, so we also report whether the history may be cut off.
  * Rewards / referral: sums of verified GLACIERQ payments (issuer, reserve and memo checked by classifyOp).
  */
-import { classifyMemo, type OpRec, type RewardCfg } from "./activity";
+import { classifyMemo, senderOk, type OpRec, type RewardCfg } from "./activity";
 import type { Position } from "./nativePools";
 import { keyOf } from "./nativePools";
 
@@ -48,8 +48,8 @@ export function paymentTotals(ops: OpRec[], me: string, cfg: RewardCfg): Payment
   for (const o of ops) {
     if (o.type !== "payment" || o.transaction_successful === false || o.to !== me) continue;
     const m = classifyMemo(o.transaction?.memo);
-    const verified = o.asset_code === cfg.code && !!cfg.issuer && o.asset_issuer === cfg.issuer && (!cfg.reserve || o.from === cfg.reserve);
-    if (!m || !verified) continue;
+    const verified = o.asset_code === cfg.code && !!cfg.issuer && o.asset_issuer === cfg.issuer;
+    if (!m || !verified || !senderOk(m.kind, o.from, cfg)) continue;
     t[m.kind] += Number(o.amount); t.count++;
   }
   return t;

@@ -44,6 +44,12 @@ describe("activity classification", () => {
     const noIssuerYet = classifyOp(ops[5], ME, { code: "GLACIERQ", issuer: null, reserve: null })!;
     expect(spoofIssuer.kind).toBe("payment"); expect(spoofSender.kind).toBe("payment"); expect(noIssuerYet.kind).toBe("payment");
   });
+  it("referral payments must come from the separate payer when one is configured; holder rewards still only from the reserve", () => {
+    const withPayer: RewardCfg = { ...cfg, payer: OTHER };
+    expect(classifyOp({ ...ops[6], from: OTHER }, ME, withPayer)!.kind).toBe("referral");
+    expect(classifyOp(ops[6], ME, withPayer)!.kind).toBe("payment"); // reserve is not the referral payer
+    expect(classifyOp({ ...ops[5], from: OTHER }, ME, withPayer)!.kind).toBe("payment"); // payer cannot mint holder rewards
+  });
   it("skips unrelated operation types and failed transactions", () => { expect(items[9]).toBeNull(); expect(items[10]).toBeNull(); });
   it("parses memo conventions", () => {
     expect(classifyMemo("GLACIERQ:2026-10-17")).toEqual({ kind: "reward", day: "2026-10-17" });

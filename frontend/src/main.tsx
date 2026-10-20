@@ -25,7 +25,8 @@ import { WalletProvider } from "./lib/wallet";
 // chunks, so a phone holding an older index.html can show an old page or fail to load a lazy chunk (blank route).
 if (import.meta.env.PROD) {
   const KEY = "qz.reloaded-for";
-  const reloadOnce = (tag: string) => { if (sessionStorage.getItem(KEY) === tag) return; sessionStorage.setItem(KEY, tag); location.reload(); };
+  // Never auto-reload while a generated keypair is waiting to be confirmed (the user may be away saving the secret).
+  const reloadOnce = (tag: string) => { if (sessionStorage.getItem("quasaria.pending-keypair.v1")) return; if (sessionStorage.getItem(KEY) === tag) return; sessionStorage.setItem(KEY, tag); location.reload(); };
   // A lazy chunk from a previous deploy is gone: reload once to pick up the current index + chunks.
   window.addEventListener("vite:preloadError", (e) => { e.preventDefault(); reloadOnce("preload:" + location.pathname); });
   // Re-fetch index.html from the network; if it points at a newer bundle than the one running, reload once.

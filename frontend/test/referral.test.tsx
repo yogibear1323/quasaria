@@ -11,9 +11,9 @@ const text = (h: string) => h.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").re
 
 describe("Referral page", () => {
   const html = R(<Referral />); const t = text(html);
-  it("shows the confirmed terms and the coming-after-launch flag", () => {
-    expect(REFERRAL_LIVE).toBe(false);
-    expect(html).toContain('data-testid="referral-notflive"'); expect(t).toContain("Coming after launch");
+  it("shows the confirmed terms and the Live status", () => {
+    expect(REFERRAL_LIVE).toBe(true);
+    expect(html).not.toContain('data-testid="referral-notflive"'); expect(html).toContain('data-testid="referral-status">Live');
     expect(t).toMatch(/10% of the friend's daily reward, for 365 days/);
     expect(t).toMatch(/\+10% of their own daily reward, for 6 months \(180 days\)/);
     expect(t).toMatch(/100,000 GLACIERQ on each side/); expect(t).toMatch(/25,000 GLACIERQ a day/); expect(t).toMatch(/1M GLACIERQ a day for all referral bonuses/);

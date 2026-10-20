@@ -87,7 +87,7 @@ describe("account maths", () => {
       { asset_type: "liquidity_pool_shares", liquidity_pool_id: "ab".repeat(32), balance: "10" },
     ] }, "testnet", 0.5);
     if (!v.exists) throw new Error("x");
-    expect(v.native.reserve).toBe(3); expect(v.native.available).toBe(96);
+    expect(v.native.reserve).toBe(3); expect(v.native.available).toBe(95.99);
     expect(v.holdings[0].verified).toContain("Circle"); expect(v.holdings[1].verified).toBeNull(); // same ticker, different issuer → not verified
     expect(v.poolShares).toEqual([{ poolId: "ab".repeat(32), shares: 10 }]);
     expect(rg === null || typeof rg === "string").toBe(true);

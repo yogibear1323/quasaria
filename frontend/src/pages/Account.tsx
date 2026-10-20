@@ -1,3 +1,4 @@
+import { curatedList } from "../lib/nativePools";
 import { NETWORK, NETWORK_LABEL } from "../lib/config";
 import { Link } from "react-router-dom";
 import { PageHead } from "../components/ui";
@@ -16,6 +17,8 @@ import { fmt, fmtCompact, short } from "../lib/format";
 const NET = NETWORK;
 const NET_LABEL = NETWORK_LABEL;
 const DASH = "—";
+/** Icons from the curated list (issuers' stellar.toml) by code + issuer; GLACIERQ uses our token icon inside AssetLogo. */
+const LOGOS = new Map(curatedList(NET).filter((a) => a.issuer && a.logo).map((a) => [`${a.code}:${a.issuer}`, a.logo as string]));
 const trim7 = (n: number) => fmt(n, 7).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
 
 export default function Account() {
@@ -41,7 +44,7 @@ export default function Account() {
   const unfunded = view?.exists === false;
   return (
     <>
-      <PageHead kicker="Account" title="Your account" right={<span className="pill gold" data-testid="net-label">{NET_LABEL} · no real value</span>}>
+      <PageHead kicker="Account" title="Your account" right={<span className="pill gold" data-testid="net-label">{NET_LABEL === "Testnet" ? "Testnet · no real value" : NET_LABEL}</span>}>
         Read-only view from the Stellar network. Your secret key never leaves this browser and is never shown here.
       </PageHead>
 
@@ -68,7 +71,7 @@ export default function Account() {
       {acct.error && <div className="notice" role="alert" style={{ marginTop: 16 }}>Could not reach Horizon ({acct.error}). Values show {DASH} until it answers. <button className="btn small ghost" onClick={acct.reload}>Retry</button></div>}
 
       <div className="grid g-2" style={{ marginTop: 16 }}>
-        <Holdings view={view} loading={acct.loading} />
+        <Holdings view={view} loading={acct.loading && !view} updatedAt={acct.updatedAt} onRefresh={acct.reload} refreshing={acct.loading} />
         <div style={{ display: "grid", gap: 16, alignContent: "start" }}>
           <Rewards view={view} />
           <Positions view={view} />
@@ -88,25 +91,31 @@ function Row({ icon, title, sub, value, subValue, testid }: { icon: React.ReactN
   );
 }
 
-export function Holdings({ view, loading }: { view: AccountView | null; loading: boolean }) {
+export function Holdings({ view, loading, updatedAt = null, onRefresh, refreshing = false }: { view: AccountView | null; loading: boolean; updatedAt?: number | null; onRefresh?: () => void; refreshing?: boolean }) {
   const ex = view?.exists ? view : null;
   return (
     <section className="card" data-testid="holdings">
-      <h2 style={{ marginTop: 0 }}>Holdings</h2>
+      <div className="row between" style={{ alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
+        <h2 style={{ marginTop: 0 }}>Holdings</h2>
+        <span className="muted l-tiny" data-testid="holdings-updated">{updatedAt ? `Live from Horizon · updated ${new Date(updatedAt).toLocaleTimeString()}` : "Live from Horizon"} · refreshes every 10 s{onRefresh && <> <button className="btn small ghost" onClick={onRefresh} disabled={refreshing} data-testid="holdings-refresh">{refreshing ? "Refreshing…" : "Refresh"}</button></>}</span>
+      </div>
       <Row testid="row-xlm" icon={<XlmMark size={28} />} title="XLM" sub="Stellar Lumens · native"
         value={ex ? trim7(ex.native.balance) : loading ? "…" : DASH}
         subValue={ex ? <>Available <span className="mono" data-testid="xlm-available">{ex.native.available === null ? DASH : trim7(ex.native.available)}</span> · Reserve <span className="mono" data-testid="xlm-reserve">{ex.native.reserve === null ? DASH : trim7(ex.native.reserve)}</span></> : `Available ${DASH} · Reserve ${DASH}`} />
       {ex?.native.sellingLiabilities ? <p className="muted l-tiny" style={{ margin: "4px 0 0" }}>{trim7(ex.native.sellingLiabilities)} XLM is committed to open offers.</p> : null}
       {ex?.holdings.map((h) => (
         <Row key={`${h.code}-${h.issuer}`} testid="row-trustline"
-          icon={<AssetLogo code={h.code} issuer={h.issuer} size={28} />}
+          icon={<AssetLogo code={h.code} issuer={h.issuer} size={28} logo={LOGOS.get(`${h.code}:${h.issuer}`) ?? null} />}
           title={<>{h.code}{h.verified && <span className="pill cyan" style={{ marginLeft: 8 }} title="Issuer matches the verified list">verified</span>}</>}
-          sub={h.verified ?? <>Unverified issuer <a className="mono" href={explorerAssetUrl(h.code, h.issuer, NET) ?? undefined} target="_blank" rel="noopener noreferrer" title={h.issuer}>{short(h.issuer, 6)} ↗</a></>}
-          value={trim7(h.balance)} subValue={h.authorized ? undefined : "not authorized by issuer"} />
+          sub={<>{h.verified ? <span>{h.verified} · </span> : "Unverified issuer "}<a className="mono" href={explorerAssetUrl(h.code, h.issuer, NET) ?? undefined} target="_blank" rel="noopener noreferrer" title={h.issuer}>{short(h.issuer, 4)} ↗</a></>}
+          value={trim7(h.balance)} subValue={<>Available <span className="mono" data-testid="asset-available">{trim7(h.available)}</span>{h.sellingLiabilities ? ` · ${trim7(h.sellingLiabilities)} in open offers` : ""}{h.authorized ? "" : " · not authorized by issuer"}</>} />
       ))}
-      {ex && ex.holdings.length === 0 && <p className="muted l-tiny" style={{ margin: "10px 0 0" }}>No other assets yet. Add a trustline (for example USDC) from <Link to="/wallet">Send / receive</Link>.</p>}
+      {ex?.poolShares.map((p) => (
+        <Row key={p.poolId} testid="row-poolshare" icon={<span className="mono" aria-hidden>≋</span>} title="Pool shares" sub={<>Liquidity pool {short(p.poolId, 4)} · <Link to="/pools">Pools</Link></>} value={trim7(p.shares)} subValue="see Liquidity positions" />
+      ))}
+      {ex && ex.holdings.length === 0 && ex.poolShares.length === 0 && <p className="muted l-tiny" style={{ margin: "10px 0 0" }}>No other assets yet. Add a trustline (for example USDC) from <Link to="/wallet">Send / receive</Link>.</p>}
       {!ex && !loading && <p className="muted l-tiny" style={{ margin: "10px 0 0" }}>Nothing to show until the account is on the network.</p>}
-      <p className="muted l-tiny" style={{ margin: "12px 0 0" }}>Reserve is the XLM the network keeps locked for your account and its entries. Available = balance − reserve − open offers.</p>
+      <p className="muted l-tiny" style={{ margin: "12px 0 0" }}>Reserve is the XLM the network keeps locked for your account and its entries. XLM available = balance − reserve − open offers − 0.01 XLM kept for fees. Other assets: available = balance − open offers.</p>
     </section>
   );
 }

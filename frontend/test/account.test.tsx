@@ -18,7 +18,7 @@ const view = parseAccount({ subentry_count: 3, balances: [
 describe("Account page", () => {
   it("shows XLM with reserve and available, verified trustline labels, and the issuer for unknown assets", () => {
     const h = R(<Holdings view={view} loading={false} />);
-    expect(h).toContain('data-testid="xlm-reserve"'); expect(h).toContain(">2.5<"); expect(h).toContain(">248<"); // (2+3)×0.5 reserve, 250.5−2.5 available
+    expect(h).toContain('data-testid="xlm-reserve"'); expect(h).toContain(">2.5<"); expect(h).toContain(">247.99<"); // (2+3)×0.5 reserve, 250.5−2.5−0.01 fee buffer available
     expect(h).toContain("USDC · Circle testnet issuer (verified, no value)");
     expect(h).toContain("Unverified issuer");
     expect(h).toContain(`https://testnet.stellarchain.io/assets/USDC-${"G" + "C".repeat(55)}`);

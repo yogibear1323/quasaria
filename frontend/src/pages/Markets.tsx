@@ -11,6 +11,8 @@ import { IS_MAINNET, OFFLINE_DEMO, USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
 import MarketsHero from "../components/MarketsHero";
 import XlmRow from "../components/XlmRow";
+import GlacierqRow, { glacierqMatches } from "../components/GlacierqRow";
+import AllAssets from "../components/AllAssets";
 import { xlmMatches } from "../lib/xlm";
 import SpaceYeti from "../components/SpaceYeti";
 import "../theme/markets-fancy.css";
@@ -28,6 +30,7 @@ export default function Markets() {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(() => params.get("q") ?? "");
   const [q, setQ] = useState(() => (params.get("q") ?? "").trim());
+  const view: "top" | "all" = params.get("view") === "all" ? "all" : "top";
   const [full, setFull] = useState<FullList | null>(null);
   useEffect(() => { if (new URLSearchParams(window.location.search).get("about")?.toLowerCase() === "xlm" || params.get("about")?.toLowerCase() === "xlm") { const t = setTimeout(() => document.getElementById("about-xlm")?.scrollIntoView({ block: "center" }), 1500); return () => clearTimeout(t); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [aboutKey, setAboutKey] = useState<string | null>(() => (params.get("about")?.toLowerCase() === "xlm" ? "XLM" : null));
@@ -187,7 +190,15 @@ export default function Markets() {
           <input className="input" style={{ maxWidth: 280 }} placeholder="Search code, issuer or org…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        {network === "mainnet" ? (
+        {network === "mainnet" && (
+          <div className="tabs" style={{ marginBottom: 10 }} role="tablist" data-testid="mk-view">
+            <button className={view === "top" ? "on" : ""} onClick={() => setUrl({ view: null })}>Top 1,000</button>
+            <button className={view === "all" ? "on" : ""} onClick={() => setUrl({ view: "all", page: null })} data-testid="mk-view-all">All Stellar assets</button>
+          </div>
+        )}
+        {network === "mainnet" && view === "all" ? (
+          <AllAssets query={q} onExchange={(k) => nav(`/exchange?base=${encodeURIComponent(k)}&quote=XLM`)} />
+        ) : network === "mainnet" ? (
           <>
             <div className="notice" data-testid="mainnet-data-notice">
               {IS_MAINNET ? <><b>Market data: Stellar mainnet</b> (public Horizon). The Exchange button opens the real mainnet market for that asset (matched by issuer). Listing ≠ endorsement: always verify the issuer.</> : <><b>Market data: Stellar mainnet</b> (public Horizon, read-only). <b>Trading on Quasaria: testnet only</b> — the Exchange button opens Quasaria's testnet market for the same asset code (or XLM/USDC), never a mainnet order.</>}
@@ -213,6 +224,7 @@ export default function Markets() {
                 {live.mode === "loading" && !allRows.length && <><tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>{Array.from({ length: 8 }, (_, i) => <tr key={i} className="mk-skrow" aria-hidden="true"><td colSpan={13}><i className="mk-sk" /></td></tr>)}</>}
                 {live.mode !== "loading" && !allRows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
                 {page === 1 && xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} change24h={liveXlm?.change24h ?? null} live={!!liveXlm} asOf={liveXlm ? undefined : snapXlm ? (snapXlm.source === "snapshot" ? snapshotLabel(snapXlm.snapshotAt) : `as of ${asOf(snapXlm.updatedAt)}`) : undefined} onExchange={() => nav("/exchange")} aboutOpen={aboutKey === "XLM"} onAbout={() => setAboutKey((k) => (k === "XLM" ? null : "XLM"))} />}
+                {page === 1 && glacierqMatches(q) && <GlacierqRow usdPerXlm={usdPerXlm} onExchange={(k) => nav(`/exchange?base=${encodeURIComponent(k)}&quote=XLM`)} />}
                 {liveRows.map((r) => {
                   const snapRow = r.source === "snapshot";
                   const snapTip = `saved snapshot (${snapTime(live.snapshotAt)})`;

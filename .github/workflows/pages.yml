@@ -73,9 +73,9 @@ jobs:
           # "/quasaria/" for https://<owner>.github.io/quasaria/
           VITE_BASE: /${{ github.event.repository.name }}/
           VITE_NETWORK: mainnet
-          # Quasaria trading fee (0.1%, decided 2026-10-19). OFF until the fee wallet is funded + has trustlines.
-          # To enable, uncomment the next line (fee wallet = GCFL7SS3SMAT4X2VGROPYXX47P6QIXKYMRNGT5EIFYZRQUAN7GK433J2):
-          # VITE_FEE_BPS: "10"
+          # Quasaria trading fee (0.1%, decided 2026-10-19). ON since 2026-10-19 (fee wallet funded, USDC + GLACIERQ trustlines).
+          # Set VITE_FEE_BPS to "0" or remove it to turn the fee off (fee wallet = GCFL7SS3SMAT4X2VGROPYXX47P6QIXKYMRNGT5EIFYZRQUAN7GK433J2):
+          VITE_FEE_BPS: "10"
           VITE_FEE_WALLET: GCFL7SS3SMAT4X2VGROPYXX47P6QIXKYMRNGT5EIFYZRQUAN7GK433J2
           # Coindisco *publishable* widget key (pk_test_/pk_prod_), a repo Variable, not a secret. Empty = "Card purchase coming soon".
           VITE_COINDISCO_PUBLIC_KEY: ${{ vars.COINDISCO_PUBLIC_KEY }}

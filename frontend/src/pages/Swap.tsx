@@ -7,6 +7,7 @@ import { PageHead } from "../components/ui";
 import { AssetPicker, toOption, type PickerOption } from "../components/AssetBits";
 import { TxLink } from "../components/TxLink";
 import { useWallet } from "../lib/wallet";
+import { useAccount } from "../lib/useAccount";
 import { useAsync } from "../lib/useAsync";
 import { loadMarkets, type MarketRow } from "../lib/markets";
 import { ASSETS, assetFromKey, assetKeyOf, findStrictSendPath, horizon, submitSignedXdr } from "../lib/stellar";
@@ -35,6 +36,8 @@ type Done = { text: string; hash: string };
 
 export default function Swap() {
   const w = useWallet();
+  const acct = useAccount(NETWORK, w.address);
+  const xlm = acct.view && acct.view.exists ? acct.view.native : null;
   const [params, setParams] = useSearchParams();
   const fromKey = params.get("from") || "XLM";
   const toKey = params.get("to") || (fromKey === "XLM" ? DEFAULT_TO : "XLM");
@@ -101,7 +104,7 @@ export default function Swap() {
       const r = await submitSignedXdr(await w.sign(xdr));
       const got = parseSwapReceived(r.result_xdr);
       setDone({ text: `Swapped ${n7(amt)} ${codeOf(from)} for ${got === null ? codeOf(to) : `${n7(got)} ${codeOf(to)}`}.`, hash: r.hash });
-      setStage("form"); setFrozen(null); setAmount(""); setDebounced("");
+      setStage("form"); setFrozen(null); setAmount(""); setDebounced(""); acct.reload();
     } catch (e) { setErr(plainSwapError(e)); setStage("form"); setFrozen(null); } finally { setBusy(false); }
   };
 
@@ -116,6 +119,12 @@ export default function Swap() {
         <div className="card glow" data-testid="swap-card">
           {stage === "form" ? (
             <>
+              {w.address && xlm && xlm.balance > 0 && (
+                <div className="notice" data-testid="swap-xlm-balance" style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                  <span>XLM balance: <span className="mono">{xlm.balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 7 })} XLM</span></span>
+                  {xlm.available !== null && <span className="muted l-tiny mono" data-testid="swap-xlm-available">Available {xlm.available.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 7 })} XLM</span>}
+                </div>
+              )}
               <div className="field"><label>You pay</label>
                 <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                   <input className="input mono" style={{ flex: 1, minWidth: 120 }} inputMode="decimal" placeholder="0.0" value={amount} onChange={(e) => setAmount(e.target.value)} data-testid="swap-amount" />

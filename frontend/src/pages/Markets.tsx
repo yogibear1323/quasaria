@@ -1,3 +1,4 @@
+import ExplainerVideo from "../components/ExplainerVideo";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AssetAbout from "../components/AssetAbout";
@@ -184,6 +185,7 @@ export default function Markets() {
         <div className="card"><Stat label="Accounts" value={overview?.totalAccounts ? fmtCompact(overview.totalAccounts) : "—"} sub={overview?.source === "snapshot" ? `mainnet · stellarchain.io ${snapshotLabel(overview.snapshotAt)}` : "mainnet"} /></div>
         <div className="card"><Stat label="Contracts" value={overview?.totalContracts ? fmtCompact(overview.totalContracts) : "—"} sub={overview && overview.trades24h === 0 ? "24h trades: 0 reported (snapshot may lag)" : "mainnet"} /></div>
       </div>
+      <ExplainerVideo name="quasaria-markets-explainer" title="How to use Markets" testid="markets-video" collapsible style={{ marginBottom: 18 }} />
       <div className="card mk-card">
         <div className="row between" style={{ flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
           {IS_MAINNET ? <span /> : <Tabs value={network} onChange={setNetwork} options={[{ v: "mainnet", label: "Mainnet · live data" }, { v: "testnet", label: "Testnet · tradeable here" }]} />}

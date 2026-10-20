@@ -52,7 +52,7 @@ export default function Account() {
         <div className="acct-head-main">
           <div className="kicker" style={{ marginBottom: 4 }}>Public address <span className="pill cyan" style={{ marginLeft: 6 }}>{NET_LABEL}</span></div>
           <div className="acct-short mono" data-testid="address-short" title={address}>{short(address, 6)}</div>
-          <div className="acct-full mono muted" data-testid="address-full">{address}</div>
+          <div className="acct-full-row"><div className="acct-full mono" data-testid="address-full" title="Your full public address">{address}</div><CopyButton value={address} label="Copy" ghost={false} /></div>
           <div className="acct-actions">
             <CopyButton value={address} label="Copy address" />
             <Link className="btn small ghost" to="/wallet" data-testid="acct-send">Send / receive</Link>

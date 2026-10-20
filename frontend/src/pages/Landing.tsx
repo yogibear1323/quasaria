@@ -22,7 +22,6 @@ import OrderBook from "../components/OrderBook";
 import WorldMap, { type MapPin } from "../components/WorldMap";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
 import XlmMark from "../components/XlmMark";
-import SizzleReel from "../components/SizzleReel";
 import { FeedBadge } from "../components/ui";
 import { NewsStrip } from "../components/News";
 import { hms, useLiveXlmUsd } from "../lib/liveMarkets";
@@ -30,6 +29,7 @@ import { parseOutline } from "../lib/landingCopy";
 import { SIZZLE_COPY } from "../lib/sizzle";
 import { FEATURE_VIDEOS_COPY } from "../lib/featureVideos";
 import FeatureVideos from "../components/FeatureVideos";
+import ExplainerVideo from "../components/ExplainerVideo";
 import { useWallet } from "../lib/wallet";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
@@ -520,7 +520,7 @@ export default function Landing() {
           </section>
 
           {/* Sizzle reel: not part of the 15-section approved outline, so its copy lives in lib/sizzle.ts */}
-          <Section id="watch" n={0} scene="quasar" onScene={onScene} kicker={SIZZLE_COPY.kicker} headline={SIZZLE_COPY.headline} pitch={SIZZLE_COPY.pitch} unnumbered><SizzleReel /></Section>
+          <Section id="watch" n={0} scene="quasar" onScene={onScene} kicker={SIZZLE_COPY.kicker} headline={SIZZLE_COPY.headline} pitch={SIZZLE_COPY.pitch} unnumbered><ExplainerVideo name="quasaria-home-tour" title="Quasaria tour" testid="home-video" note="About 1½ minutes · captions are part of the video." /></Section>
           <Section id="feature-videos" n={0} scene="quasar" onScene={onScene} kicker={FEATURE_VIDEOS_COPY.kicker} headline={FEATURE_VIDEOS_COPY.headline} pitch={FEATURE_VIDEOS_COPY.pitch} unnumbered><FeatureVideos /></Section>
           <Section id="markets" n={2} scene="constellation" onScene={onScene}><MarketsPreview /></Section>
           <Section id="news" n={12} scene="constellation" onScene={onScene} kicker="News" unnumbered><NewsPreview /></Section>

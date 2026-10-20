@@ -22,13 +22,13 @@ describe("landing feature videos", () => {
     }
     expect(featureSrc(FEATURE_VIDEOS[0], "16x9", "/quasaria/")).toBe("/quasaria/media/features/01-swaps-16x9-frost-v2.mp4");
   });
-  it("renders a lazy poster grid (no video element, no autoplay) with title + runtime", () => {
+  it("renders frost video cards (preload none, no autoplay) with title + runtime", () => {
     const html = renderToStaticMarkup(<FeatureVideos />);
-    expect(html.match(/class="l-fv-card"/g)?.length).toBe(FEATURE_VIDEOS.length);
-    expect(html).not.toContain("<video");
+    expect(html.match(/data-testid="feature-video-card"/g)?.length).toBe(FEATURE_VIDEOS.length);
+    expect(html.match(/<video /g)?.length).toBe(FEATURE_VIDEOS.length);
+    expect(html).toContain('preload="none"');
     expect(html).not.toMatch(/autoplay/i);
-    expect(html).toContain('loading="lazy"');
-    expect(html).toMatch(/<source media="\(max-width: 720px\)" srcSet="[^"]*-9x16-frost-v2-poster\.jpg"/i);
+    expect(html).toMatch(/poster="[^"]*-16x9-frost-v2-poster\.jpg"/i);
     for (const v of FEATURE_VIDEOS) expect(html).toContain(fmtRuntime(v.seconds));
     expect(html).not.toContain("In development");
     expect(html).toContain("impermanent loss");

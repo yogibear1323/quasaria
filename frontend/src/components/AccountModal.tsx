@@ -126,7 +126,7 @@ export default function AccountModal() {
             <button className="btn block ghost" onClick={() => setStep("import")}>Sign in with a secret key (S…)</button>
             {w.stored && <button className="btn block ghost" onClick={() => { setErr(null); setStep("unlock"); }} data-testid="choose-unlock">Unlock saved key ({short(w.stored.publicKey, 4)})</button>}
             {err && <div className="notice warn">{err}</div>}
-            <div className="notice" style={{ fontSize: "0.78rem" }}>On testnet, new accounts are funded automatically by Friendbot. <b>On mainnet</b> a new address does not exist on the ledger until someone sends it the minimum balance (1 XLM base reserve, plus 0.5 XLM per trustline or offer). There is no Friendbot.</div>
+            <div className="notice" style={{ fontSize: "0.78rem" }}>{NETWORK === "testnet" ? <>On testnet, new accounts are funded automatically by Friendbot. <b>On mainnet</b> a new address does not exist on the ledger until someone sends it the minimum balance (1 XLM base reserve, plus 0.5 XLM per trustline or offer). There is no Friendbot.</> : <>A new address does not exist on the ledger until someone sends it the minimum balance (1 XLM base reserve, plus 0.5 XLM per trustline or offer).</>}</div>
           </div>
         )}
 

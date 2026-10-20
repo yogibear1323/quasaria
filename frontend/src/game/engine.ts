@@ -1,3 +1,4 @@
+import { IS_MAINNET } from "../lib/config";
 /**
  * Quasaria "mission control" — a purely cosmetic, frontend-only progression
  * layer. Progress lives in this browser's localStorage, keyed by wallet
@@ -56,8 +57,8 @@ export const QUESTS: Quest[] = [
   { id: "slippage", kind: "learn", xp: 40, title: "Set your slippage guard", desc: "Adjust max slippage on the Exchange order form before you trade.", to: "/exchange", cta: "Exchange" },
   { id: "explore", kind: "learn", xp: 60, title: "Tour the galaxy", desc: "Visit Markets, Exchange, Pools, Earn and Holder rewards.", steps: EXPLORE_PATHS.length },
   { id: "merch-visit", kind: "learn", xp: 20, title: "Visit the merch store", desc: "Take a look at the (coming soon) merch line. Just browsing: nothing is for sale and buying would never earn XP.", to: "/merch", cta: "Merch" },
-  { id: "connect", kind: "try", xp: 50, title: "Create a testnet account", desc: "Create an account (your browser generates the keypair) or log in with your secret key, on TESTNET." },
-  { id: "first-swap", kind: "try", xp: 75, title: "Make your first swap", desc: "One-time: any amount of free testnet tokens counts. Extra swaps earn nothing.", to: "/exchange", cta: "Exchange" },
+  { id: "connect", kind: "try", xp: 50, title: IS_MAINNET ? "Create an account" : "Create a testnet account", desc: IS_MAINNET ? "Create an account (your browser generates the keypair) or log in with your secret key." : "Create an account (your browser generates the keypair) or log in with your secret key, on TESTNET." },
+  { id: "first-swap", kind: "try", xp: 75, title: "Make your first swap", desc: IS_MAINNET ? "One-time: any amount counts. Extra swaps earn nothing." : "One-time: any amount of free testnet tokens counts. Extra swaps earn nothing.", to: "/exchange", cta: "Exchange" },
   { id: "first-lp", kind: "try", xp: 75, title: "Add liquidity once", desc: "One-time: deposit any amount into a pool. Read about impermanent loss first.", to: "/pools", cta: "Pools" },
   { id: "streak-3", kind: "habit", xp: 100, title: "3-day visit streak", desc: "Check in on three days in a row.", steps: 3 },
   { id: "streak-7", kind: "habit", xp: 150, title: "7-day visit streak", desc: "Keep the streak alive for a week.", steps: 7 },
@@ -71,12 +72,12 @@ export type BadgeIcon = "spark" | "compass" | "shield" | "abacus" | "gauge" | "b
 
 const done = (s: GameState, id: string) => !!s.done[id];
 export const BADGES: Badge[] = [
-  { id: "first-light", name: "First Light", desc: "Signed in with a testnet keypair.", icon: "spark", hue: "cyan", when: (s) => done(s, "connect") },
+  { id: "first-light", name: "First Light", desc: IS_MAINNET ? "Signed in with your keypair." : "Signed in with a testnet keypair.", icon: "spark", hue: "cyan", when: (s) => done(s, "connect") },
   { id: "navigator", name: "Navigator", desc: "Toured every part of the app.", icon: "compass", hue: "violet", when: (s) => done(s, "explore") },
   { id: "risk-aware", name: "Risk Aware", desc: "Read the risk guide.", icon: "shield", hue: "green", when: (s) => done(s, "risk-guide") },
   { id: "calculated", name: "Calculated", desc: "Tried the liquidity calculator.", icon: "abacus", hue: "gold", when: (s) => CALCS.every((c) => done(s, `calc-${c}`)) },
   { id: "guardian", name: "Slippage Guardian", desc: "Set a slippage guard.", icon: "gauge", hue: "cyan", when: (s) => done(s, "slippage") },
-  { id: "lightspeed", name: "Lightspeed", desc: "Made a first testnet swap.", icon: "bolt", hue: "violet", when: (s) => done(s, "first-swap") },
+  { id: "lightspeed", name: "Lightspeed", desc: IS_MAINNET ? "Made a first swap." : "Made a first testnet swap.", icon: "bolt", hue: "violet", when: (s) => done(s, "first-swap") },
   { id: "liquid-light", name: "Liquid Light", desc: "Added liquidity once.", icon: "drop", hue: "cyan", when: (s) => done(s, "first-lp") },
   { id: "constellation", name: "Constellation", desc: "3-day visit streak.", icon: "flame", hue: "rose", when: (s) => done(s, "streak-3") },
   { id: "supernova", name: "Supernova", desc: "7-day visit streak.", icon: "nova", hue: "gold", when: (s) => done(s, "streak-7") },

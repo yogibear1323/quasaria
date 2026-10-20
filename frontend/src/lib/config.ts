@@ -19,7 +19,7 @@ export const IS_MAINNET = NETWORK === "mainnet";
 export const NETWORK_PASSPHRASE = IS_MAINNET ? Networks.PUBLIC : Networks.TESTNET;
 export const NETWORK_LABEL = IS_MAINNET ? "Mainnet" : "Testnet";
 export const HORIZON_URL = (env.VITE_HORIZON_URL as string) || (IS_MAINNET ? "https://horizon.stellar.org" : deployment.horizonUrl || "https://horizon-testnet.stellar.org");
-export const RPC_URL = (env.VITE_RPC_URL as string) || (IS_MAINNET ? "" : deployment.rpcUrl || "https://soroban-testnet.stellar.org");
+export const RPC_URL = (env.VITE_RPC_URL as string) || (IS_MAINNET ? "https://mainnet.sorobanrpc.com" : deployment.rpcUrl || "https://soroban-testnet.stellar.org");
 
 if (!IS_MAINNET && deployment.networkPassphrase !== Networks.TESTNET) {
   throw new Error("Testnet build pointed at a non-testnet deployment file.");

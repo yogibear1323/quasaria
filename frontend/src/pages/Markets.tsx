@@ -226,7 +226,7 @@ export default function Markets() {
                 {live.mode === "loading" && !allRows.length && <><tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>{Array.from({ length: 8 }, (_, i) => <tr key={i} className="mk-skrow" aria-hidden="true"><td colSpan={13}><i className="mk-sk" /></td></tr>)}</>}
                 {live.mode !== "loading" && !allRows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
                 {page === 1 && xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} change24h={liveXlm?.change24h ?? null} live={!!liveXlm} asOf={liveXlm ? undefined : snapXlm ? (snapXlm.source === "snapshot" ? snapshotLabel(snapXlm.snapshotAt) : `as of ${asOf(snapXlm.updatedAt)}`) : undefined} onExchange={() => nav("/exchange")} aboutOpen={aboutKey === "XLM"} onAbout={() => setAboutKey((k) => (k === "XLM" ? null : "XLM"))} />}
-                {page === 1 && glacierqMatches(q) && <GlacierqRow usdPerXlm={usdPerXlm} onExchange={(k) => nav(`/exchange?base=${encodeURIComponent(k)}&quote=XLM`)} />}
+                {page === 1 && glacierqMatches(q) && <GlacierqRow usdPerXlm={usdPerXlm} onExchange={(k) => nav(`/exchange?base=${encodeURIComponent(k)}&quote=XLM`)} aboutOpen={aboutKey === "GLACIERQ"} onAbout={() => setAboutKey((k) => (k === "GLACIERQ" ? null : "GLACIERQ"))} />}
                 {liveRows.map((r) => {
                   const snapRow = r.source === "snapshot";
                   const snapTip = `saved snapshot (${snapTime(live.snapshotAt)})`;

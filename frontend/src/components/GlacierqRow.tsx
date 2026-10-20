@@ -3,6 +3,7 @@ import { AssetLogo } from "./AssetBits";
 import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_ISSUER } from "../lib/rewards";
 import { explorerAssetUrl } from "../lib/explorer";
 import { fmt } from "../lib/format";
+import GlacierqAbout from "./GlacierqAbout";
 
 const HORIZON = "https://horizon.stellar.org";
 const dash = <span className="muted">—</span>;
@@ -16,7 +17,7 @@ export const glacierqMatches = (q: string) => {
 type Stats = { trustlines: number | null; priceXlm: number | null; verified: boolean | null };
 
 /** GLACIERQ pinned right under XLM (mainnet). Price is the GLACIERQ/XLM book mid; "— / no trades yet" when there is no market. */
-export default function GlacierqRow({ usdPerXlm, onExchange }: { usdPerXlm: number | null; onExchange: (key: string) => void }) {
+export default function GlacierqRow({ usdPerXlm, onExchange, aboutOpen = false, onAbout }: { usdPerXlm: number | null; onExchange: (key: string) => void; aboutOpen?: boolean; onAbout?: () => void }) {
   const issuer = REWARD_ISSUER.mainnet;
   const [s, setS] = useState<Stats>({ trustlines: null, priceXlm: null, verified: null });
   useEffect(() => {
@@ -43,6 +44,7 @@ export default function GlacierqRow({ usdPerXlm, onExchange }: { usdPerXlm: numb
   if (!issuer) return null;
   const url = explorerAssetUrl(REWARD_ASSET_CODE, issuer, "mainnet");
   return (
+    <>
     <tr data-testid="glacierq-row" className="mk-pinned">
       <td data-label="#" className="c-rank mono muted">📌</td>
       <td data-label="Asset" className="c-asset">
@@ -62,7 +64,10 @@ export default function GlacierqRow({ usdPerXlm, onExchange }: { usdPerXlm: numb
       <td data-label="Trustlines" className="c-holders mono">{s.trustlines ?? dash}</td>
       <td data-label="Trend">{dash}</td>
       <td data-label="As of" className="c-asof muted" style={{ fontSize: "0.72rem" }}>live</td>
-      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={() => onExchange(`${REWARD_ASSET_CODE}-${issuer}`)}>Exchange</button></div></td>
+      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={() => onExchange(`${REWARD_ASSET_CODE}-${issuer}`)}>Exchange</button>
+        {onAbout && <button className={`btn small ghost about-btn ${aboutOpen ? "on" : ""}`} aria-expanded={aboutOpen} aria-controls="about-glacierq" onClick={onAbout} data-testid="glacierq-about-btn">About</button>}</div></td>
     </tr>
+    {aboutOpen && <tr className="about-row" data-testid="glacierq-about-row"><td colSpan={13}><GlacierqAbout onClose={onAbout} /></td></tr>}
+    </>
   );
 }

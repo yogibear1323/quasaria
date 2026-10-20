@@ -1,5 +1,6 @@
 /** Orchestration for a market order: submit the crossing offer, read what filled, then ALWAYS cancel any remainder. Dependencies are injected so it is unit-testable. */
 import { Asset } from "@stellar/stellar-sdk";
+import type { FeeLine } from "./fees";
 import { buildCancelRemainderTx, buildMarketTx, describeOutcome, parseOfferResult, plainTxError, type MarketPlan, type OfferResult, type Outcome, type Side } from "./market";
 
 export type OpenOffer = { id: string; selling: Asset; buying: Asset; price: number };
@@ -13,11 +14,11 @@ export type MarketRun = { hash: string; result: OfferResult | null; outcome: Out
 
 const sameAsset = (a: Asset, b: Asset) => a.equals(b);
 
-export async function executeMarket(i: { address: string; side: Side; base: Asset; quote: Asset; baseCode: string; quoteCode: string; plan: Extract<MarketPlan, { ok: true }>; needTrust: Asset[]; passphrase: string; deps: MarketDeps }): Promise<MarketRun> {
+export async function executeMarket(i: { address: string; side: Side; base: Asset; quote: Asset; baseCode: string; quoteCode: string; plan: Extract<MarketPlan, { ok: true }>; needTrust: Asset[]; passphrase: string; deps: MarketDeps; fees?: FeeLine[] }): Promise<MarketRun> {
   const { deps } = i;
   const selling = i.side === "buy" ? i.quote : i.base, buying = i.side === "buy" ? i.base : i.quote;
   const before = new Set((await deps.openOffers()).map((o) => o.id));
-  const xdr = buildMarketTx({ source: i.address, sequence: await deps.sequence(), side: i.side, base: i.base, quote: i.quote, amount: i.plan.amount, bound: i.plan.bound, needTrust: i.needTrust, passphrase: i.passphrase });
+  const xdr = buildMarketTx({ source: i.address, sequence: await deps.sequence(), side: i.side, base: i.base, quote: i.quote, amount: i.plan.amount, bound: i.plan.bound, needTrust: i.needTrust, passphrase: i.passphrase, fees: i.fees });
   let sub: { hash: string; result_xdr: string };
   try { sub = await deps.submit(await deps.sign(xdr)); } catch (e) { throw new Error(plainTxError(e)); }
 

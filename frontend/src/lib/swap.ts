@@ -3,6 +3,7 @@
  * order book and native liquidity pools; the transaction carries a minimum-received bound (your slippage limit),
  * so it fails instead of filling worse.
  */
+import { appendFeeOps, type FeeLine } from "./fees";
 import { Account, Asset, BASE_FEE, Memo, Operation, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
 import { minimumBalance, type HAccount } from "./account";
 
@@ -49,9 +50,10 @@ export function checkSwapFunds(i: { from: Ref; to: Ref; amount: number; acct: HA
   return { ok: true, needTrust, reserveXlm, feeXlm };
 }
 
-export function buildSwapTx(i: { source: string; sequence: string; from: Asset; to: Asset; amount: number; minOut: number; path: Asset[]; needTrust: Asset[]; passphrase: string }): string {
+export function buildSwapTx(i: { source: string; sequence: string; from: Asset; to: Asset; amount: number; minOut: number; path: Asset[]; needTrust: Asset[]; passphrase: string; fees?: FeeLine[] }): string {
   const b = new TransactionBuilder(new Account(i.source, i.sequence), { fee: BASE_FEE, networkPassphrase: i.passphrase }).setTimeout(180);
   for (const a of i.needTrust) b.addOperation(Operation.changeTrust({ asset: a }));
+  appendFeeOps(b, i.fees ?? []); // fee BEFORE the path payment: parseSwapReceived reads the LAST op
   b.addOperation(Operation.pathPaymentStrictSend({ sendAsset: i.from, sendAmount: i.amount.toFixed(7), destination: i.source, destAsset: i.to, destMin: i.minOut.toFixed(7), path: i.path }));
   return b.addMemo(Memo.text("quasaria")).build().toXDR();
 }

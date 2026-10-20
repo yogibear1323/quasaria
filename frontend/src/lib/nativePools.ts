@@ -7,6 +7,7 @@
  *  - Assets are matched on code + issuer, never on ticker alone. The curated list is generated from
  *    each issuer's stellar.toml (or the issuer's own docs): see scripts/gen-lp-curated.mjs.
  */
+import { appendFeeOps, type FeeLine } from "./fees";
 import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Networks, Operation, TransactionBuilder, getLiquidityPoolId } from "@stellar/stellar-sdk";
 import { HORIZON_URL, NETWORK, TESTNET_USDC_ISSUER } from "./config";
 import curated from "../config/lp-curated.json";
@@ -355,7 +356,7 @@ const netServer = (net: NetId) => new Horizon.Server(NETS[net].horizon);
 
 export type DepositTx = { xdr: string; poolId: string; added: string[] };
 /** Adds missing asset + pool-share trustlines, then deposits with min/max price bounds. */
-export async function buildDepositTx(net: NetId, pubkey: string, a: AssetRef, b: AssetRef, pv: DepositPreview, opts: { fee?: string } = {}): Promise<DepositTx> {
+export async function buildDepositTx(net: NetId, pubkey: string, a: AssetRef, b: AssetRef, pv: DepositPreview, opts: { fee?: string; fees?: FeeLine[] } = {}): Promise<DepositTx> {
   assertSignable(net);
   const [x, y] = orderAssets(a, b);
   const server = netServer(net);
@@ -367,6 +368,7 @@ export async function buildDepositTx(net: NetId, pubkey: string, a: AssetRef, b:
   const bld = new TransactionBuilder(acct, { fee: opts.fee ?? BASE_FEE, networkPassphrase: NETS[net].passphrase }).setTimeout(180);
   for (const as of [x, y]) if (!holds(as)) { bld.addOperation(Operation.changeTrust({ asset: toSdk(as) })); added.push(`${as.code} trustline`); }
   if (!hasShare) { bld.addOperation(Operation.changeTrust({ asset: new LiquidityPoolAsset(toSdk(x), toSdk(y), POOL_FEE_BP) })); added.push("pool-share trustline"); }
+  appendFeeOps(bld, opts.fees ?? []);
   const swapped = !sameAsset(x, a); // pv is expressed for (a,b) as the caller named them; the op needs (x,y)
   const amtA = swapped ? pv.maxAmountB : pv.maxAmountA, amtB = swapped ? pv.maxAmountA : pv.maxAmountB;
   const minP = swapped ? 1 / pv.maxPrice : pv.minPrice, maxP = swapped ? 1 / pv.minPrice : pv.maxPrice;
@@ -375,11 +377,12 @@ export async function buildDepositTx(net: NetId, pubkey: string, a: AssetRef, b:
 }
 
 /** Withdraws `shares` with min-amount bounds; optionally closes the (now empty) pool-share trustline to free its reserve. */
-export async function buildWithdrawTx(net: NetId, pubkey: string, pool: PoolRow, pv: WithdrawPreview, closeTrustline: boolean, opts: { fee?: string } = {}): Promise<string> {
+export async function buildWithdrawTx(net: NetId, pubkey: string, pool: PoolRow, pv: WithdrawPreview, closeTrustline: boolean, opts: { fee?: string; fees?: FeeLine[] } = {}): Promise<string> {
   assertSignable(net);
   const acct = await netServer(net).loadAccount(pubkey);
   const bld = new TransactionBuilder(acct, { fee: opts.fee ?? BASE_FEE, networkPassphrase: NETS[net].passphrase }).setTimeout(180);
   bld.addOperation(Operation.liquidityPoolWithdraw({ liquidityPoolId: pool.id, amount: fix7(pv.shares), minAmountA: fix7(pv.minAmountA), minAmountB: fix7(pv.minAmountB) }));
+  appendFeeOps(bld, opts.fees ?? []); // after the withdraw: paid from what was just received
   if (closeTrustline) bld.addOperation(Operation.changeTrust({ asset: new LiquidityPoolAsset(toSdk(pool.a), toSdk(pool.b), pool.feeBp), limit: "0" }));
   return bld.build().toXDR();
 }

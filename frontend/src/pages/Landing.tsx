@@ -504,7 +504,7 @@ export default function Landing() {
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
               <CtaButtons />
-              <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar testnet</span><SpaceYeti prop="coin" className="sy-inline" /></div>
+              <div className="l-hero-meta"><Ticker /><span className="muted l-tiny">Not yet audited · runs on Stellar {IS_MAINNET ? "mainnet" : "testnet"}</span><SpaceYeti prop="coin" className="sy-inline" /></div>
             </div>
             <div className="l-hero-art">
               <Suspense fallback={<div className="globe-loading" aria-hidden />}><Globe /></Suspense>
@@ -543,7 +543,7 @@ export default function Landing() {
         <footer className="l-footer">
           <span className="foot-brand"><img src={logo} alt="" />Quasaria</span>
           <p><b>Risk disclosure.</b> Quasaria is experimental software. Nothing on this site is financial advice. Liquidity pools and token rewards carry real risk of loss and may be regulated where you live.</p>
-          <p><b>Audit status:</b> not yet audited. Testnet beta: tokens on Stellar testnet have no real value.</p>
+          <p><b>Audit status:</b> not yet audited. {IS_MAINNET ? "Runs on Stellar mainnet with real funds." : "Testnet beta: tokens on Stellar testnet have no real value."}</p>
           <p className="muted">{STELLARCHAIN_ATTRIBUTION} · Settlement: Stellar network · <a href="https://testnet.stellarchain.io" target="_blank" rel="noopener noreferrer">StellarChain.io</a> · <Link to="/exchange">Launch app</Link></p>
         </footer>
       </div>

@@ -1,6 +1,6 @@
 {
   "network": "testnet",
-  "_comment": "Quasaria lending pool on TESTNET (unaudited). One reserve per asset, keyed by its Stellar Asset Contract (SEP-41 via token::Client). Canonical asset ids are CODE:ISSUER (SEP-1 [[CURRENCIES]] / SEP-11 style); mainnet reference ids are shown alongside the testnet asset actually used. Prices: Quasaria mock oracle (SEP-40 interface) refreshed from live mainnet Horizon by the bot (npm run oracle-feed). Written by scripts/deploy-lending.ts.",
+  "_comment": "Quasaria lending pool on TESTNET (not yet audited). One reserve per asset, keyed by its Stellar Asset Contract (SEP-41 via token::Client). Canonical asset ids are CODE:ISSUER (SEP-1 [[CURRENCIES]] / SEP-11 style); mainnet reference ids are shown alongside the testnet asset actually used. Prices: Quasaria mock oracle (SEP-40 interface) refreshed from live mainnet Horizon by the bot (npm run oracle-feed). Written by scripts/deploy-lending.ts.",
   "updatedAt": "2026-09-30T13:46:59.189Z",
   "pool": "CDCT3D7CMUB72CB7P7U2GNPP32UZCNXWO663GTA6EEUP552LMZAARE46",
   "oracle": "CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY",

@@ -51,7 +51,7 @@ export const CALCS = ["lp"] as const;
 export type CalcId = (typeof CALCS)[number];
 
 export const QUESTS: Quest[] = [
-  { id: "risk-guide", kind: "learn", xp: 100, title: "Read the risk guide", desc: "Five minutes on liquidations, impermanent loss, finite reward reserves and what 'unaudited' means.", to: "/quests#risk-guide", cta: "Open guide" },
+  { id: "risk-guide", kind: "learn", xp: 100, title: "Read the risk guide", desc: "Five minutes on liquidations, impermanent loss, finite reward reserves and what 'not yet audited' means.", to: "/quests#risk-guide", cta: "Open guide" },
   { id: "calc-lp", kind: "learn", xp: 40, title: "Try the liquidity calculator", desc: "Move the price slider and watch impermanent loss.", to: "/calculators?c=lp", cta: "Open" },
   { id: "slippage", kind: "learn", xp: 40, title: "Set your slippage guard", desc: "Adjust max slippage on the Exchange order form before you trade.", to: "/exchange", cta: "Exchange" },
   { id: "explore", kind: "learn", xp: 60, title: "Tour the galaxy", desc: "Visit Markets, Exchange, Pools, Earn and Holder rewards.", steps: EXPLORE_PATHS.length },

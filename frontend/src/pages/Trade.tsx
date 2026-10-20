@@ -258,7 +258,7 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
 
   return (
     <>
-      <PageHead kicker="Exchange" title="Exchange" right={<span className="pill gold" data-mode={mode}>{IS_MAINNET ? "Mainnet · unaudited" : "Testnet · unaudited"}</span>}>
+      <PageHead kicker="Exchange" title="Exchange" right={<span className="pill gold" data-mode={mode}>{IS_MAINNET ? "Mainnet" : "Testnet"}</span>}>
         Order-book trading on Stellar's native decentralized exchange (SDEX): live order book, price history, limit orders and instant market buy / sell.
       </PageHead>
       <div className="grid g-trade">

@@ -26,7 +26,7 @@ export default function About() {
   const t1 = REWARD_TIERS[0], t2 = REWARD_TIERS[1];
   return (
     <>
-      <PageHead kicker="About" title="Your keys, your XLM" right={<span className={`pill ${st.net === "mainnet" ? "green" : "gold"}`} data-testid="about-net-pill">{st.net === "mainnet" ? "Mainnet" : "Testnet · unaudited"}</span>}>
+      <PageHead kicker="About" title="Your keys, your XLM" right={<span className={`pill ${st.net === "mainnet" ? "green" : "gold"}`} data-testid="about-net-pill">{st.net === "mainnet" ? "Mainnet" : "Testnet"}</span>}>
         {ABOUT_TAGLINE}
       </PageHead>
 
@@ -66,7 +66,7 @@ export default function About() {
       </div>
 
       <p className="muted" style={{ fontSize: "0.78rem", marginTop: 14 }} data-testid="about-risk">
-        Quasaria is unaudited. Nothing here is financial advice. Liquidity pools and token rewards carry a risk of loss and may be regulated where you live.
+        Nothing here is financial advice. Liquidity pools and token rewards carry a risk of loss and may be regulated where you live.
       </p>
     </>
   );

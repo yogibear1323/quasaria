@@ -82,7 +82,7 @@ export default function Merch() {
           <li><b>Example prices.</b> Prices, blanks, colours and sizes are placeholders for layout and may change or never ship.</li>
           <li><b>Mockups.</b> Product photos are computer-generated mockups of original Quasaria artwork, not photos of real stock.</li>
           <li><b>Notify me stays local.</b> Emails you enter are saved in this browser's localStorage only. They are never sent to a server, shared or used for marketing.</li>
-          <li><b>No token or XP link.</b> Merch is unrelated to XP, badges, GLACIERQ or any digital asset, and confers no rights, rewards or returns. {IS_MAINNET ? "Quasaria is unaudited software." : "Quasaria is an unaudited, testnet-only project."}</li>
+          <li><b>No token or XP link.</b> Merch is unrelated to XP, badges, GLACIERQ or any digital asset, and confers no rights, rewards or returns. {IS_MAINNET ? "" : "Quasaria is a testnet-only project."}</li>
           <li><b>Not affiliated.</b> Quasaria is not affiliated with or endorsed by the Stellar Development Foundation. "Stellar" is used only to describe the network the app runs on.</li>
         </ul>
       </footer>

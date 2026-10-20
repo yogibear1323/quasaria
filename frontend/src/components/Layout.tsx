@@ -162,7 +162,7 @@ export default function Layout() {
           <div className="foot-inner">
             <span className="foot-brand"><img src={mark} alt="" className={isMerch ? "is-yeti" : undefined} />Quasaria</span>
             <span>
-              {IS_MAINNET ? <>Quasaria runs on Stellar <b>mainnet</b>: transactions are real and you sign each one with your own key. The software is <b>unaudited</b>.</> : <>Quasaria is an <b>unaudited, testnet-only</b> scaffold.</>} Nothing here is financial advice. Liquidity pools and token rewards
+              {IS_MAINNET ? <>Quasaria runs on Stellar <b>mainnet</b>: transactions are real and you sign each one with your own key. Not yet audited.</> : <>Quasaria is a <b>testnet-only</b> scaffold.</>} Nothing here is financial advice. Liquidity pools and token rewards
               carry substantial risk of loss and may be regulated in your jurisdiction.
             </span>
           </div>

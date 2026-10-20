@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-20T11:43:34.169Z",
+ "generatedAt": "2026-10-20T17:13:03.317Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-20T11:09:26.500Z",
+  "updatedAt": "2026-10-20T16:39:24.683Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -25,7 +25,7 @@
    "kind": "blog",
    "home": "https://stellar.org/blog/developers",
    "feed": "https://stellar.org/blog/developers/rss.xml",
-   "count": 5,
+   "count": 3,
    "ok": true
   },
   {
@@ -129,6 +129,38 @@
   }
  ],
  "items": [
+  {
+   "id": "bzw9th",
+   "title": "Introducing Bell, Protocol 30 on Stellar",
+   "url": "https://stellar.org/blog/developers/introducing-bell-protocol-30-on-stellar",
+   "publishedAt": "2026-10-20T13:34:25.000Z",
+   "excerpt": "Bell (Protocol 30) is the next Stellar upgrade: muxed contract addresses for smart accounts, post-quantum signature verification in smart contracts, and millisecond ledger timing.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/950b99790fa3c0e388a5cf8ff5240d76ad652ea7-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "protocol",
+    "developers",
+    "mainnet"
+   ]
+  },
+  {
+   "id": "sd07ts",
+   "title": "Bell, Protocol 30 Upgrade Guide",
+   "url": "https://stellar.org/blog/developers/bell-protocol-30-upgrade-guide",
+   "publishedAt": "2026-10-20T13:28:20.000Z",
+   "excerpt": "Prepare for Bell, Protocol 30 on Stellar: key dates, release links, preparation steps for SDKs, infrastructure, and validators, and a summary of breaking changes.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/058b959f587b982ad2bd7fb10d4022276af62bf3-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "protocol",
+    "developers",
+    "mainnet"
+   ]
+  },
   {
    "id": "as8uvq",
    "title": "Two Ways to Read Chainlink Prices on Stellar: Data Feeds and Data Streams",
@@ -562,20 +594,6 @@
    ]
   },
   {
-   "id": "ifrkwy",
-   "title": "The world's government debt is coming onchain. It's choosing Stellar.",
-   "url": "https://stellar.org/blog/ecosystem/the-worlds-government-debt-is-coming-onchain-its-choosing-stellar",
-   "publishedAt": "2026-08-20T15:04:37.000Z",
-   "excerpt": "Stellar holds more tokenized non-US government debt than any other blockchain, a lead it has held since February. Here's what's behind the number.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/74d00e4a37671571b84d24279c94de7138328aef-2048x1536.png",
-   "source": "sdf",
-   "sourceName": "Stellar Development Foundation",
-   "kind": "blog",
-   "tags": [
-    "ecosystem"
-   ]
-  },
-  {
    "id": "9fcg36",
    "title": "Horizon v28.0.0 released",
    "url": "https://github.com/stellar/stellar-horizon/releases/tag/v28.0.0",
@@ -602,20 +620,6 @@
    "tags": [
     "protocol",
     "developers"
-   ]
-  },
-  {
-   "id": "1kuafn2",
-   "title": "No one to call",
-   "url": "https://stellar.org/blog/ecosystem/no-one-to-call",
-   "publishedAt": "2026-08-14T16:51:28.000Z",
-   "excerpt": "A corporate-controlled blockchain gives institutions a counterparty to call. It also gives them a counterparty who can change the terms.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/0e5080ea32f29c59a57211503e1380114a60e884-2048x1536.png",
-   "source": "sdf",
-   "sourceName": "Stellar Development Foundation",
-   "kind": "blog",
-   "tags": [
-    "ecosystem"
    ]
   },
   {
@@ -763,20 +767,6 @@
    ]
   },
   {
-   "id": "mdnfbo",
-   "title": "Flying blind: Why onchain monitoring is your instrument panel",
-   "url": "https://stellar.org/blog/developers/flying-blind-why-onchain-monitoring-is-your-instrument-panel",
-   "publishedAt": "2026-07-13T16:12:48.000Z",
-   "excerpt": "Onchain monitoring is your instrument panel. Why builders and users alike need real-time visibility, and how a threat model maps directly to what to watch.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/ea20861e859848757c09249ddf23a6e89dcde972-2048x1536.png",
-   "source": "sdf-dev",
-   "sourceName": "Stellar Developers blog",
-   "kind": "blog",
-   "tags": [
-    "developers"
-   ]
-  },
-  {
    "id": "130se6h",
    "title": "UN agency moves Stellar blockchain payment initiative beyond pilot stage",
    "url": "https://cointelegraph.com/news/undp-moves-stellar-blockchain-payment-initiative-beyond-pilot-stage",
@@ -788,21 +778,6 @@
    "kind": "outlet",
    "tags": [
     "ecosystem"
-   ]
-  },
-  {
-   "id": "23i77x",
-   "title": "Developer Preview: Confidential Tokens on Stellar",
-   "url": "https://stellar.org/blog/developers/developer-preview-confidential-tokens-on-stellar",
-   "publishedAt": "2026-06-26T18:16:39.000Z",
-   "excerpt": "Stellar's Developer Preview introduces Confidential Tokens—an OpenZeppelin contract suite adding private balances and transfer amounts to any SEP-41 token.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/5d477724193dd9f555dae9ebdf5340a32bed7f5b-1024x768.png",
-   "source": "sdf-dev",
-   "sourceName": "Stellar Developers blog",
-   "kind": "blog",
-   "tags": [
-    "protocol",
-    "developers"
    ]
   },
   {

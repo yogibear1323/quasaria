@@ -500,7 +500,7 @@ export default function Landing() {
         <main className="l-main">
           <section className="l-hero" aria-labelledby="hero-h">
             <div className="l-hero-copy">
-              <span className="net-badge">Testnet beta</span>
+              <span className="net-badge">{IS_MAINNET ? "Stellar Mainnet" : "Testnet beta"}</span>
               <h1 id="hero-h" className="l-h1">{hero.headline}</h1>
               <p className="l-pitch big">{hero.pitch}</p>
               <CtaButtons />

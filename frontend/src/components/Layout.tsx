@@ -1,3 +1,4 @@
+import { NETWORK, NETWORK_LABEL, IS_MAINNET } from "../lib/config";
 import { explorerAccountUrl } from "../lib/explorer";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -33,7 +34,7 @@ function XlmTicker() {
   }
   if (!x?.price) return null;
   const snap = x.source === "stellarchain" && x.feed === "snapshot";
-  const src = x.source === "stellarchain" ? `stellarchain.io${snap ? ` (${snapshotLabel(x.snapshotAt)})` : ""}` : "Horizon testnet";
+  const src = x.source === "stellarchain" ? `stellarchain.io${snap ? ` (${snapshotLabel(x.snapshotAt)})` : ""}` : `Horizon ${NETWORK_LABEL.toLowerCase()}`;
   return (
     <span className="pill" title={`XLM/USD ${x.note ?? ""} · source: ${src}${x.updatedAt ? ` · as of ${x.updatedAt}` : ""}`} data-testid="xlm-ticker">
       <XlmMark size={15} />XLM <b className="mono" style={{ color: "var(--star, #fff)" }}>${x.price.toFixed(4)}</b>
@@ -104,7 +105,7 @@ function WalletButton() {
             {NAV_KEY.map((n) => <Link key={n.to} className="btn small ghost" to={n.to} role="menuitem" onClick={() => setMenu(false)} data-testid="acct-menu-link">{n.label}</Link>)}
             <CopyButton value={w.address} label="Copy address" />
             <button className="btn small ghost" onClick={() => { setMenu(false); w.openModal("fund"); }}>Receive / fund (QR)</button>
-            <a className="btn small ghost" href={explorerAccountUrl(w.address, "testnet") ?? undefined} target="_blank" rel="noopener noreferrer">View on StellarChain ↗</a>
+            <a className="btn small ghost" href={explorerAccountUrl(w.address, NETWORK) ?? undefined} target="_blank" rel="noopener noreferrer">View on StellarChain ↗</a>
             <button className="btn small ghost" onClick={() => { setMenu(false); w.disconnect(); }}>Sign out of this tab</button>
             <button className="btn small ghost neg" onClick={() => { if (window.confirm("Forget this key? It is removed from this tab and any encrypted copy is deleted from this browser. Make sure your secret key is saved: Quasaria cannot recover it.")) { setMenu(false); w.forgetKey(); } }}>Forget this key</button>
           </div>
@@ -148,7 +149,7 @@ export default function Layout() {
           <MainNav path={loc.pathname} />
           <MobileMenu path={loc.pathname} signedIn={!!w.address} />
           <XlmTicker />
-          <span className="net-badge">Testnet</span>
+          <span className="net-badge">{NETWORK_LABEL}</span>
           <LevelBadge />
           <WalletButton />
         </header>
@@ -161,7 +162,7 @@ export default function Layout() {
           <div className="foot-inner">
             <span className="foot-brand"><img src={mark} alt="" className={isMerch ? "is-yeti" : undefined} />Quasaria</span>
             <span>
-              Quasaria is an <b>unaudited, testnet-only</b> scaffold. Nothing here is financial advice. Liquidity pools and token rewards
+              {IS_MAINNET ? <>Quasaria runs on Stellar <b>mainnet</b>: transactions are real and you sign each one with your own key. The software is <b>unaudited</b>.</> : <>Quasaria is an <b>unaudited, testnet-only</b> scaffold.</>} Nothing here is financial advice. Liquidity pools and token rewards
               carry substantial risk of loss and may be regulated in your jurisdiction.
             </span>
           </div>

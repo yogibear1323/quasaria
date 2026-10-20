@@ -43,5 +43,5 @@ describe("Account page", () => {
     expect(p).toContain("Copy address"); expect(p).toContain("Forget this key"); expect(p).toContain('to="/buy"'); expect(p).toContain("explorerAccountUrl");
     expect(src("../src/components/CopyButton.tsx")).toContain("Copied");
   });
-  it("labels the network", () => { expect(src("../src/pages/Account.tsx")).toContain('NET_LABEL = "Testnet"'); });
+  it("labels the network", () => { expect(src("../src/pages/Account.tsx")).toContain('NET_LABEL = NETWORK_LABEL'); });
 });

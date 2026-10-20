@@ -1,3 +1,4 @@
+import { NETWORK, NETWORK_LABEL } from "../lib/config";
 import { Link } from "react-router-dom";
 import { PageHead } from "../components/ui";
 import QrCode from "../components/QrCode";
@@ -12,8 +13,8 @@ import { REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_TIERS, pctYear } from "../lib/
 import { explorerAccountUrl, explorerAssetUrl } from "../lib/explorer";
 import { fmt, fmtCompact, short } from "../lib/format";
 
-const NET = "testnet" as const; // mainnet is switched on deliberately, with signing, later
-const NET_LABEL = "Testnet";
+const NET = NETWORK;
+const NET_LABEL = NETWORK_LABEL;
 const DASH = "—";
 const trim7 = (n: number) => fmt(n, 7).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
 

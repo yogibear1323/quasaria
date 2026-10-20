@@ -1,3 +1,4 @@
+import { IS_MAINNET } from "../lib/config";
 import { Link } from "react-router-dom";
 import { PageHead } from "../components/ui";
 import { useGame } from "../game/GameProvider";
@@ -12,7 +13,7 @@ const GROUPS: { kind: QuestKind; title: string; blurb: string }[] = [
 ];
 
 const RISKS: { t: string; d: string }[] = [
-  { t: "Testnet only", d: "Quasaria runs on Stellar testnet during the beta. Testnet tokens are free and have no real value; the network can be reset at any time." },
+  IS_MAINNET ? { t: "Real funds", d: "Quasaria runs on Stellar mainnet. Every transaction moves real assets and cannot be reversed." } : { t: "Testnet only", d: "Quasaria runs on Stellar testnet during the beta. Testnet tokens are free and have no real value; the network can be reset at any time." },
   { t: "Unaudited software", d: "Quasaria has not been audited. Bugs can lock or lose funds. Never treat testnet behaviour as a guarantee for mainnet." },
   { t: "Impermanent loss", d: "Liquidity providers can end up with less value than simply holding when prices move apart. Fees may or may not make up for it." },
   { t: "Rewards come from a finite reserve", d: "GLACIERQ holder rewards are paid from a finite reserve and are capped per day. They are not guaranteed, they dilute holders who do not receive them, and today's rate is not a promise." },
@@ -31,7 +32,7 @@ export default function Quests() {
   return (
     <>
       <PageHead kicker="Mission control" title="Quests" right={<span className="pill cyan">Stored in this browser · {g.owner ? `wallet ${g.owner.slice(0, 4)}…${g.owner.slice(-4)}` : "guest (connect a wallet to save per address)"}</span>}>
-        Learn how Quasaria works, try each feature once on testnet and build safe habits. XP rewards understanding, never money.
+        Learn how Quasaria works, try each feature once{IS_MAINNET ? " with small amounts" : " on testnet"} and build safe habits. XP rewards understanding, never money.
       </PageHead>
 
       <div className="notice xp-disclaimer" role="note"><b>XP is not money.</b> {XP_NOTE} There are no leaderboards, and nothing here rewards trade volume or deposit size.</div>
@@ -143,7 +144,7 @@ export default function Quests() {
           <button className="btn" disabled={!!state.done["risk-guide"]} onClick={() => g.completeQuest("risk-guide")} data-testid="risk-guide-ack">
             {state.done["risk-guide"] ? "✓ Risk guide read" : "I've read and understood this"}
           </button>
-          <span className="muted l-tiny">Quasaria is an unaudited, testnet-only scaffold. Nothing here is financial advice.</span>
+          <span className="muted l-tiny">{IS_MAINNET ? "Quasaria is unaudited software on Stellar mainnet." : "Quasaria is an unaudited, testnet-only scaffold."} Nothing here is financial advice.</span>
         </div>
       </section>
     </>

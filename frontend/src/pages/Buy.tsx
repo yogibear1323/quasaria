@@ -1,10 +1,10 @@
+import { NETWORK, IS_MAINNET, USDC_ISSUER } from "../lib/config";
 import { Link } from "react-router-dom";
 import { PageHead } from "../components/ui";
 import { useWallet } from "../lib/wallet";
 import { useAccount } from "../lib/useAccount";
 import { BUY_NOTE, BUY_PROVIDERS } from "../lib/buyProviders";
 import { MAINNET_USDC_ISSUER } from "../lib/liveMarkets";
-import { TESTNET_USDC_ISSUER } from "../lib/config";
 import { Receive } from "./Wallet";
 import BuyWidget from "../components/BuyWidget";
 import StellarTermBuy from "../components/StellarTermBuy";
@@ -12,7 +12,7 @@ import { coindiscoKey } from "../lib/coindisco";
 
 export default function Buy() {
   const w = useWallet();
-  const acct = useAccount("testnet", w.address);
+  const acct = useAccount(NETWORK, w.address);
   const funded = acct.view?.exists ?? w.funded;
   return (
     <>
@@ -55,7 +55,7 @@ export default function Buy() {
         <p style={{ marginTop: 0 }}>USDC is a dollar stablecoin issued by Circle. To hold it your account first adds a <b>trustline</b> to the real issuer (button in step 1 once your account is funded). Always check the issuer address; look-alike assets with the same name exist.</p>
         <dl className="kv">
           <div><dt>Mainnet issuer (Circle)</dt><dd className="mono" style={{ wordBreak: "break-all" }} data-testid="usdc-main-issuer">{MAINNET_USDC_ISSUER}</dd></div>
-          <div><dt>Testnet issuer</dt><dd className="mono" style={{ wordBreak: "break-all" }}>{TESTNET_USDC_ISSUER}</dd></div>
+          <div><dt>{IS_MAINNET ? "Issuer" : "Testnet issuer"}</dt><dd className="mono" style={{ wordBreak: "break-all" }}>{USDC_ISSUER}</dd></div>
         </dl>
         <p className="muted" style={{ fontSize: "0.82rem", marginBottom: 0 }}>Once you hold XLM you can use <Link to="/swap">Swap</Link> to trade it for other assets, or <Link to="/wallet">Send / receive</Link>.</p>
       </div>

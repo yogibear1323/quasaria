@@ -4,14 +4,14 @@
  * active signer (the account's own keypair, see lib/signer.ts).
  */
 import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Operation, TransactionBuilder, Memo, getLiquidityPoolId } from "@stellar/stellar-sdk";
-import { HORIZON_URL, NETWORK_PASSPHRASE, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "./config";
+import { HORIZON_URL, NETWORK_PASSPHRASE, OFFLINE_DEMO, USDC_ISSUER } from "./config";
 import { demoBook, type Book } from "./demo";
 
 export const horizon = new Horizon.Server(HORIZON_URL);
 
 export const ASSETS: Record<string, Asset> = {
   XLM: Asset.native(),
-  USDC: new Asset("USDC", TESTNET_USDC_ISSUER),
+  USDC: new Asset("USDC", USDC_ISSUER),
 };
 
 export const PAIRS = [

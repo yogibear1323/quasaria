@@ -1,3 +1,4 @@
+import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHead } from "../components/ui";
@@ -6,7 +7,7 @@ import { useWallet } from "../lib/wallet";
 import { useAsync } from "../lib/useAsync";
 import { ACTIVITY_FILTERS, fetchActivity, filterItems, type ActivityItem, type ActivityKind } from "../lib/activity";
 
-const NET = "testnet" as const;
+const NET = NETWORK;
 const PILL: Record<ActivityKind, string> = { swap: "cyan", order: "gold", pool: "green", reward: "gold", referral: "pink", payment: "" };
 const KIND_LABEL: Record<ActivityKind, string> = { swap: "Swap", order: "Order", pool: "Pool", reward: "Reward", referral: "Referral", payment: "Payment" };
 
@@ -43,7 +44,7 @@ export default function Activity() {
   const rows = useMemo(() => filterItems(feed.data ?? [], filter), [feed.data, filter]);
   return (
     <>
-      <PageHead kicker="Activity" title="Activity" right={<span className="pill gold">Testnet · no real value</span>}>
+      <PageHead kicker="Activity" title="Activity" right={<span className="pill gold">{IS_MAINNET ? "Mainnet · real funds" : "Testnet · no real value"}</span>}>
         Your swaps, exchange orders, pool deposits and withdrawals, and GLACIERQ reward and referral payments in one timeline, plus a view of the whole network. Every transaction opens on StellarChain.
       </PageHead>
       <div className="card">

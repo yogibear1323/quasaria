@@ -1,3 +1,5 @@
+import { curatedList } from "../lib/nativePools";
+import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useState } from "react";
 import { Asset } from "@stellar/stellar-sdk";
 import { Link, useSearchParams } from "react-router-dom";
@@ -17,7 +19,9 @@ import { fmt } from "../lib/format";
 
 const XLM_OPT: PickerOption = { key: "XLM", code: "XLM", sub: "Stellar Lumens (native)", logo: XLM_LOGO };
 const DEFAULT_TO = assetKeyOf(ASSETS.USDC);
-const CURATED: PickerOption[] = ASSET_LIST.filter((a) => a.testnet.kind !== "native").map((a) => ({ key: testnetKey(a), code: a.code, sub: `${badgeOf(a).text}${a.org ? ` · ${a.org}` : ""}`, logo: a.logo }));
+const CURATED: PickerOption[] = IS_MAINNET
+  ? curatedList("mainnet").filter((a) => a.issuer).map((a) => ({ key: `${a.code}-${a.issuer}`, code: a.code, sub: `${a.name}${a.homeDomain ? ` · ${a.homeDomain}` : ""}`, logo: a.logo }))
+  : ASSET_LIST.filter((a) => a.testnet.kind !== "native").map((a) => ({ key: testnetKey(a), code: a.code, sub: `${badgeOf(a).text}${a.org ? ` · ${a.org}` : ""}`, logo: a.logo }));
 const refOf = (k: string) => { const a = assetFromKey(k); return { code: a.isNative() ? "XLM" : a.getCode(), issuer: a.isNative() ? null : a.getIssuer() ?? null }; };
 const px = (v: number) => (v >= 0.01 ? fmt(v, 5) : v.toPrecision(4));
 const n7 = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 7 });
@@ -32,7 +36,7 @@ export default function Swap() {
   const fromKey = params.get("from") || "XLM";
   const toKey = params.get("to") || (fromKey === "XLM" ? DEFAULT_TO : "XLM");
   const [market, setMarket] = useState<MarketRow[]>([]);
-  useEffect(() => { loadMarkets("testnet", { itemsPerPage: 30, enrich: 0 }).then((d) => setMarket(d.rows)).catch(() => void 0); }, []);
+  useEffect(() => { loadMarkets(NETWORK, { itemsPerPage: 30, enrich: 0 }).then((d) => setMarket(d.rows)).catch(() => void 0); }, []);
   const options = useMemo(() => {
     const o = [XLM_OPT, ...CURATED, ...market.map(toOption)];
     const seen = new Set<string>();
@@ -73,7 +77,7 @@ export default function Swap() {
     if (!q) { setErr(amt > 0 ? "No route found for this pair right now." : "Enter an amount."); return; }
     setBusy(true);
     try {
-      const [acct, reserve, fresh] = await Promise.all([fetchRawAccount("testnet", w.address), fetchBaseReserve("testnet"), findStrictSendPath(from, amt, to).then((r) => parseQuote(amt, r as never))]);
+      const [acct, reserve, fresh] = await Promise.all([fetchRawAccount(NETWORK, w.address), fetchBaseReserve(NETWORK), findStrictSendPath(from, amt, to).then((r) => parseQuote(amt, r as never))]);
       if (!fresh) { setErr("No route found for this pair right now."); return; }
       const f = checkSwapFunds({ from: refOf(fromKey), to: refOf(toKey), amount: amt, acct, baseReserve: reserve });
       if (!f.ok) { setErr(f.error); return; }
@@ -100,7 +104,7 @@ export default function Swap() {
   const customOk = custom !== "" && Number(custom) > 0;
   return (
     <>
-      <PageHead kicker="Swap" title="Swap" right={<span className="pill gold">Testnet · unaudited</span>}>
+      <PageHead kicker="Swap" title="Swap" right={<span className="pill gold">{IS_MAINNET ? "Mainnet · unaudited" : "Testnet · unaudited"}</span>}>
         Swap one asset for another in a single step. Quasaria asks Stellar for the best route across the order book and native liquidity pools, and you set the most price movement you will accept.
       </PageHead>
       <div className="grid g-2">
@@ -132,7 +136,7 @@ export default function Swap() {
               </div>
               {err && <div className="notice" role="alert" data-testid="swap-error" style={{ marginBottom: 10 }}>{err}</div>}
               <button className="btn block" onClick={review} disabled={busy || !(amt > 0)} data-testid="swap-review">{busy ? "Checking…" : w.address ? "Review swap" : "Create / sign in to swap"}</button>
-              {done && <div className="notice tx-ok" role="status" data-testid="swap-done" style={{ marginTop: 12 }}>{done.text} <TxLink hash={done.hash} net="testnet" chars={10} /></div>}
+              {done && <div className="notice tx-ok" role="status" data-testid="swap-done" style={{ marginTop: 12 }}>{done.text} <TxLink hash={done.hash} net={NETWORK} chars={10} /></div>}
             </>
           ) : frozen && (
             <div data-testid="swap-confirm">
@@ -164,7 +168,7 @@ export default function Swap() {
             <li>A missing trustline for the asset you receive is added in the same transaction (0.5 XLM reserve).</li>
             <li>Assets shown without a verified label come from issuers Quasaria hasn't checked. Check the issuer before swapping.</li>
           </ul>
-          <p className="muted l-tiny" style={{ marginBottom: 0 }}>Testnet tokens have no value. For a specific price, use a limit order on the <Link to="/exchange">Exchange</Link>.</p>
+          <p className="muted l-tiny" style={{ marginBottom: 0 }}>{IS_MAINNET ? "Swaps are real mainnet transactions." : "Testnet tokens have no value."} For a specific price, use a limit order on the <Link to="/exchange">Exchange</Link>.</p>
         </div>
       </div>
     </>

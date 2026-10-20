@@ -2,14 +2,13 @@
  * Stellar-native (CAP-38) liquidity pools: browse, preview, deposit, withdraw.
  *
  *  - Data comes from Horizon `/liquidity_pools` (+ `/liquidity_pools/{id}/trades` for 24h volume).
- *  - TESTNET is the only network that can sign. Mainnet is READ-ONLY data browsing behind the
- *    VITE_MAINNET_BROWSE=1 build flag; `MAINNET_SIGNING` is a compile-time `false` and every
- *    transaction builder refuses a non-testnet network.
+ *  - Only the build's active network (VITE_NETWORK) can sign; the other is never signed for.
+ *    `MAINNET_SIGNING` is true only in the mainnet build.
  *  - Assets are matched on code + issuer, never on ticker alone. The curated list is generated from
  *    each issuer's stellar.toml (or the issuer's own docs): see scripts/gen-lp-curated.mjs.
  */
 import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Networks, Operation, TransactionBuilder, getLiquidityPoolId } from "@stellar/stellar-sdk";
-import { HORIZON_URL, NETWORK_PASSPHRASE, TESTNET_USDC_ISSUER } from "./config";
+import { HORIZON_URL, NETWORK, TESTNET_USDC_ISSUER } from "./config";
 import curated from "../config/lp-curated.json";
 import testnetDoc from "../config/testnet-assets.json";
 import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_ISSUER } from "./rewards";
@@ -17,12 +16,12 @@ import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_ISSUER } from "./rewards";
 export type NetId = "testnet" | "mainnet";
 /** Build flag: show the read-only mainnet data switch. Off unless VITE_MAINNET_BROWSE=1. */
 export const MAINNET_BROWSE = import.meta.env.VITE_MAINNET_BROWSE === "1";
-/** Mainnet signing is OFF until explicitly approved. A constant on purpose: it cannot be flipped by an env var. */
-export const MAINNET_SIGNING = false as boolean;
+/** Mainnet signing: on in the mainnet build only (switched on with Robert's go, 2026-10-19). */
+export const MAINNET_SIGNING = (NETWORK === "mainnet") as boolean; // on only in the mainnet build (VITE_NETWORK=mainnet)
 
 export const NETS: Record<NetId, { id: NetId; label: string; horizon: string; passphrase: string; canSign: boolean }> = {
-  testnet: { id: "testnet", label: "Testnet", horizon: HORIZON_URL, passphrase: NETWORK_PASSPHRASE, canSign: true },
-  mainnet: { id: "mainnet", label: "Mainnet (read-only)", horizon: "https://horizon.stellar.org", passphrase: Networks.PUBLIC, canSign: false },
+  testnet: { id: "testnet", label: "Testnet", horizon: NETWORK === "testnet" ? HORIZON_URL : "https://horizon-testnet.stellar.org", passphrase: Networks.TESTNET, canSign: NETWORK === "testnet" },
+  mainnet: { id: "mainnet", label: MAINNET_SIGNING ? "Mainnet" : "Mainnet (read-only)", horizon: "https://horizon.stellar.org", passphrase: Networks.PUBLIC, canSign: MAINNET_SIGNING },
 };
 
 export const BASE_RESERVE = 0.5;
@@ -346,26 +345,26 @@ export function previewWithdraw(pool: PoolRow, shares: number, slippageBps: numb
   return { shares, amountA: a, amountB: b, minAmountA: a * (1 - s), minAmountB: b * (1 - s) };
 }
 
-// ---------- transaction builders (TESTNET ONLY) ----------
+// ---------- transaction builders (active network only) ----------
 export function assertSignable(net: NetId) {
-  if (net !== "testnet" || !NETS.testnet.canSign || NETS.testnet.passphrase !== Networks.TESTNET) {
-    throw new Error("Mainnet signing is off. Liquidity transactions can only be built and signed on testnet.");
+  if (net !== NETWORK || !NETS[net].canSign) {
+    throw new Error(net === "mainnet" ? "Mainnet signing is off in this build. Liquidity transactions are signed only on the active network." : `Liquidity transactions can only be built and signed on ${NETS[NETWORK].label}.`);
   }
 }
-const testnetServer = () => new Horizon.Server(NETS.testnet.horizon);
+const netServer = (net: NetId) => new Horizon.Server(NETS[net].horizon);
 
 export type DepositTx = { xdr: string; poolId: string; added: string[] };
 /** Adds missing asset + pool-share trustlines, then deposits with min/max price bounds. */
 export async function buildDepositTx(net: NetId, pubkey: string, a: AssetRef, b: AssetRef, pv: DepositPreview, opts: { fee?: string } = {}): Promise<DepositTx> {
   assertSignable(net);
   const [x, y] = orderAssets(a, b);
-  const server = testnetServer();
+  const server = netServer(net);
   const acct = await server.loadAccount(pubkey);
   const id = poolIdFor(x, y);
   const holds = (as: AssetRef) => !as.issuer || acct.balances.some((bal) => "asset_code" in bal && bal.asset_code === as.code && bal.asset_issuer === as.issuer);
   const hasShare = acct.balances.some((bal) => bal.asset_type === "liquidity_pool_shares" && (bal as { liquidity_pool_id: string }).liquidity_pool_id === id);
   const added: string[] = [];
-  const bld = new TransactionBuilder(acct, { fee: opts.fee ?? BASE_FEE, networkPassphrase: Networks.TESTNET }).setTimeout(180);
+  const bld = new TransactionBuilder(acct, { fee: opts.fee ?? BASE_FEE, networkPassphrase: NETS[net].passphrase }).setTimeout(180);
   for (const as of [x, y]) if (!holds(as)) { bld.addOperation(Operation.changeTrust({ asset: toSdk(as) })); added.push(`${as.code} trustline`); }
   if (!hasShare) { bld.addOperation(Operation.changeTrust({ asset: new LiquidityPoolAsset(toSdk(x), toSdk(y), POOL_FEE_BP) })); added.push("pool-share trustline"); }
   const swapped = !sameAsset(x, a); // pv is expressed for (a,b) as the caller named them; the op needs (x,y)
@@ -378,8 +377,8 @@ export async function buildDepositTx(net: NetId, pubkey: string, a: AssetRef, b:
 /** Withdraws `shares` with min-amount bounds; optionally closes the (now empty) pool-share trustline to free its reserve. */
 export async function buildWithdrawTx(net: NetId, pubkey: string, pool: PoolRow, pv: WithdrawPreview, closeTrustline: boolean, opts: { fee?: string } = {}): Promise<string> {
   assertSignable(net);
-  const acct = await testnetServer().loadAccount(pubkey);
-  const bld = new TransactionBuilder(acct, { fee: opts.fee ?? BASE_FEE, networkPassphrase: Networks.TESTNET }).setTimeout(180);
+  const acct = await netServer(net).loadAccount(pubkey);
+  const bld = new TransactionBuilder(acct, { fee: opts.fee ?? BASE_FEE, networkPassphrase: NETS[net].passphrase }).setTimeout(180);
   bld.addOperation(Operation.liquidityPoolWithdraw({ liquidityPoolId: pool.id, amount: fix7(pv.shares), minAmountA: fix7(pv.minAmountA), minAmountB: fix7(pv.minAmountB) }));
   if (closeTrustline) bld.addOperation(Operation.changeTrust({ asset: new LiquidityPoolAsset(toSdk(pool.a), toSdk(pool.b), pool.feeBp), limit: "0" }));
   return bld.build().toXDR();

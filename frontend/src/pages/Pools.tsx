@@ -1,3 +1,4 @@
+import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHead, Tabs, TxStatus, useTx } from "../components/ui";
@@ -7,7 +8,7 @@ import { useXlmUsd } from "../lib/markets";
 import { useAsync } from "../lib/useAsync";
 import { fmt, fmtCompact } from "../lib/format";
 import {
-  BASE_RESERVE, MAINNET_BROWSE, buildDepositTx, buildWithdrawTx, curatedList, deriveXlmUsd, depositReserveCost, feeApr, fetchAccountBalances, fetchAssetBalance,
+  BASE_RESERVE, MAINNET_BROWSE, NETS, buildDepositTx, buildWithdrawTx, curatedList, deriveXlmUsd, depositReserveCost, feeApr, fetchAccountBalances, fetchAssetBalance,
   fetchPoolForPair, fetchPoolsByLookup, parseLookup, fetchPositions, loadCuratedPools, fetchRecentPools, fetchVolume24h, keyOf, orderAssets, poolIdFor, poolVerified, pooled, previewDeposit, previewWithdraw, spot, tvlUsd,
   verifyAsset, volumeUnit, type AssetRef, type NetId, type PoolRow, type Pricing,
 } from "../lib/nativePools";
@@ -34,7 +35,7 @@ type Row = PoolRow & { volume?: number | null; truncated?: boolean };
 
 export default function Pools() {
   const w = useWallet();
-  const [net, setNet] = useState<NetId>("testnet");
+  const [net, setNet] = useState<NetId>(NETWORK);
   const [scope, setScope] = useState<"curated" | "recent">("curated");
   const [q, setQ] = useState("");
   const [sel, setSel] = useState<string | null>(null);
@@ -68,7 +69,7 @@ export default function Pools() {
 
   return (
     <>
-      <PageHead kicker="Pools" title="Liquidity pools" right={<span className="pill gold">{net === "testnet" ? "Testnet · unaudited" : "Mainnet · read-only"}</span>}>
+      <PageHead kicker="Pools" title="Liquidity pools" right={<span className="pill gold">{NETS[net].canSign ? `${NETS[net].label} · unaudited` : `${NETS[net].label} · read-only`}</span>}>
         Stellar's native liquidity pools: add both sides of a pair and earn a share of the 0.30% fee on every swap. Impermanent loss can outweigh fees.
       </PageHead>
       <div className="notice" role="note" style={{ marginBottom: 12, fontSize: "0.82rem" }}><b>Plainly:</b> a pool is a protocol feature of Stellar, not a Quasaria contract. Your share is a pool-share trustline on your own account. Fees accrue inside the pool and are paid out when you withdraw. Past volume does not predict future fees, and the fee APR shown is an estimate that ignores impermanent loss.</div>
@@ -76,7 +77,7 @@ export default function Pools() {
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
           <Tabs value={scope} onChange={(v) => { setScope(v); setSel(null); }} options={[{ v: "curated", label: "Verified pairs" }, { v: "recent", label: "Any asset" }]} />
-          {MAINNET_BROWSE && <Tabs value={net} onChange={(v) => { setNet(v); setSel(null); setVol({}); }} options={[{ v: "testnet", label: "Testnet" }, { v: "mainnet", label: "Mainnet (read-only)" }]} />}
+          {MAINNET_BROWSE && !IS_MAINNET && <Tabs value={net} onChange={(v) => { setNet(v); setSel(null); setVol({}); }} options={[{ v: "testnet", label: "Testnet" }, { v: "mainnet", label: "Mainnet (read-only)" }]} />}
           <input className="input" style={{ maxWidth: 260 }} placeholder="Code, CODE-ISSUER or pool id" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search pools" data-testid="pool-search" />
           <button className="btn small ghost" onClick={() => { setVol({}); list.reload(); }}>Refresh</button>
         </div>

@@ -69,7 +69,7 @@ export default function Pools() {
 
   return (
     <>
-      <PageHead kicker="Pools" title="Liquidity pools" right={<span className="pill gold">{NETS[net].canSign ? `${NETS[net].label} · unaudited` : `${NETS[net].label} · read-only`}</span>}>
+      <PageHead kicker="Pools" title="Liquidity pools" right={<span className="pill gold">{NETS[net].canSign ? NETS[net].label : `${NETS[net].label} · read-only`}</span>}>
         Stellar's native liquidity pools: add both sides of a pair and earn a share of the 0.30% fee on every swap. Impermanent loss can outweigh fees.
       </PageHead>
       <div className="notice" role="note" style={{ marginBottom: 12, fontSize: "0.82rem" }}><b>Plainly:</b> a pool is a protocol feature of Stellar, not a Quasaria contract. Your share is a pool-share trustline on your own account. Fees accrue inside the pool and are paid out when you withdraw. Past volume does not predict future fees, and the fee APR shown is an estimate that ignores impermanent loss.</div>

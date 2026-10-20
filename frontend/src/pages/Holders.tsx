@@ -47,7 +47,7 @@ export default function Holders() {
   return (
     <div className="holders-anim">
       <Snowfield />
-      <PageHead kicker="Holders" title={`${REWARD_ASSET_CODE} holder rewards`} right={<span className="pill gold">{IS_MAINNET ? "Mainnet · unaudited" : "Testnet · unaudited"}</span>}>
+      <PageHead kicker="Holders" title={`${REWARD_ASSET_CODE} holder rewards`} right={<span className="pill gold">{IS_MAINNET ? "Mainnet" : "Testnet"}</span>}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}><AssetLogo code={REWARD_ASSET_CODE} issuer={REWARD_ISSUER[NET] ?? "-"} logo={GLACIERQ_ICON_128} size={22} />Glacier ({REWARD_ASSET_CODE}): a daily payment for holders of 1,000,000 or more.</span>
       </PageHead>
 

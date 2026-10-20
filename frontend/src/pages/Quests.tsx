@@ -14,7 +14,7 @@ const GROUPS: { kind: QuestKind; title: string; blurb: string }[] = [
 
 const RISKS: { t: string; d: string }[] = [
   IS_MAINNET ? { t: "Real funds", d: "Quasaria runs on Stellar mainnet. Every transaction moves real assets and cannot be reversed." } : { t: "Testnet only", d: "Quasaria runs on Stellar testnet during the beta. Testnet tokens are free and have no real value; the network can be reset at any time." },
-  { t: "Unaudited software", d: "Quasaria has not been audited. Bugs can lock or lose funds. Never treat testnet behaviour as a guarantee for mainnet." },
+  { t: "Software risk", d: "Quasaria has not been audited yet. Bugs can lock or lose funds. Never treat testnet behaviour as a guarantee for mainnet." },
   { t: "Impermanent loss", d: "Liquidity providers can end up with less value than simply holding when prices move apart. Fees may or may not make up for it." },
   { t: "Rewards come from a finite reserve", d: "GLACIERQ holder rewards are paid from a finite reserve and are capped per day. They are not guaranteed, they dilute holders who do not receive them, and today's rate is not a promise." },
   { t: "Slippage & price impact", d: "Large swaps against thin pools move the price. Set a max slippage so a swap fails instead of filling at a bad rate." },
@@ -144,7 +144,7 @@ export default function Quests() {
           <button className="btn" disabled={!!state.done["risk-guide"]} onClick={() => g.completeQuest("risk-guide")} data-testid="risk-guide-ack">
             {state.done["risk-guide"] ? "✓ Risk guide read" : "I've read and understood this"}
           </button>
-          <span className="muted l-tiny">{IS_MAINNET ? "Quasaria is unaudited software on Stellar mainnet." : "Quasaria is an unaudited, testnet-only scaffold."} Nothing here is financial advice.</span>
+          <span className="muted l-tiny">{IS_MAINNET ? "Quasaria runs on Stellar mainnet." : "Quasaria is a testnet-only scaffold."} Nothing here is financial advice.</span>
         </div>
       </section>
     </>

@@ -104,7 +104,7 @@ export default function Swap() {
   const customOk = custom !== "" && Number(custom) > 0;
   return (
     <>
-      <PageHead kicker="Swap" title="Swap" right={<span className="pill gold">{IS_MAINNET ? "Mainnet · unaudited" : "Testnet · unaudited"}</span>}>
+      <PageHead kicker="Swap" title="Swap" right={<span className="pill gold">{IS_MAINNET ? "Mainnet" : "Testnet"}</span>}>
         Swap one asset for another in a single step. Quasaria asks Stellar for the best route across the order book and native liquidity pools, and you set the most price movement you will accept.
       </PageHead>
       <div className="grid g-2">

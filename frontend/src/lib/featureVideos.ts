@@ -21,7 +21,7 @@ export const FEATURE_VIDEOS_COPY = {
   kicker: "Feature videos",
   headline: "Every feature, in about 30 seconds.",
   pitch: "Short tours of the exchange, captured on testnet. Pick a feature to play it.",
-  note: "Testnet beta · unaudited · testnet tokens have no value. Rates and rewards shown are illustrative and variable. Liquidity pools can lose value to impermanent loss.",
+  note: "Testnet beta · testnet tokens have no value. Rates and rewards shown are illustrative and variable. Liquidity pools can lose value to impermanent loss.",
 } as const;
 
 const base = (): string => (import.meta.env?.BASE_URL as string | undefined) ?? "/";

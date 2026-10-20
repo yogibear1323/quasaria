@@ -78,7 +78,7 @@ export function CalcDisclaimer() {
   return (
     <p className="calc-disclaimer" role="note" data-testid="calc-disclaimer">
       <b>Estimates only · not financial advice.</b> Rates, reserves, volume and prices are variable and can change or stop at any time;
-      past on-chain activity does not predict the future. {IS_MAINNET ? <>Stellar <b>mainnet</b>: real funds.</> : <>Stellar <b>testnet</b> only: tokens have no value.</>} Contracts are <b>unaudited</b>.
+      past on-chain activity does not predict the future. {IS_MAINNET ? <>Stellar <b>mainnet</b>: real funds.</> : <>Stellar <b>testnet</b> only: tokens have no value.</>} Not yet audited.
     </p>
   );
 }

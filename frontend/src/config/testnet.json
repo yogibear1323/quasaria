@@ -37,7 +37,7 @@
     "timelockDelaySeconds": 300,
     "guardian": "GDAEZGA66NUQZKMHFMIUI42S6FKGFERY3UHANE43ZM3RGL3FB3VBNKCY",
     "mainnetMinTimelockSeconds": 172800,
-    "note": "Two-step admin (propose_admin/accept_admin), guardian pause, timelocked propose_action/execute_action for fees, referral hook, oracle, reserve withdrawal, APR/cap, upgrades. Testnet-only, unaudited."
+    "note": "Two-step admin (propose_admin/accept_admin), guardian pause, timelocked propose_action/execute_action for fees, referral hook, oracle, reserve withdrawal, APR/cap, upgrades. Testnet-only, not yet audited."
   },
   "vault": {
     "config": {
@@ -56,7 +56,7 @@
     "generation": "perps-v1",
     "deployedAt": "2026-10-04T20:01:40Z",
     "wasmSha256": "56d094a322ce22d8c65e2ce1dc219e5d6f94ce9a2c8e2321f73e061da8200cbd",
-    "note": "Fresh leverage vault from main ec914ce (PR #6 funding module). Same admin/guardian, 300 s timelock, QUSD collateral, mock oracle and referral registry as the previous vault. XLM market key is Asset::Stellar(native XLM SAC), which the oracle-feed refreshes every 300 s from live mainnet prices; the stale Asset::Other(XLM) key is not used. Funding enabled for XLM via timelocked SetMarketFunding. Testnet-only, unaudited."
+    "note": "Fresh leverage vault from main ec914ce (PR #6 funding module). Same admin/guardian, 300 s timelock, QUSD collateral, mock oracle and referral registry as the previous vault. XLM market key is Asset::Stellar(native XLM SAC), which the oracle-feed refreshes every 300 s from live mainnet prices; the stale Asset::Other(XLM) key is not used. Funding enabled for XLM via timelocked SetMarketFunding. Testnet-only, not yet audited."
   },
   "staking": {
     "minStake": "10000000"
@@ -127,6 +127,6 @@
     "oracle": "CBHMDDCD5NDZKQIGP4VKBTQOQ4OQMK75CYAGHBXY2JT7WGBB774NO2DY",
     "oracleNote": "Mock oracle (SEP-40 interface: lastprice/price/prices/decimals/resolution/assets/last_timestamp). Mainnet needs Reflector.",
     "timelockDelaySeconds": 300,
-    "note": "Supply/borrow pool, testnet-only, unaudited."
+    "note": "Supply/borrow pool, testnet-only, not yet audited."
   }
 }

@@ -26,7 +26,9 @@ export function verifiedList(net: NetId): Verified[] {
 }
 export const verifiedLabel = (net: NetId, code: string, issuer: string): string | null => verifiedList(net).find((v) => v.code === code && v.issuer === issuer)?.label ?? null;
 
-export type Holding = { code: string; issuer: string; balance: number; limit: number | null; authorized: boolean; verified: string | null; isReward: boolean };
+export type Holding = { code: string; issuer: string; balance: number; sellingLiabilities: number; available: number; limit: number | null; authorized: boolean; verified: string | null; isReward: boolean };
+/** Kept back from "available" XLM so a full send still pays its network fee (0.01 XLM ≈ 1,000 operations at the base fee). */
+export const XLM_FEE_BUFFER = 0.01;
 export type PoolShare = { poolId: string; shares: number };
 export type Native = { balance: number; sellingLiabilities: number; buyingLiabilities: number; reserve: number | null; available: number | null };
 export type AccountView =
@@ -45,11 +47,11 @@ export function parseAccount(a: HAccount, net: NetId, baseReserve: number | null
   const bal = n(nat?.balance) ?? 0;
   const sell = n(nat?.selling_liabilities) ?? 0;
   const reserve = minimumBalance(a, baseReserve);
-  const native: Native = { balance: bal, sellingLiabilities: sell, buyingLiabilities: n(nat?.buying_liabilities) ?? 0, reserve, available: reserve === null ? null : Math.max(0, bal - reserve - sell) };
+  const native: Native = { balance: bal, sellingLiabilities: sell, buyingLiabilities: n(nat?.buying_liabilities) ?? 0, reserve, available: reserve === null ? null : Math.max(0, +(bal - reserve - sell - XLM_FEE_BUFFER).toFixed(7)) };
   const holdings: Holding[] = a.balances
     .filter((b) => (b.asset_type === "credit_alphanum4" || b.asset_type === "credit_alphanum12") && b.asset_code && b.asset_issuer)
     .map((b) => ({
-      code: b.asset_code!, issuer: b.asset_issuer!, balance: n(b.balance) ?? 0, limit: n(b.limit), authorized: b.is_authorized !== false,
+      code: b.asset_code!, issuer: b.asset_issuer!, balance: n(b.balance) ?? 0, sellingLiabilities: n(b.selling_liabilities) ?? 0, available: Math.max(0, +((n(b.balance) ?? 0) - (n(b.selling_liabilities) ?? 0)).toFixed(7)), limit: n(b.limit), authorized: b.is_authorized !== false,
       verified: verifiedLabel(net, b.asset_code!, b.asset_issuer!), isReward: isRewardAsset(b.asset_code!, b.asset_issuer),
     }));
   const poolShares: PoolShare[] = a.balances.filter((b) => b.asset_type === "liquidity_pool_shares" && b.liquidity_pool_id).map((b) => ({ poolId: b.liquidity_pool_id!, shares: n(b.balance) ?? 0 }));

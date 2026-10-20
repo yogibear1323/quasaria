@@ -126,7 +126,7 @@ function Send({ address, acct, funded }: { address: string; acct: ReturnType<typ
   const [res, setRes] = useState<Result>(null);
   const asset = assets.find((a) => keyOf(a) === ak) ?? assets[0];
   const held = view?.holdings.find((h) => h.code === asset.code && h.issuer === asset.issuer);
-  const avail = asset.issuer === null ? view?.native.available ?? null : held?.balance ?? null;
+  const avail = asset.issuer === null ? view?.native.available ?? null : held?.available ?? null; // same Horizon account record as the Account page
 
   const review = async () => {
     setErr(null); setRes(null);
@@ -174,7 +174,7 @@ function Send({ address, acct, funded }: { address: string; acct: ReturnType<typ
             <div className="field"><label htmlFor="s-amt">Amount</label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input id="s-amt" className="input mono" inputMode="decimal" placeholder="0.0" value={amount} onChange={(e) => setAmount(e.target.value)} data-testid="send-amount" style={{ flex: 1 }} />
-                <button type="button" className="btn small ghost" disabled={avail === null} onClick={() => avail !== null && setAmount(String(Math.max(0, asset.issuer === null ? avail - 0.00001 : avail).toFixed(7)).replace(/\.?0+$/, ""))}>Max</button>
+                <button type="button" className="btn small ghost" disabled={avail === null} onClick={() => avail !== null && setAmount(String(Math.max(0, avail).toFixed(7)).replace(/\.?0+$/, ""))}>Max</button>
               </div></div>
             <div className="field"><label htmlFor="s-memo">Memo (optional, text)</label>
               <input id="s-memo" className="input" value={memo} onChange={(e) => setMemo(e.target.value)} data-testid="send-memo" />

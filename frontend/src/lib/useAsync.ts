@@ -11,7 +11,7 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []): AsyncSt
   useEffect(() => {
     let alive = true;
     set((x) => ({ ...x, loading: true }));
-    f.current().then((d) => alive && set({ data: d, loading: false, error: null, live: true })).catch((e) => alive && set({ data: null, loading: false, error: String(e?.message ?? e), live: false }));
+    f.current().then((d) => alive && set({ data: d, loading: false, error: null, live: true })).catch((e) => alive && set((x) => ({ data: x.data, loading: false, error: String(e?.message ?? e), live: false }))); // keep the last good data on a failed refresh
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, n]);

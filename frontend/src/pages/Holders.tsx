@@ -1,3 +1,4 @@
+import ExplainerVideo from "../components/ExplainerVideo";
 import { NETWORK, IS_MAINNET } from "../lib/config";
 import { explorerTxUrl } from "../lib/explorer";
 import { useEffect, useState } from "react";
@@ -93,6 +94,7 @@ export default function Holders() {
         </div>
       </div>
 
+      <ExplainerVideo name="glacierq-holder-rewards" title="How GLACIERQ holder rewards work" testid="holders-video" style={{ marginTop: 16 }} />
       <div className="card" style={{ marginTop: 16 }} data-testid="payment-history">
         <h2 style={{ marginTop: 0 }}>Payment history</h2>
         {!w.address ? <p className="muted">Sign in to see the daily payments you received.</p> : !live.live ? <NotLive what="your payment history" /> : hist.loading ? <p className="muted">Reading Horizon…</p> : !hist.data?.length ? <p className="muted">No reward payments received yet.</p> : (

@@ -1,0 +1,9 @@
+{
+  "_comment": "Daily fee split, decided by Robert 2026-10-19. Percent of what is distributable AFTER the XLM buffer. Must sum to 100. reward_reserve and referral_payer are paid in GLACIERQ (bought on the SDEX); treasury gets its share in the fee asset as received.",
+  "reward_reserve_pct": 70,
+  "referral_payer_pct": 20,
+  "treasury_pct": 10,
+  "xlm_buffer": 5,
+  "slippage_pct": 2,
+  "min_amount": 0.01
+}

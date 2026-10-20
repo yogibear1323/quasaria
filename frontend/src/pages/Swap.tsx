@@ -16,6 +16,9 @@ import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
 import { XLM_LOGO } from "../lib/xlm";
 import { DEFAULT_SLIPPAGE_PCT, SLIPPAGE_PRESETS, buildSwapTx, checkSwapFunds, clampSlippage, minReceived, parseQuote, parseSwapReceived, plainSwapError, type SwapQuote } from "../lib/swap";
 import { fmt } from "../lib/format";
+import { loadFeeReceiver, planFees, type FeeLine } from "../lib/fees";
+import { FeeRow } from "../components/FeeRow";
+import { HORIZON_URL } from "../lib/config";
 
 const XLM_OPT: PickerOption = { key: "XLM", code: "XLM", sub: "Stellar Lumens (native)", logo: XLM_LOGO };
 const DEFAULT_TO = assetKeyOf(ASSETS.USDC);
@@ -27,7 +30,7 @@ const px = (v: number) => (v >= 0.01 ? fmt(v, 5) : v.toPrecision(4));
 const n7 = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 7 });
 const codeOf = (a: Asset) => (a.isNative() ? "XLM" : a.getCode());
 
-type Frozen = { quote: SwapQuote; minOut: number; slippage: number; needTrust: Asset[]; feeXlm: number; reserveXlm: number };
+type Frozen = { quote: SwapQuote; minOut: number; slippage: number; needTrust: Asset[]; feeXlm: number; reserveXlm: number; fees: FeeLine[] };
 type Done = { text: string; hash: string };
 
 export default function Swap() {
@@ -79,10 +82,12 @@ export default function Swap() {
     try {
       const [acct, reserve, fresh] = await Promise.all([fetchRawAccount(NETWORK, w.address), fetchBaseReserve(NETWORK), findStrictSendPath(from, amt, to).then((r) => parseQuote(amt, r as never))]);
       if (!fresh) { setErr("No route found for this pair right now."); return; }
-      const f = checkSwapFunds({ from: refOf(fromKey), to: refOf(toKey), amount: amt, acct, baseReserve: reserve });
+      const fees = planFees([{ asset: from, amount: amt }], await loadFeeReceiver(HORIZON_URL));
+      const feeTotal = fees.reduce((s, l) => s + l.amount, 0);
+      const f = checkSwapFunds({ from: refOf(fromKey), to: refOf(toKey), amount: amt + feeTotal, acct, baseReserve: reserve });
       if (!f.ok) { setErr(f.error); return; }
       const s = clampSlippage(slip);
-      setFrozen({ quote: fresh, minOut: minReceived(fresh.destAmount, s), slippage: s, needTrust: f.needTrust.map((r) => new Asset(r.code, r.issuer!)), feeXlm: f.feeXlm, reserveXlm: f.reserveXlm });
+      setFrozen({ quote: fresh, minOut: minReceived(fresh.destAmount, s), slippage: s, needTrust: f.needTrust.map((r) => new Asset(r.code, r.issuer!)), feeXlm: f.feeXlm, reserveXlm: f.reserveXlm, fees });
       setStage("confirm");
     } catch (e) { setErr(`Could not get a quote: ${e instanceof Error ? e.message : String(e)}`); } finally { setBusy(false); }
   };
@@ -92,7 +97,7 @@ export default function Swap() {
     try {
       const me = w.address;
       const seq = (await horizon.loadAccount(me)).sequenceNumber();
-      const xdr = buildSwapTx({ source: me, sequence: seq, from, to, amount: amt, minOut: frozen.minOut, path: frozen.quote.path, needTrust: frozen.needTrust, passphrase: NETWORK_PASSPHRASE });
+      const xdr = buildSwapTx({ source: me, sequence: seq, from, to, amount: amt, minOut: frozen.minOut, path: frozen.quote.path, needTrust: frozen.needTrust, passphrase: NETWORK_PASSPHRASE, fees: frozen.fees });
       const r = await submitSignedXdr(await w.sign(xdr));
       const got = parseSwapReceived(r.result_xdr);
       setDone({ text: `Swapped ${n7(amt)} ${codeOf(from)} for ${got === null ? codeOf(to) : `${n7(got)} ${codeOf(to)}`}.`, hash: r.hash });
@@ -148,6 +153,7 @@ export default function Swap() {
                 <div><dt>Slippage limit</dt><dd className="mono">{frozen.slippage}%</dd></div>
                 <div><dt>Route</dt><dd className="mono">{[codeOf(from), ...frozen.quote.path.map(codeOf), codeOf(to)].join(" → ")}</dd></div>
                 <div><dt>Network fee</dt><dd className="mono">{n7(frozen.feeXlm)} XLM</dd></div>
+                <FeeRow lines={frozen.fees} />
                 {frozen.reserveXlm > 0 && <div><dt>Reserve</dt><dd>{n7(frozen.reserveXlm)} XLM set aside for a new {frozen.needTrust.map(codeOf).join(", ")} trustline</dd></div>}
               </dl>
               <p className="muted l-tiny">If the price moves so that you would get less than the minimum, the swap fails and nothing changes except the small network fee. Pool swaps charge the pool's 0.30% fee, which goes to liquidity providers, not to Quasaria.</p>

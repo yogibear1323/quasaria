@@ -3,6 +3,7 @@
  * path payments. All transactions are built for TESTNET and signed by the
  * active signer (the account's own keypair, see lib/signer.ts).
  */
+import { appendFeeOps, type FeeLine } from "./fees";
 import { Asset, BASE_FEE, Horizon, LiquidityPoolAsset, Operation, TransactionBuilder, Memo, getLiquidityPoolId } from "@stellar/stellar-sdk";
 import { HORIZON_URL, NETWORK_PASSPHRASE, OFFLINE_DEMO, USDC_ISSUER } from "./config";
 import { demoBook, type Book } from "./demo";
@@ -94,9 +95,10 @@ export async function buildTrustline(pubkey: string, asset: Asset) {
 }
 
 /** SDEX limit order. side=buy: buy `amount` base at `price` (quote per base). */
-export async function buildLimitOrder(pubkey: string, side: "buy" | "sell", base: Asset, quote: Asset, amount: number, price: number) {
+export async function buildLimitOrder(pubkey: string, side: "buy" | "sell", base: Asset, quote: Asset, amount: number, price: number, fees: FeeLine[] = []) {
   const balances = await fetchBalances(pubkey);
   const b = withTrust(await builder(pubkey), balances, [base, quote]);
+  appendFeeOps(b, fees); // before the offer: nothing reads this tx's last-op result, but keep the offer last like market orders
   if (side === "buy") {
     b.addOperation(Operation.manageBuyOffer({ selling: quote, buying: base, buyAmount: amount.toFixed(7), price: price.toFixed(7), offerId: "0" }));
   } else {

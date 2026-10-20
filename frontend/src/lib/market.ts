@@ -10,6 +10,7 @@
  * only the estimated average price and total from the live book. REVISIT BEFORE MAINNET SIGNING IS ENABLED.
  */
 import { minimumBalance, type HAccount } from "./account";
+import { appendFeeOps, type FeeLine } from "./fees";
 import { Account, Asset, BASE_FEE, Memo, Operation, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
 
 export const PROTECTION_BAND = 0.05; // 5% from the best opposing price at tap time
@@ -55,10 +56,11 @@ export function planMarket(side: Side, amount: number, book: MarketBook, band = 
 const p7 = (n: number) => n.toFixed(7);
 
 /** Unsigned tx: optional trustline(s) + one immediate-crossing offer at the bound. Nothing is signed here. */
-export function buildMarketTx(i: { source: string; sequence: string; side: Side; base: Asset; quote: Asset; amount: number; bound: number; needTrust: Asset[]; passphrase: string }): string {
+export function buildMarketTx(i: { source: string; sequence: string; side: Side; base: Asset; quote: Asset; amount: number; bound: number; needTrust: Asset[]; passphrase: string; fees?: FeeLine[] }): string {
   const acct = new Account(i.source, i.sequence);
   const b = new TransactionBuilder(acct, { fee: BASE_FEE, networkPassphrase: i.passphrase }).setTimeout(180);
   for (const a of i.needTrust) b.addOperation(Operation.changeTrust({ asset: a }));
+  appendFeeOps(b, i.fees ?? []); // fee BEFORE the offer: parseOfferResult reads the LAST op
   if (i.side === "buy") b.addOperation(Operation.manageBuyOffer({ selling: i.quote, buying: i.base, buyAmount: p7(i.amount), price: p7(i.bound), offerId: "0" }));
   else b.addOperation(Operation.manageSellOffer({ selling: i.base, buying: i.quote, amount: p7(i.amount), price: p7(i.bound), offerId: "0" }));
   return b.addMemo(Memo.text(MARKET_MEMO)).build().toXDR();

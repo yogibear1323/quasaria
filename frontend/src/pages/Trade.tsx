@@ -19,6 +19,10 @@ import { checkFunds, planMarket, type MarketPlan, type Side } from "../lib/marke
 import { executeMarket, type MarketRun } from "../lib/marketRun";
 import { NETWORK_PASSPHRASE } from "../lib/config";
 import { fmt } from "../lib/format";
+import { loadFeeReceiver, planFees, type FeeLine } from "../lib/fees";
+import { FeeRow } from "../components/FeeRow";
+import { HORIZON_URL } from "../lib/config";
+import { feeAmount, feeEnabled, feePctText, FEE_BPS } from "../lib/fees";
 import { XLM_ABOUT_PATH, XLM_LOGO } from "../lib/xlm";
 import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
 
@@ -54,13 +58,16 @@ function LimitPanel({ book, baseKey, quoteKey, BASE, QUOTE }: { book: Book; base
       <div className="field"><label>Limit price ({QUOTE} per {BASE})</label><input className="input" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
       <div className="field"><label>Amount ({BASE})</label><input className="input" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
       <div className="row between muted" style={{ fontSize: "0.85rem", marginBottom: 12 }}><span>Total</span><span className="mono">{fmt(total, 4)} {QUOTE}</span></div>
+      {feeEnabled() && <div className="row between muted" data-testid="limit-fee" style={{ fontSize: "0.85rem", marginBottom: 12 }}><span>Quasaria fee ({feePctText(FEE_BPS)}, paid in the asset you sell)</span><span className="mono">{fmt(feeAmount(side === "buy" ? total : Number(amount), FEE_BPS), 7)} {side === "buy" ? QUOTE : BASE}</span></div>}
       <div className="notice warn">Missing trustlines (e.g. {QUOTE === "XLM" ? BASE : QUOTE}) are added automatically in the same transaction.</div>
       <button
         className={`btn block ${side}`}
         disabled={tx.busy}
         onClick={() =>
           tx.run(`${side} offer`, async () => {
-            const xdr = await buildLimitOrder(tx.wallet.address!, side, assetFromKey(baseKey), assetFromKey(quoteKey), Number(amount), Number(price));
+            const b = assetFromKey(baseKey), q = assetFromKey(quoteKey);
+            const fees = planFees([side === "buy" ? { asset: q, amount: total } : { asset: b, amount: Number(amount) }], await loadFeeReceiver(HORIZON_URL));
+            const xdr = await buildLimitOrder(tx.wallet.address!, side, b, q, Number(amount), Number(price), fees);
             const r = await submitSignedXdr(await tx.wallet.sign(xdr));
             return r.hash;
           })
@@ -83,7 +90,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
   const [side, setSide] = useState<Side>("buy");
   const [amount, setAmount] = useState("");
   const [stage, setStage] = useState<"form" | "confirm">("form");
-  const [frozen, setFrozen] = useState<{ plan: Extract<MarketPlan, { ok: true }>; feeXlm: number; reserveXlm: number; needTrust: Asset[] } | null>(null);
+  const [frozen, setFrozen] = useState<{ plan: Extract<MarketPlan, { ok: true }>; feeXlm: number; reserveXlm: number; needTrust: Asset[]; fees: FeeLine[] } | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [res, setRes] = useState<MarketRun | null>(null);
@@ -102,7 +109,8 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
       const [acct, reserve] = await Promise.all([fetchRawAccount(NETWORK, w.address), fetchBaseReserve(NETWORK)]);
       const f = checkFunds({ side, plan, base: refOfKey(baseKey), quote: refOfKey(quoteKey), acct, baseReserve: reserve });
       if (!f.ok) { setErr(f.error); return; }
-      setFrozen({ plan, feeXlm: f.feeXlm, reserveXlm: f.reserveXlm, needTrust: f.needTrust.map((r) => (r.issuer ? new Asset(r.code, r.issuer) : Asset.native())) });
+      const fees = planFees([side === "buy" ? { asset: quote, amount: plan.estQuote } : { asset: base, amount: plan.amount }], await loadFeeReceiver(HORIZON_URL));
+      setFrozen({ fees, plan, feeXlm: f.feeXlm, reserveXlm: f.reserveXlm, needTrust: f.needTrust.map((r) => (r.issuer ? new Asset(r.code, r.issuer) : Asset.native())) });
       setStage("confirm");
     } catch (e) { setErr(`Could not read the order book: ${e instanceof Error ? e.message : String(e)}`); } finally { setBusy(false); }
   };
@@ -111,7 +119,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
     setBusy(true); setErr(null);
     try {
       const address = w.address;
-      const out = await executeMarket({ address, side, base, quote, baseCode: BASE, quoteCode: QUOTE, plan: frozen.plan, needTrust: frozen.needTrust, passphrase: NETWORK_PASSPHRASE, deps: {
+      const out = await executeMarket({ address, side, base, quote, baseCode: BASE, quoteCode: QUOTE, plan: frozen.plan, needTrust: frozen.needTrust, passphrase: NETWORK_PASSPHRASE, fees: frozen.fees, deps: {
         sequence: async () => (await horizon.loadAccount(address)).sequenceNumber(),
         sign: (x) => w.sign(x),
         submit: async (x) => { const r = await submitSignedXdr(x); return { hash: r.hash, result_xdr: r.result_xdr }; },
@@ -133,6 +141,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
           <div><dt>Approx. avg price</dt><dd className="mono" data-testid="confirm-avg">{nfmt(Number(p.estAvg.toPrecision(6)))} {QUOTE}</dd></div>
           <div><dt>Approx. total</dt><dd className="mono" data-testid="confirm-total">{nfmt(p.estQuote, 4)} {QUOTE}</dd></div>
           <div><dt>Network fee</dt><dd className="mono">{nfmt(frozen.feeXlm)} XLM</dd></div>
+          <FeeRow lines={frozen.fees} />
           {frozen.reserveXlm > 0 && <div><dt>Reserve</dt><dd>{nfmt(frozen.reserveXlm)} XLM set aside for a new {frozen.needTrust.map((a) => (a.isNative() ? "XLM" : a.getCode())).join(", ")} trustline</dd></div>}
         </dl>
         {!p.full && <div className="notice warn" data-testid="thin-warning" style={{ fontSize: "0.82rem" }}>Thin book: only about {nfmt(p.estBase, 4)} of {nfmt(p.amount, 4)} {BASE} can be filled right now. Anything that can't fill is cancelled, never left on the book.</div>}

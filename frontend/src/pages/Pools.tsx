@@ -13,6 +13,9 @@ import {
   verifyAsset, volumeUnit, type AssetRef, type NetId, type PoolRow, type Pricing,
 } from "../lib/nativePools";
 import { submitSignedXdr } from "../lib/stellar";
+import { feeEnabled, feePctText, feeText, loadFeeReceiver, planFees } from "../lib/fees";
+import { HORIZON_URL } from "../lib/config";
+import { toSdk } from "../lib/nativePools";
 import { REWARD_ASSET_CODE } from "../lib/rewards";
 
 const logoOf = (net: NetId, a: AssetRef) => curatedList(net).find((c) => c.code === a.code && c.issuer === a.issuer)?.logo ?? null;
@@ -196,6 +199,10 @@ function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; se
   }, [w.address, poolId, tx.status]);
   const mine = shareBal.data ?? 0;
   const wd = pool && mine > 0 ? previewWithdraw(pool, (mine * pct) / 100, slip) : null;
+  const feeRx = useAsync(() => (feeEnabled() ? loadFeeReceiver(HORIZON_URL) : Promise.resolve(null)), []);
+  // Deposit: fee on each asset sent in. Withdraw: fee on each asset received, sized from the GUARANTEED minimums.
+  const depFees = pv ? planFees([{ asset: toSdk(pair.a), amount: pv.maxAmountA }, { asset: toSdk(pair.b), amount: pv.maxAmountB }], feeRx.data ?? null) : [];
+  const wdFees = wd ? planFees([{ asset: toSdk(pair.a), amount: wd.minAmountA }, { asset: toSdk(pair.b), amount: wd.minAmountB }], feeRx.data ?? null) : [];
   const acct = bal.data?.acct;
   const cost = depositReserveCost({ needTrustA: !!pair.a.issuer && !acct?.trust.has(keyOf(pair.a)), needTrustB: !!pair.b.issuer && !acct?.trust.has(keyOf(pair.b)), needShareTrust: !acct?.shareTrust.has(poolId) });
   const needMore = pv && ((bal.data?.a ?? 0) < pv.maxAmountA || (bal.data?.b ?? 0) < pv.maxAmountB);
@@ -236,13 +243,14 @@ function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; se
               <div><span className="muted l-tiny">Pool share after</span><b className="mono">{fmt(pv.poolShareAfter * 100, 4)}%</b></div>
               <div><span className="muted l-tiny">Price range accepted</span><b className="mono">{fmt(pv.minPrice, 6)} to {fmt(pv.maxPrice, 6)} {pair.a.code}/{pair.b.code}</b></div>
               <div><span className="muted l-tiny">New reserve locked</span><b className="mono">{fmt(cost.total, 1)} XLM</b></div>
+              {depFees.length > 0 && <div data-testid="quasaria-fee"><span className="muted l-tiny">Quasaria fee ({feePctText(depFees[0].bps)}, on top)</span><b className="mono">{feeText(depFees)}</b></div>}
             </div>
           )}
           {cost.total > 0 && <p className="muted" style={{ fontSize: "0.76rem" }}>This also adds {[cost.trustlines > 0 ? "missing asset trustlines" : "", cost.shareTrust > 0 ? "the pool-share trustline (counts as 2 entries)" : ""].filter(Boolean).join(" and ")}, locking {fmt(cost.total, 1)} XLM of reserve (0.5 XLM per entry) while you hold them. Keep {fmt(BASE_RESERVE, 1)} XLM or more spare for fees.</p>}
           {needMore && w.address && <div className="notice warn" style={{ fontSize: "0.8rem" }}>Your balance looks too low for this deposit.</div>}
           {!w.address ? <button className="btn block" onClick={() => w.openModal()}>Sign in to deposit</button> : (
             <button className="btn block" data-testid="deposit-btn" disabled={tx.busy || !pv || blocked || !!needMore} onClick={() => tx.run("deposit", async () => {
-              const r = await buildDepositTx(net, w.address!, pair.a, pair.b, pv!);
+              const r = await buildDepositTx(net, w.address!, pair.a, pair.b, pv!, { fees: depFees });
               const res = await submitSignedXdr(await w.sign(r.xdr));
               onDone();
               return res.hash;
@@ -258,11 +266,12 @@ function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; se
                 <div className="l-est" data-testid="wd-preview">
                   <div><span className="muted l-tiny">You receive (est.)</span><b className="mono">{amt(wd.amountA)} {pair.a.code} + {amt(wd.amountB)} {pair.b.code}</b></div>
                   <div><span className="muted l-tiny">Minimum accepted</span><b className="mono">{amt(wd.minAmountA)} {pair.a.code} + {amt(wd.minAmountB)} {pair.b.code}</b></div>
+                  {wdFees.length > 0 && <div data-testid="quasaria-fee"><span className="muted l-tiny">Quasaria fee ({feePctText(wdFees[0].bps)}, from what you receive)</span><b className="mono">{feeText(wdFees)}</b></div>}
                 </div>
               )}
               {pct === 100 && <label className="row" style={{ gap: 8, fontSize: "0.85rem" }}><input type="checkbox" checked={closeTl} onChange={(e) => setCloseTl(e.target.checked)} /> Also close the pool-share trustline (frees its 1 XLM reserve)</label>}
               <button className="btn block" data-testid="withdraw-btn" disabled={tx.busy || !wd || !pool} style={{ marginTop: 8 }} onClick={() => tx.run("withdraw", async () => {
-                const xdr = await buildWithdrawTx(net, w.address!, pool!, wd!, pct === 100 && closeTl);
+                const xdr = await buildWithdrawTx(net, w.address!, pool!, wd!, pct === 100 && closeTl, { fees: wdFees });
                 const res = await submitSignedXdr(await w.sign(xdr));
                 onDone();
                 return res.hash;

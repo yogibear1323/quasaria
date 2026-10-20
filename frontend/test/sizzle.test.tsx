@@ -43,7 +43,8 @@ describe("landing sizzle reel", () => {
     expect(watch).toBeGreaterThan(hero);
     expect(markets).toBeGreaterThan(watch);
     expect(landing.slice(hero, watch)).not.toMatch(/<Section /);
-    expect(SIZZLE_COPY.headline).toBe("See Quasaria in 34 seconds.");
+    expect(SIZZLE_COPY.headline).toBe("See Quasaria in 90 seconds.");
+    expect(landing).toContain('name="quasaria-home-tour"');
     const text = JSON.stringify(SIZZLE_COPY) + renderToStaticMarkup(<SizzleReel />);
     expect(text).not.toMatch(/bank/i);
   });

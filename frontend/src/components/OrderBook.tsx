@@ -1,3 +1,4 @@
+import { NETWORK } from "../lib/config";
 import type { Book } from "../lib/demo";
 import { fmt } from "../lib/format";
 
@@ -22,7 +23,7 @@ export default function OrderBook({ book, base, quote, onPick }: { book: Book; b
       <div className="mid">{fmt(mid, 5)} <span className="muted" style={{ fontSize: "0.7rem" }}>spread {fmt(spread, 2)}%</span></div>
       {bids.map((b, i) => <Row key={`b${i}`} l={b} side="bid" />)}
       <div className="muted" style={{ fontSize: "0.7rem", marginTop: 8, textAlign: "center" }}>
-        {book.source === "horizon" ? "Live SDEX order book · Horizon testnet" : "Demo book (Horizon unavailable or empty)"}
+        {book.source === "horizon" ? `Live SDEX order book · Horizon ${NETWORK}` : "Demo book (Horizon unavailable or empty)"}
       </div>
     </div>
   );

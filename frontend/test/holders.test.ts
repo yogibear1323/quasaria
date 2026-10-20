@@ -34,12 +34,12 @@ describe("GLACIERQ rewards config", () => {
     expect(REWARD_DISCLOSURE).not.toMatch(/APY/);
   });
   it("icon assets exist, match on issuer, and are square", () => {
-    for (const f of ["glacierq-128.png", "glacierq-512.png"]) {
+    for (const f of ["glacierq-128.png", "glacierq-512.png", "glacierq-quasaria-128.png", "glacierq-quasaria-512.png"]) {
       const p = new URL(`../public/tokens/${f}`, import.meta.url);
       expect(existsSync(p)).toBe(true);
       expect(statSync(p).size).toBeGreaterThan(1000);
     }
-    const b = readFileSync(new URL("../public/tokens/glacierq-512.png", import.meta.url));
+    const b = readFileSync(new URL("../public/tokens/glacierq-quasaria-512.png", import.meta.url));
     expect(b.readUInt32BE(16)).toBe(512); expect(b.readUInt32BE(20)).toBe(512);
     expect(isRewardAsset("GLACIERQ", "GAAAA")).toBe(false); // look-alike issuer
     expect(isRewardAsset("GLACIERQ", null)).toBe(false);

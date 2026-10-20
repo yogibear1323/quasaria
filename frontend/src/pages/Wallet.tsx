@@ -10,12 +10,12 @@ import { fetchBaseReserve, fetchRawAccount } from "../lib/account";
 import { buildSendTx, planSend, validDestination, MEMO_MAX_BYTES, memoBytes, type SendAsset } from "../lib/send";
 import { TRUSTLINE_NOTE, buildTrustlineTx, usdcIssuer } from "../lib/trustline";
 import { NETS } from "../lib/nativePools";
-import { NETWORK_PASSPHRASE } from "../lib/config";
+import { NETWORK, NETWORK_PASSPHRASE, IS_MAINNET, NETWORK_LABEL } from "../lib/config";
 import { explorerAccountUrl } from "../lib/explorer";
 import { fmt, short } from "../lib/format";
 import { submitSignedXdr } from "../lib/stellar";
 
-const NET = "testnet" as const; // mainnet signing stays off until it is switched on deliberately
+const NET = NETWORK;
 
 type Result = { kind: "ok"; hash: string; what: string } | { kind: "err"; msg: string } | null;
 const keyOf = (a: SendAsset) => (a.issuer ? `${a.code}:${a.issuer}` : "XLM");
@@ -43,7 +43,7 @@ export default function Wallet() {
   const funded = acct.view?.exists ?? w.funded;
   return (
     <>
-      <PageHead kicker="Wallet" title="Send &amp; receive" right={<span className="pill gold">Testnet · no real value</span>}>
+      <PageHead kicker="Wallet" title="Send &amp; receive" right={<span className="pill gold">{IS_MAINNET ? "Mainnet · real funds" : "Testnet · no real value"}</span>}>
         Send XLM or any asset you hold, and share your address to receive. Transactions are signed here with your key and go straight to the Stellar network.
       </PageHead>
       <div className="tabs" role="tablist" style={{ marginBottom: 16 }}>
@@ -93,7 +93,7 @@ export function Receive({ address, funded, acct }: { address: string; funded: bo
       <div className="card" data-testid="trustline-card">
         <h2 style={{ marginTop: 0 }}>Receive USDC</h2>
         <p className="muted">{TRUSTLINE_NOTE}</p>
-        <div className="muted l-tiny" style={{ wordBreak: "break-all" }}>Verified issuer (Circle, testnet): <span className="mono">{short(issuer, 6)}</span></div>
+        <div className="muted l-tiny" style={{ wordBreak: "break-all" }}>Verified issuer (Circle{IS_MAINNET ? "" : ", testnet"}): <span className="mono">{short(issuer, 6)}</span></div>
         <p style={{ marginTop: 12 }}>
           {hasUsdc ? <span className="pill cyan">USDC trustline active</span>
             : <button className="btn" disabled={busy || funded !== true} onClick={addTrust} data-testid="add-usdc">{busy ? "Waiting…" : "Add USDC trustline"}</button>}
@@ -204,7 +204,7 @@ function Send({ address, acct, funded }: { address: string; acct: ReturnType<typ
       <div className="card" data-testid="send-help">
         <h2 style={{ marginTop: 0 }}>Before you send</h2>
         <ul className="muted" style={{ paddingLeft: 18, lineHeight: 1.6, margin: 0 }}>
-          <li>Network: <b>Testnet</b>. Test tokens have no value.</li>
+          <li>Network: <b>{NETWORK_LABEL}</b>. {IS_MAINNET ? "Transactions are real and cannot be reversed." : "Test tokens have no value."}</li>
           <li>Your account keeps a small XLM reserve, so “available” is below your balance.</li>
           <li>Sending to an address that is new on the network creates it (needs 1 XLM or more).</li>
           <li>Non-XLM assets can only be received by addresses with a matching trustline.</li>

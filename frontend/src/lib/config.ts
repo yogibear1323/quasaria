@@ -9,14 +9,20 @@ import deployment from "../config/testnet.json";
  */
 const env = import.meta.env;
 
-export const NETWORK = "testnet" as const;
-export const NETWORK_PASSPHRASE = Networks.TESTNET;
-export const HORIZON_URL = (env.VITE_HORIZON_URL as string) || deployment.horizonUrl || "https://horizon-testnet.stellar.org";
-export const RPC_URL = (env.VITE_RPC_URL as string) || deployment.rpcUrl || "https://soroban-testnet.stellar.org";
+/**
+ * Active network, chosen at build time by VITE_NETWORK ("mainnet" | "testnet").
+ * The Pages deploy builds with VITE_NETWORK=mainnet (go-live 2026-10-19). Local
+ * dev and tests default to testnet.
+ */
+export const NETWORK: "testnet" | "mainnet" = env.VITE_NETWORK === "mainnet" ? "mainnet" : "testnet";
+export const IS_MAINNET = NETWORK === "mainnet";
+export const NETWORK_PASSPHRASE = IS_MAINNET ? Networks.PUBLIC : Networks.TESTNET;
+export const NETWORK_LABEL = IS_MAINNET ? "Mainnet" : "Testnet";
+export const HORIZON_URL = (env.VITE_HORIZON_URL as string) || (IS_MAINNET ? "https://horizon.stellar.org" : deployment.horizonUrl || "https://horizon-testnet.stellar.org");
+export const RPC_URL = (env.VITE_RPC_URL as string) || (IS_MAINNET ? "" : deployment.rpcUrl || "https://soroban-testnet.stellar.org");
 
-if (deployment.networkPassphrase !== Networks.TESTNET || (env.VITE_NETWORK && env.VITE_NETWORK !== "testnet")) {
-  // Hard stop: this scaffold must never talk to mainnet.
-  throw new Error("Quasaria scaffold is TESTNET ONLY.");
+if (!IS_MAINNET && deployment.networkPassphrase !== Networks.TESTNET) {
+  throw new Error("Testnet build pointed at a non-testnet deployment file.");
 }
 
 const list = (v?: string) => (v ? v.split(",").map((s) => s.trim()).filter(Boolean) : []);
@@ -38,7 +44,8 @@ export const CONTRACTS = {
 export const OFFLINE_DEMO = (env.VITE_OFFLINE_DEMO as string) === "1";
 
 /** True when contract IDs are configured and we may read the chain. */
-export const CONTRACTS_CONFIGURED = Boolean(CONTRACTS.router && CONTRACTS.qfx) && !OFFLINE_DEMO;
+/** The Soroban contracts (QFX, router, ...) exist on testnet only, so they are never read on mainnet. */
+export const CONTRACTS_CONFIGURED = !IS_MAINNET && Boolean(CONTRACTS.router && CONTRACTS.qfx) && !OFFLINE_DEMO;
 
 /** Public seeded accounts shown in read-only mode (no secrets, testnet only). */
 export const DEMO_ACCOUNTS = {
@@ -62,4 +69,8 @@ export const DEPLOYMENT = deployment;
 
 /** Circle's testnet USDC issuer (classic asset on testnet). */
 export const TESTNET_USDC_ISSUER = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
+/** Circle's mainnet USDC issuer (centre.io). */
+export const MAINNET_USDC_ISSUER_ADDR = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
+/** USDC issuer on the active network. */
+export const USDC_ISSUER = IS_MAINNET ? MAINNET_USDC_ISSUER_ADDR : TESTNET_USDC_ISSUER;
 export const QUSD_ASSET = (env.VITE_QUSD_ASSET as string) || deployment.assets.QUSD;

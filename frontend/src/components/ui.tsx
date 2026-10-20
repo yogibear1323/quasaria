@@ -1,3 +1,4 @@
+import { NETWORK } from "../lib/config";
 import { explorerAccountUrl } from "../lib/explorer";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useWallet } from "../lib/wallet";
@@ -108,7 +109,7 @@ export function TxStatus({ status }: { status: string | null }) {
 
 /** Small badge telling the user where a panel's numbers come from. */
 export function SourceTag({ live, loading, error, what }: { live: boolean; loading?: boolean; error?: string | null; what?: string }) {
-  if (loading) return <span className="pill">⟳ reading testnet…</span>;
+  if (loading) return <span className="pill">⟳ reading {NETWORK}…</span>;
   if (live) return <span className="pill green" title={what}>● live · Soroban testnet</span>;
   return <span className="pill pink" title={error ?? "contracts not configured"}>demo data{error ? " (RPC error)" : ""}</span>;
 }
@@ -119,7 +120,7 @@ export function ViewerNote({ address, isDemo, role }: { address: string; isDemo:
   return (
     <p className="muted" style={{ fontSize: "0.78rem", margin: "6px 0 0" }}>
       Read-only: showing the public seeded {role} account{" "}
-      <a className="mono" href={explorerAccountUrl(address, "testnet") ?? undefined} target="_blank" rel="noopener noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Create an account or connect a wallet to see your own.
+      <a className="mono" href={explorerAccountUrl(address, NETWORK) ?? undefined} target="_blank" rel="noopener noreferrer">{address.slice(0, 6)}…{address.slice(-4)}</a>. Create an account or connect a wallet to see your own.
     </p>
   );
 }

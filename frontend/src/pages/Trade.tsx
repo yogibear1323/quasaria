@@ -1,3 +1,5 @@
+import { curatedList } from "../lib/nativePools";
+import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useState } from "react";
 import { Asset } from "@stellar/stellar-sdk";
 import { PageHead, Stat, Tabs, TxStatus, useTx } from "../components/ui";
@@ -21,13 +23,15 @@ import { XLM_ABOUT_PATH, XLM_LOGO } from "../lib/xlm";
 import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
 
 /** Curated asset list (stablecoins + popular assets, v3 pools) as picker options. */
-const CURATED_OPTS: PickerOption[] = ASSET_LIST.filter((a) => a.testnet.kind !== "native").map((a) => ({ key: testnetKey(a), code: a.code, sub: `${badgeOf(a).text}${a.org ? ` · ${a.org}` : ""}`, logo: a.logo }));
+const CURATED_OPTS: PickerOption[] = IS_MAINNET
+  ? curatedList("mainnet").filter((a) => a.issuer).map((a) => ({ key: `${a.code}-${a.issuer}`, code: a.code, sub: `${a.name}${a.homeDomain ? ` · ${a.homeDomain}` : ""}`, logo: a.logo }))
+  : ASSET_LIST.filter((a) => a.testnet.kind !== "native").map((a) => ({ key: testnetKey(a), code: a.code, sub: `${badgeOf(a).text}${a.org ? ` · ${a.org}` : ""}`, logo: a.logo }));
 
 const px = (v: number) => (v >= 0.01 ? fmt(v, 5) : v.toPrecision(4));
 const DEFAULT_BASE = "XLM";
 const DEFAULT_QUOTE = assetKeyOf(ASSETS.USDC);
 const XLM_OPT: PickerOption = { key: "XLM", code: "XLM", sub: "Stellar Lumens (native)", logo: XLM_LOGO };
-const USDC_OPT: PickerOption = { key: DEFAULT_QUOTE, code: "USDC", sub: "Circle testnet issuer", logo: null };
+const USDC_OPT: PickerOption = { key: DEFAULT_QUOTE, code: "USDC", sub: IS_MAINNET ? "Circle (verified issuer)" : "Circle testnet issuer", logo: null };
 
 function LimitPanel({ book, baseKey, quoteKey, BASE, QUOTE }: { book: Book; baseKey: string; quoteKey: string; BASE: string; QUOTE: string }) {
   const [side, setSide] = useState<"buy" | "sell">("buy");
@@ -95,7 +99,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
       const book = await fetchOrderBook(base, quote, false);
       const plan = planMarket(side, amt, book);
       if (!plan.ok) { setErr(plan.reason === "empty" ? `There are no offers on the order book to ${side} ${BASE} against right now.` : "Enter an amount."); return; }
-      const [acct, reserve] = await Promise.all([fetchRawAccount("testnet", w.address), fetchBaseReserve("testnet")]);
+      const [acct, reserve] = await Promise.all([fetchRawAccount(NETWORK, w.address), fetchBaseReserve(NETWORK)]);
       const f = checkFunds({ side, plan, base: refOfKey(baseKey), quote: refOfKey(quoteKey), acct, baseReserve: reserve });
       if (!f.ok) { setErr(f.error); return; }
       setFrozen({ plan, feeXlm: f.feeXlm, reserveXlm: f.reserveXlm, needTrust: f.needTrust.map((r) => (r.issuer ? new Asset(r.code, r.issuer) : Asset.native())) });
@@ -150,7 +154,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
       <button className={`btn block ${side}`} onClick={tap} disabled={busy} data-testid="market-tap">{busy ? "Checking…" : `${side === "buy" ? "Buy" : "Sell"} ${BASE}`}</button>
       {res && (
         <div className={`notice ${res.outcome.kind === "filled" ? "tx-ok" : res.outcome.kind === "none" ? "warn" : ""}`} role="status" data-testid="market-result" style={{ marginTop: 12 }}>
-          {res.outcome.text} <TxLink hash={res.hash} net="testnet" chars={10} />
+          {res.outcome.text} <TxLink hash={res.hash} net={NETWORK} chars={10} />
           {res.warning && <div style={{ marginTop: 6 }}>{res.warning}</div>}
         </div>
       )}
@@ -201,7 +205,7 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
   const quoteKey = params.get("quote") || (baseKey === DEFAULT_BASE ? DEFAULT_QUOTE : "XLM");
     const [market, setMarket] = useState<MarketRow[]>([]);
   useEffect(() => {
-    loadMarkets("testnet", { itemsPerPage: 30, enrich: 0 }).then((d) => setMarket(d.rows)).catch(() => void 0);
+    loadMarkets(NETWORK, { itemsPerPage: 30, enrich: 0 }).then((d) => setMarket(d.rows)).catch(() => void 0);
   }, []);
   const options = useMemo(() => {
     const opts = [XLM_OPT, USDC_OPT, ...CURATED_OPTS.filter((o) => o.key !== DEFAULT_QUOTE), ...market.filter((r) => r.key !== DEFAULT_QUOTE).map(toOption)];
@@ -246,7 +250,7 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
       const med = cl[Math.floor(cl.length / 2)];
       if (!bookMid || Math.abs(med / bookMid - 1) < 0.3) return { candles: liveCandles, chartSource: "Horizon trade aggregations (1h)" };
     }
-    return { candles: [] as NonNullable<typeof liveCandles>, chartSource: "No Horizon trade history for this pair on testnet" };
+    return { candles: [] as NonNullable<typeof liveCandles>, chartSource: `No Horizon trade history for this pair on ${NETWORK}` };
   }, [liveCandles, bookMid]);
   const last = bookMid || (candles[candles.length - 1]?.c ?? 0);
   const first = candles[0]?.o ?? 0;
@@ -254,11 +258,11 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
 
   return (
     <>
-      <PageHead kicker="Exchange" title="Exchange" right={<span className="pill gold" data-mode={mode}>Testnet · unaudited</span>}>
+      <PageHead kicker="Exchange" title="Exchange" right={<span className="pill gold" data-mode={mode}>{IS_MAINNET ? "Mainnet · unaudited" : "Testnet · unaudited"}</span>}>
         Order-book trading on Stellar's native decentralized exchange (SDEX): live order book, price history, limit orders and instant market buy / sell.
       </PageHead>
       <div className="grid g-trade">
-        <div className="card"><h2>Order book</h2><OrderBook book={book} base={BASE} quote={QUOTE} />{!book.bids.length && !book.asks.length && <p className="muted">No offers on the testnet SDEX for this pair.</p>}</div>
+        <div className="card"><h2>Order book</h2><OrderBook book={book} base={BASE} quote={QUOTE} />{!book.bids.length && !book.asks.length && <p className="muted">No offers on the {NETWORK} SDEX for this pair.</p>}</div>
         <div className="grid" style={{ alignContent: "start" }}>
           <div className="card glow">
             <div className="row between ticker" style={{ marginBottom: 10, flexWrap: "wrap", gap: 16 }}>
@@ -274,7 +278,7 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
               <Stat label="Best bid" value={book.bids[0] ? px(book.bids[0].price) : "—"} className="pos" />
               <Stat label="Best ask" value={book.asks[0] ? px(book.asks[0].price) : "—"} className="neg" />
             </div>
-            {candles.length ? <PriceChart candles={candles} /> : <div className="muted" style={{ height: 220, display: "grid", placeItems: "center" }}>No price history for {BASE}/{QUOTE} on testnet yet.</div>}
+            {candles.length ? <PriceChart candles={candles} /> : <div className="muted" style={{ height: 220, display: "grid", placeItems: "center" }}>No price history for {BASE}/{QUOTE} on {NETWORK} yet.</div>}
             <div className="muted" style={{ fontSize: "0.7rem", textAlign: "right" }}>{chartSource} · asset list, logos & org names: {STELLARCHAIN_ATTRIBUTION}</div>
           </div>
           <div className="grid g-2">

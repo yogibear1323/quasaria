@@ -35,7 +35,7 @@ import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../l
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
 import { ASSETS, fetchOrderBook, horizon } from "../lib/stellar";
 import { readPool, useChain, type PoolInfo } from "../lib/chain";
-import { CONTRACTS, OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
+import { CONTRACTS, OFFLINE_DEMO, NETWORK, IS_MAINNET, USDC_ISSUER, HORIZON_URL } from "../lib/config";
 import { ammAmountOut } from "../lib/math";
 import { REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TOTAL_SUPPLY, TOKENOMICS, dailyReward, tierFor, pctYear } from "../lib/rewards";
 import { fmt, fmtCompact, short } from "../lib/format";
@@ -142,6 +142,7 @@ function MarketsPreview() {
   const nav = useNavigate();
   const xlm = useXlmUsd();
   const [net, setNet] = useState<"mainnet" | "testnet">("mainnet");
+  const tradeNet = NETWORK;
   const [data, setData] = useState<MarketsResult | null>(null);
   useEffect(() => {
     if (OFFLINE_DEMO) return;
@@ -153,16 +154,16 @@ function MarketsPreview() {
     };
   }, [net]);
   const open = (r: MarketRow) => {
-    if (net === "mainnet") return nav("/markets");
-    const isUsdc = r.code === "USDC" && r.issuer === TESTNET_USDC_ISSUER;
+    if (net !== tradeNet) return nav("/markets");
+    const isUsdc = r.code === "USDC" && r.issuer === USDC_ISSUER;
     nav(isUsdc ? "/exchange" : `/exchange?base=${encodeURIComponent(r.key)}&quote=XLM`);
   };
   return (
     <div className="card">
       <div className="row between l-wrap">
         <div className="tabs" style={{ margin: 0 }}>
-          <button className={net === "mainnet" ? "on" : ""} onClick={() => setNet("mainnet")}>Mainnet · reference</button>
-          <button className={net === "testnet" ? "on" : ""} onClick={() => setNet("testnet")}>Testnet · tradeable</button>
+          <button className={net === "mainnet" ? "on" : ""} onClick={() => setNet("mainnet")}>{IS_MAINNET ? "Mainnet · tradeable" : "Mainnet · reference"}</button>
+          {!IS_MAINNET && <button className={net === "testnet" ? "on" : ""} onClick={() => setNet("testnet")}>Testnet · tradeable</button>}
         </div>
         {data?.source && data.source !== "live" ? <FeedBadge source={data.source} snapshotAt={data.snapshotAt} /> : <Label kind="live">{STELLARCHAIN_ATTRIBUTION}</Label>}
       </div>
@@ -242,7 +243,7 @@ function KeysVisual() {
   const steps = [
     { t: "Generate", d: "Your browser creates a secret key and public address with Web Crypto. Nothing is sent anywhere.", i: "✦" },
     { t: "Back up", d: "Save the secret, then prove it with a quick backup check. Optionally encrypt it on this device with a password.", i: "lock" },
-    { t: "Trade", d: "Sign transactions locally. On testnet, Friendbot funds your new account with free test XLM.", i: "⇄" },
+    { t: "Trade", d: `Sign transactions locally. ${IS_MAINNET ? "A new mainnet account opens once it receives at least 1 XLM." : "On testnet, Friendbot funds your new account with free test XLM."}`, i: "⇄" },
   ];
   return (
     <div>
@@ -433,9 +434,9 @@ function OpenDataVisual() {
 // ---------------------------------------------------------------- 9. transparency
 function TransparencyVisual() {
   const links: [string, string][] = [
-    ["Stellar network (Horizon, testnet)", "https://horizon-testnet.stellar.org"],
-    ["Explorer (StellarChain.io, testnet)", "https://testnet.stellarchain.io"],
-    ...(REWARD_ISSUER.testnet ? ([[`${REWARD_ASSET_CODE} issuer (testnet)`, explorerAccountUrl(REWARD_ISSUER.testnet, "testnet") ?? "https://testnet.stellarchain.io"]] as [string, string][]) : []),
+    [`Stellar network (Horizon, ${NETWORK})`, HORIZON_URL],
+    [`Explorer (StellarChain.io, ${NETWORK})`, IS_MAINNET ? "https://stellarchain.io" : "https://testnet.stellarchain.io"],
+    ...(REWARD_ISSUER[NETWORK] ? ([[`${REWARD_ASSET_CODE} issuer (${NETWORK})`, explorerAccountUrl(REWARD_ISSUER[NETWORK]!, NETWORK) ?? "https://stellarchain.io"]] as [string, string][]) : []),
   ];
   return (
     <div className="card">
@@ -454,8 +455,8 @@ function TransparencyVisual() {
 const FAQ: { q: string; a: ReactNode }[] = [
   { q: "What happens if I lose my secret key?", a: "Your account and everything in it are gone for good. Quasaria never sees or stores your key, so nobody (including us) can recover it. Write it down or save the backup file somewhere safe. \"Remember on this device\" is a convenience, not a backup." },
   { q: "What are the fees?", a: "Every Stellar transaction pays a tiny network fee (the base fee is 0.00001 XLM per operation; contract calls cost a little more). Swaps through a Stellar liquidity pool pay a 0.30% pool fee to the liquidity providers. Quasaria itself charges no fee on order-book or pool swaps." },
-  { q: "Is my money safe?", a: "You keep custody of your keys, so nobody can freeze or move your funds without them. But Quasaria is experimental and not yet audited: liquidity pools can lose value to impermanent loss, reward tokens dilute supply, and prices can move fast. During the beta it runs on Stellar testnet, where tokens have no real value." },
-  { q: "Is this live on mainnet?", a: "Not yet. Quasaria is a testnet beta: testnet XLM is free from Friendbot. Mainnet market data is shown for reference only." },
+  { q: "Is my money safe?", a: `You keep custody of your keys, so nobody can freeze or move your funds without them. But Quasaria is experimental and not yet audited: liquidity pools can lose value to impermanent loss, reward tokens dilute supply, and prices can move fast. ${IS_MAINNET ? "It runs on Stellar mainnet with real funds." : "During the beta it runs on Stellar testnet, where tokens have no real value."}` },
+  { q: "Is this live on mainnet?", a: IS_MAINNET ? `Yes. Quasaria runs on Stellar mainnet: trades use real XLM and assets, and you sign every transaction with your own key. The software is not yet audited. ${REWARD_ASSET_CODE} has not been issued yet.` : "Not yet. Quasaria is a testnet beta: testnet XLM is free from Friendbot. Mainnet market data is shown for reference only." },
   { q: "Why don't I see some stablecoins?", a: "We only list coins whose issuer's stellar.toml confirms the exact code and issuer, with enough holders and trading activity. Look-alikes and impostors are rejected. Unverified coins are hidden behind a \"show unverified\" toggle on the Pools page, with a warning." },
   { q: "Do I need a browser extension?", a: "No. There are no wallet extensions or third-party connectors: you create an account in the page (your browser generates the keypair) or log in by pasting an existing secret key." },
 ];

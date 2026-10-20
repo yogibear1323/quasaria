@@ -1,3 +1,4 @@
+import { NETWORK, IS_MAINNET } from "../lib/config";
 import { Link } from "react-router-dom";
 import { useAsync } from "../lib/useAsync";
 import { useWallet } from "../lib/wallet";
@@ -10,7 +11,7 @@ import { AssetLogo } from "../components/AssetBits";
 import { fmt, fmtCompact } from "../lib/format";
 import { GLACIERQ_ICON_128, REFERRAL_LIVE, REFERRAL_TERMS, REWARD_ASSET_CODE, dailyReward, tierFor, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, pctYear, reserveYearsAtCap } from "../lib/rewards";
 
-const NET = "testnet" as const;
+const NET = NETWORK;
 const HISTORY_LIMIT = 200;
 const sign = (n: number) => `${n >= 0 ? "+" : "−"}${fmt(Math.abs(n), Math.abs(n) < 1 ? 6 : 4)}`;
 
@@ -67,7 +68,7 @@ export default function Earn() {
   const totals = w.address ? paymentTotals(ops.data ?? [], w.address, rewardCfg(NET)) : { reward: 0, referrer: 0, referee: 0, count: 0 };
   return (
     <>
-      <PageHead kicker="Earnings" title="Earnings" right={<span className="pill gold">Testnet · unaudited</span>}>
+      <PageHead kicker="Earnings" title="Earnings" right={<span className="pill gold">{IS_MAINNET ? "Mainnet · unaudited" : "Testnet · unaudited"}</span>}>
         Three ways to earn on Quasaria: swap fees as a liquidity provider, daily {REWARD_ASSET_CODE} holder rewards, and referral bonuses. Your own numbers are below.
       </PageHead>
       <section className="card glow how-earn" aria-labelledby="how-earn-h" data-testid="how-earnings-work" style={{ marginBottom: 16 }}>

@@ -51,8 +51,8 @@ export const PAYOUT_UTC = { hour: 0, minute: 30 } as const;
 export const memoFor = (day: string) => `${REWARD_ASSET_CODE}:${day}`;
 
 /** GLACIERQ icon (the Quasaria yeti, square crop). Matched on code AND issuer, never ticker alone. */
-export const GLACIERQ_ICON_128 = `${import.meta.env.BASE_URL ?? "/"}tokens/glacierq-128.png`;
-export const GLACIERQ_ICON_512 = `${import.meta.env.BASE_URL ?? "/"}tokens/glacierq-512.png`;
+export const GLACIERQ_ICON_128 = `${import.meta.env.BASE_URL ?? "/"}tokens/glacierq-quasaria-128.png`;
+export const GLACIERQ_ICON_512 = `${import.meta.env.BASE_URL ?? "/"}tokens/glacierq-quasaria-512.png`;
 export const isRewardAsset = (code: string, issuer?: string | null) =>
   code === REWARD_ASSET_CODE && !!issuer && (issuer === REWARD_ISSUER.testnet || issuer === REWARD_ISSUER.mainnet);
 

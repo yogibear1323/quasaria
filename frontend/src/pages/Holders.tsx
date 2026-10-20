@@ -1,3 +1,4 @@
+import { NETWORK, IS_MAINNET } from "../lib/config";
 import { explorerTxUrl } from "../lib/explorer";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -11,7 +12,7 @@ import { CountUp, ReserveGauge, Snowfield, TierProgress, YetiGlint } from "../co
 import { usePauseWhenHidden } from "../lib/motion";
 import { fetchReserveStatus, fetchRewardBalance, fetchRewardHistory, rewardsLive, type Payment, type ReserveStatus } from "../lib/holders";
 
-const NET = "testnet" as const; // mainnet is switched on only when the reward accounts exist and signing is enabled
+const NET = NETWORK;
 const pctDay = (apr: number) => ((apr / 365) * 100).toFixed(apr === 0.05 ? 4 : 5);
 
 function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
@@ -46,7 +47,7 @@ export default function Holders() {
   return (
     <div className="holders-anim">
       <Snowfield />
-      <PageHead kicker="Holders" title={`${REWARD_ASSET_CODE} holder rewards`} right={<span className="pill gold">Testnet · unaudited</span>}>
+      <PageHead kicker="Holders" title={`${REWARD_ASSET_CODE} holder rewards`} right={<span className="pill gold">{IS_MAINNET ? "Mainnet · unaudited" : "Testnet · unaudited"}</span>}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}><AssetLogo code={REWARD_ASSET_CODE} issuer={REWARD_ISSUER[NET] ?? "-"} logo={GLACIERQ_ICON_128} size={22} />Glacier ({REWARD_ASSET_CODE}): a daily payment for holders of 1,000,000 or more.</span>
       </PageHead>
 

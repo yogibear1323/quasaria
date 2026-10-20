@@ -1,8 +1,9 @@
+import { NETWORK } from "../lib/config";
 import { useState } from "react";
 import { explorerAccountUrl, explorerTxUrl, type ExplorerNet } from "../lib/explorer";
 
 /** Transaction hash as a StellarChain link (new tab, noopener) with a copy button. Never links to another explorer. */
-export function TxLink({ hash, net = "testnet", chars = 8 }: { hash: string; net?: ExplorerNet; chars?: number }) {
+export function TxLink({ hash, net = NETWORK, chars = 8 }: { hash: string; net?: ExplorerNet; chars?: number }) {
   const [ok, setOk] = useState(false);
   const url = explorerTxUrl(hash, net);
   const label = `${hash.slice(0, chars)}…`;
@@ -14,7 +15,7 @@ export function TxLink({ hash, net = "testnet", chars = 8 }: { hash: string; net
   );
 }
 
-export function AccountLink({ address, net = "testnet", children }: { address: string; net?: ExplorerNet; children?: React.ReactNode }) {
+export function AccountLink({ address, net = NETWORK, children }: { address: string; net?: ExplorerNet; children?: React.ReactNode }) {
   const url = explorerAccountUrl(address, net);
   const label = children ?? `${address.slice(0, 4)}…${address.slice(-4)}`;
   return url ? <a className="mono" href={url} target="_blank" rel="noopener noreferrer" title={`${address} on StellarChain`}>{label}</a> : <span className="mono">{label}</span>;

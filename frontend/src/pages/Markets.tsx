@@ -7,7 +7,7 @@ import { AssetLogo, Sparkline } from "../components/AssetBits";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
 import { hms, LIVE_ASSET_COUNT as LIVE_N, MAINNET_USDC_ISSUER, REFRESH_MS, snapshotRow, useLiveMarkets, type LiveRow } from "../lib/liveMarkets";
-import { OFFLINE_DEMO, TESTNET_USDC_ISSUER } from "../lib/config";
+import { IS_MAINNET, OFFLINE_DEMO, USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
 import MarketsHero from "../components/MarketsHero";
 import XlmRow from "../components/XlmRow";
@@ -82,11 +82,12 @@ export default function Markets() {
   }, []);
 
   const trade = (r: MarketRow) => {
-    const isUsdc = r.code === "USDC" && r.issuer === TESTNET_USDC_ISSUER;
+    const isUsdc = r.code === "USDC" && r.issuer === USDC_ISSUER;
     nav(isUsdc ? "/exchange" : `/exchange?base=${encodeURIComponent(r.key)}&quote=XLM`);
   };
   /** Mainnet rows are data only; Exchange opens Quasaria's TESTNET market for the same code (or the default XLM/USDC pair). */
   const tradeMainnet = (r: LiveRow) => {
+    if (IS_MAINNET) return nav(r.code === "USDC" && r.issuer === USDC_ISSUER ? "/exchange" : `/exchange?base=${encodeURIComponent(`${r.code}-${r.issuer}`)}&quote=XLM`);
     const k = r.code === "USDC" ? null : testnetByCode.get(r.code);
     nav(k ? `/exchange?base=${encodeURIComponent(k)}&quote=XLM` : "/exchange");
   };
@@ -170,7 +171,7 @@ export default function Markets() {
       <div className="mk-page">
       <PageHead kicker="Scene · Constellations" title="Markets" right={headRight} yeti={false}>
         {network === "mainnet"
-          ? "Live Stellar mainnet market data straight from public Horizon — price, momentum, volume and holders. Display data only: trading on Quasaria is testnet-only, and every trade settles on the testnet SDEX."
+          ? "Live Stellar mainnet market data straight from public Horizon — price, momentum, volume and holders. " + (IS_MAINNET ? "Trade any listed asset on the Stellar mainnet SDEX from the Exchange." : "Display data only: trading on Quasaria is testnet-only, and every trade settles on the testnet SDEX.")
           : "Discover Stellar assets ranked by stellarchain.io — price, momentum, volume and issuer info. Display data only: every trade still settles on the SDEX via Horizon."}
       </PageHead>
       {network === "mainnet" && !OFFLINE_DEMO && <MarketsHero rows={allRows} live={live.mode === "live"} onPick={(c) => { setSearch(c); }} />}
@@ -182,14 +183,14 @@ export default function Markets() {
       </div>
       <div className="card mk-card">
         <div className="row between" style={{ flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
-          <Tabs value={network} onChange={setNetwork} options={[{ v: "mainnet", label: "Mainnet · live data" }, { v: "testnet", label: "Testnet · tradeable here" }]} />
+          {IS_MAINNET ? <span /> : <Tabs value={network} onChange={setNetwork} options={[{ v: "mainnet", label: "Mainnet · live data" }, { v: "testnet", label: "Testnet · tradeable here" }]} />}
           <input className="input" style={{ maxWidth: 280 }} placeholder="Search code, issuer or org…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {network === "mainnet" ? (
           <>
             <div className="notice" data-testid="mainnet-data-notice">
-              <b>Market data: Stellar mainnet</b> (public Horizon, read-only). <b>Trading on Quasaria: testnet only</b> — the Exchange button opens Quasaria's testnet market for the same asset code (or XLM/USDC), never a mainnet order.
+              {IS_MAINNET ? <><b>Market data: Stellar mainnet</b> (public Horizon). The Exchange button opens the real mainnet market for that asset (matched by issuer). Listing ≠ endorsement: always verify the issuer.</> : <><b>Market data: Stellar mainnet</b> (public Horizon, read-only). <b>Trading on Quasaria: testnet only</b> — the Exchange button opens Quasaria's testnet market for the same asset code (or XLM/USDC), never a mainnet order.</>}
             </div>
             {live.mode === "fallback" && (
               <div className="notice warn" data-testid="fallback-notice">
@@ -247,7 +248,7 @@ export default function Markets() {
                       <td data-label="As of" style={{ fontSize: "0.72rem" }} className="c-asof muted" title={snapRow ? snapTip : r.lastTradeAt ? (r.lastTradeExact ? `last trade seen on the live feed: ${new Date(r.lastTradeAt).toLocaleString()}` : `last trade in the hourly candle starting ${new Date(r.lastTradeAt).toLocaleString()}`) : undefined}>
                         {snapRow ? <span style={{ color: "var(--amber)" }} data-testid="row-snapshot">snapshot</span> : r.priceKind === "trade" && r.lastTradeAt ? (r.lastTradeExact ? `last trade ${asOf(new Date(r.lastTradeAt).toISOString())}` : r.lastTradeAt + 3600_000 > live.now ? "traded this hour" : `last trade ≈ ${asOf(new Date(r.lastTradeAt + 3600_000).toISOString())}`) : r.priceKind === "book" ? "live book" : "no trades 24h"}
                       </td>
-                      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={`Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Exchange</button>
+                      <td data-label="" className="c-act"><div className="mk-acts"><button className="btn small ghost" onClick={() => tradeMainnet(r)} title={IS_MAINNET ? `Opens the ${r.code} mainnet market` : `Opens Quasaria's TESTNET market${testnetByCode.has(r.code) || r.code === "USDC" ? ` for ${r.code}` : " (XLM/USDC)"} — mainnet data is reference only`}>Exchange</button>
                         <button className={`btn small ghost about-btn ${aboutKey === r.key ? "on" : ""}`} aria-expanded={aboutKey === r.key} onClick={() => setAboutKey((k) => (k === r.key ? null : r.key))}>About</button></div></td>
                     </tr>
                     {aboutKey === r.key && <tr className="about-row"><td colSpan={13}><AssetAbout code={r.code} issuer={r.issuer} homeDomain={r.homeDomain} snapshotDesc={(full?.raw.get(r.key)?.tomlInfo as { desc?: string } | undefined)?.desc ?? null} onClose={() => setAboutKey(null)} /></td></tr>}
@@ -279,7 +280,7 @@ export default function Markets() {
               </div>
             )}
             <p className="muted" style={{ fontSize: "0.75rem", marginTop: 10 }}>
-              Live data: Stellar <b>mainnet</b> public Horizon (<a href="https://horizon.stellar.org" target="_blank" rel="noreferrer">horizon.stellar.org</a>), refreshed every ~{REFRESH_MS / 1000}s while this tab is visible (paused when hidden). Price = last trade vs XLM (order-book mid when there was no trade in 24h); live price from the network-wide trade feed (polled every ~30s); 1h / 24h / 7d change, 24h volume, trades and the 24h trend from Horizon hourly trade aggregations (refreshed every ~10 min per asset to respect Horizon's rate limits); trustlines (authorized holders) and supply from Horizon /assets; USD via the XLM/USDC pair (Circle issuer {MAINNET_USDC_ISSUER.slice(0, 4)}…{MAINNET_USDC_ISSUER.slice(-4)}). The asset list (top {allRows.length.toLocaleString()}: stellarchain.io rank{full?.sources?.stellarExpert ? `, topped up with ${full.sources.stellarExpert} from stellar.expert's rating` : ""}), rank, logos and org names (from issuers' stellar.toml) come from the list saved at every deploy and 30-minute refresh{full?.at ? ` (${snapTime(full.at)})` : ""}; the top {LIVE_N} update live from Horizon and the rest show the saved values (marked snapshot). If Horizon can't be reached, the saved snapshot is shown and labelled with its time. Mainnet rows are reference-only — Quasaria trades on TESTNET. Listing ≠ endorsement: always verify the issuer.
+              Live data: Stellar <b>mainnet</b> public Horizon (<a href="https://horizon.stellar.org" target="_blank" rel="noreferrer">horizon.stellar.org</a>), refreshed every ~{REFRESH_MS / 1000}s while this tab is visible (paused when hidden). Price = last trade vs XLM (order-book mid when there was no trade in 24h); live price from the network-wide trade feed (polled every ~30s); 1h / 24h / 7d change, 24h volume, trades and the 24h trend from Horizon hourly trade aggregations (refreshed every ~10 min per asset to respect Horizon's rate limits); trustlines (authorized holders) and supply from Horizon /assets; USD via the XLM/USDC pair (Circle issuer {MAINNET_USDC_ISSUER.slice(0, 4)}…{MAINNET_USDC_ISSUER.slice(-4)}). The asset list (top {allRows.length.toLocaleString()}: stellarchain.io rank{full?.sources?.stellarExpert ? `, topped up with ${full.sources.stellarExpert} from stellar.expert's rating` : ""}), rank, logos and org names (from issuers' stellar.toml) come from the list saved at every deploy and 30-minute refresh{full?.at ? ` (${snapTime(full.at)})` : ""}; the top {LIVE_N} update live from Horizon and the rest show the saved values (marked snapshot). If Horizon can't be reached, the saved snapshot is shown and labelled with its time. {IS_MAINNET ? "Quasaria trades on Stellar mainnet." : "Mainnet rows are reference-only — Quasaria trades on TESTNET."} Listing ≠ endorsement: always verify the issuer.
             </p>
           </>
         ) : (
@@ -322,7 +323,7 @@ export default function Markets() {
               </tbody>
             </table>
             <p className="muted" style={{ fontSize: "0.75rem", marginTop: 10 }}>
-              Ranking, logos, org names and stats: <a href="https://stellarchain.io" target="_blank" rel="noreferrer">stellarchain.io</a> public API (cached 5 min; falls back to a build-time snapshot, labelled with its time, when the API can't be reached from the browser). Snapshots older than 24h are flagged <span className="neg">stale</span>; missing/stale prices fall back to the Horizon order book vs XLM. Testnet prices come from sparse testnet order books and are not real market prices (so no USD conversion is shown). Quasaria trades on TESTNET. Listing ≠ endorsement: always verify the issuer.
+              Ranking, logos, org names and stats: <a href="https://stellarchain.io" target="_blank" rel="noreferrer">stellarchain.io</a> public API (cached 5 min; falls back to a build-time snapshot, labelled with its time, when the API can't be reached from the browser). Snapshots older than 24h are flagged <span className="neg">stale</span>; missing/stale prices fall back to the Horizon order book vs XLM. Testnet prices come from sparse testnet order books and are not real market prices (so no USD conversion is shown). {IS_MAINNET ? "Quasaria trades on Stellar mainnet." : "Quasaria trades on TESTNET."} Listing ≠ endorsement: always verify the issuer.
             </p>
           </>
         )}

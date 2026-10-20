@@ -30,8 +30,10 @@ describe("Buy: Coindisco widget", () => {
     expect(h).toContain('data-testid="soon-badge"'); expect(text(h)).toMatch(/Coming soon/);
     expect(text(h)).toContain("Card purchases through our partner widget are coming soon. Use the links below for now.");
     expect(h).not.toMatch(/<iframe/);
+    // On the page itself the Coindisco panel is hidden entirely while no key is configured (StellarTerm is primary).
     const page = r(<WalletProvider><Buy /></WalletProvider>);
-    for (const id of ["buy-coming-soon", "buy-providers", "buy-coinbase", "buy-kraken", "buy-usdc", "buy-signedout", "buy-widget-disclosure"]) expect(page, id).toContain(`data-testid="${id}"`);
+    expect(page).not.toContain('data-testid="buy-widget"');
+    for (const id of ["buy-stellarterm", "buy-providers", "buy-coinbase", "buy-kraken", "buy-usdc", "buy-signedout"]) expect(page, id).toContain(`data-testid="${id}"`);
   });
   it("disclosure: third-party provider handles payment and ID checks; Quasaria never touches funds or card data", () => {
     const t = text(r(<BuyWidget address={null} publicKey={FAKE} network="mainnet" />));

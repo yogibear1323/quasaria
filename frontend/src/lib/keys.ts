@@ -143,3 +143,29 @@ export function downloadText(filename: string, text: string) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// ---- pending (not yet confirmed) keypair
+/**
+ * A freshly generated keypair stays the SAME until the user confirms (signs in with it) or explicitly cancels.
+ * Kept in a module variable (survives modal remounts / route changes) and in sessionStorage (survives a reload or a
+ * mobile browser discarding the background tab while the user is away saving the secret). Never localStorage:
+ * sessionStorage is per-tab and is wiped when the tab closes.
+ */
+const PENDING_KEY = "quasaria.pending-keypair.v1";
+let pendingMem: NewAccount | null = null;
+const ss = (): Storage | null => { try { return typeof sessionStorage !== "undefined" ? sessionStorage : null; } catch { return null; } };
+export const pendingKeypair = {
+  get(): NewAccount | null {
+    if (pendingMem) return pendingMem;
+    try {
+      const raw = ss()?.getItem(PENDING_KEY);
+      const a = raw ? (JSON.parse(raw) as NewAccount) : null;
+      if (a && isValidPublicKey(a.publicKey) && isValidSecret(a.secret) && Keypair.fromSecret(a.secret).publicKey() === a.publicKey) return (pendingMem = a);
+    } catch { /* corrupt: ignore */ }
+    return null;
+  },
+  set(a: NewAccount) { pendingMem = a; try { ss()?.setItem(PENDING_KEY, JSON.stringify(a)); } catch { /* storage full/blocked: memory copy still holds */ } },
+  clear() { pendingMem = null; try { ss()?.removeItem(PENDING_KEY); } catch { /* ignore */ } },
+  /** The pending keypair, or a new one (which becomes pending). */
+  getOrCreate(gen: () => NewAccount = generateAccount): NewAccount { const p = pendingKeypair.get(); if (p) return p; const a = gen(); pendingKeypair.set(a); return a; },
+};

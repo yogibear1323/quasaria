@@ -8,6 +8,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { NETWORK_PASSPHRASE, HORIZON_URL } from "./config";
+import { pendingKeypair } from "./keys";
 import { LocalKeySigner, type Signer } from "./signer";
 import { decryptSecret, encryptSecret, forgetStoredKey, loadStoredKey, saveStoredKey, type EncryptedKey } from "./keys";
 
@@ -58,8 +59,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [funded, setFunded] = useState<boolean | null>(null);
   const [error] = useState<string | null>(null);
   const [stored, setStored] = useState<EncryptedKey | null>(() => loadStoredKey());
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalIntent, setModalIntent] = useState<ModalIntent>(null);
+  // A keypair generated but not yet confirmed (e.g. the tab was reloaded or discarded while the user saved the secret) reopens the create screen with the SAME keypair.
+  const [modalOpen, setModalOpen] = useState(() => !!pendingKeypair.get());
+  const [modalIntent, setModalIntent] = useState<ModalIntent>(() => (pendingKeypair.get() ? "create" : null));
   const current = useRef<Signer | null>(null);
 
   const replaceSigner = useCallback((s: Signer | null) => {

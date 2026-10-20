@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useWallet, type ModalIntent } from "../lib/wallet";
-import { downloadText, fundWithFriendbot, generateAccount, importSecret, isValidSecret, MIN_PASSWORD, type NewAccount } from "../lib/keys";
+import { downloadText, fundWithFriendbot, generateAccount, importSecret, isValidSecret, MIN_PASSWORD, pendingKeypair, type NewAccount } from "../lib/keys";
 import { NETWORK } from "../lib/config";
 import { short } from "../lib/format";
 import QrCode from "./QrCode";
@@ -51,7 +51,7 @@ const passError = (r: { on: boolean; pw: string; pw2: string }) =>
 export function initialModalState(intent: ModalIntent, hasStored: boolean, address: string | null, gen: () => NewAccount = generateAccount): { step: Step; acct: NewAccount | null } {
   if (intent === "fund" && address) return { step: "fund", acct: { publicKey: address, secret: "" } };
   if (intent === "create") {
-    try { return { step: "reveal", acct: gen() }; } catch { /* no Web Crypto: the chooser shows the error on click */ }
+    try { return { step: "reveal", acct: pendingKeypair.getOrCreate(gen) }; } catch { /* no Web Crypto: the chooser shows the error on click */ }
   }
   if (intent === "unlock" && hasStored) return { step: "unlock", acct: null };
   return { step: "choose", acct: null };
@@ -85,6 +85,7 @@ export default function AccountModal() {
     setErr(null);
     try {
       await w.loginWithSecret(a.secret, pass.on ? pass.pw : undefined);
+      pendingKeypair.clear(); // confirmed: the pending copy is no longer needed
       setAcct({ publicKey: a.publicKey, secret: "" }); // from here on only the address is kept in the modal
       setImportText("");
       setPass({ on: false, pw: "", pw2: "" });
@@ -122,7 +123,7 @@ export default function AccountModal() {
 
         {step === "choose" && (
           <div className="grid" style={{ gap: 10 }}>
-            <button className="btn block" onClick={() => { try { setAcct(generateAccount()); setSaved(false); setRevealed(true); setErr(null); setStep("reveal"); } catch (x) { setErr((x as Error).message); } }}>✦ Create a new keypair</button>
+            <button className="btn block" onClick={() => { try { setAcct(pendingKeypair.getOrCreate(generateAccount)); setSaved(false); setRevealed(true); setErr(null); setStep("reveal"); } catch (x) { setErr((x as Error).message); } }}>✦ Create a new keypair</button>
             <button className="btn block ghost" onClick={() => setStep("import")}>Sign in with a secret key (S…)</button>
             {w.stored && <button className="btn block ghost" onClick={() => { setErr(null); setStep("unlock"); }} data-testid="choose-unlock">Unlock saved key ({short(w.stored.publicKey, 4)})</button>}
             {err && <div className="notice warn">{err}</div>}
@@ -163,7 +164,7 @@ export default function AccountModal() {
             </label>
             <div className="row">
               <button className="btn" disabled={!saved} onClick={() => { setErr(null); setStep("protect"); }}>Continue</button>
-              <button className="btn ghost" onClick={() => { setAcct(null); setStep("choose"); }}>Back</button>
+              <button className="btn ghost" onClick={() => { if (acct && !window.confirm("Discard this keypair? If you continue later you will get a different address and secret key.")) return; pendingKeypair.clear(); setAcct(null); setStep("choose"); }}>Discard</button>
             </div>
           </>
         )}

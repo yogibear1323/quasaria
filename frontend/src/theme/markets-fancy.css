@@ -54,3 +54,6 @@
 @media (prefers-reduced-motion: reduce) { .mk-sk { animation: none; } .mk-mover { transition: none; } .mk-mover:hover { transform: none; } }
 .mk-movers-h small { text-transform: none; letter-spacing: 0; font-weight: 500; color: #574634; }
 @media (max-width: 760px) { .mk-hs-v { white-space: normal; overflow-wrap: anywhere; } }
+
+/* Markets only: a little extra width on desktop so each row's Exchange + About buttons fit (1280 / 1440). Mobile unchanged. */
+@media (min-width: 1200px) { .mk-page { margin-inline: -20px; } .mk-page .mk-table th:nth-child(13) { width: 160px; } }

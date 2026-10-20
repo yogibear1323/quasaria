@@ -55,7 +55,7 @@ export default function GlacierqRow({ usdPerXlm, onExchange }: { usdPerXlm: numb
           </div>
         </div>
       </td>
-      <td data-label="Price (XLM)" className="c-price mono" data-testid="glacierq-price">{s.priceXlm !== null ? fmt(s.priceXlm, 7) : <span className="muted">— / no trades yet</span>}</td>
+      <td data-label="Price (XLM)" className="c-price mono" data-testid="glacierq-price" title={s.priceXlm !== null ? `GLACIERQ/XLM order-book mid: ${fmt(s.priceXlm, 7)} XLM` : "No GLACIERQ/XLM market on the Stellar DEX yet, so there is no price"} style={{ whiteSpace: "normal" }}>{s.priceXlm !== null ? fmt(s.priceXlm, 7) : <span className="muted" style={{ whiteSpace: "normal", fontSize: "0.72rem", lineHeight: 1.2 }}>No trades yet</span>}</td>
       <td data-label="≈ USD" className="c-usd mono">{s.priceXlm !== null && usdPerXlm ? `$${(s.priceXlm * usdPerXlm).toPrecision(3)}` : dash}</td>
       <td data-label="1h" className="mono">{dash}</td><td data-label="24h" className="mono">{dash}</td><td data-label="7d" className="mono">{dash}</td>
       <td data-label="Vol 24h (XLM)" className="mono">{dash}</td><td data-label="Trades" className="mono">{dash}</td>

@@ -33,18 +33,18 @@ export const reserveYears = (qualifying: number, blendedApr: number, t: { reward
 /** Public issuer address per network (null until it exists). Mainnet stays null until go-live. */
 export const REWARD_ISSUER: Record<"testnet" | "mainnet", string | null> = {
   testnet: (import.meta.env.VITE_REWARD_ISSUER_TESTNET as string) || testnetCfg.issuer || null,
-  mainnet: (import.meta.env.VITE_REWARD_ISSUER_MAINNET as string) || null,
+  mainnet: (import.meta.env.VITE_REWARD_ISSUER_MAINNET as string) || "GDC4U6RG7XF5CQBZTR2JVV57QFP65PJGNLYNCNN73AIMEZUK5EWMWL5T", // issued 2026-10-19, issuer locked
 };
 
 /** Public reward-reserve account per network (null until it exists). The daily payer. */
 export const REWARD_RESERVE: Record<"testnet" | "mainnet", string | null> = {
   testnet: (import.meta.env.VITE_REWARD_RESERVE_TESTNET as string) || (testnetCfg as { reserve?: string | null }).reserve || null,
-  mainnet: (import.meta.env.VITE_REWARD_RESERVE_MAINNET as string) || null,
+  mainnet: (import.meta.env.VITE_REWARD_RESERVE_MAINNET as string) || "GAYQNEMBXY3SSGS3F76AFRNG76IODTD63E6HZROVBITMPWSL64IKG4MQ",
 };
 /** Public referral-payer account per network (a separate account from the reserve; null until it exists). */
 export const REWARD_PAYER: Record<"testnet" | "mainnet", string | null> = {
   testnet: (import.meta.env.VITE_REWARD_PAYER_TESTNET as string) || (testnetCfg as { payer?: string | null }).payer || null,
-  mainnet: (import.meta.env.VITE_REWARD_PAYER_MAINNET as string) || null,
+  mainnet: (import.meta.env.VITE_REWARD_PAYER_MAINNET as string) || "GBHJYTPU7MTAZ3DHCL5Z7QI3DYYMGZTVADC2ZRELLGNYEVJOSRS7U73Y", // referral payout source, 30M float
 };
 /** Daily payout time (UTC). One payment per holder per UTC day, memo `GLACIERQ:YYYY-MM-DD`. */
 export const PAYOUT_UTC = { hour: 0, minute: 30 } as const;
@@ -72,7 +72,8 @@ export const pctYear = (apr: number) => Math.round(apr * 10000) / 100;
  * Referral program terms, CONFIRMED by Robert (2026-10-18). Not live: it starts after the first mainnet holder-reward run.
  * Mirrors scripts/rewards/core.mjs. Flip REFERRAL_LIVE only when the payer account and binding reader are running.
  */
-export const REFERRAL_LIVE = false;
+/** Turned ON by Robert 2026-10-19 (payouts still need a separate go to schedule the mainnet script). */
+export const REFERRAL_LIVE = true;
 export const REFERRAL_TERMS = {
   referrerPct: 10, referrerDays: 365, refereePct: 10, refereeDays: 180, refereeMonths: 6,
   perReferralCap: 100_000, perReferrerDay: 25_000, subBudgetDay: 1_000_000,

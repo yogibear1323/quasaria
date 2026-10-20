@@ -53,7 +53,7 @@ describe("holder and referral earnings", () => {
   });
   it("shows not-live and coming-after-launch states honestly", () => {
     expect(T(<HolderEarnings live={false} address={ME} balance={null} totals={{ reward: 0, referrer: 0, referee: 0, count: 0 }} />)).toMatch(/Not live yet.*5% a year from 1M, 7% a year from 10M, not guaranteed/);
-    expect(T(<ReferralEarnings address={ME} totals={{ reward: 0, referrer: 12.5, referee: 1, count: 2 }} />)).toMatch(/Coming after launch.*12\.50 GLACIERQ/);
+    expect(T(<ReferralEarnings address={ME} totals={{ reward: 0, referrer: 12.5, referee: 1, count: 2 }} />)).toMatch(/As referrer.*12\.50 GLACIERQ/);
     const live = T(<HolderEarnings live address={ME} balance={12_000_000} totals={{ reward: 400, referrer: 0, referee: 0, count: 1 }} />);
     expect(live).toMatch(/Tier 2 · 7% a year/); expect(live).toMatch(/2,301\.37 GLACIERQ/); expect(live).toMatch(/400\.00 GLACIERQ/);
   });

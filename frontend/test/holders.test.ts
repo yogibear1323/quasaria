@@ -54,8 +54,8 @@ describe("holders reads", () => {
     expect(nextPayout(Date.UTC(2026, 9, 18, 0, 10)).toISOString()).toBe("2026-10-18T00:30:00.000Z");
     expect(utcDay(now)).toBe("2026-10-18");
   });
-  it("is 'not live' while no issuer/reserve is configured", () => {
+  it("is live on mainnet now the issuer and reserve are configured", () => {
     _setHoldersFetch((() => { throw new Error("no network expected"); }) as never);
-    expect(rewardsLive("mainnet").live).toBe(false);
+    expect(rewardsLive("mainnet").live).toBe(true); expect(rewardsLive("mainnet").issuer).toBe("GDC4U6RG7XF5CQBZTR2JVV57QFP65PJGNLYNCNN73AIMEZUK5EWMWL5T");
   });
 });

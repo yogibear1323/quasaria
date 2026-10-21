@@ -16,7 +16,7 @@ import { submitSignedXdr } from "../lib/stellar";
 import { feeEnabled, feePctText, feeText, loadFeeReceiver, planFees } from "../lib/fees";
 import { HORIZON_URL } from "../lib/config";
 import { toSdk } from "../lib/nativePools";
-import { REWARD_ASSET_CODE } from "../lib/rewards";
+import { REWARD_ASSET_CODE, REWARD_ISSUER } from "../lib/rewards";
 
 const logoOf = (net: NetId, a: AssetRef) => curatedList(net).find((c) => c.code === a.code && c.issuer === a.issuer)?.logo ?? null;
 function AssetChip({ net, a, size = 20 }: { net: NetId; a: AssetRef; size?: number }) {
@@ -57,6 +57,13 @@ export default function Pools() {
       .map((p) => ({ ...p, volume: vol[p.id]?.volume ?? null, truncated: vol[p.id]?.truncated }))
       .sort((x, y) => (tvlUsd(y, pricing) ?? 0) - (tvlUsd(x, pricing) ?? 0) || y.reserveA - x.reserveA);
   }, [pools, q, vol, pricing, lk, scope]);
+  const pin = useMemo(() => pinnedPair(net), [net]);
+  // the pinned pool even when a search/filter would hide it
+  const pinPool = pin ? pools.find((p) => p.id === pin.id) ?? null : null;
+  const shown = useMemo(() => {
+    const withPin: Row[] = pinPool && !rows.some((r) => r.id === pinPool.id) ? [{ ...pinPool, volume: vol[pinPool.id]?.volume ?? null, truncated: vol[pinPool.id]?.truncated }, ...rows] : rows;
+    return pinFirst(withPin, pin?.id ?? null);
+  }, [rows, pin, pinPool, vol]);
 
   // 24h volume for the top pools only (rate-limit friendly: bounded concurrency, top 12)
   useEffect(() => {
@@ -91,13 +98,20 @@ export default function Pools() {
             <tbody>
               {list.loading && <tr><td colSpan={7} className="muted">Reading Horizon…</td></tr>}
               {list.error && <tr><td colSpan={7} className="neg">Could not read pools: {list.error}</td></tr>}
-              {!list.loading && !list.error && !rows.length && <tr><td colSpan={7} className="muted" data-testid="no-pools">{scope === "curated" ? "No pools exist yet for the verified pairs on this network. Pick a pair below and make the first deposit to create one." : "No pools match."}</td></tr>}
-              {rows.map((p) => {
+              {!list.loading && !list.error && !shown.rows.length && !pin && <tr><td colSpan={7} className="muted" data-testid="no-pools">{scope === "curated" ? "No pools exist yet for the verified pairs on this network. Pick a pair below and make the first deposit to create one." : "No pools match."}</td></tr>}
+              {pin && !shown.found && !list.loading && (
+                <tr className={sel === pin.newSel ? "l-sel pool-pin" : "pool-pin"} onClick={() => setSel(pin.newSel)} style={{ cursor: "pointer" }} data-testid="pool-pin-placeholder">
+                  <td><span className="pill pin-badge" title="Pinned">📌 Pinned</span> <AssetChip net={net} a={pin.b} /> <span className="muted">/</span> <AssetChip net={net} a={pin.a} /></td>
+                  <td colSpan={5} className="muted" style={{ fontSize: "0.82rem" }}>Not created yet - first deposit creates it</td>
+                  <td><button className="btn small ghost">Open</button></td>
+                </tr>
+              )}
+              {shown.rows.map((p) => {
                 const t = tvlUsd(p, pricing), vu = volumeUnit(p, pricing);
                 const vUsd = p.volume != null && vu.usd != null ? p.volume * vu.usd : null;
                 return (
-                  <tr key={p.id} className={sel === p.id ? "l-sel" : ""} onClick={() => setSel(p.id)} style={{ cursor: "pointer" }} data-testid="pool-row">
-                    <td><AssetChip net={net} a={p.a} /> <span className="muted">/</span> <AssetChip net={net} a={p.b} /> {poolVerified(net, p) ? <span className="pill green" style={{ fontSize: "0.55rem" }}>✔ verified</span> : null}</td>
+                  <tr key={p.id} className={`${sel === p.id ? "l-sel" : ""}${pin?.id === p.id ? " pool-pin" : ""}`} onClick={() => setSel(p.id)} style={{ cursor: "pointer" }} data-testid="pool-row">
+                    <td>{pin?.id === p.id && <><span className="pill pin-badge" title="Pinned">📌 Pinned</span> </>}<AssetChip net={net} a={p.a} /> <span className="muted">/</span> <AssetChip net={net} a={p.b} /> {poolVerified(net, p) ? <span className="pill green" style={{ fontSize: "0.55rem" }}>✔ verified</span> : null}</td>
                     <td className="mono">{usd(t)}</td>
                     <td className="mono">{p.volume == null ? "…" : vUsd != null ? `${usd(vUsd)}${p.truncated ? "+" : ""}` : `${amt(p.volume)} ${vu.unit.code}`}</td>
                     <td className="mono">{(() => { const a = feeApr(vUsd, t); return a == null ? "—" : `${fmt(a, 2)}%`; })()}</td>
@@ -168,6 +182,21 @@ export function parseNewSel(sel: string): { a: AssetRef; b: AssetRef } {
   const [ka = "", kb = ""] = k.split("|");
   const f = (s: string): AssetRef => (s === "native" ? { code: "XLM", issuer: null } : { code: s.split(":")[0], issuer: s.split(":")[1] });
   return { a: f(ka), b: f(kb) };
+}
+
+/** GLACIERQ / XLM is always pinned first on the Pools list (real pool row once it exists, else a placeholder). */
+export function pinnedPair(net: NetId): { a: AssetRef; b: AssetRef; id: string; newSel: string } | null {
+  const iss = REWARD_ISSUER[net];
+  if (!iss) return null;
+  const [a, b] = orderAssets({ code: "XLM", issuer: null }, { code: REWARD_ASSET_CODE, issuer: iss });
+  const id = poolIdFor(a, b);
+  return { a, b, id, newSel: `new:${id}:${keyOf(a)}|${keyOf(b)}` };
+}
+/** Moves the pinned pool to the front (no duplicate); returns whether it was found among the rows. */
+export function pinFirst<T extends { id: string }>(rows: T[], pinId: string | null): { rows: T[]; found: boolean } {
+  if (!pinId) return { rows, found: false };
+  const i = rows.findIndex((r) => r.id === pinId);
+  return i < 0 ? { rows, found: false } : { rows: [rows[i], ...rows.slice(0, i), ...rows.slice(i + 1)], found: true };
 }
 
 function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; sel: string; pool: PoolRow | null; pricing: Pricing; onDone: () => void }) {

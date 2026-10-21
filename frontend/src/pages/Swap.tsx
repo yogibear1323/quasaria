@@ -15,7 +15,7 @@ import { fetchBaseReserve, fetchRawAccount } from "../lib/account";
 import { NETWORK_PASSPHRASE } from "../lib/config";
 import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
 import { XLM_LOGO } from "../lib/xlm";
-import { DEFAULT_SLIPPAGE_PCT, SLIPPAGE_PRESETS, buildSwapTx, checkSwapFunds, clampSlippage, minReceived, parseQuote, parseSwapReceived, plainSwapError, type SwapQuote } from "../lib/swap";
+import { DEFAULT_SLIPPAGE_PCT, SLIPPAGE_PRESETS, buildSwapTx, checkSwapFunds, clampSlippage, minReceived, parseQuote, parseSwapReceived, plainSwapError, isTransientLookupError, type SwapQuote } from "../lib/swap";
 import { fmt } from "../lib/format";
 import { loadFeeReceiver, planFees, type FeeLine } from "../lib/fees";
 import { FeeRow } from "../components/FeeRow";
@@ -33,6 +33,16 @@ const codeOf = (a: Asset) => (a.isNative() ? "XLM" : a.getCode());
 
 type Frozen = { quote: SwapQuote; minOut: number; slippage: number; needTrust: Asset[]; feeXlm: number; reserveXlm: number; fees: FeeLine[] };
 type Done = { text: string; hash: string };
+
+/** Horizon path lookup with ONE automatic retry after a rate limit (429) / server or network error. */
+async function lookupPath(from: Asset, amt: number, to: Asset) {
+  try { return await findStrictSendPath(from, amt, to); } catch (e) {
+    if (!isTransientLookupError(e)) throw e;
+    await new Promise((r) => setTimeout(r, 1500));
+    return findStrictSendPath(from, amt, to);
+  }
+}
+const NET_ERR = "Couldn't reach Stellar to price this. Check your connection and try again.";
 
 export default function Swap() {
   const w = useWallet();
@@ -66,8 +76,16 @@ export default function Swap() {
   const from = assetFromKey(fromKey), to = assetFromKey(toKey);
   const quote = useAsync<SwapQuote | null>(async () => {
     if (!(amt > 0)) return null;
-    return parseQuote(amt, (await findStrictSendPath(from, amt, to)) as never);
+    return parseQuote(amt, (await lookupPath(from, amt, to)) as never);
   }, [fromKey, toKey, debounced]);
+  const lookupFailed = !!quote.error && !quote.loading && amt > 0;
+  const [autoRetried, setAutoRetried] = useState("");
+  const retryKey = `${fromKey}|${toKey}|${debounced}`;
+  useEffect(() => { // one background re-try per pair+amount while the "Retrying…" notice is up
+    if (!lookupFailed || autoRetried === retryKey) return;
+    const t = setTimeout(() => { setAutoRetried(retryKey); quote.reload(); }, 4000);
+    return () => clearTimeout(t);
+  }, [lookupFailed, autoRetried, retryKey, quote.reload]);
   const q = quote.data;
   const min = q ? minReceived(q.destAmount, slip) : 0;
 
@@ -80,10 +98,10 @@ export default function Swap() {
   const review = async () => {
     setErr(null); setDone(null);
     if (!w.address) { w.openModal(); return; }
-    if (!q) { setErr(amt > 0 ? "No route found for this pair right now." : "Enter an amount."); return; }
+    if (!q) { setErr(!(amt > 0) ? "Enter an amount." : lookupFailed ? NET_ERR : "No route found for this pair right now."); return; }
     setBusy(true);
     try {
-      const [acct, reserve, fresh] = await Promise.all([fetchRawAccount(NETWORK, w.address), fetchBaseReserve(NETWORK), findStrictSendPath(from, amt, to).then((r) => parseQuote(amt, r as never))]);
+      const [acct, reserve, fresh] = await Promise.all([fetchRawAccount(NETWORK, w.address), fetchBaseReserve(NETWORK), lookupPath(from, amt, to).then((r) => parseQuote(amt, r as never))]);
       if (!fresh) { setErr("No route found for this pair right now."); return; }
       const fees = planFees([{ asset: from, amount: amt }], await loadFeeReceiver(HORIZON_URL));
       const feeTotal = fees.reduce((s, l) => s + l.amount, 0);
@@ -92,7 +110,7 @@ export default function Swap() {
       const s = clampSlippage(slip);
       setFrozen({ quote: fresh, minOut: minReceived(fresh.destAmount, s), slippage: s, needTrust: f.needTrust.map((r) => new Asset(r.code, r.issuer!)), feeXlm: f.feeXlm, reserveXlm: f.reserveXlm, fees });
       setStage("confirm");
-    } catch (e) { setErr(`Could not get a quote: ${e instanceof Error ? e.message : String(e)}`); } finally { setBusy(false); }
+    } catch (e) { setErr(isTransientLookupError(e) ? `${NET_ERR} (${e instanceof Error ? e.message : String(e)})` : `Could not get a quote: ${e instanceof Error ? e.message : String(e)}`); } finally { setBusy(false); }
   };
   const confirm = async () => {
     if (!frozen || !w.address) return;
@@ -133,9 +151,15 @@ export default function Swap() {
               <div className="row" style={{ justifyContent: "center", margin: "0 0 8px" }}><button className="btn small ghost" onClick={flip} aria-label="Flip pair" data-testid="swap-flip">⇅ Flip</button></div>
               <div className="field"><label>You receive (estimate)</label>
                 <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-                  <div className="input mono" style={{ flex: 1, minWidth: 120 }} data-testid="swap-out">{quote.loading && amt > 0 ? "…" : q ? n7(q.destAmount) : amt > 0 ? "no route" : "—"}</div>
+                  <div className="input mono" style={{ flex: 1, minWidth: 120 }} data-testid="swap-out">{quote.loading && amt > 0 ? "…" : lookupFailed ? "—" : q ? n7(q.destAmount) : amt > 0 ? "no route" : "—"}</div>
                   <AssetPicker label="To asset" value={toOpt} options={options} onChange={(o) => pick("to", o)} />
                 </div></div>
+              {lookupFailed && (
+                <div className="notice warn" role="alert" data-testid="swap-lookup-error" style={{ marginBottom: 10 }}>
+                  Couldn't reach Stellar to price this. {autoRetried === retryKey ? "" : "Retrying… "}<span className="muted l-tiny">({quote.error})</span>{" "}
+                  <button className="btn small ghost" onClick={quote.reload} data-testid="swap-retry">Retry</button>
+                </div>
+              )}
               <dl className="kv" style={{ margin: "6px 0 10px" }}>
                 <div><dt>Rate</dt><dd className="mono">{q ? `1 ${codeOf(from)} ≈ ${px(q.rate)} ${codeOf(to)}` : "—"}</dd></div>
                 <div><dt>Route</dt><dd className="mono">{q ? [codeOf(from), ...q.path.map(codeOf), codeOf(to)].join(" → ") : "—"}</dd></div>

@@ -89,3 +89,11 @@ export function plainSwapError(e: unknown): string {
   if (tx === "tx_bad_seq") return "Your account changed while signing. Please try again.";
   return e instanceof Error ? e.message : String(e);
 }
+
+/** True when a quote lookup failed for a transient reason (rate limit, timeout, no connection) rather than "no path". */
+export function isTransientLookupError(e: unknown): boolean {
+  const st = (e as { response?: { status?: number } })?.response?.status;
+  if (st === 429 || (typeof st === "number" && st >= 500)) return true;
+  if (st === undefined) return true; // no HTTP response at all: network error / CORS / timeout
+  return false;
+}

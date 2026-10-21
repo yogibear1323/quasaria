@@ -15,7 +15,7 @@ import { TxLink } from "../components/TxLink";
 import { useWallet } from "../lib/wallet";
 import { useAsync } from "../lib/useAsync";
 import { fetchBaseReserve, fetchRawAccount } from "../lib/account";
-import { checkFunds, planMarket, type MarketPlan, type Side } from "../lib/market";
+import { checkFunds, emptySideHint, planMarket, type MarketPlan, type Side } from "../lib/market";
 import { executeMarket, type MarketRun } from "../lib/marketRun";
 import { NETWORK_PASSPHRASE } from "../lib/config";
 import { fmt } from "../lib/format";
@@ -25,6 +25,13 @@ import { HORIZON_URL } from "../lib/config";
 import { feeAmount, feeEnabled, feePctText, FEE_BPS } from "../lib/fees";
 import { XLM_ABOUT_PATH, XLM_LOGO } from "../lib/xlm";
 import { ASSET_LIST, badgeOf, testnetKey } from "../lib/assets";
+import { isRewardAsset } from "../lib/rewards";
+
+/** GLACIERQ pairs always read GLACIERQ / XLM, so "Buy GLACIERQ" is the first action (XLM/GLACIERQ is flipped). */
+export function normalizePair(base: string, quote: string): { base: string; quote: string } {
+  const isG = (k: string) => k.includes("-") && isRewardAsset(k.split("-")[0], k.split("-")[1]);
+  return base === "XLM" && isG(quote) ? { base: quote, quote: "XLM" } : { base, quote };
+}
 
 /** Curated asset list (stablecoins + popular assets, v3 pools) as picker options. */
 const CURATED_OPTS: PickerOption[] = IS_MAINNET
@@ -85,7 +92,7 @@ const refOfKey = (k: string) => { const a = assetFromKey(k); return { code: a.is
 const nfmt = (v: number, d = 7) => v.toLocaleString("en-US", { maximumFractionDigits: d });
 
 /** Instant buy/sell against the SDEX book. One tap opens a confirm step; nothing is signed before Confirm. */
-function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: string; quoteKey: string; BASE: string; QUOTE: string; onDone: () => void }) {
+function MarketPanel({ book, baseKey, quoteKey, BASE, QUOTE, onDone }: { book?: Book; baseKey: string; quoteKey: string; BASE: string; QUOTE: string; onDone: () => void }) {
   const w = useWallet();
   const [side, setSide] = useState<Side>("buy");
   const [amount, setAmount] = useState("");
@@ -105,7 +112,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
     try {
       const book = await fetchOrderBook(base, quote, false);
       const plan = planMarket(side, amt, book);
-      if (!plan.ok) { setErr(plan.reason === "empty" ? `There are no offers on the order book to ${side} ${BASE} against right now.` : "Enter an amount."); return; }
+      if (!plan.ok) { setErr(plan.reason === "empty" ? emptySideHint(side, BASE, QUOTE) : "Enter an amount."); return; }
       const [acct, reserve] = await Promise.all([fetchRawAccount(NETWORK, w.address), fetchBaseReserve(NETWORK)]);
       const f = checkFunds({ side, plan, base: refOfKey(baseKey), quote: refOfKey(quoteKey), acct, baseReserve: reserve });
       if (!f.ok) { setErr(f.error); return; }
@@ -159,6 +166,7 @@ function MarketPanel({ baseKey, quoteKey, BASE, QUOTE, onDone }: { baseKey: stri
       <Tabs value={side} onChange={(v) => { setSide(v); setErr(null); }} options={[{ v: "buy", label: `Buy ${BASE}` }, { v: "sell", label: `Sell ${BASE}` }]} />
       <div className="field"><label>Amount ({BASE})</label><input className="input mono" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.0" data-testid="market-amount" /></div>
       <p className="muted l-tiny" style={{ margin: "0 0 10px" }}>Fills right away against the best offers on the SDEX order book. Any part that can't fill is cancelled.</p>
+      {!err && book && (book.bids.length > 0 || book.asks.length > 0) && (side === "buy" ? !book.asks.length : !book.bids.length) && <div className="notice warn" data-testid="market-empty-hint" style={{ marginBottom: 10, fontSize: "0.85rem" }}>{emptySideHint(side, BASE, QUOTE)}</div>}
       {err && <div className="notice" role="alert" data-testid="market-error" style={{ marginBottom: 10 }}>{err}</div>}
       <button className={`btn block ${side}`} onClick={tap} disabled={busy} data-testid="market-tap">{busy ? "Checking…" : `${side === "buy" ? "Buy" : "Sell"} ${BASE}`}</button>
       {res && (
@@ -202,7 +210,7 @@ function OrderCard({ book, baseKey, quoteKey, BASE, QUOTE, onDone }: { book: Boo
       <Tabs value={kind} onChange={setKind} options={[{ v: "limit", label: "Limit" }, { v: "market", label: "Market" }]} />
       {kind === "limit"
         ? <LimitPanel key={`${baseKey}/${quoteKey}`} book={book} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} />
-        : <MarketPanel key={`m-${baseKey}/${quoteKey}`} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} onDone={() => { setTick((t) => t + 1); onDone(); }} />}
+        : <MarketPanel key={`m-${baseKey}/${quoteKey}`} book={book} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} onDone={() => { setTick((t) => t + 1); onDone(); }} />}
       <OpenOffers tick={tick} onChange={() => { setTick((t) => t + 1); onDone(); }} />
     </div>
   );
@@ -210,8 +218,10 @@ function OrderCard({ book, baseKey, quoteKey, BASE, QUOTE, onDone }: { book: Boo
 
 export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {}) {
   const [params, setParams] = useSearchParams();
-  const baseKey = params.get("base") || DEFAULT_BASE;
-  const quoteKey = params.get("quote") || (baseKey === DEFAULT_BASE ? DEFAULT_QUOTE : "XLM");
+  const rawBase = params.get("base") || DEFAULT_BASE;
+  const rawQuote = params.get("quote") || (rawBase === DEFAULT_BASE ? DEFAULT_QUOTE : "XLM");
+  const { base: baseKey, quote: quoteKey } = normalizePair(rawBase, rawQuote);
+  useEffect(() => { if (baseKey !== rawBase || quoteKey !== rawQuote) setParams({ base: baseKey, quote: quoteKey }, { replace: true }); }, [baseKey, quoteKey, rawBase, rawQuote, setParams]);
     const [market, setMarket] = useState<MarketRow[]>([]);
   useEffect(() => {
     loadMarkets(NETWORK, { itemsPerPage: 30, enrich: 0 }).then((d) => setMarket(d.rows)).catch(() => void 0);
@@ -229,7 +239,8 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
   const pick = (which: "base" | "quote", o: PickerOption) => {
     const next = { base: baseKey, quote: quoteKey, [which]: o.key };
     if (next.base === next.quote) next[which === "base" ? "quote" : "base"] = next.base === "XLM" ? DEFAULT_QUOTE : "XLM";
-    setParams(next.base === DEFAULT_BASE && next.quote === DEFAULT_QUOTE ? {} : next);
+    const n = normalizePair(next.base, next.quote);
+    setParams(n.base === DEFAULT_BASE && n.quote === DEFAULT_QUOTE ? {} : n);
   };
 
   const [book, setBook] = useState<Book>({ bids: [], asks: [], source: "horizon" });

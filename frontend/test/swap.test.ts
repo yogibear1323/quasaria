@@ -55,3 +55,13 @@ describe("Swap page", () => {
   });
   it("replaced the placeholder route", () => { const a = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8"); expect(a).toContain("<Swap />"); expect(a).not.toMatch(/path="\/swap"[^\n]*ComingSoon/); });
 });
+
+import { isTransientLookupError } from "../src/lib/swap";
+describe("isTransientLookupError", () => {
+  it("retries on 429/5xx/network, not on 400", () => {
+    expect(isTransientLookupError({ response: { status: 429 } })).toBe(true);
+    expect(isTransientLookupError({ response: { status: 503 } })).toBe(true);
+    expect(isTransientLookupError(new TypeError("Failed to fetch"))).toBe(true);
+    expect(isTransientLookupError({ response: { status: 400 } })).toBe(false);
+  });
+});

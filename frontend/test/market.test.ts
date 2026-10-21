@@ -138,3 +138,11 @@ describe("executeMarket: remainder is always cancelled", () => {
     expect(r.warning).toContain("may still be on the order book"); expect(r.cancelHash).toBeNull();
   });
 });
+
+import { emptySideHint } from "../src/lib/market";
+describe("emptySideHint", () => {
+  it("points buy-empty to Sell and sell-empty to Buy", () => {
+    expect(emptySideHint("buy", "XLM", "GLACIERQ")).toBe("No one is selling XLM for GLACIERQ right now. To spend XLM for GLACIERQ, use the Sell XLM tab.");
+    expect(emptySideHint("sell", "GLACIERQ", "XLM")).toContain("use the Buy GLACIERQ tab");
+  });
+});

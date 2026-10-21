@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-21T04:54:17.116Z",
+ "generatedAt": "2026-10-21T11:55:25.365Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-21T03:19:42.557Z",
+  "updatedAt": "2026-10-21T09:29:15.641Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,35 @@
   }
  ],
  "items": [
+  {
+   "id": "1tlhks3",
+   "title": "Horizon v30.0.0 released",
+   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v30.0.0",
+   "publishedAt": "2026-10-21T08:42:37.000Z",
+   "excerpt": "This release adds support for Protocol 30. What's Changed Release v29.0.0 by @marwen-abid in #239 internal/ingest/filters: match asset rules on fee-bump inner operations by @karthikiyer56 in #240…",
+   "image": null,
+   "source": "stellar-horizon",
+   "sourceName": "Horizon releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "1f24ztn",
+   "title": "Stellar RPC v30.0.0 released",
+   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v30.0.0",
+   "publishedAt": "2026-10-21T06:07:32.000Z",
+   "excerpt": "Stellar RPC: Protocol 30 Breaking Changes getEvents no longer returns the inSuccessfulContractCall field, deprecated since protocol 23 (#1050). Added Added Protocol 30 support. The preflight hosts…",
+   "image": null,
+   "source": "stellar-rpc",
+   "sourceName": "Stellar RPC releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
   {
    "id": "bzw9th",
    "title": "Introducing Bell, Protocol 30 on Stellar",
@@ -608,21 +637,6 @@
    ]
   },
   {
-   "id": "l65t1m",
-   "title": "Stellar RPC v28.0.0 released",
-   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v28.0.0",
-   "publishedAt": "2026-08-17T17:57:22.000Z",
-   "excerpt": "Stellar RPC: Protocol 28 Added XDR has been updated to support Protocol 28 (CAP-0083, CAP-0085) (#913). The preflight hosts have been rotated to soroban-env-host 28.0.1 (27.0.1 for the previous…",
-   "image": null,
-   "source": "stellar-rpc",
-   "sourceName": "Stellar RPC releases",
-   "kind": "release",
-   "tags": [
-    "protocol",
-    "developers"
-   ]
-  },
-  {
    "id": "vnlacn",
    "title": "2+ Years of Neural Quorum Governance",
    "url": "https://medium.com/stellar-community/2-years-of-neural-quorum-governance-7bddd319a8cb",
@@ -662,20 +676,6 @@
    "kind": "release",
    "tags": [
     "developers"
-   ]
-  },
-  {
-   "id": "sfpl08",
-   "title": "Horizon v27.0.1 released",
-   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v27.0.1",
-   "publishedAt": "2026-08-12T22:18:37.000Z",
-   "excerpt": "Horizon 27.0.1: SDK v0.6.1 bump + backported ingestion fixes by @karthikiyer56 in #220 Full Changelog: v27.0.0...v27.0.1",
-   "image": null,
-   "source": "stellar-horizon",
-   "sourceName": "Horizon releases",
-   "kind": "release",
-   "tags": [
-    "protocol"
    ]
   },
   {

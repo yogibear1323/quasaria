@@ -1,5 +1,5 @@
 import { NETWORK, IS_MAINNET } from "../lib/config";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHead, Tabs, TxStatus, useTx } from "../components/ui";
 import { AssetLogo } from "../components/AssetBits";
@@ -162,6 +162,14 @@ function PairPicker({ net, pools, onPick }: { net: NetId; pools: PoolRow[]; onPi
   );
 }
 
+/** "new:<poolId>:<keyA>|<keyB>" → the pair. Asset keys are "native" or "CODE:ISSUER", so they contain ":" themselves. */
+export function parseNewSel(sel: string): { a: AssetRef; b: AssetRef } {
+  const k = sel.split(":").slice(2).join(":");
+  const [ka = "", kb = ""] = k.split("|");
+  const f = (s: string): AssetRef => (s === "native" ? { code: "XLM", issuer: null } : { code: s.split(":")[0], issuer: s.split(":")[1] });
+  return { a: f(ka), b: f(kb) };
+}
+
 function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; sel: string; pool: PoolRow | null; pricing: Pricing; onDone: () => void }) {
   const w = useWallet();
   const tx = useTx();
@@ -169,11 +177,10 @@ function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; se
   // a "new:" selection is a pair with no loaded pool: look it up, else it is created by the deposit
   const pair = useMemo(() => {
     if (poolIn) return { a: poolIn.a, b: poolIn.b };
-    const [, , k] = sel.split(":");
-    const [ka, kb] = (k ?? "|").split("|");
-    const f = (s: string): AssetRef => (s === "native" ? { code: "XLM", issuer: null } : { code: s.split(":")[0], issuer: s.split(":")[1] });
-    return { a: f(ka), b: f(kb) };
+    return parseNewSel(sel);
   }, [poolIn, sel]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { panelRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" }); }, []);
   const looked = useAsync(() => (poolIn ? Promise.resolve(poolIn) : fetchPoolForPair(net, pair.a, pair.b)), [sel]);
   const pool: PoolRow | null = poolIn ?? looked.data;
   const [driver, setDriver] = useState<"A" | "B">("A");
@@ -210,7 +217,7 @@ function PoolPanel({ net, sel, pool: poolIn, pricing, onDone }: { net: NetId; se
   const spotTxt = pool ? `1 ${pool.a.code} = ${fmt(spot(pool), 6)} ${pool.b.code}` : null;
 
   return (
-    <div className="card glow" style={{ marginBottom: 16 }} data-testid="pool-panel">
+    <div ref={panelRef} className="card glow" style={{ marginBottom: 16 }} data-testid="pool-panel">
       <div className="row between" style={{ flexWrap: "wrap", gap: 8 }}>
         <h2 style={{ margin: 0 }}><AssetChip net={net} a={pair.a} size={24} /> / <AssetChip net={net} a={pair.b} size={24} /></h2>
         <span className={`pill ${verified ? "green" : "pink"}`}>{verified ? "✔ both assets verified" : "contains an unverified asset"}</span>

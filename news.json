@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-21T17:16:06.457Z",
+ "generatedAt": "2026-10-21T21:46:12.072Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-21T15:42:51.892Z",
+  "updatedAt": "2026-10-21T20:34:40.551Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,36 @@
   }
  ],
  "items": [
+  {
+   "id": "1mdc2tk",
+   "title": "JS Stellar SDK v16.4.0 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v16.4.0",
+   "publishedAt": "2026-10-21T20:29:34.000Z",
+   "excerpt": "v16.4.0: Protocol 30 Added Protocol 30 XDR: the bundled schema is regenerated from stellar-xdr v30.0. v16 can decode the new types, including CAP-84 muxed contract addresses, but Address…",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "1fc69su",
+   "title": "JS Stellar SDK v17.3.0 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.3.0",
+   "publishedAt": "2026-10-21T18:57:29.000Z",
+   "excerpt": "v17.3.0: Protocol 30 Added CAP-84 muxed contract (W…) addresses. StrKey adds encodeMuxedContract(), decodeMuxedContract() and isValidMuxedContract(). Address adds the muxedContract type and…",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
   {
    "id": "1tlhks3",
    "title": "Horizon v30.0.0 released",
@@ -349,20 +379,6 @@
    ]
   },
   {
-   "id": "186vmit",
-   "title": "JS Stellar SDK v17.2.0 released",
-   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.2.0",
-   "publishedAt": "2026-09-28T21:56:19.000Z",
-   "excerpt": "v17.2.0 Added A stellar-contract-bindings-typescript binary implementing the Stellar CLI plugin convention, reachable as stellar contract bindings typescript. It delegates to stellar-js generate…",
-   "image": null,
-   "source": "js-stellar-sdk",
-   "sourceName": "JavaScript Stellar SDK releases",
-   "kind": "release",
-   "tags": [
-    "developers"
-   ]
-  },
-  {
    "id": "1mc4htr",
    "title": "Soroban Rust SDK v28",
    "url": "https://stellar.org/blog/developers/soroban-rust-sdk-v28",
@@ -447,20 +463,6 @@
     "protocol",
     "mainnet",
     "network-status"
-   ]
-  },
-  {
-   "id": "3wry08",
-   "title": "JS Stellar SDK v17.1.0 released",
-   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.1.0",
-   "publishedAt": "2026-09-14T21:59:18.000Z",
-   "excerpt": "v17.1.0 Added getClaimableBalanceIdFromResult(result, opIndex): reads the claimable balance ID created by a CreateClaimableBalance operation out of a submitted transaction's xdr.TransactionResult…",
-   "image": null,
-   "source": "js-stellar-sdk",
-   "sourceName": "JavaScript Stellar SDK releases",
-   "kind": "release",
-   "tags": [
-    "developers"
    ]
   },
   {

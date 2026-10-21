@@ -171,3 +171,10 @@ export function checkFunds(i: { side: Side; plan: Extract<MarketPlan, { ok: true
   if (spend.issuer && spendableXlm < 0) return { ok: false, error: `Not enough free XLM for the network fee and reserve${needTrust.length ? " (a new trustline locks 0.5 XLM)" : ""}.` };
   return { ok: true, needTrust, reserveXlm, feeXlm };
 }
+
+/** Plain hint when the side the user picked has nothing to trade against (buy needs sellers, sell needs buyers). */
+export function emptySideHint(side: Side, base: string, quote: string): string {
+  return side === "buy"
+    ? `No one is selling ${base} for ${quote} right now. To spend ${base} for ${quote}, use the Sell ${base} tab.`
+    : `No one is buying ${base} with ${quote} right now. To spend ${quote} for ${base}, use the Buy ${base} tab.`;
+}

@@ -47,11 +47,12 @@ export const assetKeyOf = (a: Asset) => (a.isNative() ? "XLM" : `${a.getCode()}-
  * levels more than 50% away from the best bid/ask so the depth view stays
  * readable (they are still on the ledger, just not displayed).
  */
-function cleanBook(bids: { price: number; amount: number }[], asks: { price: number; amount: number }[]) {
-  const bb = bids[0]?.price, ba = asks[0]?.price;
-  const ref = bb && ba ? (bb + ba) / 2 : bb ?? ba ?? 0;
-  const ok = (p: number) => p > ref * 0.5 && p < ref * 1.5;
-  return { bids: bids.filter((l) => ok(l.price)), asks: asks.filter((l) => ok(l.price)) };
+export function cleanBook(bids: { price: number; amount: number }[], asks: { price: number; amount: number }[]) {
+  // Each side is filtered against ITS OWN best level, so the best bid and best ask are never dropped.
+  // (A mid-point filter hid real offers whenever the spread was wide, e.g. a lone far-away ask made the
+  // only real bid disappear and Market orders said the book was empty.)
+  const bb = bids[0]?.price ?? 0, ba = asks[0]?.price ?? 0;
+  return { bids: bids.filter((l) => l.price > bb * 0.5), asks: asks.filter((l) => l.price < ba * 1.5) };
 }
 
 /** Drop outlier candles (testnet junk trades) relative to the median close. */

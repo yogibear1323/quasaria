@@ -832,3 +832,7 @@ html[data-tab-hidden] .holders-anim *, html[data-tab-hidden] .holders-anim *::be
 .st-steps { margin: 0 0 12px; padding-left: 20px; font-size: 0.92rem; line-height: 1.5; }
 .st-steps li { margin-bottom: 4px; }
 .st-addr { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+
+/* Pools: pinned GLACIERQ / XLM row */
+.t tr.pool-pin td { background: rgba(160, 220, 255, 0.07); border-top: 1px solid rgba(160, 220, 255, 0.28); border-bottom: 1px solid rgba(160, 220, 255, 0.28); }
+.pill.pin-badge { font-size: 0.55rem; background: rgba(160, 220, 255, 0.16); border-color: rgba(160, 220, 255, 0.45); color: #cfeeff; }

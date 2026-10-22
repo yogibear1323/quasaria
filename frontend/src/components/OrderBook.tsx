@@ -1,6 +1,10 @@
 import { NETWORK } from "../lib/config";
 import type { Book } from "../lib/demo";
-import { fmt } from "../lib/format";
+import { fmt, fmtCompact } from "../lib/format";
+
+/** Huge sizes (≥1M) use compact notation so they never run into the price column. */
+export const obNum = (n: number, d: number) => (Math.abs(n) >= 1e6 ? fmtCompact(n) : fmt(n, d));
+const cell: React.CSSProperties = { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 6 };
 
 export default function OrderBook({ book, base, quote, onPick }: { book: Book; base: string; quote: string; onPick?: (p: number) => void }) {
   const asks = [...book.asks].slice(0, 10).reverse();
@@ -11,9 +15,9 @@ export default function OrderBook({ book, base, quote, onPick }: { book: Book; b
   const Row = ({ l, side }: { l: { price: number; amount: number }; side: "ask" | "bid" }) => (
     <div className={`lvl ${side}`} onClick={() => onPick?.(l.price)} style={{ cursor: onPick ? "pointer" : undefined }}>
       <div className="bar" style={{ width: `${(l.amount / max) * 100}%` }} />
-      <span>{fmt(l.price, 5)}</span>
-      <span>{fmt(l.amount, 0)}</span>
-      <span>{fmt(l.amount * l.price, 1)}</span>
+      <span style={cell} title={String(l.price)}>{fmt(l.price, 5)}</span>
+      <span style={{ ...cell, textAlign: "right" }} title={fmt(l.amount, 0)} data-testid="ob-size">{obNum(l.amount, 0)}</span>
+      <span style={{ ...cell, textAlign: "right" }} title={fmt(l.amount * l.price, 1)}>{obNum(l.amount * l.price, 1)}</span>
     </div>
   );
   return (

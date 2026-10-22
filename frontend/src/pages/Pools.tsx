@@ -9,7 +9,7 @@ import { useAsync } from "../lib/useAsync";
 import { fmt, fmtCompact } from "../lib/format";
 import {
   BASE_RESERVE, MAINNET_BROWSE, NETS, buildDepositTx, buildWithdrawTx, curatedList, deriveXlmUsd, depositReserveCost, feeApr, fetchAccountBalances, fetchAssetBalance,
-  fetchPoolForPair, fetchPoolsByLookup, parseLookup, fetchPositions, loadCuratedPools, fetchRecentPools, fetchVolume24h, keyOf, orderAssets, poolIdFor, poolVerified, pooled, previewDeposit, previewWithdraw, spot, tvlUsd,
+  fetchPoolById, fetchPoolForPair, fetchPoolsByLookup, parseLookup, fetchPositions, loadCuratedPools, fetchRecentPools, fetchVolume24h, keyOf, orderAssets, poolIdFor, poolVerified, pooled, previewDeposit, previewWithdraw, spot, tvlUsd,
   verifyAsset, volumeUnit, type AssetRef, type NetId, type PoolRow, type Pricing,
 } from "../lib/nativePools";
 import { submitSignedXdr } from "../lib/stellar";
@@ -59,7 +59,10 @@ export default function Pools() {
   }, [pools, q, vol, pricing, lk, scope]);
   const pin = useMemo(() => pinnedPair(net), [net]);
   // the pinned pool even when a search/filter would hide it
-  const pinPool = pin ? pools.find((p) => p.id === pin.id) ?? null : null;
+  // the "Any asset" list (first 40 recent pools / a lookup) may not include it, so fetch it by id to show real reserves
+  const pinInList = pin ? pools.find((p) => p.id === pin.id) ?? null : null;
+  const pinFetch = useAsync(() => (pin && !pinInList && !list.loading ? fetchPoolById(net, pin.id).catch(() => null) : Promise.resolve(null)), [net, pin?.id, !!pinInList, list.loading]);
+  const pinPool = pinInList ?? pinFetch.data ?? null;
   const shown = useMemo(() => {
     const withPin: Row[] = pinPool && !rows.some((r) => r.id === pinPool.id) ? [{ ...pinPool, volume: vol[pinPool.id]?.volume ?? null, truncated: vol[pinPool.id]?.truncated }, ...rows] : rows;
     return pinFirst(withPin, pin?.id ?? null);
@@ -75,7 +78,7 @@ export default function Pools() {
   }, [pools.length, net]);
 
   const positions = useAsync(() => (w.address ? fetchPositions(net, w.address, pricing) : Promise.resolve([])), [w.address, net, pools.length]);
-  const selected = pools.find((p) => p.id === sel) ?? null;
+  const selected = pools.find((p) => p.id === sel) ?? (pinPool && pinPool.id === sel ? pinPool : null);
 
   return (
     <>
@@ -99,7 +102,7 @@ export default function Pools() {
               {list.loading && <tr><td colSpan={7} className="muted">Reading Horizon…</td></tr>}
               {list.error && <tr><td colSpan={7} className="neg">Could not read pools: {list.error}</td></tr>}
               {!list.loading && !list.error && !shown.rows.length && !pin && <tr><td colSpan={7} className="muted" data-testid="no-pools">{scope === "curated" ? "No pools exist yet for the verified pairs on this network. Pick a pair below and make the first deposit to create one." : "No pools match."}</td></tr>}
-              {pin && !shown.found && !list.loading && (
+              {pin && !shown.found && !list.loading && !pinFetch.loading && (
                 <tr className={sel === pin.newSel ? "l-sel pool-pin" : "pool-pin"} onClick={() => setSel(pin.newSel)} style={{ cursor: "pointer" }} data-testid="pool-pin-placeholder">
                   <td><span className="pill pin-badge" title="Pinned">📌 Pinned</span> <AssetChip net={net} a={pin.b} /> <span className="muted">/</span> <AssetChip net={net} a={pin.a} /></td>
                   <td colSpan={5} className="muted" style={{ fontSize: "0.82rem" }}>Not created yet - first deposit creates it</td>

@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-22T17:14:16.899Z",
+ "generatedAt": "2026-10-22T21:39:46.709Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-22T16:00:03.181Z",
+  "updatedAt": "2026-10-22T21:04:52.903Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "1mnboij",
+   "title": "JS Stellar SDK v16.4.1 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v16.4.1",
+   "publishedAt": "2026-10-22T19:04:42.000Z",
+   "excerpt": "v16.4.1 Fixed Bumped axios from 1.18.0 to 1.20.0 to pick up fixes for its published security advisories, matching v17 (#1777). Full Changelog: v16.4.0...v16.4.1",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
   {
    "id": "1mdc2tk",
    "title": "JS Stellar SDK v16.4.0 released",
@@ -356,20 +370,6 @@
    "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v16.3.1",
    "publishedAt": "2026-10-01T16:56:28.000Z",
    "excerpt": "v16.3.1 Fixed Asset.compare() orders two assets with the same code by their issuers' key bytes, as stellar-core does, instead of by the G… strkey text. The two orders can differ, so decoding a valid…",
-   "image": null,
-   "source": "js-stellar-sdk",
-   "sourceName": "JavaScript Stellar SDK releases",
-   "kind": "release",
-   "tags": [
-    "developers"
-   ]
-  },
-  {
-   "id": "17ww0tu",
-   "title": "JS Stellar SDK v17.2.1 released",
-   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.2.1",
-   "publishedAt": "2026-10-01T00:37:29.000Z",
-   "excerpt": "v17.2.1 Fixed Asset.compare() orders two assets with the same code by their issuers' key bytes, as stellar-core does, instead of by the G… strkey text. The two orders can differ, so…",
    "image": null,
    "source": "js-stellar-sdk",
    "sourceName": "JavaScript Stellar SDK releases",

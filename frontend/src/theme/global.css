@@ -205,7 +205,7 @@ table.t tbody tr:last-child td { border-bottom: 0; }
 
 /* order book */
 .ob { font-family: var(--font-mono); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
-.ob .hdr, .ob .lvl { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 3px 6px; position: relative; }
+.ob .hdr, .ob .lvl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; padding: 3px 6px; position: relative; }
 .ob .hdr { color: var(--text-3); font-family: var(--font-body); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding-bottom: 6px; }
 .ob .lvl { border-radius: 4px; transition: background-color var(--t-fast); }
 .ob .lvl:hover { background: rgba(76, 29, 149, 0.047); }

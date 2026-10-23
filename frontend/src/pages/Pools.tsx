@@ -1,3 +1,4 @@
+import { RwaDeployInfo } from "../components/RwaDeployInfo";
 import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -154,6 +155,7 @@ export default function Pools() {
           )}
         <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Earned fees stay in the pool and raise what your shares are worth. See the <Link to="/earn">Earnings</Link> tab for fee earnings and {REWARD_ASSET_CODE} holder rewards.</p>
       </div>
+      <RwaDeployInfo compact />
     </>
   );
 }

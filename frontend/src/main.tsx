@@ -12,6 +12,7 @@ import App from "./App";
 // Frost theme (dark navy, snowy mountains) — imported after App so it lands after every page stylesheet.
 import "./theme/frost-auto.css";
 import "./theme/frost.css";
+import "./theme/mobile.css";
 import { WalletProvider } from "./lib/wallet";
 
 // Old hash-style links (/quasaria/#/markets) → real path routes before the router mounts.

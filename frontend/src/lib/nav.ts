@@ -31,6 +31,7 @@ export const NAV_MORE: { to: string; label: string; scene: Scene }[] = [
   { to: "/quests", label: "Quests", scene: "constellation" },
   { to: "/merch", label: "Merch", scene: "nebula" },
   { to: "/calculators", label: "Calculators", scene: "orbits" },
+  { to: "/deploy", label: "Deploy info", scene: "orbits" },
 ];
 /** Shown only once a keypair is active (header account menu and the mobile menu). */
 export const NAV_KEY: { to: string; label: string; scene: Scene }[] = [

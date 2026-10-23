@@ -6,6 +6,7 @@ import QrCode from "../components/QrCode";
 import XlmMark from "../components/XlmMark";
 import { AssetLogo } from "../components/AssetBits";
 import { CopyButton } from "../components/CopyButton";
+import { RwaDeployInfo } from "../components/RwaDeployInfo";
 import { useWallet } from "../lib/wallet";
 import { useAccount } from "../lib/useAccount";
 import { useAsync } from "../lib/useAsync";
@@ -36,6 +37,7 @@ export default function Account() {
             <button className="btn ghost" onClick={() => w.openModal()}>Sign in with secret key</button>
           </div>
         </div>
+        <RwaDeployInfo compact />
       </>
     );
   }
@@ -77,6 +79,7 @@ export default function Account() {
           <Positions view={view} />
         </div>
       </div>
+      <RwaDeployInfo compact />
     </>
   );
 }

@@ -1,0 +1,58 @@
+/* Mobile pass (Oct 2026). Everything layout-related sits under max-width media queries so the
+   desktop layout is unchanged. Only new component (.rwa-*) styles apply at all widths. */
+
+/* ---- RWA testnet deploy info (new) */
+.rwa-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.rwa-item { border: 1px solid var(--line); border-radius: 12px; padding: 12px; min-width: 0; }
+.rwa-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.rwa-field { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 4px 0; }
+.rwa-k { font-size: 0.8rem; color: var(--text-2); }
+.rwa-v { min-width: 0; overflow-wrap: anywhere; word-break: break-all; font-size: 0.82rem; }
+.rwa-short { display: none; }
+.rwa-compact { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+@media (max-width: 720px) {
+  html, body { overflow-x: hidden; }
+  body { font-size: 15px; -webkit-text-size-adjust: 100%; }
+  main { padding: var(--s-5) 14px var(--s-10); }
+  .page-head { margin-bottom: var(--s-4); }
+  .page-head p, .muted, .notice, .card p { font-size: 0.94rem !important; line-height: 1.5; }
+
+  /* tappable controls */
+  .btn, button, select, input:not([type="checkbox"]):not([type="radio"]), [role="tab"],
+  .nav a, .mm-item, .tabs > *, .seg > *, .chip { min-height: 44px; }
+  .btn, .btn.small { padding: 10px 14px; font-size: 0.92rem; }
+  input, select, textarea { font-size: 16px !important; } /* stops iOS zoom-on-focus */
+  .nav a, .mm-item { display: inline-flex; align-items: center; }
+  .l-fv-close { width: 44px; height: 44px; }
+
+  /* tab rows scroll sideways instead of squeezing */
+  .tabs, .seg { overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+  .tabs::-webkit-scrollbar, .seg::-webkit-scrollbar { display: none; }
+
+  /* cards / grids never wider than the screen */
+  .card { padding: 14px; min-width: 0; max-width: 100%; }
+  .grid > *, .g-trade > *, .g-main-side > * { min-width: 0; }
+  img, video, svg, canvas { max-width: 100%; }
+  .pg-orbits { display: none; }
+
+  /* tables (pools, markets, landing, order book) scroll inside their card */
+  .card:has(table), .l-scroll, .lm-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.t th, table.t td { font-size: 0.84rem; padding-top: 10px; padding-bottom: 10px; }
+  .l-click { min-width: 0; }
+
+  /* long addresses / hashes wrap */
+  .mono, code { overflow-wrap: anywhere; }
+
+  /* order book keeps PR #148 fixed column widths; just lets the block scroll if needed */
+  .ob { max-width: 100%; overflow-x: auto; font-size: 0.88rem; }
+  .ob .lvl { min-height: 40px; align-items: center; }
+  .nav-seg a { min-height: 44px; }
+
+  /* RWA deploy info on phones: stack label over value, show shortened hash */
+  .rwa-field { grid-template-columns: minmax(0, 1fr) auto; }
+  .rwa-k { grid-column: 1 / -1; }
+  .rwa-full { display: none; }
+  .rwa-short { display: inline; font-size: 0.92rem; }
+  .rwa-v { display: inline-flex; align-items: center; min-height: 44px; }
+}

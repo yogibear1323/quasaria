@@ -18,6 +18,7 @@ import Activity from "./pages/Activity";
 import About from "./pages/About";
 import Buy from "./pages/Buy";
 import Swap from "./pages/Swap";
+import Deploy from "./pages/Deploy";
 import { REDIRECTS } from "./lib/nav";
 import { GameProvider } from "./game/GameProvider";
 
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/quests" element={<Quests />} />
           <Route path="/merch" element={<Merch />} />
           <Route path="/news" element={<News />} />
+          <Route path="/deploy" element={<Deploy />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -1,0 +1,42 @@
+{
+  "network": "testnet",
+  "deployed": "2026-10-23",
+  "source_commit": null,
+  "contracts": [
+    {
+      "name": "compliance_registry",
+      "status": "deployed",
+      "id": "CA2NOY5JM5G5CBR4JVNO544C4XEMWEYDEFSOIEGGSJRVWK44AWBPLGCQ",
+      "deploy_tx": "3835a8755f173f2c525120317f3d193c66d6b381324c0db9562dd56937f8ed48",
+      "init_tx": "1354f90f10c5c2dfee55b6f6330a9e613b877eb4109f4955413530777292997c"
+    },
+    {
+      "name": "oracle_adapter",
+      "status": "deployed",
+      "id": "CDQGJ2PIIB7QY3YWNFWWTAWBBAIJUF72P3IJ5D3XBYUSYKJ5STKJUWDZ",
+      "deploy_tx": "a8dcb7faff978a5d8fecb172db49f1954c5af64460700757964d79b35bae3f01",
+      "init_tx": "59e45860a5ef967647029c7feeebe0023fa10e24e70ed82e8fe59f60f11ceff6"
+    },
+    {
+      "name": "rwa_wrapper",
+      "status": "deployed",
+      "id": "CDBZPGAECBXEQM2W3ILDM53NFT5LTSNXGHIZYHNB2XGFF3HEGU7VCXAQ",
+      "deploy_tx": "658dade89b04bc2d72f18c1751f2a1076033ab66971570005814a62a3dc84ab7",
+      "init_tx": "37e077763c47fb526111032c32e7e6b81caf2d457befe9000ce4a76f569920ec"
+    },
+    {
+      "name": "lending_pool",
+      "status": "deployed",
+      "id": "CCSRKGKRU36DWMRDMCFYEYUPN4UAUWRCUVOJY4IJNEN5FFE6BT4MVKTR",
+      "deploy_tx": "265d0c60d393a5563803998f5a023005ce56cbfe067c15ffc596afcae6e71e46",
+      "init_tx": "bac129f02070ac39dd21da3e72d2f588dc98cb83d54b968bcdb146fcd0154818"
+    },
+    {
+      "name": "yield_vault",
+      "status": "deployed",
+      "id": "CATG56V6OHQIYNHXCQ4OFSFKHTGCLII2QF5WCABPKRCCGDJ5JL2MA4B5",
+      "deploy_tx": "57ee0c8f6446dc60eb0ba7d207de6f64275297fc3c0aa7572644cb5196700538",
+      "init_tx": "ae718418e3624342b7715b69911db6a53b49dd4a6f8a46cf4f5cc7db80a27631"
+    }
+  ]
+}

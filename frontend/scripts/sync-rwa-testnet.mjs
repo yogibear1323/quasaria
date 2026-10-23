@@ -19,6 +19,6 @@ const contracts = NAMES.map((name) => {
     ? { name, status: "deployed", id: e.id, deploy_tx: e.deploy_tx, ...(isHex(e.init_tx) ? { init_tx: e.init_tx } : {}) }
     : { name, status: "pending" };
 });
-const out = { network: "testnet", deployed: d.deployed ?? null, source_commit: /^[0-9a-f]{7,40}$/.test(d.source_commit ?? "") ? d.source_commit : null, contracts };
+const out = { network: "testnet", deployed: d.deployed ?? null, source_commit: [d.v2?.source_commit, d.source_commit].find((c) => /^[0-9a-f]{7,40}$/.test(c ?? "")) ?? null, contracts };
 writeFileSync(new URL("../src/config/rwa-testnet.json", import.meta.url), JSON.stringify(out, null, 2) + "\n");
 console.log(contracts.map((c) => `${c.name}: ${c.status} ${c.id ?? ""}`).join("\n"));

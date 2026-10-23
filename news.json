@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-23T17:12:24.151Z",
+ "generatedAt": "2026-10-23T21:27:38.337Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-23T13:59:23.440Z",
+  "updatedAt": "2026-10-23T20:34:19.272Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -208,7 +208,7 @@
    "url": "https://stellar.org/blog/developers/introducing-bell-protocol-30-on-stellar",
    "publishedAt": "2026-10-20T13:34:25.000Z",
    "excerpt": "Bell (Protocol 30) is the next Stellar upgrade: muxed contract addresses for smart accounts, post-quantum signature verification in smart contracts, and millisecond ledger timing.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/950b99790fa3c0e388a5cf8ff5240d76ad652ea7-2048x1536.png",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/b699d254af105d6edda22baa3732ddff2d418b35-2048x1536.png",
    "source": "sdf",
    "sourceName": "Stellar Development Foundation",
    "kind": "blog",
@@ -224,7 +224,7 @@
    "url": "https://stellar.org/blog/developers/bell-protocol-30-upgrade-guide",
    "publishedAt": "2026-10-20T13:28:20.000Z",
    "excerpt": "Prepare for Bell, Protocol 30 on Stellar: key dates, release links, preparation steps for SDKs, infrastructure, and validators, and a summary of breaking changes.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/058b959f587b982ad2bd7fb10d4022276af62bf3-2048x1536.png",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/2a3f25bb8b992cbbeba68facaf81b759e9137862-2048x1536.png",
    "source": "sdf",
    "sourceName": "Stellar Development Foundation",
    "kind": "blog",

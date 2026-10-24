@@ -5,7 +5,7 @@ Location: `frontend/scripts/rewards/` (`npm run rewards -- <command> --net testn
 | Command | What it does |
 |---|---|
 | `snapshot --day D` | Reads every GLACIERQ holder from Horizon and stores balances (and `quasaria:ref` data entries) in `state/snapshots/D.json`. |
-| `daily --day D` | Effective balance = lower of snapshots D and D-1. 5%/yr from 1M, 7%/yr from 10M, flat on the whole balance, /365. Excludes issuer, reserve, treasury, payer, pools. Scales pro rata if the total would pass the 10M/day cap. Writes a manifest + sha256. |
+| `daily --day D` | Effective balance = lower of snapshots D and D-1. 1% a month (12%/yr) from 1M, same rate from 10M, nothing under 1M, flat on the whole balance, /365. Excludes issuer, reserve, treasury, payer, pools. Scales pro rata if the total would pass the 10M/day cap. Writes a manifest + sha256. |
 | `referral --day D` | Bonuses for reward day D-7: 10% of the referee's reward for 365 days to the referrer, +10% for 180 days to the referee, 100k cap per referral each side, 25k/day per referrer, 1M/day sub-budget inside the cap (never crowds out holders). |
 | `status` | Balances of issuer, reserve, treasury, payer and PAUSE/snapshot state. |
 

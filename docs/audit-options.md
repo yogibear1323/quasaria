@@ -386,18 +386,18 @@ Everything needed is native to Stellar and consistent with the holder rewards de
 | Delay | Pay on a 7-day lag behind the referee's reward | Gives time to spot and block abuse; Stellar tokens cannot be clawed back once paid |
 | Funding | A separate **referral payer account with a float of about 30M GLACIERQ** (30 days at the sub-budget), topped up from the reserve | A stolen hot key then loses 30M, not the 50B reserve |
 
-**Worked examples** (rates from `rewards.ts`: 5% a year from 1M, 7% from 10M, divided by 365)
-- A referee holding **2M** earns 273.97/day. The referrer gets **27.40/day**, about 10,000 a year per referee. Twenty such referees pay **548/day**, or 200,000 a year.
-- A referee holding **50M** earns 9,589/day. The referrer gets **959/day**, or about 350,000 over the year.
+**Worked examples** (rates from `rewards.ts`: 1% a month (12% a year) from 1M, same rate from 10M, divided by 365)
+- A referee holding **2M** earns 657.53/day. The referrer gets **65.75/day**, about 24,000 a year per referee. Twenty such referees pay **1,315/day**, or 480,000 a year.
+- A referee holding **50M** earns 16,438/day. The referrer gets **1,644/day**, or about 600,000 over the year.
 - **Aggregate cap math.** Holder reward plus the maximum referral bonus, assuming 100% of balances were referred (worst case):
 
 | Qualifying balances | Holder rewards/day | + referral/day | % of the 10M cap | Reserve lifetime |
 |---|---|---|---|---|
-| 1B at 6% | 164k | 16k | 1.8% | ~757 years |
-| 5B at 6% | 822k | 82k | 9.0% | ~152 years |
-| 10B at 6.5% | 1.78M | 178k | 19.6% | ~70 years |
-| 30B at 7% | 5.75M | 575k | 63% | ~22 years |
-| 50B at 7% | 9.59M | 959k | 105% (cap bites, pro-rata scaling) | 13 years |
+| 1B at 12% | 329k | 33k | 3.6% | ~379 years |
+| 5B at 12% | 1.64M | 164k | 18.1% | ~76 years |
+| 10B at 12% | 3.29M | 329k | 36.2% | ~38 years (~42 without referrals; about 40) |
+| 30B at 12% | 9.86M | 986k | 108% (cap bites, pro-rata scaling) | 13.7 years |
+| 50B at 12% | 16.4M | 1.64M | 181% (cap bites, pro-rata scaling) | 13.7 years |
 
   - At the cap, the reserve lasts 13.7 years whatever the referral share, because the cap is total. At normal levels, referrals shorten the reserve life by at most 10%.
   - The sub-budget of 1M/day is 365M a year, 0.73% of the 50B reserve a year.
@@ -409,7 +409,7 @@ Everything needed is native to Stellar and consistent with the holder rewards de
 **Option B (needs a product decision): share of a Quasaria front-end fee.** Native pool fees and order-book trades pay Quasaria nothing today. If Quasaria later adds an optional 0.1% fee as an extra payment operation inside the user's own swap transaction (user-signed and atomic), a referrer could get a share. At $1M/day of volume, that is $1,000/day of fees and $250 to a referrer at a 25% share, paid in XLM or GLACIERQ. Wash trading is unprofitable as long as the referrer's share is below the fee itself. This introduces revenue and changes the "no fees" story. I would not do it for launch.
 
 ### 10.4 Risks and limits
-- **Self-referral and sybil.** A user who refers their own wallets just earns 10% of their own 5-7%, about +0.5-0.7 percentage points of APR. Empty fake accounts earn nothing because the bonus is a percentage of a reward that needs 1M+ real tokens held. Splitting 10M across ten 1M accounts lowers their tier from 7% to 5%, so it loses. The per-referrer cap and the 100k referrer minimum cover the rest. **This is not "no abuse"; it is abuse that is bounded and paid for with real capital.**
+- **Self-referral and sybil.** A user who refers their own wallets just earns 10% of their own 12%, about +1.2 percentage points a year. Empty fake accounts earn nothing because the bonus is a percentage of a reward that needs 1M+ real tokens held. Splitting 10M across ten 1M accounts earns the same 12% rate, so it gains nothing. The per-referrer cap and the 100k referrer minimum cover the rest. **This is not "no abuse"; it is abuse that is bounded and paid for with real capital.**
 - **Snapshot gaming (also affects the base holder rewards, not just referrals).** If rewards use a single daily snapshot, a wallet can hold the tokens for only that second. I recommend **the minimum of two snapshots 24 hours apart** (or the minimum of four snapshots a day) for both programs. LumenDex does not publish its snapshot rule.
 - **Wash trading.** Not rewarded under option A, because trades are not an input.
 - **Hot key.** A single script key holds the budget. Use the separate referral payer with a 30-day float, keep the 50B reserve in a cold multisig account, and make the daily payer pre-fund only the day's amount. LumenDex's single-key accounts hold 14-19B tokens and show the failure mode.

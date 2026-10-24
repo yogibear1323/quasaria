@@ -1,0 +1,57 @@
+{
+  "network": "mainnet",
+  "deployed": "2026-10-23",
+  "source_commit": "a8a5301",
+  "admin": "GDFD6MV4X53LKBCOLBBZMLV3XRV6AWGVEFNVC7WYBH6Y7RP3HYWTQLKC",
+  "contracts": [
+    {
+      "name": "compliance_registry",
+      "status": "deployed",
+      "id": "CAJ3QR3OGTZOP36PRU7U3EAGE52Y5FJY7GHZ6GYHVYQOJNCAHC2PEXRH",
+      "deploy_tx": "45593d48fa865f5c7d84b9844bbda40639fb54238c1ac6d15f3b64a27a1e407d",
+      "init_tx": "878dd9a217f9992398bae6fa0f264de451d39508e967395143b09ed9407d84c3"
+    },
+    {
+      "name": "oracle_adapter",
+      "status": "deployed",
+      "id": "CAWG2WVAEAGUXHMESJIUSUDBSA44YF4YWPAMIIEUKPVOOW3ALE5BDXUA",
+      "deploy_tx": "2df4ec2b86cae03759c460d2c6ea710033b9836185d724d0bf64b7b8775a580e",
+      "init_tx": "db653f89dcd74c592391a8a32653ced9fb55253af49f4b21e9ffa38c15c196a5"
+    },
+    {
+      "name": "rwa_wrapper",
+      "status": "deployed",
+      "id": "CA2LBOVSTLPU4NXEXVAGVDODSKBQQUMBPHMS3LNQV4XDUADMMRZCWGK4",
+      "deploy_tx": "1774cbc52b4ad2b39459d8dd0c208fb23a513b2f597e2a4e2db4192415076810",
+      "init_tx": "ee1294884575eff1b105db70b3abf450a69d68dc3fd36a967871b968f63f4b5c"
+    },
+    {
+      "name": "lending_pool",
+      "status": "deployed",
+      "id": "CDDFQE3BSXKZ2KLN7VXHKV4NRLYJMRY6MCJUGU7LREU2PRTB4CLWOVVL",
+      "deploy_tx": "ddf0bbda085e12c65d9e92762716a36d62dd2e817492fb009d386b7a15e0612f",
+      "init_tx": "63a572fff638dd6b5c786123a81706f4ce278bc8d86d557bcc83392613a4a3b4"
+    },
+    {
+      "name": "yield_vault",
+      "status": "deployed",
+      "id": "CCMF3HPVSUYQHHW2LKORUIS3D4YOPVEQZ4YZGQJGWRAJADVONBOD7U3D",
+      "deploy_tx": "1efd7ec573febd015c2ae1794f469cf16f438ccc763513736271a0b6dc1179d9",
+      "init_tx": "8ffb04082e2b8938d797e2f64c13e2e4e285b716bfa64ba5ba8d917eba4e6cdb"
+    }
+  ],
+  "links": [
+    {
+      "name": "vault set_venues",
+      "tx": "e87d87897b0a5105955de77876961d90a1731e88db3de41fbf45e4464a670208"
+    },
+    {
+      "name": "pool set_vault",
+      "tx": "a4fadd83245dcd2e41c1bdc95992c14b07da325a22dbffa235ae5e8195707abb"
+    },
+    {
+      "name": "registry set_allowed vault",
+      "tx": "e9c84942299d8235494b99793c845ff4880931492bc7a38ec09d7c7012c7a9eb"
+    }
+  ]
+}

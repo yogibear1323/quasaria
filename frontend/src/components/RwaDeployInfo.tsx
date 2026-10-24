@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import data from "../config/rwa-testnet.json";
+import data from "../config/rwa-mainnet.json";
 import { CopyButton } from "./CopyButton";
 
-const SC = "https://testnet.stellarchain.io";
+const SC = "https://stellarchain.io";
 type C = { name: string; status: string; id?: string; deploy_tx?: string; init_tx?: string };
 const contracts = data.contracts as C[];
 const mid = (s: string) => `${s.slice(0, 8)}…${s.slice(-8)}`;
@@ -17,22 +17,22 @@ function Field({ label, value, href }: { label: string; value: string; href: str
   );
 }
 
-/** RWA yield layer Soroban contracts on TESTNET (public IDs/hashes only, from src/config/rwa-testnet.json). */
+/** RWA yield layer Soroban contracts on MAINNET (public IDs/hashes only, from src/config/rwa-mainnet.json). */
 export function RwaDeployInfo({ compact = false }: { compact?: boolean }) {
   const live = contracts.filter((c) => c.status === "deployed").length;
   if (compact) {
     return (
       <div className="card rwa-compact" data-testid="rwa-deploy-compact">
-        <span className="pill pink">TESTNET</span>
-        <span>RWA yield layer: {live}/{contracts.length} Soroban contracts deployed on testnet (no real value).</span>
+        <span className="pill green">MAINNET</span>
+        <span>RWA yield layer: {live}/{contracts.length} Soroban contracts live on Stellar mainnet (unaudited).</span>
         <Link to="/deploy" className="btn ghost small">Deploy info</Link>
       </div>
     );
   }
   return (
     <section className="card rwa-deploy" data-testid="rwa-deploy">
-      <h2 style={{ marginTop: 0 }}><span className="pill pink">TESTNET</span> RWA yield layer contracts</h2>
-      <p className="muted">Stellar testnet only. Not mainnet, no real value. {data.deployed ? `Deployed ${data.deployed}` : ""}{data.source_commit ? ` from commit ${data.source_commit}` : ""}.</p>
+      <h2 style={{ marginTop: 0 }}><span className="pill green">MAINNET</span> RWA yield layer contracts</h2>
+      <p className="muted">Stellar mainnet. Unaudited; no deposits yet. {data.deployed ? `Deployed ${data.deployed}` : ""}{data.source_commit ? ` from commit ${data.source_commit}` : ""}.</p>
       <ul className="rwa-list">
         {contracts.map((c) => (
           <li key={c.name} className="rwa-item">
@@ -41,6 +41,12 @@ export function RwaDeployInfo({ compact = false }: { compact?: boolean }) {
             {c.deploy_tx && <Field label="Deploy tx" value={c.deploy_tx} href={`${SC}/transactions/${c.deploy_tx}`} />}
             {c.init_tx && <Field label="Init tx" value={c.init_tx} href={`${SC}/transactions/${c.init_tx}`} />}
           </li>
+        ))}
+      </ul>
+      <h3>Link calls</h3>
+      <ul className="rwa-list">
+        {data.links.map((l) => (
+          <li key={l.tx} className="rwa-item"><Field label={l.name} value={l.tx} href={`${SC}/transactions/${l.tx}`} /></li>
         ))}
       </ul>
     </section>

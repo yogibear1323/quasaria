@@ -13,6 +13,7 @@ export const DISTRICTS: District[] = [
   { id: "exchange", to: "/exchange", label: "Exchange", district: "Lightspeed Exchange", region: "Exchange Ridge", lat: 14, lon: 4, hue: "violet", blurb: "Order book trading" },
   { id: "swap", to: "/swap", label: "Swap", district: "Swap Bridge", region: "Exchange Ridge", lat: 26, lon: 30, hue: "cyan", blurb: "Simple swaps" },
   { id: "pools", to: "/pools", label: "Pools", district: "Liquidity Lakes", region: "Yield Basin", lat: -8, lon: 52, hue: "cyan", blurb: "Provide liquidity" },
+  { id: "vault", to: "/vault", label: "Yield Vault", district: "Frost Vault", region: "Yield Basin", lat: -26, lon: 70, hue: "cyan", blurb: "RWA yield vault (unaudited)" },
   { id: "earn", to: "/earn", label: "Earnings", district: "Harvest Terraces", region: "Yield Basin", lat: 10, lon: 88, hue: "magenta", blurb: "Pool fees and rewards" },
   { id: "holders", to: "/holders", label: "Holders", district: "Glacier Hall", region: "Yield Basin", lat: 30, lon: 70, hue: "violet", blurb: "Daily holder rewards" },
   { id: "calculators", to: "/calculators", label: "Calculators", district: "Mirror Lab", region: "Yield Basin", lat: -48, lon: 42, hue: "cyan", blurb: "What-if math" },

@@ -10,6 +10,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { AssetPicker, toOption, type PickerOption } from "../components/AssetBits";
 import { loadMarkets, type MarketRow } from "../lib/markets";
 import { STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
+import { YieldVaultCard } from "../components/YieldVaultCard";
+import { RwaDeployInfo } from "../components/RwaDeployInfo";
 import type { Book } from "../lib/demo";
 import { TxLink } from "../components/TxLink";
 import { useWallet } from "../lib/wallet";
@@ -307,6 +309,10 @@ export default function Trade({ mode = "exchange" }: { mode?: "exchange" } = {})
           </div>
         </div>
         <OrderCard book={book} baseKey={baseKey} quoteKey={quoteKey} BASE={BASE} QUOTE={QUOTE} onDone={() => setBookTick((t) => t + 1)} />
+      </div>
+      <div className="grid" style={{ marginTop: 16 }}>
+        <YieldVaultCard />
+        <RwaDeployInfo compact />
       </div>
     </>
   );

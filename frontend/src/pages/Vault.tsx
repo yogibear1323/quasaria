@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import data from "../config/rwa-mainnet.json";
 import { YieldVaultCard, VAULT_DEPOSIT_CAP_XLM } from "../components/YieldVaultCard";
+import { SavingsJars } from "../components/SavingsJars";
 import "./vault.css";
 
 const B = import.meta.env.BASE_URL;
@@ -37,6 +38,7 @@ export default function Vault() {
           <Link to="/deploy" className="btn ghost small">Contract IDs &amp; deploy info</Link>
         </aside>
       </div>
+      <SavingsJars />
     </div>
   );
 }

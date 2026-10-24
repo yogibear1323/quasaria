@@ -28,3 +28,22 @@
   .vault-yeti { position: absolute; right: -10px; bottom: -6px; height: 110px; opacity: 0.55; }
   .vault-layout { grid-template-columns: 1fr; }
 }
+.jars { border-radius: 22px; padding: 22px; background: radial-gradient(120% 80% at 0% 0%, rgba(127, 220, 255, 0.16), rgba(18, 40, 70, 0.45)); border: 1px solid rgba(170, 225, 255, 0.3); display: grid; gap: 14px; }
+.jars-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.jars-head h2 { margin: 4px 0 0; }
+.jars-note { margin: 0; font-size: 0.84rem; color: #d6ecf7; opacity: 0.9; }
+.jar-new { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; align-items: center; }
+.jar-new .input { min-width: 0; }
+.jar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.jar { display: grid; gap: 10px; border-color: rgba(127, 220, 255, 0.4); }
+.jar.done { box-shadow: 0 0 24px rgba(127, 255, 200, 0.25); }
+.jar-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.jar-ico { font-size: 1.3rem; }
+.jar-date { font-size: 0.72rem; margin-left: auto; }
+.jar-bar { height: 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; border: 1px solid rgba(160, 225, 255, 0.3); }
+.jar-bar span { display: block; height: 100%; background: linear-gradient(90deg, #e9fbff, #7fdcff 60%, #c6b8ff); box-shadow: 0 0 12px rgba(127, 220, 255, 0.6); transition: width 0.4s; }
+.jar-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 0.78rem; }
+.jar-stats span { display: block; opacity: 0.65; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.jar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.jar-actions .input { flex: 1 1 80px; min-width: 0; }
+@media (max-width: 760px) { .jars { padding: 16px; } .jar-new { grid-template-columns: 1fr 1fr; } .jar-new .input:first-child { grid-column: 1 / -1; } }

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import Trade from "./pages/Trade";
 import Pools from "./pages/Pools";
+import Vault from "./pages/Vault";
 import Markets from "./pages/Markets";
 import Landing from "./pages/Landing";
 import Earn from "./pages/Earn";
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/account" element={<Account />} />
           <Route path="/pools" element={<Pools />} />
+          <Route path="/vault" element={<Vault />} />
           <Route path="/earn" element={<Earn />} />
           <Route path="/holders" element={<Holders />} />
           <Route path="/calculators" element={<Calculators />} />

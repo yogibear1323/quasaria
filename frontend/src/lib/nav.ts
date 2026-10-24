@@ -16,6 +16,7 @@ export const NAV_GROUP: NavItem[] = [
 export const NAV_SWAP: NavItem = { to: "/swap", label: "Swap", scene: "quasar" };
 /** Individual items after Swap. */
 export const NAV_REST: NavItem[] = [
+  { to: "/vault", label: "Yield Vault", scene: "nebula" },
   { to: "/earn", label: "Earnings", scene: "supernova" },
   { to: "/holders", label: "Holders", scene: "supernova" },
   { to: "/referral", label: "Referral", scene: "supernova" },

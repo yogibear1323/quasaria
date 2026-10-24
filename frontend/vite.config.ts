@@ -14,7 +14,7 @@ const base = process.env.VITE_BASE || "/";
 // A route must not share its name with a folder in public/ (Pages would 301 /merch → /merch/
 // instead of serving merch.html), so static assets live in e.g. public/merch-assets/.
 // Harmless elsewhere (Netlify uses _redirects). Keep in sync with the routes in src/App.tsx.
-const SPA_ROUTES = ["app", "markets", "trade", "pools", "earn", "calculators", "holders", "quests", "merch", "news", "exchange", "swap", "referral", "activity", "buy", "about", "wallet", "account", "deploy"];
+const SPA_ROUTES = ["app", "markets", "trade", "pools", "earn", "calculators", "holders", "quests", "merch", "news", "exchange", "swap", "referral", "activity", "buy", "about", "wallet", "account", "deploy", "vault"];
 let outDir = "dist";
 let baseUrl = "/";
 

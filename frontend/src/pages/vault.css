@@ -9,6 +9,7 @@
 .vault-hero h1 { margin: 6px 0 8px; font-size: clamp(2rem, 5vw, 3rem);
   background: linear-gradient(90deg, #e9fbff, #7fdcff 60%, #c6b8ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .vault-hero p { margin: 0 0 14px; color: #d6ecf7; }
+.vault-hero p.vault-desc { font-size: 0.86rem; opacity: 0.9; }
 .vault-badges { display: flex; flex-wrap: wrap; gap: 8px; }
 .vault-badge { padding: 4px 11px; border-radius: 999px; font-size: 0.74rem; border: 1px solid rgba(160, 225, 255, 0.5); background: rgba(120, 210, 255, 0.12); color: #e4f7ff; }
 .vault-badge.warn { border-color: rgba(255, 190, 110, 0.7); background: rgba(255, 170, 80, 0.16); color: #ffd9a8; font-weight: 600; }

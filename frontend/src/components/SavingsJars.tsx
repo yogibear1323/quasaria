@@ -68,12 +68,10 @@ export function SavingsJars() {
     <section className="jars" data-testid="savings-jars">
       <div className="jars-head">
         <div><div className="vault-kicker">Organizer on top of your vault balance</div><h2>Savings Jars</h2></div>
-        <span className="vault-badge warn" data-testid="jars-warning">Unaudited</span>
       </div>
       <p className="jars-note" data-testid="jars-note">
         Jars are labels kept in this browser for this wallet. They split your Yield Vault shares into named goals; on-chain it's one vault balance.
         Jar deposits have no per-deposit cap. Yield sources aren't connected yet, so interest is 0% for now.
-        The vault contracts are unaudited, so only deposit what you can afford to lose.
       </p>
       {!w.address ? <div className="notice">Sign in with your key to create jars.</div> : (
         <>

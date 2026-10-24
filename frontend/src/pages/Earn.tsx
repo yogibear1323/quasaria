@@ -9,7 +9,7 @@ import { fetchRewardBalance, rewardsLive } from "../lib/holders";
 import { PageHead } from "../components/ui";
 import { AssetLogo } from "../components/AssetBits";
 import { fmt, fmtCompact } from "../lib/format";
-import { GLACIERQ_ICON_128, REFERRAL_LIVE, REFERRAL_TERMS, REWARD_ASSET_CODE, dailyReward, tierFor, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, pctYear, reserveYearsAtCap } from "../lib/rewards";
+import { GLACIERQ_ICON_128, REFERRAL_LIVE, REFERRAL_TERMS, REWARD_ASSET_CODE, dailyReward, tierFor, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, pctYear, reserveYearsAtCap, REWARD_RATE_TEXT } from "../lib/rewards";
 
 const NET = NETWORK;
 const HISTORY_LIMIT = 200;
@@ -32,7 +32,7 @@ export function LpEarnings({ lines, truncated }: { lines: LpLine[]; truncated: b
 
 export function HolderEarnings({ live, address, balance, totals }: { live: boolean; address: string | null; balance: number | null; totals: PaymentTotals }) {
   if (!address) return <p className="muted">Sign in to see your {REWARD_ASSET_CODE} balance and rewards.</p>;
-  if (!live) return <p className="muted" data-testid="rewards-notlive">Not live yet: the {REWARD_ASSET_CODE} issuer and reward reserve are not on this network, so there is nothing to read. Rates when it starts: {pctYear(REWARD_TIERS[0].apr)}% a year from 1M, {pctYear(REWARD_TIERS[1].apr)}% a year from 10M, not guaranteed.</p>;
+  if (!live) return <p className="muted" data-testid="rewards-notlive">Not live yet: the {REWARD_ASSET_CODE} issuer and reward reserve are not on this network, so there is nothing to read. Rates when it starts: {REWARD_RATE_TEXT}. Not guaranteed.</p>;
   const b = balance ?? 0, tier = tierFor(b);
   return (
     <dl className="kv" data-testid="holder-earnings">
@@ -81,7 +81,7 @@ export default function Earn() {
           </div>
           <div className="how-earn-card" data-testid="how-rates">
             <div className="kicker">2 · Holder rewards</div>
-            <h3 className="how-earn-t">{pctYear(REWARD_TIERS[0].apr)}% a year from 1M, {pctYear(REWARD_TIERS[1].apr)}% a year from 10M</h3>
+            <h3 className="how-earn-t">{REWARD_RATE_TEXT}</h3>
             <p className="muted">Hold {REWARD_ASSET_CODE} and get paid every day as an ordinary Stellar payment, on your whole balance. Under 1 million earns nothing.</p>
           </div>
           <div className="how-earn-card" data-testid="how-cap">
@@ -107,7 +107,7 @@ export default function Earn() {
         </div>
         <div className="card glow earn-card" data-testid="earn-rewards">
           <h2 style={{ margin: 0 }}>{REWARD_ASSET_CODE} holder rewards</h2>
-          <p className="muted l-tiny" style={{ margin: "4px 0 8px" }}>{pctYear(REWARD_TIERS[0].apr)}% a year from 1M, {pctYear(REWARD_TIERS[1].apr)}% a year from 10M, paid daily from a finite reserve. Not guaranteed.</p>
+          <p className="muted l-tiny" style={{ margin: "4px 0 8px" }}>{REWARD_RATE_TEXT}, paid daily from a finite reserve. Not guaranteed.</p>
           <HolderEarnings live={live.live} address={w.address} balance={bal.data} totals={totals} />
           <div className="row earn-actions"><Link className="btn small" to="/holders">Holders tab</Link></div>
         </div>

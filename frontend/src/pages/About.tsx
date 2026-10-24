@@ -3,7 +3,7 @@ import { PageHead } from "../components/ui";
 import { NONCUSTODIAL_NOTE } from "../components/AccountModal";
 import { MAINNET_BROWSE, MAINNET_SIGNING } from "../lib/nativePools";
 import { networkStatus } from "../lib/networkStatus";
-import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, REFERRAL_TERMS, pctYear } from "../lib/rewards";
+import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, TOKENOMICS, REWARD_TOTAL_SUPPLY, REFERRAL_TERMS, REWARD_RATE_TEXT } from "../lib/rewards";
 import { fmt, fmtCompact } from "../lib/format";
 
 export const ABOUT_TAGLINE = "Quasaria is a self-banking decentralized exchange on Stellar where you trade, earn, and stay in full control of your keys.";
@@ -23,7 +23,6 @@ function Section({ id, n, title, children, link }: { id: string; n: number; titl
 
 export default function About() {
   const st = networkStatus({ mainnetSigning: MAINNET_SIGNING, mainnetBrowse: MAINNET_BROWSE });
-  const t1 = REWARD_TIERS[0], t2 = REWARD_TIERS[1];
   return (
     <>
       <PageHead kicker="About" title="Your keys, your XLM" right={<span className={`pill ${st.net === "mainnet" ? "green" : "gold"}`} data-testid="about-net-pill">{st.net === "mainnet" ? "Mainnet" : "Testnet"}</span>}>
@@ -49,7 +48,7 @@ export default function About() {
         <Section id="rewards" n={4} title={`Glacier (${REWARD_ASSET_CODE}) holder rewards`} link={{ to: "/holders", label: "Holder rewards" }}>
           <p className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             <img src={GLACIERQ_ICON_128} alt="" width={22} height={22} style={{ borderRadius: 6 }} />
-            <span>Hold {fmtCompact(t1.min)} or more {REWARD_ASSET_CODE} and get <b>{pctYear(t1.apr)}% a year</b>; hold {fmtCompact(t2.min)} or more and get <b>{pctYear(t2.apr)}% a year</b>, on your whole balance, paid daily.</span>
+            <span>Holder rewards: <b>{REWARD_RATE_TEXT}</b>, on your whole balance, paid daily.</span>
           </p>
           <p>Supply is fixed at {fmtCompact(REWARD_TOTAL_SUPPLY)} {REWARD_ASSET_CODE} and the issuer is locked. {fmtCompact(TOKENOMICS.rewardReserve)} sit in a reward reserve that pays holders with ordinary payments, and the total paid in a day is capped at {fmt(TOKENOMICS.dailyCap, 0)}, scaled down pro rata if needed.</p>
           <p>{REWARD_DISCLOSURE}</p>

@@ -11,9 +11,9 @@ import { useWallet } from "../lib/wallet";
 import { useAccount } from "../lib/useAccount";
 import { useAsync } from "../lib/useAsync";
 import { fetchPool, poolPosition, rewardStatus, type AccountView, type PoolPosition } from "../lib/account";
-import { REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_TIERS, pctYear } from "../lib/rewards";
+import { REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_RATE_TEXT } from "../lib/rewards";
 import { explorerAccountUrl, explorerAssetUrl } from "../lib/explorer";
-import { fmt, fmtCompact, short } from "../lib/format";
+import { fmt, short } from "../lib/format";
 
 const NET = NETWORK;
 const NET_LABEL = NETWORK_LABEL;
@@ -137,7 +137,7 @@ export function Rewards({ view }: { view: AccountView | null }) {
         <div><dt>Next tier</dt><dd>{st ? st.next ?? "Top tier" : DASH}</dd></div>
       </dl>
       <p className="muted l-tiny" style={{ margin: "8px 0 0" }}>
-        {REWARD_TIERS.map((t) => `${pctYear(t.apr)}% a year from ${fmtCompact(t.min)}`).join(", ")}, paid daily on the whole balance. Not guaranteed. {!issuer && "The reward token is not on this network yet. "}<Link to="/holders">How holder rewards work</Link>
+        {REWARD_RATE_TEXT}, paid daily on the whole balance. Not guaranteed. {!issuer && "The reward token is not on this network yet. "}<Link to="/holders">How holder rewards work</Link>
       </p>
     </section>
   );

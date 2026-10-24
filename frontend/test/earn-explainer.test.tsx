@@ -11,7 +11,7 @@ describe("Earnings: How earnings work", () => {
     expect(text).toMatch(/How earnings work/);
     expect(text).toMatch(/100 billion in total, fixed, with the issuer locked/);
     expect(text).toMatch(/50 billion sits in the reward reserve and 50 billion in the treasury/);
-    expect(text).toMatch(/5% a year from 1M, 7% a year from 10M/);
+    expect(text).toMatch(/1% per month \(12% per year\) on balances of 1M GLACIERQ and up; nothing under 1M/);
     expect(text).toMatch(/10M GLACIERQ a day, at most/);
     expect(text).toMatch(/pro rata/);
     expect(text).toMatch(/about 13\.7 years/);

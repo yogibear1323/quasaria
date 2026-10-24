@@ -33,7 +33,7 @@ describe("Holders motion", () => {
   it("the page keeps all functional sections and adds the motion pieces without new dependencies", () => {
     const h = renderToStaticMarkup(<MemoryRouter><WalletProvider><Holders /></WalletProvider></MemoryRouter>);
     for (const id of ["holders-disclosure", "my-rewards", "reserve-status", "payment-history", "tier-table", "tier-cards", "how-it-works", "tokenomics", "snowfield"]) expect(h, id).toContain(`data-testid="${id}"`);
-    expect(h).toMatch(/5% a year/); expect(h).toMatch(/7% a year/);
+    expect(h).toMatch(/12% a year/);
     expect(h).not.toMatch(/class="tier-card current"/); // signed out: no tier is marked as yours
     const pkg = readFileSync(new URL("../package.json", import.meta.url), "utf8");
     expect(pkg).not.toMatch(/framer-motion|gsap|lottie|animejs|react-spring/);

@@ -20,8 +20,7 @@ describe("About page", () => {
     expect(text).toMatch(/Swap fees go to the pool providers/);
   });
   it("uses only the confirmed reward numbers and makes no promises", () => {
-    expect(text).toMatch(/5% a year/);
-    expect(text).toMatch(/7% a year/);
+    expect(text).toMatch(/1% per month \(12% per year\) on balances of 1M GLACIERQ and up; nothing under 1M/);
     expect(text).toMatch(/100B/);
     expect(text).toMatch(/50B sit in a reward reserve/);
     expect(text).toMatch(/10,000,000/);

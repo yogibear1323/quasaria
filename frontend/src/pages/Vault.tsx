@@ -20,6 +20,7 @@ export default function Vault() {
           <div className="vault-kicker">RWA yield layer · Stellar mainnet</div>
           <h1>Yield Vault</h1>
           <p>Park XLM in a Soroban vault that routes it into lending and tokenized real-world assets.</p>
+          <p className="vault-desc" data-testid="vault-desc">You deposit XLM, and the vault routes it into Quasaria's RWA yield layer (a lending pool and tokenized real-world assets) to earn yield. Each deposit is capped at {VAULT_DEPOSIT_CAP_XLM} XLM while the contracts are unaudited. The operator makes no deposits of its own. The yield sources aren't connected yet, so the vault isn't earning yield today.</p>
           <div className="vault-badges">
             <span className="vault-badge warn">Unaudited</span>
             <span className="vault-badge">{VAULT_DEPOSIT_CAP_XLM} XLM cap / deposit</span>

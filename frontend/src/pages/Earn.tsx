@@ -57,7 +57,7 @@ export function ReferralEarnings({ totals, address }: { totals: PaymentTotals; a
   );
 }
 
-/** /earn: your LP position gains, GLACIERQ holder rewards and referral bonuses, plus how each works. */
+/** /earn: your LP position gains, GLACIERQ holder rewards, plus how each works. */
 export default function Earn() {
   const w = useWallet();
   const live = rewardsLive(NET);
@@ -69,7 +69,7 @@ export default function Earn() {
   return (
     <>
       <PageHead kicker="Earnings" title="Earnings" right={<span className="pill gold">{IS_MAINNET ? "Mainnet" : "Testnet"}</span>}>
-        Three ways to earn on Quasaria: swap fees as a liquidity provider, daily {REWARD_ASSET_CODE} holder rewards, and referral bonuses. Your own numbers are below.
+        Two ways to earn on Quasaria: swap fees as a liquidity provider and daily {REWARD_ASSET_CODE} holder rewards. Your own numbers are below.
       </PageHead>
       <section className="card glow how-earn" aria-labelledby="how-earn-h" data-testid="how-earnings-work" style={{ marginBottom: 16 }}>
         <h2 id="how-earn-h" style={{ marginTop: 0 }}>How earnings work</h2>
@@ -97,7 +97,7 @@ export default function Earn() {
         </div>
         <p className="how-earn-note" data-testid="how-disclosure"><b>Plainly:</b> rewards come from a finite reserve, are not guaranteed, and the daily cap can reduce them. {REWARD_DISCLOSURE.split(". They are not")[0]}. <Link to="/holders#tokenomics">Full tokenomics</Link></p>
       </section>
-      <div className="grid g-3 earn-mine" data-testid="earn-mine">
+      <div className="grid g-2 earn-mine" data-testid="earn-mine">
         <div className="card glow earn-card" data-testid="earn-lp">
           <h2 style={{ margin: 0 }}>Liquidity positions</h2>
           {!w.address ? <p className="muted">Sign in to see your pool shares and what they have earned. <button className="btn small" onClick={() => w.openModal()}>Sign in</button></p>
@@ -110,11 +110,6 @@ export default function Earn() {
           <p className="muted l-tiny" style={{ margin: "4px 0 8px" }}>{REWARD_RATE_TEXT}, paid daily from a finite reserve. Not guaranteed.</p>
           <HolderEarnings live={live.live} address={w.address} balance={bal.data} totals={totals} />
           <div className="row earn-actions"><Link className="btn small" to="/holders">Holders tab</Link></div>
-        </div>
-        <div className="card glow earn-card" data-testid="earn-referral">
-          <h2 style={{ margin: 0 }}>Referral bonuses</h2>
-          <ReferralEarnings totals={totals} address={w.address} />
-          <div className="row earn-actions"><Link className="btn small" to="/referral">Referral tab</Link></div>
         </div>
       </div>
     </>

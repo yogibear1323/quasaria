@@ -18,7 +18,6 @@ export const DISTRICTS: District[] = [
   { id: "holders", to: "/holders", label: "Holders", district: "Glacier Hall", region: "Yield Basin", lat: 30, lon: 70, hue: "violet", blurb: "Daily holder rewards" },
   { id: "calculators", to: "/calculators", label: "Calculators", district: "Mirror Lab", region: "Yield Basin", lat: -48, lon: 42, hue: "cyan", blurb: "What-if math" },
   { id: "quests", to: "/quests", label: "Quests", district: "Quest Gate", region: "Commons", lat: -14, lon: -96, hue: "cyan", blurb: "Ranks and badges" },
-  { id: "referral", to: "/referral", label: "Referral", district: "Signal Fires", region: "Yield Basin", lat: 52, lon: 100, hue: "magenta", blurb: "Invite friends, starts after launch" },
   { id: "activity", to: "/activity", label: "Activity", district: "Ledger Row", region: "Commons", lat: -30, lon: -120, hue: "cyan", blurb: "Your timeline" },
   { id: "buy", to: "/buy", label: "Buy", district: "Market Gate", region: "Commons", lat: 20, lon: -85, hue: "magenta", blurb: "Get XLM" },
   { id: "about", to: "/about", label: "About", district: "Base Camp", region: "Commons", lat: 8, lon: -140, hue: "violet", blurb: "What Quasaria is" },

@@ -9,7 +9,7 @@ import { REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_PAYER, REWARD_RESERVE } from "
 export type ActivityKind = "swap" | "order" | "pool" | "reward" | "referral" | "payment";
 export const ACTIVITY_FILTERS: { v: "all" | ActivityKind; label: string }[] = [
   { v: "all", label: "All" }, { v: "swap", label: "Swaps" }, { v: "order", label: "Exchange orders" }, { v: "pool", label: "Pools" },
-  { v: "reward", label: "Rewards" }, { v: "referral", label: "Referral" }, { v: "payment", label: "Payments" },
+  { v: "reward", label: "Rewards" }, { v: "payment", label: "Payments" },
 ];
 
 export type ActivityItem = { id: string; kind: ActivityKind; time: string; hash: string; title: string; detail: string; mine: boolean | null };

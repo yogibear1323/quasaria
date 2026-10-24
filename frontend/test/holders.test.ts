@@ -12,20 +12,19 @@ describe("GLACIERQ rewards config", () => {
     expect(TOKENOMICS.treasury).toBe(50_000_000_000);
     expect(TOKENOMICS.dailyCap).toBe(10_000_000);
   });
-  it("tiers: none under 1M, 5% from 1M, 7% from 10M, flat on the whole balance", () => {
+  it("tiers: none under 1M, 12% (1%/month) from 1M, flat on the whole balance", () => {
     expect(tierFor(999_999)).toBeNull();
     expect(dailyReward(999_999)).toBe(0);
     expect(tierFor(1_000_000)?.apr).toBe(REWARD_TIERS[0].apr);
-    expect(dailyReward(1_000_000)).toBeCloseTo((1_000_000 * 0.05) / 365, 6);
-    expect(dailyReward(9_999_999)).toBeCloseTo((9_999_999 * 0.05) / 365, 4);
-    expect(tierFor(10_000_000)?.apr).toBe(0.07);
-    expect(dailyReward(10_000_000)).toBeCloseTo((10_000_000 * 0.07) / 365, 6);
-    expect(0.05 / 365 * 100).toBeCloseTo(0.0137, 4);
-    expect(0.07 / 365 * 100).toBeCloseTo(0.01918, 4);
+    expect(dailyReward(1_000_000)).toBeCloseTo((1_000_000 * 0.12) / 365, 6);
+    expect(dailyReward(9_999_999)).toBeCloseTo((9_999_999 * 0.12) / 365, 4);
+    expect(tierFor(10_000_000)?.apr).toBe(0.12);
+    expect(dailyReward(10_000_000)).toBeCloseTo((10_000_000 * 0.12) / 365, 6);
+    expect(0.12 / 365 * 100).toBeCloseTo(0.03288, 4);
   });
   it("runway math matches the docs", () => {
     expect(reserveYearsAtCap()).toBeCloseTo(13.7, 1);
-    expect(reserveYears(10_000_000_000, 0.07)).toBeGreaterThan(70);
+    expect(reserveYears(10_000_000_000, 0.12)).toBeGreaterThan(40);
   });
   it("disclosure says finite reserve, dilution, not guaranteed; never APY or guaranteed returns", () => {
     expect(REWARD_DISCLOSURE).toMatch(/finite reserve/);

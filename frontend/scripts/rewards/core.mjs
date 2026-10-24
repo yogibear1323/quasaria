@@ -20,8 +20,8 @@ export const human = (b) => `${(b / STROOPS).toLocaleString("en-US")}.${String((
 
 export const DAILY_CAP = toStroops(10_000_000);
 export const TIERS = [
-  { name: "Tier 1", min: toStroops(1_000_000), max: toStroops(10_000_000), aprNum: 5n, aprDen: 100n },
-  { name: "Tier 2", min: toStroops(10_000_000), max: null, aprNum: 7n, aprDen: 100n },
+  { name: "Tier 1", min: toStroops(1_000_000), max: toStroops(10_000_000), aprNum: 12n, aprDen: 100n },
+  { name: "Tier 2", min: toStroops(10_000_000), max: null, aprNum: 12n, aprDen: 100n },
 ];
 export const tierOf = (bal) => TIERS.find((t) => bal >= t.min && (t.max === null || bal < t.max)) ?? null;
 /** floor(balance * apr / 365). */

@@ -391,8 +391,8 @@ function RewardsVisual() {
         <table className="t" style={{ marginTop: 8 }}>
           <thead><tr><th>Balance</th><th>Rate (per year)</th><th>Paid</th></tr></thead>
           <tbody>
-            <tr><td className="mono">1M to under 10M</td><td className="mono">~5%</td><td>daily</td></tr>
-            <tr><td className="mono">10M and up</td><td className="mono">~7%</td><td>daily</td></tr>
+            <tr><td className="mono">1M and up</td><td className="mono">1% per month (12% per year)</td><td>daily</td></tr>
+            <tr><td className="mono">under 1M</td><td className="mono">nothing</td><td>-</td></tr>
             <tr><td className="mono muted">under 1M</td><td className="mono muted">none</td><td className="muted">n/a</td></tr>
           </tbody>
         </table>

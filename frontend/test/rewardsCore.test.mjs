@@ -16,12 +16,12 @@ describe("stroop maths", () => {
 });
 
 describe("holder rewards", () => {
-  it("5% APR from 1M, 7% from 10M, flat on the whole balance, /365; nothing below 1M", () => {
+  it("12% APR (1%/month) from 1M and 10M, flat on the whole balance, /365; nothing below 1M", () => {
     expect(rawReward(T(999_999))).toBe(0n);
-    expect(rawReward(T(1_000_000))).toBe((T(1_000_000) * 5n) / 36500n);
-    expect(rawReward(T(9_999_999))).toBe((T(9_999_999) * 5n) / 36500n);
-    expect(rawReward(T(10_000_000))).toBe((T(10_000_000) * 7n) / 36500n);
-    expect(Number(rawReward(T(20_000_000))) / Number(STROOPS)).toBeCloseTo(3835.61, 1);
+    expect(rawReward(T(1_000_000))).toBe((T(1_000_000) * 12n) / 36500n);
+    expect(rawReward(T(9_999_999))).toBe((T(9_999_999) * 12n) / 36500n);
+    expect(rawReward(T(10_000_000))).toBe((T(10_000_000) * 12n) / 36500n);
+    expect(Number(rawReward(T(20_000_000))) / Number(STROOPS)).toBeCloseTo(6575.34, 1);
   });
   it("uses the lower of two snapshots, and a missing address counts as zero", () => {
     const d1 = new Map([[A(1), T(5_000_000)], [A(2), T(3_000_000)], [A(3), T(2_000_000)]]);

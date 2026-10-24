@@ -8,13 +8,13 @@ import { AssetLogo } from "../components/AssetBits";
 import { useWallet } from "../lib/wallet";
 import { fmt, fmtCompact, short } from "../lib/format";
 import {
-  GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_MIN_BALANCE, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, dailyReward, reserveYearsAtCap, tierFor, pctYear } from "../lib/rewards";
+  GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_MIN_BALANCE, REWARD_TIERS, TOKENOMICS, REWARD_TOTAL_SUPPLY, dailyReward, reserveYearsAtCap, tierFor, pctYear, REWARD_RATE_TEXT } from "../lib/rewards";
 import { CountUp, ReserveGauge, Snowfield, TierProgress, YetiGlint } from "../components/HoldersMotion";
 import { usePauseWhenHidden } from "../lib/motion";
 import { fetchReserveStatus, fetchRewardBalance, fetchRewardHistory, rewardsLive, type Payment, type ReserveStatus } from "../lib/holders";
 
 const NET = NETWORK;
-const pctDay = (apr: number) => ((apr / 365) * 100).toFixed(apr === 0.05 ? 4 : 5);
+const pctDay = (apr: number) => ((apr / 365) * 100).toFixed(5);
 
 function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
   const [s, set] = useState<{ data: T | null; loading: boolean; error: string | null }>({ data: null, loading: true, error: null });
@@ -140,7 +140,7 @@ export default function Holders() {
           <ul className="muted" style={{ paddingLeft: 18, fontSize: "0.9rem" }}>
             <li>Once a day (about 00:30 UTC) a script takes a snapshot of {REWARD_ASSET_CODE} holders from Horizon and pays each qualifying holder with an ordinary Stellar payment from the reward account. No smart contract is involved.</li>
             <li>Each payment carries the memo <span className="mono">{REWARD_ASSET_CODE}:YYYY-MM-DD</span>, and a ledger of paid days stops a rerun from paying twice.</li>
-            <li>Rates: <b>{pctYear(REWARD_TIERS[0].apr)}% a year</b> from 1M to under 10M ({pctDay(REWARD_TIERS[0].apr)}% a day) and <b>{pctYear(REWARD_TIERS[1].apr)}% a year</b> from 10M ({pctDay(REWARD_TIERS[1].apr)}% a day), flat on the whole balance. Nothing under 1M.</li>
+            <li>Rates: <b>{REWARD_RATE_TEXT}</b> ({pctDay(REWARD_TIERS[0].apr)}% a day), flat on the whole balance.</li>
             <li>The total paid in a day is capped at {fmtCompact(TOKENOMICS.dailyCap)} {REWARD_ASSET_CODE}. If the computed total is higher, every reward is scaled down pro rata.</li>
             <li>The issuer, the reserve, the treasury and liquidity-pool accounts are excluded.</li>
             <li>Rewards are paid from a finite reserve, not from revenue, and are not guaranteed.</li>
@@ -157,7 +157,7 @@ export default function Holders() {
               <tr><td>Reserve runway at the cap</td><td className="mono">{fmt(reserveYearsAtCap(), 1)} years (50B ÷ 3.65B a year)</td></tr>
             </tbody>
           </table>
-          <p className="muted l-tiny">Typical use sits far below the cap: emission is about 5–7% a year of qualifying balances, so 10B of qualifying balances emit roughly 0.5–0.7B a year and the reserve lasts well beyond 70 years. Payments move tokens from the reserve into circulation, so holders who are not paid are diluted. See the <Link to="/earn">Earnings</Link> tab for liquidity-pool earnings.</p>
+          <p className="muted l-tiny">Typical use sits far below the cap: emission is about 12% a year of qualifying balances, so 10B of qualifying balances emit roughly 1.2B a year and the reserve lasts about 40 years. Payments move tokens from the reserve into circulation, so holders who are not paid are diluted. See the <Link to="/earn">Earnings</Link> tab for liquidity-pool earnings.</p>
         </div>
       </div>
     </div>

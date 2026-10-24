@@ -162,7 +162,7 @@ async function main() {
     const eff = effectiveBalances([loadSnap(day).balances, prev.balances]);
     const rw = computeRewards({ balances: eff, exclude });
     const manifest = buildManifest({ kind: "holder-rewards", network: net, day, payer: r.reserve, asset: ASSET_CODE, issuer: r.issuer,
-      rules: { tiers: "5%/yr from 1M, 7%/yr from 10M, flat on whole balance, /365", snapshots: [addDays(day, -1), day], cap: DAILY_CAP.toString(), memo: memoReward(day) },
+      rules: { tiers: "1%/month (12%/yr) from 1M, flat on whole balance, /365", snapshots: [addDays(day, -1), day], cap: DAILY_CAP.toString(), memo: memoReward(day) },
       totals: { holders: rw.items.length, total: rw.total.toString(), rawTotal: rw.rawTotal.toString(), scaled: rw.scaled, factor: rw.factor },
       items: rw.items.map((i) => ({ to: i.to, balance: i.balance.toString(), tier: i.tier, amount: i.amount.toString() })) });
     writeJson(join(STATE, "manifests", `reward-${day}.json`), manifest.body);
@@ -174,7 +174,7 @@ async function main() {
     if (!a.send) return;
     const bal = await h.get(`/accounts/${r.reserve}`).then((x) => x?.balances.find((b) => b.asset_code === ASSET_CODE && b.asset_issuer === r.issuer)?.balance);
     guardSend({ total: rw.total, cap: DAILY_CAP, floatBalance: bal ? parseStroops(bal) : 0n, label: "holder rewards" });
-    for (const i of rw.items) if (i.amount > (i.balance * 7n) / 36500n + 1n) die("sanity check failed: a reward exceeds 7%/365 of its balance");
+    for (const i of rw.items) if (i.amount > (i.balance * 12n) / 36500n + 1n) die("sanity check failed: a reward exceeds 12%/365 of its balance");
     const res = await paying(r, h, "reserve", rw.items.map((i) => ({ ...i, kind: "reward" })), { memo: memoReward(day), day, manifest, live: new Set(loadSnap(day).balances.keys()) });
     say(`done: ${res.paid} paid, ${res.skipped} skipped (already paid)`);
     return;

@@ -95,8 +95,8 @@ describe("account maths", () => {
   });
   it("GLACIERQ tier status", () => {
     expect(rewardStatus(0).tier).toContain("Below 1M");
-    expect(rewardStatus(1_000_000).tier).toContain("5%");
-    expect(rewardStatus(10_000_000).tier).toContain("7%");
+    expect(rewardStatus(1_000_000).tier).toContain("12%");
+    expect(rewardStatus(10_000_000).tier).toContain("12%");
     expect(rewardStatus(500_000).next).toContain("500,000");
   });
   it("LP position: shares/total × reserves; value only on mainnet with a price", () => {

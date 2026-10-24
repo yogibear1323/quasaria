@@ -2,7 +2,7 @@
  * Holder rewards program (GLACIERQ). No smart contract: a daily script makes plain payments from an
  * ordinary reward account, in newly issued GLACIERQ. The asset code is "GLACIERQ" (never plain
  * "GLACIER", which is a different issuer's asset). The issuer is configurable per network.
- * Terms: ~5% a year for balances from 1M to <10M, ~7% a year from 10M; daily rate = APR / 365 on the
+ * Terms: 1% per month (12% per year) on balances of 1M GLACIERQ and up, nothing under 1M; daily rate = APR / 365 on the
  * whole balance. Rewards come from a finite reserve account, are NOT guaranteed, and a daily emission
  * cap can scale them down. Tokenomics below are confirmed.
  */
@@ -19,9 +19,10 @@ export const TOKENOMICS = {
   dailyCap: Number(import.meta.env.VITE_REWARD_DAILY_CAP) || 10_000_000, // 0.01% of supply per day; pro-rata scaled if exceeded
 } as const;
 export const REWARD_TIERS = [
-  { name: "Tier 1", min: 1_000_000, max: 10_000_000, apr: 0.05 },
-  { name: "Tier 2", min: 10_000_000, max: Infinity, apr: 0.07 },
+  { name: "Tier 1", min: 1_000_000, max: 10_000_000, apr: 0.12 },
+  { name: "Tier 2", min: 10_000_000, max: Infinity, apr: 0.12 },
 ] as const;
+export const REWARD_RATE_TEXT = "1% per month (12% per year) on balances of 1M GLACIERQ and up; nothing under 1M";
 export const REWARD_MIN_BALANCE = REWARD_TIERS[0].min;
 
 /** Years the reserve lasts if emission sits at the daily cap every day. */

@@ -4,8 +4,8 @@ import { RwaDeployInfo } from "../components/RwaDeployInfo";
 export default function Deploy() {
   return (
     <>
-      <PageHead kicker="Deploy info" title="Latest deploy" right={<span className="pill pink">TESTNET</span>}>
-        The newest testnet deployment of the RWA yield layer. Links open StellarChain.io (testnet).
+      <PageHead kicker="Deploy info" title="Latest deploy" right={<span className="pill green">MAINNET</span>}>
+        The RWA yield layer on Stellar mainnet. Links open StellarChain.io.
       </PageHead>
       <RwaDeployInfo />
     </>

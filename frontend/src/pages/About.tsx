@@ -3,12 +3,11 @@ import { PageHead } from "../components/ui";
 import { NONCUSTODIAL_NOTE } from "../components/AccountModal";
 import { MAINNET_BROWSE, MAINNET_SIGNING } from "../lib/nativePools";
 import { networkStatus } from "../lib/networkStatus";
-import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, TOKENOMICS, REWARD_TOTAL_SUPPLY, REFERRAL_TERMS, REWARD_RATE_TEXT } from "../lib/rewards";
+import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_DISCLOSURE, TOKENOMICS, REWARD_TOTAL_SUPPLY, REWARD_RATE_TEXT } from "../lib/rewards";
 import { fmt, fmtCompact } from "../lib/format";
 
 export const ABOUT_TAGLINE = "Quasaria is a self-banking decentralized exchange on Stellar where you trade, earn, and stay in full control of your keys.";
 
-const REFERRAL_FACTS = REFERRAL_TERMS;
 
 function Section({ id, n, title, children, link }: { id: string; n: number; title: string; children: React.ReactNode; link?: { to: string; label: string } }) {
   return (
@@ -54,12 +53,7 @@ export default function About() {
           <p>{REWARD_DISCLOSURE}</p>
         </Section>
 
-        <Section id="referral" n={5} title="Referral program" link={{ to: "/referral", label: "Referral" }}>
-          <p>Invite someone with your link. When they hold {REWARD_ASSET_CODE} and earn holder rewards, you get <b>{REFERRAL_FACTS.referrerPct}%</b> of their daily reward on top for a year, and they get a <b>+{REFERRAL_FACTS.refereePct}%</b> boost for {REFERRAL_FACTS.refereeMonths} months.</p>
-          <p>Caps apply: {fmt(REFERRAL_FACTS.perReferralCap, 0)} {REWARD_ASSET_CODE} per referral on each side, {fmt(REFERRAL_FACTS.perReferrerDay, 0)} a day per referrer, and a shared daily budget. It goes live after the first mainnet holder-reward run, it is not guaranteed, and the terms may change or the program may pause.</p>
-        </Section>
-
-        <Section id="yeti" n={6} title="The yeti">
+        <Section id="yeti" n={5} title="The yeti">
           <p>The yeti is Quasaria's mascot: a calm explorer in a space suit, keeping watch from the glacier while you trade. The same yeti is on the token icon and in the quests.</p>
         </Section>
       </div>

@@ -62,7 +62,7 @@ describe("holder and referral earnings", () => {
 describe("Earnings page", () => {
   const t = T(<Earn />);
   it("has the three earning sections, the confirmed rates and no APY or tilde wording", () => {
-    for (const s of ["Liquidity positions", "holder rewards", "Referral bonuses"]) expect(t).toContain(s);
+    for (const s of ["Liquidity positions", "holder rewards"]) expect(t).toContain(s);
     expect(t).toMatch(/1% per month \(12% per year\) on balances of 1M GLACIERQ and up; nothing under 1M/);
     expect(t).not.toMatch(/\bAPY\b|~\d/); expect(t).toMatch(/not guaranteed/i);
   });

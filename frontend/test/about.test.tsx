@@ -14,7 +14,7 @@ describe("About page", () => {
     expect(text).toContain(ABOUT_TAGLINE);
   });
   it("covers the six sections", () => {
-    for (const id of ["keys", "swaps", "pools", "rewards", "referral", "yeti"]) expect(html).toContain(`data-testid="about-${id}"`);
+    for (const id of ["keys", "swaps", "pools", "rewards", "yeti"]) expect(html).toContain(`data-testid="about-${id}"`);
     expect(text).toMatch(/Your keys, your XLM/);
     expect(text).toMatch(/Nobody, including us, can recover or reset it/);
     expect(text).toMatch(/Swap fees go to the pool providers/);
@@ -24,9 +24,7 @@ describe("About page", () => {
     expect(text).toMatch(/100B/);
     expect(text).toMatch(/50B sit in a reward reserve/);
     expect(text).toMatch(/10,000,000/);
-    expect(text).toMatch(/10%.*of their daily reward on top for a year/);
-    expect(text).toMatch(/6 months/);
-    expect(text).toMatch(/goes live after the first mainnet holder-reward run/i);
+    expect(text).not.toMatch(/referral/i); // referral program hidden for now
     expect(text).toMatch(/not guaranteed/);
     expect(text).not.toMatch(/\bAPY\b|guaranteed (return|yield|income)|risk-free/i);
   });

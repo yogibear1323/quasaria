@@ -14,7 +14,7 @@ import Merch from "./pages/Merch";
 import News from "./pages/News";
 import Wallet from "./pages/Wallet";
 import Account from "./pages/Account";
-import Referral from "./pages/Referral";
+// Referral program hidden for now (2026-10-24); page kept in src/pages/Referral.tsx for restore.
 import Activity from "./pages/Activity";
 import About from "./pages/About";
 import Buy from "./pages/Buy";
@@ -40,7 +40,7 @@ export default function App() {
           <Route path="/markets" element={<Markets />} />
           <Route path="/exchange" element={<Trade mode="exchange" />} />
           <Route path="/swap" element={<Swap />} />
-          <Route path="/referral" element={<Referral />} />
+          <Route path="/referral" element={<Navigate to="/" replace />} />
           <Route path="/activity" element={<Activity />} />
           <Route path="/buy" element={<Buy />} />
           <Route path="/about" element={<About />} />

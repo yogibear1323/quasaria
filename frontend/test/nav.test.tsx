@@ -15,8 +15,8 @@ describe("top navigation order", () => {
   });
   it("Swap is its own tab right after the group, then the individual items", () => {
     expect(NAV_SWAP.label).toBe("Swap");
-    expect(labels(NAV_ALL)).toEqual(["Markets", "Exchange", "Pools", "Swap", "Yield Vault", "Earnings", "Holders", "Referral", "Activity", "News", "Buy", "About"]);
-    expect(labels(NAV_REST)).toEqual(["Yield Vault", "Earnings", "Holders", "Referral", "Activity", "News", "Buy", "About"]);
+    expect(labels(NAV_ALL)).toEqual(["Markets", "Exchange", "Pools", "Swap", "Yield Vault", "Earnings", "Holders", "Activity", "News", "Buy", "About"]);
+    expect(labels(NAV_REST)).toEqual(["Yield Vault", "Earnings", "Holders", "Activity", "News", "Buy", "About"]);
   });
   it("has no Trade item and no duplicate paths", () => {
     expect(labels([...NAV_ALL, ...NAV_MORE]).includes("Trade")).toBe(false);
@@ -49,7 +49,7 @@ describe("rendered nav", () => {
   it("desktop: group wraps exactly three links; Swap sits outside it, visible, and is active on /swap", () => {
     const group = /data-testid="nav-group"[^>]*>(.*?)<\/div>/.exec(desktop)![1];
     expect(text(group)).toEqual(["Markets", "Exchange", "Pools"]);
-    expect(text(desktop)).toEqual(["Markets", "Exchange", "Pools", "Swap", "Yield Vault", "Earnings", "Holders", "Referral", "Activity", "News", "Buy", "About"]);
+    expect(text(desktop)).toEqual(["Markets", "Exchange", "Pools", "Swap", "Yield Vault", "Earnings", "Holders", "Activity", "News", "Buy", "About"]);
     expect(desktop).toMatch(/data-testid="nav-swap"[^>]*aria-current="page"|aria-current="page"[^>]*class="nav-swap active"/);
     expect(desktop.indexOf('data-testid="nav-group"')).toBeLessThan(desktop.indexOf("nav-swap"));
     expect(/data-testid="nav-group"[^>]*>.*?<\/div>.*nav-swap/.test(desktop)).toBe(true); // Swap comes after the group closes
@@ -60,6 +60,6 @@ describe("rendered nav", () => {
     const open = renderToStaticMarkup(<MemoryRouter><MobileMenu path="/swap" defaultOpen /></MemoryRouter>);
     const group = /role="group"[^>]*>(.*?)<\/div>/.exec(open)![1];
     expect(text(group)).toEqual(["Markets", "Exchange", "Pools"]);
-    expect(text(open)).toEqual(["Markets", "Exchange", "Pools", "Swap", "Yield Vault", "Earnings", "Holders", "Referral", "Activity", "News", "Buy", "About", "Quests", "Merch", "Calculators", "Deploy info"]);
+    expect(text(open)).toEqual(["Markets", "Exchange", "Pools", "Swap", "Yield Vault", "Earnings", "Holders", "Activity", "News", "Buy", "About", "Quests", "Merch", "Calculators", "Deploy info"]);
   });
 });

@@ -19,7 +19,6 @@ export const NAV_REST: NavItem[] = [
   { to: "/vault", label: "Yield Vault", scene: "nebula" },
   { to: "/earn", label: "Earnings", scene: "supernova" },
   { to: "/holders", label: "Holders", scene: "supernova" },
-  { to: "/referral", label: "Referral", scene: "supernova" },
   { to: "/activity", label: "Activity", scene: "constellation" },
   { to: "/news", label: "News", scene: "constellation" },
   { to: "/buy", label: "Buy", scene: "nebula" },

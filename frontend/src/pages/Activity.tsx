@@ -45,7 +45,7 @@ export default function Activity() {
   return (
     <>
       <PageHead kicker="Activity" title="Activity" right={<span className="pill gold">{IS_MAINNET ? "Mainnet · real funds" : "Testnet · no real value"}</span>}>
-        Your swaps, exchange orders, pool deposits and withdrawals, and GLACIERQ reward and referral payments in one timeline, plus a view of the whole network. Every transaction opens on StellarChain.
+        Your swaps, exchange orders, pool deposits and withdrawals, and GLACIERQ reward payments in one timeline, plus a view of the whole network. Every transaction opens on StellarChain.
       </PageHead>
       <div className="card">
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
@@ -61,7 +61,7 @@ export default function Activity() {
         {scope === "mine" && !w.address
           ? <p className="muted" data-testid="act-signedout">Create a keypair or sign in with your secret key to see your own activity. <button className="btn small" onClick={() => w.openModal()}>Sign in</button> The Network tab works without one.</p>
           : <ActivityList items={rows} loading={feed.loading} error={feed.error} empty={filter === "all" ? (scope === "mine" ? "Nothing yet. Make a swap or a deposit and it shows up here." : "No recent activity found.") : "Nothing of this kind in the latest 100 operations."} />}
-        <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Shows the latest 100 operations from Horizon. {scope === "network" ? "The network view lists the most recent operations from anyone." : <>Rewards and referral bonuses appear here once paid; see <Link to="/earn">Earnings</Link>.</>}</p>
+        <p className="muted" style={{ fontSize: "0.78rem", marginBottom: 0 }}>Shows the latest 100 operations from Horizon. {scope === "network" ? "The network view lists the most recent operations from anyone." : <>Rewards appear here once paid; see <Link to="/earn">Earnings</Link>.</>}</p>
       </div>
     </>
   );

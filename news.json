@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-24T23:18:11.436Z",
+ "generatedAt": "2026-10-25T11:36:59.267Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-24T23:04:15.366Z",
+  "updatedAt": "2026-10-25T11:29:14.729Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "986p37",
+   "title": "JS Stellar SDK v17.4.0 released",
+   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v17.4.0",
+   "publishedAt": "2026-10-25T11:16:36.000Z",
+   "excerpt": "v17.4.0 Added rpc.Server.queryEvents() fetches one page of events with the new queryEvents RPC method. Only the archival RPC node serves it, and it is in beta. A request is a ledger range query or a…",
+   "image": null,
+   "source": "js-stellar-sdk",
+   "sourceName": "JavaScript Stellar SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
   {
    "id": "1mnboij",
    "title": "JS Stellar SDK v16.4.1 released",
@@ -361,20 +375,6 @@
    "kind": "release",
    "tags": [
     "protocol",
-    "developers"
-   ]
-  },
-  {
-   "id": "3v12g6",
-   "title": "JS Stellar SDK v16.3.1 released",
-   "url": "https://github.com/stellar/js-stellar-sdk/releases/tag/v16.3.1",
-   "publishedAt": "2026-10-01T16:56:28.000Z",
-   "excerpt": "v16.3.1 Fixed Asset.compare() orders two assets with the same code by their issuers' key bytes, as stellar-core does, instead of by the G… strkey text. The two orders can differ, so decoding a valid…",
-   "image": null,
-   "source": "js-stellar-sdk",
-   "sourceName": "JavaScript Stellar SDK releases",
-   "kind": "release",
-   "tags": [
     "developers"
    ]
   },

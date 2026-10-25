@@ -7,10 +7,10 @@ const X = (n: number) => BigInt(Math.round(n * 1e7));
 const mem = () => { const m = new Map<string, string>(); return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) }; };
 
 describe("savings jars", () => {
-  it("jar deposits have no cap; the standalone card keeps 25 XLM", () => {
+  it("jar deposits have no cap; neither does the standalone card", () => {
     expect(jarAmountProblem("1000")).toBeNull();
     expect(jarAmountProblem("0")).toMatch(/above 0/);
-    expect(depositProblem("1000")).toMatch(/Max 25/);
+    expect(depositProblem("1000")).toBeNull();
   });
   it("persists per wallet", () => {
     const s = mem(); const j = newJar("Ski", X(100));

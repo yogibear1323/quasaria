@@ -34,7 +34,7 @@ export default function VerifiedStables({ query, onExchange }: { query: string; 
               return (
                 <tr key={k} data-testid="verified-row">
                   <td className="mono muted">{i + 1}</td>
-                  <td><div className="row" style={{ gap: 8 }}><AssetLogo code={a.code} issuer={a.issuer} size={20} /><div><b>{a.code}</b><div className="muted" style={{ fontSize: "0.72rem" }}>{a.name} · {a.org}</div></div></div></td>
+                  <td><div className="row" style={{ gap: 8 }}><AssetLogo code={a.code} issuer={a.issuer} logo={a.logo} size={20} /><div><b>{a.code}</b><div className="muted" style={{ fontSize: "0.72rem" }}>{a.name} · {a.org}</div></div></div></td>
                   <td><span className="pill" style={{ fontSize: "0.7rem" }}>{a.kind}</span></td>
                   <td className="muted" style={{ fontSize: "0.72rem" }}>{a.peg}</td>
                   <td className="mono" style={{ fontSize: "0.72rem" }}>{url ? <a href={url} target="_blank" rel="noreferrer">{a.issuer.slice(0, 6)}…{a.issuer.slice(-4)}</a> : a.issuer}</td>

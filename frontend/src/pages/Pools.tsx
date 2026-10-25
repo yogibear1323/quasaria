@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHead, Tabs, TxStatus, useTx } from "../components/ui";
 import { AssetLogo } from "../components/AssetBits";
+import { XLM_LOGO } from "../lib/xlm";
 import { useWallet } from "../lib/wallet";
 import { useXlmUsd } from "../lib/markets";
 import { useAsync } from "../lib/useAsync";
@@ -20,7 +21,7 @@ import { HORIZON_URL } from "../lib/config";
 import { toSdk } from "../lib/nativePools";
 import { REWARD_ASSET_CODE, REWARD_ISSUER } from "../lib/rewards";
 
-const logoOf = (net: NetId, a: AssetRef) => curatedList(net).find((c) => c.code === a.code && c.issuer === a.issuer)?.logo ?? null;
+const logoOf = (net: NetId, a: AssetRef) => !a.issuer ? XLM_LOGO : curatedList(net).find((c) => c.code === a.code && c.issuer === a.issuer)?.logo ?? null;
 function AssetChip({ net, a, size = 20 }: { net: NetId; a: AssetRef; size?: number }) {
   const v = verifyAsset(net, a);
   return (

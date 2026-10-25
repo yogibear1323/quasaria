@@ -56,9 +56,10 @@ export async function invokeContract(
   args: xdr.ScVal[],
 ) {
   const source = await soroban.getAccount(pubkey);
-  const tx = new TransactionBuilder(source, { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE })
+  const inclusionFee = await competitiveInclusionFee();
+  const tx = new TransactionBuilder(source, { fee: String(inclusionFee), networkPassphrase: NETWORK_PASSPHRASE })
     .addOperation(new Contract(contractId).call(method, ...args))
-    .setTimeout(180)
+    .setTimeout(TX_TIMEOUT_SECONDS)
     .build();
   // Simulate with an instruction leeway: time-dependent contract math (e.g. QFX's
   // per-second yield accrual) can cost a few more instructions on-chain than in
@@ -68,15 +69,53 @@ export async function invokeContract(
   assertSourceOnlyAuth(method, sim.result?.auth);
   const prepared = rpc.assembleTransaction(tx, sim).build();
   const signed = await sign(prepared.toXDR());
-  const sent = await soroban.sendTransaction(TransactionBuilder.fromXDR(signed, NETWORK_PASSPHRASE));
-  if (sent.status === "ERROR") throw new Error(`transaction rejected by RPC${rejectReason(sent, BigInt(prepared.fee))}`);
-  for (let i = 0; i < 30; i++) {
-    const r = await soroban.getTransaction(sent.hash);
-    if (r.status === rpc.Api.GetTransactionStatus.SUCCESS) return { hash: sent.hash, result: r.returnValue ? scValToNative(r.returnValue) : null };
-    if (r.status === rpc.Api.GetTransactionStatus.FAILED) throw new Error(`transaction failed: ${sent.hash}`);
-    await new Promise((res) => setTimeout(res, 1000));
+  const signedTx = TransactionBuilder.fromXDR(signed, NETWORK_PASSPHRASE);
+  const maxTime = Number((signedTx as { timeBounds?: { maxTime?: string } }).timeBounds?.maxTime ?? 0);
+  const deadline = maxTime > 0 ? maxTime * 1000 + 15_000 : Date.now() + (TX_TIMEOUT_SECONDS + 15) * 1000;
+
+  // Submit; retry TRY_AGAIN_LATER (RPC/core queue full) a few times before giving up.
+  let sent = await soroban.sendTransaction(signedTx);
+  for (let i = 0; sent.status === "TRY_AGAIN_LATER" && i < 5 && Date.now() < deadline; i++) {
+    await sleep(3000);
+    sent = await soroban.sendTransaction(signedTx);
   }
-  throw new Error(`timed out waiting for ${sent.hash}`);
+  if (sent.status === "ERROR") throw new Error(`transaction rejected by RPC${rejectReason(sent, BigInt(prepared.fee))}`);
+  if (sent.status === "TRY_AGAIN_LATER") throw new Error("the network is busy and didn't accept the transaction. No funds moved; please try again in a minute.");
+
+  // PENDING or DUPLICATE: poll until the transaction lands or its time bounds expire.
+  while (Date.now() < deadline) {
+    try {
+      const r = await soroban.getTransaction(sent.hash);
+      if (r.status === rpc.Api.GetTransactionStatus.SUCCESS) return { hash: sent.hash, result: r.returnValue ? scValToNative(r.returnValue) : null };
+      if (r.status === rpc.Api.GetTransactionStatus.FAILED) throw new Error(`transaction failed on-chain: ${sent.hash}`);
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("transaction failed")) throw e;
+      // transient RPC error: keep polling
+    }
+    await sleep(2000);
+  }
+  throw new Error(`the network didn't include the transaction before it expired (${sent.hash}). No funds moved; please try again.`);
+}
+
+const TX_TIMEOUT_SECONDS = 300;
+/** Inclusion-fee bounds in stroops (on top of the Soroban resource fee). */
+const MIN_INCLUSION_FEE = 1_000; // 0.0001 XLM
+const MAX_INCLUSION_FEE = 100_000; // 0.01 XLM
+
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+/**
+ * Competitive Soroban inclusion fee: 2x the recent p90 from getFeeStats, clamped.
+ * The old flat BASE_FEE (100) sat below what nearly every included Soroban tx paid
+ * (p10 = 200), so under any surge the tx was accepted as PENDING but never included.
+ */
+async function competitiveInclusionFee(): Promise<number> {
+  try {
+    const stats = await soroban.getFeeStats();
+    const p90 = Number(stats.sorobanInclusionFee.p90);
+    if (Number.isFinite(p90) && p90 > 0) return Math.min(MAX_INCLUSION_FEE, Math.max(MIN_INCLUSION_FEE, p90 * 2));
+  } catch { /* fall through */ }
+  return 10_000;
 }
 
 /** Human-readable reason for a sendTransaction ERROR (e.g. not enough spendable XLM for the fee). */

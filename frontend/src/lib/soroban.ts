@@ -69,7 +69,7 @@ export async function invokeContract(
   const prepared = rpc.assembleTransaction(tx, sim).build();
   const signed = await sign(prepared.toXDR());
   const sent = await soroban.sendTransaction(TransactionBuilder.fromXDR(signed, NETWORK_PASSPHRASE));
-  if (sent.status === "ERROR") throw new Error("transaction rejected by RPC");
+  if (sent.status === "ERROR") throw new Error(`transaction rejected by RPC${rejectReason(sent, BigInt(prepared.fee))}`);
   for (let i = 0; i < 30; i++) {
     const r = await soroban.getTransaction(sent.hash);
     if (r.status === rpc.Api.GetTransactionStatus.SUCCESS) return { hash: sent.hash, result: r.returnValue ? scValToNative(r.returnValue) : null };
@@ -77,4 +77,24 @@ export async function invokeContract(
     await new Promise((res) => setTimeout(res, 1000));
   }
   throw new Error(`timed out waiting for ${sent.hash}`);
+}
+
+/** Human-readable reason for a sendTransaction ERROR (e.g. not enough spendable XLM for the fee). */
+function rejectReason(sent: { errorResult?: unknown }, feeStroops: bigint): string {
+  let code = "";
+  try {
+    // SDK returns either a plain object ({ result: "tx_insufficient_balance" }) or a legacy XDR object.
+    const r = (sent.errorResult as { result?: unknown } | undefined)?.result;
+    if (typeof r === "string") code = r;
+    else if (typeof r === "function") code = (r as () => { switch: () => { name: string } })().switch().name;
+    else if (r && typeof r === "object") code = String((r as { type?: string; name?: string }).type ?? (r as { name?: string }).name ?? "");
+    code = code.replace(/^tx/, "").replace(/_/g, "").toLowerCase();
+  } catch { /* ignore */ }
+  const fee = (Number(feeStroops) / 1e7).toFixed(4);
+  if (code === "insufficientbalance")
+    return `: not enough spendable XLM left for the ~${fee} XLM network fee after the amount and your account's reserve (0.5 XLM per trustline/offer). Try a smaller amount.`;
+  if (code === "insufficientfee") return ": network busy (fee too low), please try again.";
+  if (code === "badseq") return ": account sequence changed, please try again.";
+  if (code === "toolate") return ": signing took too long, please try again.";
+  return code ? ` (${code})` : "";
 }

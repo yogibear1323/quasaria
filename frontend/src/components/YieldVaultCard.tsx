@@ -5,7 +5,6 @@ import { addr, i128, invokeContract, readContract } from "../lib/soroban";
 import { TxStatus, useTx } from "./ui";
 
 /** Front-end per-deposit cap (XLM). The vault contract itself has NO on-chain cap. */
-export const VAULT_DEPOSIT_CAP_XLM = 25;
 const STROOPS = 10_000_000n;
 export const VAULT_ID = (data.contracts as { name: string; id?: string }[]).find((c) => c.name === "yield_vault")?.id ?? "";
 
@@ -17,13 +16,12 @@ export function toStroops(s: string): bigint | null {
 }
 const xlm = (v: bigint) => (Number(v) / 1e7).toLocaleString(undefined, { maximumFractionDigits: 7 });
 
-/** Deposit validity: >0 and <= the 25 XLM front-end cap. */
+/** Deposit validity: >0, max 7 decimals (no deposit cap). */
 export function depositProblem(s: string): string | null {
   if (!s.trim()) return "Enter an amount";
   const v = toStroops(s);
   if (v == null) return "Invalid amount (max 7 decimals)";
   if (v <= 0n) return "Amount must be above 0";
-  if (v > BigInt(VAULT_DEPOSIT_CAP_XLM) * STROOPS) return `Max ${VAULT_DEPOSIT_CAP_XLM} XLM per deposit`;
   return null;
 }
 
@@ -70,7 +68,7 @@ export function YieldVaultCard() {
         <span className="pill green">MAINNET</span>
       </div>
       <div className="notice" role="alert" data-testid="vault-warning" style={{ margin: "10px 0" }}>
-        <b>Unaudited — small deposits only.</b> Max {VAULT_DEPOSIT_CAP_XLM} XLM per deposit. Yield sources are not connected yet; withdrawals come from the vault's idle XLM.
+        Yield sources are not connected yet; withdrawals come from the vault's idle XLM.
       </div>
       <div className="row" style={{ gap: 16, flexWrap: "wrap", marginBottom: 10 }}>
         <div><div className="muted" style={{ fontSize: "0.75rem" }}>Your vault balance</div><b data-testid="vault-balance">{!w.address ? "Sign in to view" : valueXlm == null ? "…" : `${xlm(valueXlm)} XLM`}</b>{shares != null && <div className="muted" style={{ fontSize: "0.7rem" }}>{xlm(shares)} shares</div>}</div>
@@ -78,7 +76,7 @@ export function YieldVaultCard() {
       </div>
       <label className="muted" style={{ fontSize: "0.75rem" }} htmlFor="vault-amt">Amount (XLM)</label>
       <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-        <input id="vault-amt" className="input" inputMode="decimal" placeholder={`0 – ${VAULT_DEPOSIT_CAP_XLM}`} value={amt} onChange={(e) => setAmt(e.target.value)} style={{ flex: "1 1 140px", minWidth: 0 }} />
+        <input id="vault-amt" className="input" inputMode="decimal" placeholder="0.0" value={amt} onChange={(e) => setAmt(e.target.value)} style={{ flex: "1 1 140px", minWidth: 0 }} />
         <button className="btn" data-testid="vault-deposit" disabled={!!problem || busy || !w.address} onClick={deposit}>Deposit</button>
         <button className="btn ghost" data-testid="vault-withdraw" disabled={busy || !w.address || !shares} onClick={withdrawAll}>Withdraw all</button>
       </div>

@@ -34,6 +34,8 @@ type WalletState = {
   forgetKey: () => void;
   /** Sign out of this tab (an encrypted copy, if you made one, stays for the next unlock). */
   disconnect: () => void;
+  /** Log out: drop the in-tab key, any unconfirmed new keypair (sessionStorage) and any encrypted copy (localStorage), and close the account modal. */
+  logout: () => void;
   /** Re-check whether the account exists on the ledger. */
   refreshFunded: () => Promise<boolean | null>;
   sign: (xdr: string) => Promise<string>;
@@ -125,6 +127,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     replaceSigner(null);
   }, [replaceSigner]);
 
+  const logout = useCallback(() => {
+    forgetStoredKey();
+    pendingKeypair.clear();
+    setStored(null);
+    setModalOpen(false);
+    setModalIntent(null);
+    replaceSigner(null);
+  }, [replaceSigner]);
+
   const sign = useCallback(async (xdr: string) => {
     if (!current.current) throw new Error("Sign in with your key (or create one) first");
     return current.current.signTransaction(xdr);
@@ -146,6 +157,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         unlockStored,
         forgetKey,
         disconnect: () => replaceSigner(null),
+        logout,
         refreshFunded,
         sign,
       }}

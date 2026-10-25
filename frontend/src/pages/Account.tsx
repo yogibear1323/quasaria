@@ -1,6 +1,6 @@
 import { curatedList } from "../lib/nativePools";
 import { NETWORK, NETWORK_LABEL } from "../lib/config";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PageHead } from "../components/ui";
 import QrCode from "../components/QrCode";
 import XlmMark from "../components/XlmMark";
@@ -25,6 +25,7 @@ const trim7 = (n: number) => fmt(n, 7).replace(/(\.\d*?)0+$/, "$1").replace(/\.$
 export default function Account() {
   const w = useWallet();
   const acct = useAccount(NET, w.address);
+  const navigate = useNavigate();
   if (!w.address) {
     return (
       <>
@@ -59,6 +60,7 @@ export default function Account() {
             <CopyButton value={address} label="Copy address" />
             <Link className="btn small ghost" to="/wallet" data-testid="acct-send">Send / receive</Link>
             <a className="btn small ghost" href={explorerAccountUrl(address, NET) ?? undefined} target="_blank" rel="noopener noreferrer">StellarChain ↗</a>
+            <button className="btn small ghost" data-testid="logout" onClick={() => { if (window.confirm("Log out? Your key is removed from this browser (including any encrypted copy). Back up your secret key (S…) first: Quasaria cannot recover it, and you need it to sign in again.")) { w.logout(); navigate("/"); } }}>Log out</button>
             <button className="btn small ghost neg" data-testid="forget-key" onClick={() => { if (window.confirm("Forget this key? It is removed from this tab and any encrypted copy is deleted from this browser. Make sure your secret key is saved: Quasaria cannot recover it.")) w.forgetKey(); }}>Forget this key</button>
           </div>
         </div>

@@ -3,6 +3,7 @@ import data from "../config/rwa-mainnet.json";
 import ExplainerVideo from "../components/ExplainerVideo";
 import { YieldVaultCard } from "../components/YieldVaultCard";
 import { SavingsJars } from "../components/SavingsJars";
+import { RwaHoldings } from "../components/RwaHoldings";
 import "./vault.css";
 
 const B = import.meta.env.BASE_URL;
@@ -39,6 +40,7 @@ export default function Vault() {
           <Link to="/deploy" className="btn ghost small">Contract IDs &amp; deploy info</Link>
         </aside>
       </div>
+      <RwaHoldings />
       <ExplainerVideo name="quasaria-yield-vault" title="How the Yield Vault works" testid="vault-video" note="About 1 minute · captions are part of the video." style={{ marginTop: 16 }} />
       <details className="card" data-testid="vault-video-transcript" style={{ marginTop: 8 }}><summary style={{ cursor: "pointer" }}>Video transcript</summary>{TRANSCRIPT.map((t, i) => <p key={i} className="muted">{t}</p>)}</details>
       <SavingsJars />

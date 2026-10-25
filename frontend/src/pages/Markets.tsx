@@ -14,6 +14,7 @@ import MarketsHero from "../components/MarketsHero";
 import XlmRow from "../components/XlmRow";
 import GlacierqRow, { glacierqMatches } from "../components/GlacierqRow";
 import AllAssets from "../components/AllAssets";
+import VerifiedStables from "../components/VerifiedStables";
 import { xlmMatches } from "../lib/xlm";
 import SpaceYeti from "../components/SpaceYeti";
 import "../theme/markets-fancy.css";
@@ -31,7 +32,7 @@ export default function Markets() {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState(() => params.get("q") ?? "");
   const [q, setQ] = useState(() => (params.get("q") ?? "").trim());
-  const view: "top" | "all" = params.get("view") === "all" ? "all" : "top";
+  const view: "top" | "all" | "stable" = params.get("view") === "all" ? "all" : params.get("view") === "stable" ? "stable" : "top";
   const [full, setFull] = useState<FullList | null>(null);
   useEffect(() => { if (new URLSearchParams(window.location.search).get("about")?.toLowerCase() === "xlm" || params.get("about")?.toLowerCase() === "xlm") { const t = setTimeout(() => document.getElementById("about-xlm")?.scrollIntoView({ block: "center" }), 1500); return () => clearTimeout(t); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [aboutKey, setAboutKey] = useState<string | null>(() => (params.get("about")?.toLowerCase() === "xlm" ? "XLM" : null));
@@ -196,9 +197,12 @@ export default function Markets() {
           <div className="tabs" style={{ marginBottom: 10 }} role="tablist" data-testid="mk-view">
             <button className={view === "top" ? "on" : ""} onClick={() => setUrl({ view: null })}>Top 1,000</button>
             <button className={view === "all" ? "on" : ""} onClick={() => setUrl({ view: "all", page: null })} data-testid="mk-view-all">All Stellar assets</button>
+            <button className={view === "stable" ? "on" : ""} onClick={() => setUrl({ view: "stable", page: null })} data-testid="mk-view-stable">Stablecoins &amp; Treasuries</button>
           </div>
         )}
-        {network === "mainnet" && view === "all" ? (
+        {network === "mainnet" && view === "stable" ? (
+          <VerifiedStables query={q} onExchange={(k) => nav(`/exchange?base=${encodeURIComponent(k)}&quote=XLM`)} />
+        ) : network === "mainnet" && view === "all" ? (
           <AllAssets query={q} onExchange={(k) => nav(`/exchange?base=${encodeURIComponent(k)}&quote=XLM`)} />
         ) : network === "mainnet" ? (
           <>

@@ -100,3 +100,26 @@ html { scroll-behavior: smooth; }
 }
 .vault-hero-text { z-index: 1; }
 @media (max-width: 760px) { .vault-yeti { display: none; } .vault-cta .btn.ghost { background: rgba(12, 30, 56, 0.82); backdrop-filter: blur(6px); } }
+/* Savings Jars v1 */
+.jar-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.jar-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 16px; }
+.jar-totals span { display: block; opacity: 0.65; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.jar-totals b { font-size: 1.15rem; display: block; }
+.jar-totals small { display: block; font-size: 0.7rem; }
+.jar-new { grid-template-columns: 2fr auto 1fr 1fr auto; }
+.jar-hint { grid-column: 1 / -1; font-size: 0.74rem; }
+.seg { display: inline-flex; border: 1px solid rgba(160, 225, 255, 0.35); border-radius: 999px; overflow: hidden; }
+.seg-btn { background: transparent; color: inherit; border: 0; padding: 8px 12px; font: inherit; font-size: 0.78rem; cursor: pointer; white-space: nowrap; }
+.seg-btn.on { background: rgba(127, 220, 255, 0.22); color: #fff; }
+.jar-asset { font-size: 0.66rem; }
+.jar-links { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.74rem; }
+.linkish { background: none; border: 0; color: #9fe3ff; padding: 0; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.jar-history { margin: 0; padding-left: 18px; font-size: 0.72rem; display: grid; gap: 4px; max-height: 220px; overflow: auto; }
+.jar-review { border-color: rgba(255, 215, 120, 0.5); display: grid; gap: 10px; }
+.jar-review h3 { margin: 0; }
+.jar-dl { display: grid; gap: 6px; margin: 0; font-size: 0.8rem; }
+.jar-dl > div { display: grid; grid-template-columns: 140px 1fr; gap: 8px; }
+.jar-dl dt { opacity: 0.7; }
+.jar-dl dd { margin: 0; }
+.jar-shortfall { border-color: rgba(255, 170, 120, 0.6); }
+@media (max-width: 760px) { .jar-new { grid-template-columns: 1fr 1fr; } .jar-new .seg { grid-column: 1 / -1; justify-self: start; } .jar-dl > div { grid-template-columns: 1fr; gap: 2px; } }

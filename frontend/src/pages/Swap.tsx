@@ -105,7 +105,7 @@ export default function Swap() {
       if (!fresh) { setErr("No route found for this pair right now."); return; }
       const fees = planFees([{ asset: from, amount: amt }], await loadFeeReceiver(HORIZON_URL));
       const feeTotal = fees.reduce((s, l) => s + l.amount, 0);
-      const f = checkSwapFunds({ from: refOf(fromKey), to: refOf(toKey), amount: amt + feeTotal, acct, baseReserve: reserve });
+      const f = checkSwapFunds({ from: refOf(fromKey), to: refOf(toKey), amount: amt + feeTotal, acct, baseReserve: reserve, extraOps: fees.length });
       if (!f.ok) { setErr(f.error); return; }
       const s = clampSlippage(slip);
       setFrozen({ quote: fresh, minOut: minReceived(fresh.destAmount, s), slippage: s, needTrust: f.needTrust.map((r) => new Asset(r.code, r.issuer!)), feeXlm: f.feeXlm, reserveXlm: f.reserveXlm, fees });

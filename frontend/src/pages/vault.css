@@ -47,3 +47,56 @@
 .jar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .jar-actions .input { flex: 1 1 80px; min-width: 0; }
 @media (max-width: 760px) { .jars { padding: 16px; } .jar-new { grid-template-columns: 1fr 1fr; } .jar-new .input:first-child { grid-column: 1 / -1; } }
+
+/* ---- Vault redesign (Oct 2026): hierarchy, jump nav, micro-interactions ---- */
+html { scroll-behavior: smooth; }
+.vault-anchor { scroll-margin-top: 76px; }
+.vault-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 8px; vertical-align: middle; background: #7fffc8; box-shadow: 0 0 0 0 rgba(127, 255, 200, 0.6); animation: vault-pulse 2.4s infinite; }
+@keyframes vault-pulse { 0% { box-shadow: 0 0 0 0 rgba(127, 255, 200, 0.55); } 70% { box-shadow: 0 0 0 9px rgba(127, 255, 200, 0); } 100% { box-shadow: 0 0 0 0 rgba(127, 255, 200, 0); } }
+.vault-hero h1 { letter-spacing: -0.02em; line-height: 1.02; background-size: 200% auto; animation: vault-shimmer 8s linear infinite; }
+@keyframes vault-shimmer { to { background-position: 200% center; } }
+.vault-hero p.vault-lede { font-size: 1.08rem; font-weight: 500; color: #eef9ff; }
+.vault-hero p.vault-desc { line-height: 1.55; padding-left: 12px; border-left: 2px solid rgba(127, 220, 255, 0.45); }
+.vault-badge { backdrop-filter: blur(6px); }
+.vault-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.vault-cta .btn { transition: transform 0.15s ease, box-shadow 0.2s ease; }
+.vault-cta .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(127, 220, 255, 0.3); }
+.vault-cta .btn:active { transform: scale(0.97); }
+.vault-yeti { animation: vault-float 6s ease-in-out infinite; }
+@keyframes vault-float { 50% { transform: translateY(-6px); } }
+.vault-jump { position: sticky; top: 8px; z-index: 5; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 6px; border-radius: 999px;
+  background: rgba(12, 30, 56, 0.72); backdrop-filter: blur(10px); border: 1px solid rgba(170, 225, 255, 0.28); }
+.vault-jump::-webkit-scrollbar { display: none; }
+.vault-jump a { flex: 0 0 auto; padding: 7px 14px; border-radius: 999px; font-size: 0.8rem; color: #d6ecf7; text-decoration: none; transition: background 0.2s, color 0.2s; }
+.vault-jump a:hover, .vault-jump a:focus-visible { background: rgba(127, 220, 255, 0.18); color: #fff; }
+.vault-sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 4px 2px 10px; }
+.vault-sec-head span { font-size: 1.15rem; font-weight: 700; color: #e9fbff; }
+.vault-sec-head span::before { content: ""; display: inline-block; width: 18px; height: 3px; border-radius: 3px; margin-right: 9px; vertical-align: middle; background: linear-gradient(90deg, #7fdcff, #c6b8ff); }
+.vault-sec-head small { font-size: 0.74rem; color: #9fd9f0; opacity: 0.85; }
+.vault-learn { display: grid; gap: 10px; }
+.vault-transcript summary { cursor: pointer; font-weight: 600; }
+.vault-transcript[open] summary { margin-bottom: 6px; }
+.vault-page .vault-card { border-radius: 20px; transition: box-shadow 0.25s ease, transform 0.25s ease; }
+.vault-page .vault-card:focus-within { box-shadow: 0 0 0 1px rgba(127, 220, 255, 0.7), 0 0 38px rgba(127, 220, 255, 0.28); }
+.vault-page .vault-card .btn { transition: transform 0.12s ease; }
+.vault-page .vault-card .btn:not(:disabled):active { transform: scale(0.96); }
+.vault-flow { border-style: solid; }
+.vault-flow ol { position: relative; }
+.vault-flow li { position: relative; padding: 8px; border-radius: 12px; transition: background 0.2s; }
+.vault-flow li:hover { background: rgba(127, 220, 255, 0.08); }
+.vault-flow li:not(:last-child)::after { content: ""; position: absolute; left: 21px; top: 40px; bottom: -14px; width: 2px; background: linear-gradient(rgba(127, 220, 255, 0.5), transparent); }
+.vault-step { box-shadow: 0 0 14px rgba(127, 220, 255, 0.45); position: relative; z-index: 1; }
+.vault-rise { animation: vault-rise 0.5s ease both; }
+.vault-layout .vault-rise:nth-child(2) { animation-delay: 0.08s; }
+@keyframes vault-rise { from { opacity: 0; transform: translateY(10px); } }
+@media (max-width: 760px) {
+  .vault-hero p.vault-lede { font-size: 1rem; }
+  .vault-cta .btn { flex: 1 1 0; text-align: center; }
+  .vault-jump { top: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .vault-dot, .vault-hero h1, .vault-yeti, .vault-rise { animation: none; }
+}
+.vault-hero-text { z-index: 1; }
+@media (max-width: 760px) { .vault-yeti { display: none; } .vault-cta .btn.ghost { background: rgba(12, 30, 56, 0.82); backdrop-filter: blur(6px); } }

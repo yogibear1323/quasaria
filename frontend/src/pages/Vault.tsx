@@ -20,34 +20,53 @@ const HOWTO_TRANSCRIPT = ["Here's how to deposit XLM into the Quasaria Yield Vau
 /** Yield Vault: its own top-level tab for the mainnet RWA yield vault. */
 export default function Vault() {
   const contracts = data.contracts as { name: string; status: string }[];
+  const live = contracts.filter((c) => c.status === "deployed").length;
   return (
     <div className="vault-page" data-testid="vault-page">
       <section className="vault-hero" style={{ backgroundImage: `url(${B}frost/mountains.svg)` }}>
         <div className="vault-hero-text">
-          <div className="vault-kicker">RWA yield layer · Stellar mainnet</div>
+          <div className="vault-kicker"><span className="vault-dot" aria-hidden />RWA yield layer · Stellar mainnet</div>
           <h1>Yield Vault</h1>
-          <p>Park XLM in a Soroban vault that routes it into lending and tokenized real-world assets.</p>
+          <p className="vault-lede">Park XLM in a Soroban vault that routes it into lending and tokenized real-world assets.</p>
           <p className="vault-desc" data-testid="vault-desc">You deposit XLM, and the vault routes it into Quasaria's RWA yield layer (a lending pool and tokenized real-world assets) to earn yield. The operator makes no deposits of its own. The yield sources aren't connected yet, so the vault isn't earning yield today.</p>
           <div className="vault-badges">
-            <span className="vault-badge">{contracts.filter((c) => c.status === "deployed").length}/{contracts.length} contracts live</span>
+            <span className="vault-badge">{live}/{contracts.length} contracts live</span>
+            <span className="vault-badge">RWA asset: USTRY</span>
+            <span className="vault-badge">No deposit cap</span>
+            <span className="vault-badge warn">Yield not connected yet</span>
+          </div>
+          <div className="vault-cta">
+            <a href="#vault-deposit" className="btn">Deposit XLM</a>
+            <a href="#vault-howto" className="btn ghost">Watch how-to</a>
           </div>
         </div>
         <img className="vault-yeti" src={`${B}frost/yeti-cutout.webp`} alt="" aria-hidden />
       </section>
+      <nav className="vault-jump" aria-label="Vault sections">
+        <a href="#vault-deposit">Deposit</a><a href="#vault-how">How it works</a><a href="#vault-holdings">Holdings</a><a href="#vault-learn">Videos</a><a href="#vault-jars">Savings Jars</a>
+      </nav>
       <div className="vault-layout">
-        <YieldVaultCard />
-        <aside className="vault-flow">
+        <div id="vault-deposit" className="vault-anchor vault-rise"><YieldVaultCard /></div>
+        <aside id="vault-how" className="vault-flow vault-anchor vault-rise">
           <h3>How it works</h3>
           <ol>{FLOW.map((f) => <li key={f.n}><span className="vault-step">{f.n}</span><div><b>{f.t}</b><p>{f.d}</p></div></li>)}</ol>
           <Link to="/deploy" className="btn ghost small">Contract IDs &amp; deploy info</Link>
         </aside>
       </div>
-      <RwaHoldings />
-      <ExplainerVideo name="quasaria-yield-vault" title="How the Yield Vault works" testid="vault-video" note="About 1 minute · captions are part of the video." style={{ marginTop: 16 }} />
-      <details className="card" data-testid="vault-video-transcript" style={{ marginTop: 8 }}><summary style={{ cursor: "pointer" }}>Video transcript</summary>{TRANSCRIPT.map((t, i) => <p key={i} className="muted">{t}</p>)}</details>
-      <ExplainerVideo name="quasaria-vault-howto" title="How to deposit & withdraw" testid="vault-howto-video" note="About 1¾ minutes · captions are part of the video. Wallet and confirmation screens are labeled examples." style={{ marginTop: 16 }} />
-      <details className="card" data-testid="vault-howto-transcript" style={{ marginTop: 8 }}><summary style={{ cursor: "pointer" }}>How-to transcript</summary>{HOWTO_TRANSCRIPT.map((t, i) => <p key={i} className="muted">{t}</p>)}</details>
-      <SavingsJars />
+      <section id="vault-holdings" className="vault-anchor vault-rise">
+        <div className="vault-sec-head"><span>What the vault holds</span><small>Live on-chain · USTRY only</small></div>
+        <RwaHoldings />
+      </section>
+      <section id="vault-learn" className="vault-anchor vault-learn vault-rise">
+        <div className="vault-sec-head"><span>Learn</span><small>Two short videos with captions</small></div>
+        <ExplainerVideo name="quasaria-yield-vault" title="How the Yield Vault works" testid="vault-video" note="About 1 minute · captions are part of the video." />
+        <details className="card vault-transcript" data-testid="vault-video-transcript"><summary>Video transcript</summary>{TRANSCRIPT.map((t, i) => <p key={i} className="muted">{t}</p>)}</details>
+        <div id="vault-howto" className="vault-anchor">
+          <ExplainerVideo name="quasaria-vault-howto" title="How to deposit & withdraw" testid="vault-howto-video" note="About 1¾ minutes · captions are part of the video. Wallet and confirmation screens are labeled examples." />
+        </div>
+        <details className="card vault-transcript" data-testid="vault-howto-transcript"><summary>How-to transcript</summary>{HOWTO_TRANSCRIPT.map((t, i) => <p key={i} className="muted">{t}</p>)}</details>
+      </section>
+      <section id="vault-jars" className="vault-anchor vault-rise"><SavingsJars /></section>
     </div>
   );
 }

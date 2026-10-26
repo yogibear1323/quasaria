@@ -2,7 +2,8 @@ import { RwaDeployInfo } from "../components/RwaDeployInfo";
 import { VaultLink } from "../components/VaultLink";
 import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import PoolSections, { sectionOf } from "../components/PoolSections";
 import { PageHead, Tabs, TxStatus, useTx } from "../components/ui";
 import { AssetLogo } from "../components/AssetBits";
 import { XLM_LOGO } from "../lib/xlm";
@@ -44,6 +45,9 @@ export default function Pools() {
   const [net, setNet] = useState<NetId>(NETWORK);
   const [scope, setScope] = useState<"curated" | "recent">("curated");
   const [q, setQ] = useState("");
+  const [params, setParams] = useSearchParams();
+  const section = sectionOf(params.get("section"));
+  const setSection = (v: string) => { const n = new URLSearchParams(params); if (v === "other") n.delete("section"); else n.set("section", v); setParams(n, { replace: true }); };
   const [sel, setSel] = useState<string | null>(null);
   const [vol, setVol] = useState<Record<string, { volume: number; truncated: boolean }>>({});
   const refXlm = useXlmUsd();
@@ -90,7 +94,13 @@ export default function Pools() {
       </PageHead>
       <div className="notice" role="note" style={{ marginBottom: 12, fontSize: "0.82rem" }}><b>Plainly:</b> a pool is a protocol feature of Stellar, not a Quasaria contract. Your share is a pool-share trustline on your own account. Fees accrue inside the pool and are paid out when you withdraw. Past volume does not predict future fees, and the fee APR shown is an estimate that ignores impermanent loss.</div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="tabs" style={{ marginBottom: 10 }} role="tablist" data-testid="pool-sections">
+        <button className={section === "other" ? "on" : ""} onClick={() => setSection("other")} data-testid="pool-sec-other">Other assets</button>
+        <button className={section === "treasury" ? "on" : ""} onClick={() => setSection("treasury")} data-testid="pool-sec-treasury">Treasury bonds</button>
+        <button className={section === "stable" ? "on" : ""} onClick={() => setSection("stable")} data-testid="pool-sec-stable">Stablecoins</button>
+      </div>
+      {section !== "other" && <div className="card" style={{ marginBottom: 16 }}><PoolSections section={section} net={net} pricing={pricing} onOpen={(lk) => { setScope("recent"); setQ(lk); setSel(parseLookup(lk)?.kind === "pool" ? lk : null); setSection("other"); }} /></div>}
+      {section === "other" && <><div className="card" style={{ marginBottom: 16 }}>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
           <Tabs value={scope} onChange={(v) => { setScope(v); setSel(null); }} options={[{ v: "curated", label: "Verified pairs" }, { v: "recent", label: "Any asset" }]} />
           {MAINNET_BROWSE && !IS_MAINNET && <Tabs value={net} onChange={(v) => { setNet(v); setSel(null); setVol({}); }} options={[{ v: "testnet", label: "Testnet" }, { v: "mainnet", label: "Mainnet (read-only)" }]} />}
@@ -133,6 +143,7 @@ export default function Pools() {
       </div>
 
       <PairPicker net={net} pools={pools} onPick={(id) => setSel(id)} />
+      </>}
 
       {(selected || sel?.startsWith("new:")) && <PoolPanel key={sel!} net={net} sel={sel!} pool={selected} pricing={pricing} onDone={() => { list.reload(); positions.reload(); }} />}
 

@@ -32,7 +32,7 @@ Visual: a multi-asset pool browser (pairs, reserves, 24-hour volume, fee APR est
 
 7. Holder rewards (GLACIERQ)
 Headline: Hold GLACIERQ, get paid daily.
-Pitch: Hold at least 1,000,000 GLACIERQ and receive GLACIERQ every day: about 5 percent a year from 1 million tokens and about 7 percent a year from 10 million. Paid by plain payments from a finite reward reserve, with no smart contract. Rewards are not guaranteed, they put more tokens into circulation, and a daily cap can reduce them.
+Pitch: Hold at least 1,000,000 GLACIERQ and receive GLACIERQ every day: 1 percent a month (12 percent a year) from 1 million tokens, the same rate from 10 million, and nothing under 1 million. Paid by plain payments from a finite reward reserve, with no smart contract. Rewards are not guaranteed, they put more tokens into circulation, and a daily cap can reduce them.
 Visual: a tier table, a daily-reward estimator labeled as an estimate, and a plain finite-reserve, dilution and not-guaranteed disclosure.
 
 8. Open data

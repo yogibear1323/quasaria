@@ -2,7 +2,7 @@
  * GLACIERQ rewards + referral maths. Pure functions, no network, no keys.
  * All amounts are BigInt stroops (1 token = 10_000_000 stroops) so nothing depends on float rounding.
  * Terms (CONFIRMED by Robert, 2026-10-18):
- *   holder rewards: 5% a year on balances from 1M to <10M, 7% a year from 10M, flat on the whole balance, paid daily;
+ *   holder rewards: 1% a month (12% a year) on balances from 1M, same rate from 10M, nothing under 1M, flat on the whole balance, paid daily;
  *   daily cap 10M GLACIERQ across all holder rewards, scaled pro rata; lower of snapshots 24h apart.
  *   referral (option A + two confirmed improvements): see REFERRAL below.
  */

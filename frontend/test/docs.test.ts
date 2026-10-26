@@ -19,7 +19,7 @@ describe("go-live docs", () => {
   });
   it("tokenomics doc matches the code and uses no APY wording", () => {
     const d = doc("tokenomics.md");
-    expect(d).toContain("100,000,000,000"); expect(d).toContain("5% a year"); expect(d).toContain("7% a year"); expect(d).not.toMatch(/\bAPY\b/);
+    expect(d).toContain("100,000,000,000"); expect(d).toContain("1% a month (12% a year)"); expect(d).toContain("same rate from 10M"); expect(d).not.toMatch(/\bAPY\b/);
     expect(d).toContain(`about ${reserveYearsAtCap().toFixed(1)} years`);
   });
   it("audit options doc is present", () => { expect(doc("audit-options.md")).toContain("Audit Bank"); });

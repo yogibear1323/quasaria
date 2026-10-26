@@ -40,7 +40,7 @@ export default function GlacierqAbout({ onClose }: { onClose?: () => void }) {
         {onClose && <button className="btn small ghost" onClick={onClose} aria-label="Close About GLACIERQ">Close</button>}
       </div>
       <p className="about-desc">
-        GLACIERQ (Glacier) is Quasaria's token, a classic Stellar asset that trades on the Stellar DEX. Holders earn daily rewards of 5% a year on balances from 1 million GLACIERQ and 7% a year from 10 million, paid from a fixed reward reserve. Rewards are not guaranteed and can be capped. <Link to="/holders">How holder rewards work →</Link>
+        GLACIERQ (Glacier) is Quasaria's token, a classic Stellar asset that trades on the Stellar DEX. Holders earn daily rewards of 1% a month (12% a year) on balances of 1 million GLACIERQ and up, the same rate from 10 million, nothing under 1 million, paid from a fixed reward reserve. Rewards are not guaranteed and can be capped. <Link to="/holders">How holder rewards work →</Link>
       </p>
       <dl className="about-facts" data-testid="glacierq-about-facts">
         <dt>Code</dt><dd className="mono">{REWARD_ASSET_CODE}</dd>
@@ -50,7 +50,7 @@ export default function GlacierqAbout({ onClose }: { onClose?: () => void }) {
         <dt>Home domain</dt><dd><a href={`https://${f?.homeDomain ?? HOME}`} {...ext}>{f?.homeDomain ?? HOME}</a></dd>
         <dt>stellar.toml</dt><dd><a href={TOML} {...ext}>{HOME}/.well-known/stellar.toml</a></dd>
         <dt>Trustlines</dt><dd className="mono" data-testid="glacierq-about-trustlines">{f?.trustlines != null ? f.trustlines.toLocaleString("en-US") : f ? dash : "…"}</dd>
-        <dt>Holder rewards</dt><dd>5% a year from 1M · 7% a year from 10M · paid daily · <Link to="/holders">Holders page</Link></dd>
+        <dt>Holder rewards</dt><dd>1% a month (12% a year) from 1M · same rate from 10M · paid daily · <Link to="/holders">Holders page</Link></dd>
         <dt>Explorer</dt><dd>{explorerAssetUrl(REWARD_ASSET_CODE, issuer, "mainnet") ? <a href={explorerAssetUrl(REWARD_ASSET_CODE, issuer, "mainnet")!} {...ext}>GLACIERQ on StellarChain.io</a> : dash}</dd>
       </dl>
     </div>

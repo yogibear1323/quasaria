@@ -14,6 +14,7 @@ import {
 import { isStale, loadJarPrices, type JarPrices } from "../lib/jarsPrice";
 import { JAR_DEFAULT_SLIPPAGE, JAR_MAX_SLIPPAGE, USTRY, USTRY_REF, planJarSwap, type JarSwapPlan } from "../lib/jarsSwap";
 import { JAR_SYNC_ENABLED } from "../lib/jarsSync";
+import { JarSync } from "./JarSync";
 import { toStroops, VAULT_ID } from "./YieldVaultCard";
 import { FeeRow } from "./FeeRow";
 import { TxStatus, useTx } from "./ui";
@@ -176,7 +177,7 @@ export function SavingsJars() {
       <p className="jars-note" data-testid="jars-note">
         Each jar holds USTRY, Etherfuse's tokenized US Treasury bill. Its value comes from USTRY's dollar price rising, which compounds on its own, so every jar grows independently. The rate changes weekly and isn't guaranteed; on weekends the price can sit flat.
         Fund a jar with USTRY you already hold, or with XLM that gets swapped into USTRY when you deposit (you review the quote and sign). Jars are labels in this browser: the USTRY stays in your wallet and can still be spent elsewhere. Etherfuse can freeze or claw back USTRY.
-        {!JAR_SYNC_ENABLED && " Jars are saved on this device for now; cross-device sync is coming."}
+        {JAR_SYNC_ENABLED ? " Jars are saved on this device; turn on sync below to carry them to your other devices (optional, encrypted, you sign each sync)." : " Jars are saved on this device for now; cross-device sync is coming."}
       </p>
       {!w.address ? <div className="notice">Sign in with your key to create jars.</div> : !ledger ? <div className="muted">Loading jars…</div> : (
         <>
@@ -186,6 +187,8 @@ export function SavingsJars() {
             {tV.units > 0n && <div><span>Old vault jars</span><b>{usd(tV.value)}</b><small className="muted">0% yield until vault allocation</small></div>}
             <div data-testid="jar-unassigned"><span>Unassigned USTRY</span><b>{usd(unassignedUsd)}</b><small className="muted">{ustryBal === null ? "No USTRY trustline yet" : `${fmt7(ustryAlloc!.unassigned)} USTRY in wallet, not in a jar`}</small></div>
           </div>
+
+          {JAR_SYNC_ENABLED && <JarSync address={w.address} acct={acct} ledger={ledger} persist={persist} sign={w.sign} refresh={refresh} />}
 
           {ustryAlloc && ustryAlloc.shortfall > 0n && (
             <div className="notice jar-shortfall" data-testid="jar-shortfall" role="alert">

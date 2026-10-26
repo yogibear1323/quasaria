@@ -22,7 +22,8 @@ export type Jar = {
   units: string; costUsd: string; costXlm?: string;
   targetUsd?: string; date?: string; created: number; history: Entry[];
 };
-export type Ledger = { v: 2; jars: Jar[]; updated: number };
+/** `removed`: tombstones for closed jars so a cross-device merge does not bring them back. */
+export type Ledger = { v: 2; jars: Jar[]; updated: number; removed?: { id: string; ts: number }[] };
 
 const B = (s: string | undefined) => BigInt(s ?? "0");
 const S = (v: bigint) => v.toString();
@@ -127,7 +128,7 @@ export function moveUnits(l: Ledger, fromId: string, toId: string, units: bigint
 export function closeJar(l: Ledger, id: string, now = Date.now()): Ledger {
   const j = l.jars.find((k) => k.id === id); if (!j) throw new Error("Jar not found");
   if (B(j.units) > 0n) throw new Error("Empty the jar first (move or withdraw its balance)");
-  return touch(l, l.jars.filter((k) => k.id !== id), now);
+  return { ...touch(l, l.jars.filter((k) => k.id !== id), now), removed: [...(l.removed ?? []).filter((r) => r.id !== id), { id, ts: now }] };
 }
 
 export const allocated = (l: Ledger, h: Holding) => l.jars.filter((j) => j.holding === h).reduce((a, j) => a + B(j.units), 0n);

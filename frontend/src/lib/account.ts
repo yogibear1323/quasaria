@@ -11,7 +11,7 @@ export type HBalance = {
   asset_type: string; balance: string; asset_code?: string; asset_issuer?: string; liquidity_pool_id?: string;
   buying_liabilities?: string; selling_liabilities?: string; is_authorized?: boolean; limit?: string;
 };
-export type HAccount = { balances: HBalance[]; subentry_count?: number; num_sponsoring?: number; num_sponsored?: number };
+export type HAccount = { balances: HBalance[]; data?: Record<string, string>; subentry_count?: number; num_sponsoring?: number; num_sponsored?: number };
 export type HPool = { id: string; fee_bp: number; total_shares: string; total_trustlines?: string; reserves: { asset: string; amount: string }[] };
 
 const n = (v: unknown): number | null => { const x = typeof v === "string" || typeof v === "number" ? Number(v) : NaN; return Number.isFinite(x) ? x : null; };

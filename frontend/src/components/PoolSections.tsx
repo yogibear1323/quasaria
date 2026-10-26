@@ -1,8 +1,9 @@
 import { AssetLogo } from "./AssetBits";
+import { XLM_LOGO } from "../lib/xlm";
 import { useAsync } from "../lib/useAsync";
 import { fmt, fmtCompact } from "../lib/format";
 import { explorerAssetUrl } from "../lib/explorer";
-import { fetchPoolsByLookup, tvlUsd, verifyAsset, type AssetRef, type NetId, type PoolRow, type Pricing } from "../lib/nativePools";
+import { curatedList, fetchPoolsByLookup, tvlUsd, verifyAsset, type AssetRef, type NetId, type PoolRow, type Pricing } from "../lib/nativePools";
 import { VERIFIED_ASSETS, VERIFIED_STABLE_AS_OF, type VerifiedKind } from "../lib/stablecoins";
 
 export type PoolSection = "other" | "treasury" | "stable";
@@ -12,6 +13,16 @@ export const sectionOf = (v: string | null): PoolSection => (v === "treasury" ? 
 const KIND: Record<Exclude<PoolSection, "other">, VerifiedKind> = { treasury: "Treasury", stable: "Stablecoin" };
 /** A side is verified if it is XLM, on Quasaria's curated list, or on the verified stablecoin/treasury allowlist (code AND issuer). */
 const sideOk = (net: NetId, a: AssetRef) => !a.issuer || verifyAsset(net, a).status === "verified" || VERIFIED_ASSETS.some((v) => v.code === a.code && v.issuer === a.issuer);
+/** Official logo: Stellar for XLM, bundled verified logo, curated-list logo; otherwise null so AssetLogo shows its generic fallback. */
+const logoFor = (net: NetId, a: AssetRef) => !a.issuer ? XLM_LOGO : VERIFIED_ASSETS.find((v) => v.code === a.code && v.issuer === a.issuer)?.logo ?? curatedList(net).find((c) => c.code === a.code && c.issuer === a.issuer)?.logo ?? null;
+function PairIcons({ net, a, b }: { net: NetId; a: AssetRef; b: AssetRef }) {
+  return (
+    <span data-testid="pair-icons" style={{ display: "inline-flex", alignItems: "center", marginRight: 6, verticalAlign: "middle" }}>
+      <span style={{ display: "inline-flex", zIndex: 1 }}><AssetLogo code={a.code} issuer={a.issuer} logo={logoFor(net, a)} size={20} /></span>
+      <span style={{ display: "inline-flex", marginLeft: -7 }}><AssetLogo code={b.code} issuer={b.issuer} logo={logoFor(net, b)} size={20} /></span>
+    </span>
+  );
+}
 const amt = (n: number) => (n >= 1000 ? fmtCompact(n) : fmt(n, n < 1 ? 6 : 3));
 
 /**
@@ -46,7 +57,7 @@ export default function PoolSections({ section, net, pricing, onOpen }: { sectio
               const t = tvlUsd(p, pricing);
               return (
                 <tr key={p.id} data-testid="section-pool-row" style={{ cursor: "pointer" }} onClick={() => onOpen(p.id)}>
-                  <td><b>{p.a.code}</b> <span className="muted">/</span> <b>{p.b.code}</b> {sideOk(net, p.a) && sideOk(net, p.b) ? <span className="pill green" style={{ fontSize: "0.55rem" }} title={key}>✔ both verified</span> : <span className="pill pink" style={{ fontSize: "0.55rem" }} title={key}>other side unverified</span>}</td>
+                  <td><PairIcons net={net} a={p.a} b={p.b} /><b>{p.a.code}</b> <span className="muted">/</span> <b>{p.b.code}</b> {sideOk(net, p.a) && sideOk(net, p.b) ? <span className="pill green" style={{ fontSize: "0.55rem" }} title={key}>✔ both verified</span> : <span className="pill pink" style={{ fontSize: "0.55rem" }} title={key}>other side unverified</span>}</td>
                   <td className="mono" style={{ whiteSpace: "nowrap" }}>{t == null ? "—" : `$${fmtCompact(t)}`}</td>
                   <td className="mono muted" style={{ fontSize: "0.72rem" }}>{amt(p.reserveA)} {p.a.code} / {amt(p.reserveB)} {p.b.code}</td>
                   <td className="mono">{p.holders}</td>

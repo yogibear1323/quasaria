@@ -26,13 +26,13 @@ export function parseQuote(sendAmount: number, rec: { destination_amount: string
 }
 
 export type SwapFunds = { ok: true; needTrust: Ref[]; reserveXlm: number; feeXlm: number } | { ok: false; error: string };
-export function checkSwapFunds(i: { from: Ref; to: Ref; amount: number; acct: HAccount | null; baseReserve: number | null }): SwapFunds {
+export function checkSwapFunds(i: { from: Ref; to: Ref; amount: number; acct: HAccount | null; baseReserve: number | null; extraOps?: number }): SwapFunds {
   if (!i.acct) return { ok: false, error: "Your account is not on the network yet. Fund it with XLM first." };
   if (i.baseReserve === null) return { ok: false, error: "Could not read the network reserve from Horizon. Try again in a moment." };
   const fee = Number(BASE_FEE) / 1e7;
   const holds = (a: Ref) => i.acct!.balances.find((b) => b.asset_code === a.code && b.asset_issuer === a.issuer);
   const needTrust: Ref[] = i.to.issuer && !holds(i.to) ? [i.to] : [];
-  const feeXlm = fee * (needTrust.length + 1), reserveXlm = needTrust.length * i.baseReserve;
+  const feeXlm = Math.round(fee * (needTrust.length + 1 + Math.max(0, i.extraOps ?? 0)) * 1e7) / 1e7, reserveXlm = needTrust.length * i.baseReserve;
   const n = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 7 });
   if (i.from.issuer) {
     const h = holds(i.from);

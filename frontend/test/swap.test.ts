@@ -25,6 +25,7 @@ describe("quote", () => {
 describe("checkSwapFunds", () => {
   const F = { code: "XLM", issuer: null }, T = { code: "USDC", issuer: ISS };
   it("adds the trustline and reports reserve + fee", () => { expect(checkSwapFunds({ from: F, to: T, amount: 10, acct: acct("100"), baseReserve: 0.5 })).toMatchObject({ ok: true, reserveXlm: 0.5, feeXlm: 0.00002 }); });
+  it("counts extra ops (fee payments) in the network fee", () => { expect(checkSwapFunds({ from: F, to: T, amount: 10, acct: acct("100"), baseReserve: 0.5, extraOps: 1 })).toMatchObject({ ok: true, feeXlm: 0.00003 }); });
   it("plain errors", () => {
     expect(checkSwapFunds({ from: F, to: T, amount: 99, acct: acct("100"), baseReserve: 0.5 })).toMatchObject({ ok: false, error: expect.stringContaining("Not enough XLM") });
     expect(checkSwapFunds({ from: T, to: F, amount: 1, acct: acct("100"), baseReserve: 0.5 })).toMatchObject({ ok: false, error: expect.stringContaining("don't hold any USDC") });

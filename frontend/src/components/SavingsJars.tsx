@@ -115,7 +115,7 @@ export function SavingsJars() {
       const [a, reserve, rec] = await Promise.all([fetchRawAccount(NETWORK, w.address!), fetchBaseReserve(NETWORK), findStrictSendPath(Asset.native(), amount, USTRY)]);
       const fees = planFees([{ asset: Asset.native(), amount }], await loadFeeReceiver(HORIZON_URL));
       const feeTotal = fees.reduce((s, l) => s + l.amount, 0);
-      const f = checkSwapFunds({ from: { code: "XLM", issuer: null }, to: USTRY_REF, amount: amount + feeTotal, acct: a, baseReserve: reserve });
+      const f = checkSwapFunds({ from: { code: "XLM", issuer: null }, to: USTRY_REF, amount: amount + feeTotal, acct: a, baseReserve: reserve, extraOps: fees.length });
       if (!f.ok) return setMsg(f.error);
       const plan = planJarSwap({ quote: parseQuote(amount, rec as never), slippage: slip, xlmUsd: prices.xlmUsd?.price ?? null, ustryUsd: prices.ustry?.usd ?? null });
       if (!plan.ok) return setMsg(plan.error);

@@ -22,7 +22,8 @@ export type Jar = {
   units: string; costUsd: string; costXlm?: string;
   targetUsd?: string; date?: string; created: number; history: Entry[];
 };
-export type Ledger = { v: 2; jars: Jar[]; updated: number };
+/** `removed`: tombstones for closed jars so a cross-device merge does not bring them back. */
+export type Ledger = { v: 2; jars: Jar[]; updated: number; removed?: { id: string; ts: number }[] };
 
 const B = (s: string | undefined) => BigInt(s ?? "0");
 const S = (v: bigint) => v.toString();
@@ -43,7 +44,7 @@ export function migrateV1(v1: V1Jar[], now = Date.now()): Ledger {
     id: j.id, name: j.name, holding: "VAULT", fund: "XLM",
     units: safeInt(j.shares), costUsd: "0", costXlm: safeInt(j.principal),
     date: j.date, created: Number(j.created) || now,
-    history: [{ ts: now, type: "migrate", units: safeInt(j.shares), xlm: safeInt(j.principal), note: `Moved from the old Savings Jars (target ${fmt7(B(safeInt(j.target)))} XLM)` }],
+    history: [{ ts: now, type: "migrate", units: safeInt(j.shares), xlm: safeInt(j.principal), note: `Moved from the old Snowbanks (target ${fmt7(B(safeInt(j.target)))} XLM)` }],
   }));
   return { v: 2, jars, updated: now };
 }
@@ -67,14 +68,14 @@ export function saveLedger(address: string, l: Ledger, store: Pick<Storage, "set
 
 const touch = (l: Ledger, jars: Jar[], now: number): Ledger => ({ ...l, jars, updated: now });
 const mapJar = (l: Ledger, id: string, f: (j: Jar) => Jar, now: number) => {
-  if (!l.jars.some((j) => j.id === id)) throw new Error("Jar not found");
+  if (!l.jars.some((j) => j.id === id)) throw new Error("Snowbank not found");
   return touch(l, l.jars.map((j) => (j.id === id ? f(j) : j)), now);
 };
 
 export function createJar(l: Ledger, i: { name: string; fund: Fund; targetUsd?: bigint; date?: string }, now = Date.now(), rnd = Math.random): Ledger {
   const name = i.name.trim().slice(0, 40);
-  if (!name) throw new Error("Give the jar a name");
-  if (i.fund !== "XLM" && i.fund !== "USTRY") throw new Error("Jars take XLM or USTRY only");
+  if (!name) throw new Error("Give the Snowbank a name");
+  if (i.fund !== "XLM" && i.fund !== "USTRY") throw new Error("Snowbanks take XLM or USTRY only");
   if (i.targetUsd !== undefined && i.targetUsd <= 0n) throw new Error("Target must be above $0");
   const j: Jar = { id: `${now.toString(36)}${rnd().toString(36).slice(2, 6)}`, name, holding: "USTRY", fund: i.fund, units: "0", costUsd: "0",
     targetUsd: i.targetUsd !== undefined ? S(i.targetUsd) : undefined, date: i.date || undefined, created: now, history: [{ ts: now, type: "create", note: `Funded with ${i.fund}` }] };
@@ -82,7 +83,7 @@ export function createJar(l: Ledger, i: { name: string; fund: Fund; targetUsd?: 
 }
 
 export function renameJar(l: Ledger, id: string, name: string, now = Date.now()): Ledger {
-  const n = name.trim().slice(0, 40); if (!n) throw new Error("Give the jar a name");
+  const n = name.trim().slice(0, 40); if (!n) throw new Error("Give the Snowbank a name");
   return mapJar(l, id, (j) => ({ ...j, name: n, history: [...j.history, { ts: now, type: "rename", note: `${j.name} → ${n}` }] }), now);
 }
 
@@ -91,7 +92,7 @@ export function deposit(l: Ledger, id: string, d: { units: bigint; usd: bigint; 
   if (d.units <= 0n) throw new Error("Amount must be above 0");
   if (d.usd < 0n) throw new Error("Bad cost");
   return mapJar(l, id, (j) => {
-    if (j.holding !== "USTRY") throw new Error("Old vault jars take no new deposits");
+    if (j.holding !== "USTRY") throw new Error("Old vault Snowbanks take no new deposits");
     return { ...j, units: S(B(j.units) + d.units), costUsd: S(B(j.costUsd) + d.usd), costXlm: d.xlm !== undefined ? S(B(j.costXlm) + d.xlm) : j.costXlm,
       history: [...j.history, { ts: now, type: d.type ?? "deposit", units: S(d.units), usd: S(d.usd), xlm: d.xlm !== undefined ? S(d.xlm) : undefined, tx: d.tx }] };
   }, now);
@@ -100,7 +101,7 @@ export function deposit(l: Ledger, id: string, d: { units: bigint; usd: bigint; 
 /** Take `units` out of a jar with cost basis reduced pro rata. Returns the jar and the cost removed. */
 function take(j: Jar, units: bigint): { jar: Jar; usd: bigint; xlm: bigint } {
   const u = B(j.units);
-  if (units <= 0n || units > u) throw new Error("Not that much in this jar");
+  if (units <= 0n || units > u) throw new Error("Not that much in this Snowbank");
   const usd = units === u ? B(j.costUsd) : (B(j.costUsd) * units) / u;
   const xlm = units === u ? B(j.costXlm) : (B(j.costXlm) * units) / u;
   return { jar: { ...j, units: S(u - units), costUsd: S(B(j.costUsd) - usd), costXlm: j.costXlm !== undefined ? S(B(j.costXlm) - xlm) : undefined }, usd, xlm };
@@ -113,10 +114,10 @@ export function withdraw(l: Ledger, id: string, units: bigint, tx?: string, now 
 
 /** Free off-chain relabel between jars of the same holding; cost basis moves pro rata. */
 export function moveUnits(l: Ledger, fromId: string, toId: string, units: bigint, now = Date.now()): Ledger {
-  if (fromId === toId) throw new Error("Pick a different jar");
+  if (fromId === toId) throw new Error("Pick a different Snowbank");
   const a = l.jars.find((j) => j.id === fromId), b = l.jars.find((j) => j.id === toId);
-  if (!a || !b) throw new Error("Jar not found");
-  if (a.holding !== b.holding) throw new Error("Moves only work between jars of the same asset");
+  if (!a || !b) throw new Error("Snowbank not found");
+  if (a.holding !== b.holding) throw new Error("Moves only work between Snowbanks of the same asset");
   const t = take(a, units);
   const nb: Jar = { ...b, units: S(B(b.units) + units), costUsd: S(B(b.costUsd) + t.usd), costXlm: b.costXlm !== undefined || t.xlm > 0n ? S(B(b.costXlm) + t.xlm) : undefined,
     history: [...b.history, { ts: now, type: "move-in", units: S(units), usd: S(t.usd), note: `from ${a.name}` }] };
@@ -125,9 +126,9 @@ export function moveUnits(l: Ledger, fromId: string, toId: string, units: bigint
 }
 
 export function closeJar(l: Ledger, id: string, now = Date.now()): Ledger {
-  const j = l.jars.find((k) => k.id === id); if (!j) throw new Error("Jar not found");
-  if (B(j.units) > 0n) throw new Error("Empty the jar first (move or withdraw its balance)");
-  return touch(l, l.jars.filter((k) => k.id !== id), now);
+  const j = l.jars.find((k) => k.id === id); if (!j) throw new Error("Snowbank not found");
+  if (B(j.units) > 0n) throw new Error("Empty the Snowbank first (move or withdraw its balance)");
+  return { ...touch(l, l.jars.filter((k) => k.id !== id), now), removed: [...(l.removed ?? []).filter((r) => r.id !== id), { id, ts: now }] };
 }
 
 export const allocated = (l: Ledger, h: Holding) => l.jars.filter((j) => j.holding === h).reduce((a, j) => a + B(j.units), 0n);
@@ -152,9 +153,9 @@ export function resolveShortfall(l: Ledger, h: Holding, wallet: bigint, absorbId
   const note = (j: Jar, cut: bigint, usd: bigint, why: string): Jar => ({ ...j, history: [...j.history, { ts: now, type: "scale", units: S(cut), usd: S(usd), note: why }] });
   if (absorbId) {
     const idx = jars.findIndex((j) => j.id === absorbId && j.holding === h);
-    if (idx < 0) throw new Error("Pick a jar of the same asset");
+    if (idx < 0) throw new Error("Pick a Snowbank of the same asset");
     const cut = B(jars[idx].units) < shortfall ? B(jars[idx].units) : shortfall;
-    if (cut > 0n) { const t = take(jars[idx], cut); jars[idx] = note(t.jar, cut, t.usd, "Wallet balance fell below jars; you chose this jar to absorb it"); shortfall -= cut; }
+    if (cut > 0n) { const t = take(jars[idx], cut); jars[idx] = note(t.jar, cut, t.usd, "Wallet balance fell below Snowbanks; you chose this Snowbank to absorb it"); shortfall -= cut; }
   }
   if (shortfall > 0n) {
     const ids = jars.map((j, i) => (j.holding === h && B(j.units) > 0n ? i : -1)).filter((i) => i >= 0);
@@ -167,7 +168,7 @@ export function resolveShortfall(l: Ledger, h: Holding, wallet: bigint, absorbId
     for (const k of order) { if (dust <= 0n) break; kept[k] += 1n; dust -= 1n; }
     ids.forEach((i, k) => {
       const cut = B(jars[i].units) - kept[k];
-      if (cut > 0n) { const t = take(jars[i], cut); jars[i] = note(t.jar, cut, t.usd, "Wallet balance fell below jars; scaled down in proportion"); }
+      if (cut > 0n) { const t = take(jars[i], cut); jars[i] = note(t.jar, cut, t.usd, "Wallet balance fell below Snowbanks; scaled down in proportion"); }
     });
   }
   return touch(l, jars, now);

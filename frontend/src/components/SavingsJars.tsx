@@ -14,6 +14,7 @@ import {
 import { isStale, loadJarPrices, type JarPrices } from "../lib/jarsPrice";
 import { JAR_DEFAULT_SLIPPAGE, JAR_MAX_SLIPPAGE, USTRY, USTRY_REF, planJarSwap, type JarSwapPlan } from "../lib/jarsSwap";
 import { JAR_SYNC_ENABLED } from "../lib/jarsSync";
+import { JarSync } from "./JarSync";
 import { toStroops, VAULT_ID } from "./YieldVaultCard";
 import { FeeRow } from "./FeeRow";
 import { TxStatus, useTx } from "./ui";
@@ -97,7 +98,7 @@ export function SavingsJars() {
   /** USTRY-funded: earmark USTRY already in the wallet (Unassigned). No transaction. */
   const assign = (j: Jar) => act(() => {
     const u = toUnits(amt[j.id] ?? ""); if (!u || u <= 0n) throw new Error("Enter a USTRY amount");
-    if (ustryBal === null) throw new Error("Your wallet has no USTRY trustline yet. Add USTRY on the Swap page, or fund this jar with XLM.");
+    if (ustryBal === null) throw new Error("Your wallet has no USTRY trustline yet. Add USTRY on the Swap page, or fund this Snowbank with XLM.");
     const { unassigned } = allocation(ledger!, "USTRY", ustryBal);
     if (u > unassigned) throw new Error(`Only ${fmt7(unassigned)} USTRY is unassigned in your wallet.`);
     if (!ustryUsd || isStale(prices.ustry?.at)) throw new Error("USTRY price is stale; try again when it refreshes.");
@@ -122,7 +123,7 @@ export function SavingsJars() {
       setReview({ jar: j, amount, plan, needTrust: f.needTrust.length > 0, feeXlm: f.feeXlm, reserveXlm: f.reserveXlm, fees });
     } catch (e) { setMsg(`Could not get a quote: ${e instanceof Error ? e.message : String(e)}`); }
   };
-  const confirmSwap = () => { const r = review!; return run(`Jar deposit (${r.jar.name}): swap ${n(r.amount)} XLM → USTRY`, async () => {
+  const confirmSwap = () => { const r = review!; return run(`Snowbank deposit (${r.jar.name}): swap ${n(r.amount)} XLM → USTRY`, async () => {
     try {
       const seq = (await horizon.loadAccount(w.address!)).sequenceNumber();
       const xdr = buildSwapTx({ source: w.address!, sequence: seq, from: Asset.native(), to: USTRY, amount: r.amount, minOut: r.plan.minOut, path: r.plan.quote.path, needTrust: r.needTrust ? [USTRY] : [], passphrase: NETWORK_PASSPHRASE, fees: r.fees });
@@ -142,13 +143,13 @@ export function SavingsJars() {
     setAmt((a) => ({ ...a, [j.id]: "" }));
     return withdraw(ledger!, j.id, u);
   });
-  const vaultWithdraw = (j: Jar) => run(`Jar withdraw (${j.name})`, async () => {
-    const s = BigInt(j.units); if (s <= 0n) throw new Error("This jar is empty");
+  const vaultWithdraw = (j: Jar) => run(`Snowbank withdraw (${j.name})`, async () => {
+    const s = BigInt(j.units); if (s <= 0n) throw new Error("This Snowbank is empty");
     const r = await invokeContract(w.address!, w.sign, VAULT_ID, "withdraw", [addr(w.address!), i128(s)]);
     persist(withdraw(loadLedger(w.address!), j.id, s, r.hash)); await refresh(); return r.hash;
   });
   const move = (j: Jar) => act(() => {
-    const to = moveTo[j.id]; if (!to) throw new Error("Pick a jar to move to");
+    const to = moveTo[j.id]; if (!to) throw new Error("Pick a Snowbank to move to");
     const u = amt[j.id]?.trim() ? toUnits(amt[j.id]) : BigInt(j.units);
     if (!u) throw new Error("Enter an amount");
     setOpen((o) => ({ ...o, [j.id]: undefined })); setAmt((a) => ({ ...a, [j.id]: "" }));
@@ -167,33 +168,35 @@ export function SavingsJars() {
   return (
     <section className="jars" data-testid="savings-jars">
       <div className="jars-head">
-        <div><div className="vault-kicker">Goals on top of USTRY in your own wallet</div><h2>Savings Jars</h2></div>
+        <div><div className="vault-kicker">Goals on top of USTRY in your own wallet</div><h2>Snowbanks</h2></div>
         <div className="jar-badges">
           <span className="pill" data-testid="jar-rate">{rate != null ? `Etherfuse USTRY rate now: ${rate.toFixed(2)}% APY · variable, reset weekly` : "USTRY rate unavailable"}</span>
           <span className={`pill ${stale ? "neg" : ""}`} data-testid="jar-price-age">{stale ? "Stale price" : "Price"} · {age(prices.ustry?.at)}</span>
         </div>
       </div>
       <p className="jars-note" data-testid="jars-note">
-        Each jar holds USTRY, Etherfuse's tokenized US Treasury bill. Its value comes from USTRY's dollar price rising, which compounds on its own, so every jar grows independently. The rate changes weekly and isn't guaranteed; on weekends the price can sit flat.
-        Fund a jar with USTRY you already hold, or with XLM that gets swapped into USTRY when you deposit (you review the quote and sign). Jars are labels in this browser: the USTRY stays in your wallet and can still be spent elsewhere. Etherfuse can freeze or claw back USTRY.
-        {!JAR_SYNC_ENABLED && " Jars are saved on this device for now; cross-device sync is coming."}
+        Each Snowbank holds USTRY, Etherfuse's tokenized US Treasury bill. Its value comes from USTRY's dollar price rising, which compounds on its own, so every Snowbank grows independently. The rate changes weekly and isn't guaranteed; on weekends the price can sit flat.
+        Fund a Snowbank with USTRY you already hold, or with XLM that gets swapped into USTRY when you deposit (you review the quote and sign). Snowbanks are labels in this browser: the USTRY stays in your wallet and can still be spent elsewhere. Etherfuse can freeze or claw back USTRY.
+        {JAR_SYNC_ENABLED ? " Snowbanks are saved on this device; turn on sync below to carry them to your other devices (optional, encrypted, you sign each sync)." : " Snowbanks are saved on this device for now; cross-device sync is coming."}
       </p>
-      {!w.address ? <div className="notice">Sign in with your key to create jars.</div> : !ledger ? <div className="muted">Loading jars…</div> : (
+      {!w.address ? <div className="notice">Sign in with your key to create Snowbanks.</div> : !ledger ? <div className="muted">Loading Snowbanks…</div> : (
         <>
           <div className="jar-totals card" data-testid="jar-totals">
-            <div><span>All jars</span><b>{usd(combined)}</b></div>
-            <div><span>USTRY jars</span><b>{usd(tU.value)}</b><small className="muted">{fmt7(tU.units)} USTRY · gain {signedUsd(tU.value === null ? null : tU.value - tU.cost)}</small></div>
-            {tV.units > 0n && <div><span>Old vault jars</span><b>{usd(tV.value)}</b><small className="muted">0% yield until vault allocation</small></div>}
-            <div data-testid="jar-unassigned"><span>Unassigned USTRY</span><b>{usd(unassignedUsd)}</b><small className="muted">{ustryBal === null ? "No USTRY trustline yet" : `${fmt7(ustryAlloc!.unassigned)} USTRY in wallet, not in a jar`}</small></div>
+            <div><span>All Snowbanks</span><b>{usd(combined)}</b></div>
+            <div><span>USTRY Snowbanks</span><b>{usd(tU.value)}</b><small className="muted">{fmt7(tU.units)} USTRY · gain {signedUsd(tU.value === null ? null : tU.value - tU.cost)}</small></div>
+            {tV.units > 0n && <div><span>Old vault Snowbanks</span><b>{usd(tV.value)}</b><small className="muted">0% yield until vault allocation</small></div>}
+            <div data-testid="jar-unassigned"><span>Unassigned USTRY</span><b>{usd(unassignedUsd)}</b><small className="muted">{ustryBal === null ? "No USTRY trustline yet" : `${fmt7(ustryAlloc!.unassigned)} USTRY in wallet, not in a Snowbank`}</small></div>
           </div>
+
+          {JAR_SYNC_ENABLED && <JarSync address={w.address} acct={acct} ledger={ledger} persist={persist} sign={w.sign} refresh={refresh} />}
 
           {ustryAlloc && ustryAlloc.shortfall > 0n && (
             <div className="notice jar-shortfall" data-testid="jar-shortfall" role="alert">
-              <b>Your wallet holds {fmt7(ustryAlloc.wallet)} USTRY, but your jars add up to {fmt7(ustryAlloc.allocated)}.</b> Short by {fmt7(ustryAlloc.shortfall)} USTRY (spent or moved outside Quasaria).
-              Add USTRY back, or choose how jars absorb it:
+              <b>Your wallet holds {fmt7(ustryAlloc.wallet)} USTRY, but your Snowbanks add up to {fmt7(ustryAlloc.allocated)}.</b> Short by {fmt7(ustryAlloc.shortfall)} USTRY (spent or moved outside Quasaria).
+              Add USTRY back, or choose how Snowbanks absorb it:
               <div className="jar-actions" style={{ marginTop: 8 }}>
-                <select className="input" value={absorb} onChange={(e) => setAbsorb(e.target.value)} aria-label="Jar that absorbs the shortfall">
-                  <option value="">Scale every jar down evenly</option>
+                <select className="input" value={absorb} onChange={(e) => setAbsorb(e.target.value)} aria-label="Snowbank that absorbs the shortfall">
+                  <option value="">Scale every Snowbank down evenly</option>
                   {jars.filter((j) => j.holding === "USTRY" && BigInt(j.units) > 0n).map((j) => <option key={j.id} value={j.id}>Take it from {j.name} first</option>)}
                 </select>
                 <button className="btn small" data-testid="jar-shortfall-apply" onClick={() => act(() => resolveShortfall(ledger, "USTRY", ustryAlloc.wallet, absorb || undefined))}>Apply</button>
@@ -202,13 +205,13 @@ export function SavingsJars() {
           )}
 
           <div className="jar-new card">
-            <input className="input" placeholder="Jar name (e.g. Ski trip)" value={form.name} maxLength={40} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <input className="input" placeholder="Snowbank name (e.g. Ski trip)" value={form.name} maxLength={40} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             <div className="seg" role="radiogroup" aria-label="Fund with">
               {(["XLM", "USTRY"] as const).map((f) => <button key={f} type="button" role="radio" aria-checked={form.fund === f} className={`seg-btn ${form.fund === f ? "on" : ""}`} data-testid={`jar-fund-${f}`} onClick={() => setForm({ ...form, fund: f })}>{f === "XLM" ? "Fund with XLM" : "Fund with USTRY"}</button>)}
             </div>
             <input className="input" inputMode="decimal" placeholder="Target $ (optional)" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} />
             <input className="input" type="date" aria-label="Target date (optional)" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-            <button className="btn" data-testid="jar-create" onClick={create}>New jar</button>
+            <button className="btn" data-testid="jar-create" onClick={create}>New Snowbank</button>
             <div className="muted jar-hint">{form.fund === "XLM" ? "XLM deposits are swapped into USTRY on Stellar's exchange when you deposit. You'll see the quote, fees and slippage limit before signing." : "Assign USTRY you already hold. No transaction, no fee."}</div>
             {formErr && <div className="muted neg" style={{ fontSize: "0.75rem" }}>{formErr}</div>}
           </div>
@@ -267,7 +270,7 @@ export function SavingsJars() {
                   </div>
                   {o === "move" && (
                     <div className="jar-actions">
-                      <select className="input" value={moveTo[j.id] ?? ""} onChange={(e) => setMoveTo({ ...moveTo, [j.id]: e.target.value })} aria-label="Move to jar">
+                      <select className="input" value={moveTo[j.id] ?? ""} onChange={(e) => setMoveTo({ ...moveTo, [j.id]: e.target.value })} aria-label="Move to Snowbank">
                         <option value="">Move to…</option>{same.map((k) => <option key={k.id} value={k.id}>{k.name}</option>)}
                       </select>
                       <button className="btn small" onClick={() => move(j)}>Move {amt[j.id]?.trim() ? amt[j.id] : "all"}</button>
@@ -288,7 +291,7 @@ export function SavingsJars() {
                 </div>
               );
             })}
-            {!jars.length && <div className="muted">No jars yet. Create one above.</div>}
+            {!jars.length && <div className="muted">No Snowbanks yet. Create one above.</div>}
           </div>
           <p className="muted small">Prices: USTRY from Etherfuse's NAV feed, XLM/USD from the Stellar XLM/USDC order book. Market price can differ from NAV. <a href={explorerAssetUrl(USTRY_REF.code, USTRY_REF.issuer) ?? "#"} target="_blank" rel="noreferrer">USTRY on StellarChain.io</a></p>
           <TxStatus status={status} />

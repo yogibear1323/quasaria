@@ -21,7 +21,7 @@ export function saveJars(address: string, jars: Jar[], store: Pick<Storage, "set
 }
 
 export function newJar(name: string, targetStroops: bigint, date?: string, now = Date.now()): Jar {
-  if (!name.trim()) throw new Error("Give the jar a name");
+  if (!name.trim()) throw new Error("Give the Snowbank a name");
   if (targetStroops <= 0n) throw new Error("Target must be above 0");
   return { id: `${now.toString(36)}${Math.random().toString(36).slice(2, 6)}`, name: name.trim().slice(0, 40), target: targetStroops.toString(), date: date || undefined, shares: "0", principal: "0", created: now };
 }
@@ -34,7 +34,7 @@ export const addDeposit = (j: Jar, xlm: bigint, shares: bigint): Jar => ({ ...j,
 
 /** Record a confirmed withdrawal of `shares`; principal is reduced pro rata. */
 export function removeShares(j: Jar, shares: bigint): Jar {
-  const s = BigInt(j.shares); if (shares <= 0n || shares > s) throw new Error("Not that many shares in this jar");
+  const s = BigInt(j.shares); if (shares <= 0n || shares > s) throw new Error("Not that many shares in this Snowbank");
   const p = BigInt(j.principal);
   return { ...j, shares: (s - shares).toString(), principal: (p - (p * shares) / s).toString() };
 }

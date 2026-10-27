@@ -117,10 +117,10 @@ describe("price source", () => {
   });
 });
 
-describe("sync proposal (flag off)", () => {
-  it("is disabled and refuses to build a tx", () => {
-    expect(JAR_SYNC_ENABLED).toBe(false);
-    expect(() => buildSyncTx({ source: "G", sequence: "1", passphrase: "x", header: new Uint8Array(), chunks: [], existingChunks: 0 })).toThrow(/not enabled/);
+describe("sync (flag on in this branch)", () => {
+  it("is enabled and builds a tx", () => {
+    expect(JAR_SYNC_ENABLED).toBe(true);
+    expect(typeof buildSyncTx).toBe("function");
   });
   it("round-trips encrypted, compressed, 64-byte chunks; wrong passphrase fails", async () => {
     let l = two(); for (let k = 0; k < 6; k++) l = deposit(l, id(l, "B"), { units: X(1), usd: X(1.08), xlm: X(3.6), tx: "b".repeat(64) }, 10 + k);

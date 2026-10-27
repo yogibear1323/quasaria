@@ -100,7 +100,7 @@ html { scroll-behavior: smooth; }
 }
 .vault-hero-text { z-index: 1; }
 @media (max-width: 760px) { .vault-yeti { display: none; } .vault-cta .btn.ghost { background: rgba(12, 30, 56, 0.82); backdrop-filter: blur(6px); } }
-/* Savings Jars v1 */
+/* Snowbanks (Savings Jars v1) */
 .jar-badges { display: flex; gap: 6px; flex-wrap: wrap; }
 .jar-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 16px; }
 .jar-totals span { display: block; opacity: 0.65; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }

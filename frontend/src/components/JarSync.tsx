@@ -21,7 +21,7 @@ export type SyncViewActions = {
 };
 
 const x = (v: number) => `${v.toLocaleString("en-US", { maximumFractionDigits: 7 })} XLM`;
-export const WARNING = "If you forget this passphrase, your synced jars can't be recovered by anyone, including Quasaria. Your USTRY itself is never at risk: it stays in your wallet.";
+export const WARNING = "If you forget this passphrase, your synced Snowbanks can't be recovered by anyone, including Quasaria. Your USTRY itself is never at risk: it stays in your wallet.";
 
 /** Pure view so every state can be rendered and tested without a browser. */
 export function JarSyncView({ s, a }: { s: SyncViewState; a: SyncViewActions }) {
@@ -33,8 +33,8 @@ export function JarSyncView({ s, a }: { s: SyncViewState; a: SyncViewActions }) 
       {!s.unlocked ? (
         <>
           <p className="muted small" data-testid="jar-sync-intro">
-            {s.remote ? "Synced jars were found on your account. Enter your sync passphrase to load and merge them with the jars on this device."
-              : `Save your jars, encrypted, on your own Stellar account so they show up on any device you sign in on. Each saved entry locks ${RESERVE_PER_ENTRY_XLM} XLM of reserve (about 2 XLM for a couple of jars, ${MAX_CHUNKS / 2} XLM at most), returned if you remove the data.`}
+            {s.remote ? "Synced Snowbanks were found on your account. Enter your sync passphrase to load and merge them with the Snowbanks on this device."
+              : `Save your Snowbanks, encrypted, on your own Stellar account so they show up on any device you sign in on. Each saved entry locks ${RESERVE_PER_ENTRY_XLM} XLM of reserve (about 2 XLM for a couple of Snowbanks, ${MAX_CHUNKS / 2} XLM at most), returned if you remove the data.`}
           </p>
           <div className="notice" role="note" data-testid="jar-sync-warning">{WARNING}</div>
           <div className="jar-actions">
@@ -50,9 +50,9 @@ export function JarSyncView({ s, a }: { s: SyncViewState; a: SyncViewActions }) 
           </p>
           {s.merge && s.merge.changedLocal && (
             <div className="notice" data-testid="jar-sync-merge">
-              <b>Jars from your account differ from this device.</b>{" "}
+              <b>Snowbanks from your account differ from this device.</b>{" "}
               {[s.merge.added.length && `Add ${s.merge.added.join(", ")}`, s.merge.updated.length && `Update ${s.merge.updated.join(", ")} (newer on the other device)`, s.merge.removed.length && `Remove ${s.merge.removed.join(", ")} (closed on another device)`].filter(Boolean).join(" · ")}.
-              <div className="jar-actions"><button className="btn small" data-testid="jar-sync-merge-save" onClick={a.saveMerge}>Save merged jars here</button><button className="btn small ghost" onClick={a.dismissMerge}>Not now</button></div>
+              <div className="jar-actions"><button className="btn small" data-testid="jar-sync-merge-save" onClick={a.saveMerge}>Save merged Snowbanks here</button><button className="btn small ghost" onClick={a.dismissMerge}>Not now</button></div>
             </div>
           )}
           {!s.review && (
@@ -65,7 +65,7 @@ export function JarSyncView({ s, a }: { s: SyncViewState; a: SyncViewActions }) 
           )}
           {s.review && (
             <div className="jar-review" data-testid="jar-sync-review">
-              <h4>{s.review.kind === "sync" ? "Review: sync jars to your account" : "Review: remove synced jar data"}</h4>
+              <h4>{s.review.kind === "sync" ? "Review: sync Snowbanks to your account" : "Review: remove synced Snowbank data"}</h4>
               <dl className="jar-dl">
                 <div><dt>Entries after</dt><dd className="mono">{s.review.kind === "sync" ? s.review.cost.entries : 0}</dd></div>
                 <div data-testid="jar-sync-reserve"><dt>Reserve change</dt><dd className="mono">{s.review.cost.reserveDeltaXlm > 0 ? `+${x(s.review.cost.reserveDeltaXlm)} locked` : s.review.cost.reserveDeltaXlm < 0 ? `${x(-s.review.cost.reserveDeltaXlm)} returned to you` : "no change"} ({RESERVE_PER_ENTRY_XLM} XLM per entry)</dd></div>
@@ -106,7 +106,7 @@ export function JarSync(p: { address: string; acct: HAccount | null; ledger: Led
   const loadRemote = useCallback(async (pw: string): Promise<Ledger | null> => {
     if (!hasSyncHeader(data)) return null;
     const e = readSyncEntries(data);
-    if (!e) throw new Error("The synced data on your account is incomplete. Sync again from a device that has your jars.");
+    if (!e) throw new Error("The synced data on your account is incomplete. Sync again from a device that has your Snowbanks.");
     try { return await openLedger(e.header, e.chunks, pw, p.address); } catch { throw new Error("Wrong passphrase, or the synced data is damaged."); }
   }, [dataKey, p.address]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -115,18 +115,18 @@ export function JarSync(p: { address: string; acct: HAccount | null; ledger: Led
     if (!r) { setMerge(null); return; }
     const m = mergeLedgers(p.ledger, r);
     setMerge(m);
-    setInfo(m.changedLocal ? null : m.changedRemote ? "This device has newer jars than your account. Sync now to update it." : "Your jars match your account.");
+    setInfo(m.changedLocal ? null : m.changedRemote ? "This device has newer Snowbanks than your account. Sync now to update it." : "Your Snowbanks match your account.");
   }, [loadRemote, p.ledger]);
 
   // Re-merge when the on-chain copy changes (e.g. another device synced) while unlocked.
   useEffect(() => { if (pass.current) doMerge(pass.current).catch((e) => setError(msg(e))); }, [dataKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const a: SyncViewActions = {
-    setup: (pw, c) => { setError(null); const pr = passphraseProblem(pw, c); if (pr) return setError(pr); pass.current = pw; setUnlocked(true); setInfo("Passphrase set for this tab. Sync now to save your jars to your account."); },
+    setup: (pw, c) => { setError(null); const pr = passphraseProblem(pw, c); if (pr) return setError(pr); pass.current = pw; setUnlocked(true); setInfo("Passphrase set for this tab. Sync now to save your Snowbanks to your account."); },
     unlock: (pw) => { setError(null); const pr = passphraseProblem(pw); if (pr) return setError(pr);
       setBusy(true); doMerge(pw).then(() => { pass.current = pw; setUnlocked(true); }).catch((e) => setError(msg(e))).finally(() => setBusy(false)); },
     lock,
-    saveMerge: () => { if (!merge) return; p.persist(merge.ledger); setMerge({ ...merge, changedLocal: false }); setInfo(merge.changedRemote ? "Merged jars saved on this device. Sync now to update your account too." : "Merged jars saved on this device."); },
+    saveMerge: () => { if (!merge) return; p.persist(merge.ledger); setMerge({ ...merge, changedLocal: false }); setInfo(merge.changedRemote ? "Merged Snowbanks saved on this device. Sync now to update your account too." : "Merged Snowbanks saved on this device."); },
     dismissMerge: () => { setMerge(null); setInfo("Merge skipped. Sync is paused until you unlock again and save the merge."); lock(); },
     prepare: (kind) => { setError(null); setInfo(null); setBusy(true); (async () => {
       const [reserve] = await Promise.all([fetchBaseReserve(NETWORK)]);
@@ -151,7 +151,7 @@ export function JarSync(p: { address: string; acct: HAccount | null; ledger: Led
         : buildClearTx({ source: p.address, sequence: seq, passphrase: NETWORK_PASSPHRASE, data });
       const res = await submitSignedXdr(await p.sign(xdr));
       setReview(null); setMerge(null); setLastTx(res.hash);
-      setInfo(r.kind === "sync" ? "Jars synced to your account." : "Synced data removed; its reserve is back in your balance.");
+      setInfo(r.kind === "sync" ? "Snowbanks synced to your account." : "Synced data removed; its reserve is back in your balance.");
       if (r.kind === "clear") lock();
       await p.refresh();
     })().catch((e) => { setReview(null); setError(`Sync failed: ${msg(e)}. Nothing was resent; check your account before trying again.`); }).finally(() => setBusy(false)); },

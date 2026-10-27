@@ -48,7 +48,7 @@ export async function sealLedger(l: Ledger, passphrase: string, address: string,
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await keyFor(passphrase, address), z as BufferSource));
   const chunks: Uint8Array[] = [];
   for (let i = 0; i < ct.length; i += CHUNK) chunks.push(ct.slice(i, i + CHUNK));
-  if (chunks.length > MAX_CHUNKS) throw new Error("Too much jar history to sync; close or trim some jars");
+  if (chunks.length > MAX_CHUNKS) throw new Error("Too much Snowbank history to sync; close or trim some Snowbanks");
   const header = new Uint8Array([1, chunks.length, ...iv]);
   return { header, chunks };
 }
@@ -68,7 +68,7 @@ export function syncCost(nextChunks: number, existingChunks: number, baseFeeStro
 
 /** Build (unsigned) the manageData transaction; stale higher chunks are deleted (value null) to free reserve. */
 export function buildSyncTx(i: { source: string; sequence: string; passphrase: string; header: Uint8Array; chunks: Uint8Array[]; existingChunks: number }): string {
-  if (!JAR_SYNC_ENABLED) throw new Error("Jar sync is not enabled yet");
+  if (!JAR_SYNC_ENABLED) throw new Error("Snowbank sync is not enabled yet");
   const b = new TransactionBuilder(new Account(i.source, i.sequence), { fee: BASE_FEE, networkPassphrase: i.passphrase }).setTimeout(180);
   b.addOperation(Operation.manageData({ name: `${PREFIX}h`, value: Buffer.from(i.header) }));
   i.chunks.forEach((c, k) => b.addOperation(Operation.manageData({ name: `${PREFIX}${k}`, value: Buffer.from(c) })));
@@ -100,9 +100,9 @@ export function passphraseProblem(p: string, confirm?: string): string | null {
 
 /** Remove every sync entry (header + all chunks). Frees their reserve. Unsigned. */
 export function buildClearTx(i: { source: string; sequence: string; passphrase: string; data: Record<string, string> | undefined }): string {
-  if (!JAR_SYNC_ENABLED) throw new Error("Jar sync is not enabled yet");
+  if (!JAR_SYNC_ENABLED) throw new Error("Snowbank sync is not enabled yet");
   const keys = Object.keys(i.data ?? {}).filter((k) => /^qj(h|\d+)$/.test(k));
-  if (!keys.length) throw new Error("There is no synced jar data on this account");
+  if (!keys.length) throw new Error("There is no synced Snowbank data on this account");
   const b = new TransactionBuilder(new Account(i.source, i.sequence), { fee: BASE_FEE, networkPassphrase: i.passphrase }).setTimeout(180);
   keys.forEach((name) => b.addOperation(Operation.manageData({ name, value: null })));
   return b.build().toXDR();

@@ -78,7 +78,7 @@ describe("merge on load", () => {
 });
 
 describe("sync transaction + cost", () => {
-  it("cost: 0.5 XLM per entry, a couple of jars ≈ 2 XLM, rewrites refund stale entries", async () => {
+  it("cost: 0.5 XLM per entry, a couple of Snowbanks ≈ 2 XLM, rewrites refund stale entries", async () => {
     const { chunks } = await sealLedger(base(), "correct horse", ADDR);
     const c = syncCost(chunks.length, 0, 100, false);
     expect(c.entries).toBe(chunks.length + 1); expect(c.reserveDeltaXlm).toBe(c.entries * 0.5);
@@ -119,12 +119,12 @@ describe("sync UI", () => {
     const h = html(st());
     expect(h).toContain('data-testid="jar-sync-confirm"'); expect(h).toContain('type="password"');
     expect(text(h)).toContain(WARNING.split(",")[0]);
-    expect(text(h)).toMatch(/0\.5 XLM of reserve \(about 2 XLM for a couple of jars, 20 XLM at most\)/);
+    expect(text(h)).toMatch(/0\.5 XLM of reserve \(about 2 XLM for a couple of Snowbanks, 20 XLM at most\)/);
   });
   it("unlock when synced data exists: single field, prompts merge", () => {
     const h = html(st({ remote: true, entries: 4 }));
     expect(h).not.toContain('data-testid="jar-sync-confirm"');
-    expect(text(h)).toMatch(/Synced jars were found/); expect(text(h)).toContain("Unlock");
+    expect(text(h)).toMatch(/Synced Snowbanks were found/); expect(text(h)).toContain("Unlock");
   });
   it("merge offer lists changes and blocks Sync now until saved", () => {
     const b0 = base(); const m = mergeLedgers(b0, createJar(b0, { name: "Boat", fund: "XLM" }, 9, rnd));

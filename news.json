@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-27T15:23:42.368Z",
+ "generatedAt": "2026-10-27T22:18:35.745Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-27T14:50:21.250Z",
+  "updatedAt": "2026-10-27T22:04:30.240Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -106,7 +106,7 @@
    "kind": "outlet",
    "home": "https://cointelegraph.com/tags/stellar",
    "feed": "https://cointelegraph.com/rss/tag/stellar",
-   "count": 4,
+   "count": 5,
    "ok": true
   },
   {
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "10bwwra",
+   "title": "Janus Henderson, Centrifuge launch tokenized Nasdaq-100 fund on Stellar",
+   "url": "https://cointelegraph.com/news/janus-henderson-centrifuge-launch-tokenized-nasdaq-100-fund-on-stellar",
+   "publishedAt": "2026-10-27T16:37:15.000Z",
+   "excerpt": "The blockchain-based fund offers eligible non-US investors exposure to the Nasdaq-100 as Janus Henderson expands its institutional tokenization business.",
+   "image": "https://s3-images.ctmedia.io/media/article-covers/2026/10/01M5Z1HSZ4K8KMEHK6XPMYYZ30/hi-crypto-goes-for-nasdaq-solana.png",
+   "source": "cointelegraph",
+   "sourceName": "Cointelegraph",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
   {
    "id": "1m3q9g0",
    "title": "Nasdaq-100 comes onchain as Janus Henderson and Centrifuge launch first licensed fund",

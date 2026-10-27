@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-27T09:04:16.737Z",
+ "generatedAt": "2026-10-27T15:23:42.368Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-27T08:54:29.692Z",
+  "updatedAt": "2026-10-27T14:50:21.250Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -115,7 +115,7 @@
    "kind": "outlet",
    "home": "https://www.coindesk.com",
    "feed": "https://www.coindesk.com/arc/outboundfeeds/rss/",
-   "count": 0,
+   "count": 1,
    "ok": true
   },
   {
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "1m3q9g0",
+   "title": "Nasdaq-100 comes onchain as Janus Henderson and Centrifuge launch first licensed fund",
+   "url": "https://www.coindesk.com/business/2026/10/27/nasdaq-100-comes-onchain-as-janus-henderson-and-centrifuge-launch-first-licensed-fund",
+   "publishedAt": "2026-10-27T14:21:10.000Z",
+   "excerpt": "The $500 billion asset manager is launching an issuer-sponsored fund on Stellar, taking a different approach from third-party stock tokens.",
+   "image": "https://cdn.sanity.io/images/s3y3vcno/production/60d78c8a6f29390ee0f01e24c3716375d109cf64-4428x2990.jpg?fm=jpg&w=800&h=450&crop=focalpoint&fit=clip",
+   "source": "coindesk",
+   "sourceName": "CoinDesk",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
   {
    "id": "986p37",
    "title": "JS Stellar SDK v17.4.0 released",

@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-28T05:47:11.613Z",
+ "generatedAt": "2026-10-28T13:00:05.425Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-28T05:38:52.889Z",
+  "updatedAt": "2026-10-28T12:10:06.595Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -25,7 +25,7 @@
    "kind": "blog",
    "home": "https://stellar.org/blog/developers",
    "feed": "https://stellar.org/blog/developers/rss.xml",
-   "count": 3,
+   "count": 4,
    "ok": true
   },
   {
@@ -115,7 +115,7 @@
    "kind": "outlet",
    "home": "https://www.coindesk.com",
    "feed": "https://www.coindesk.com/arc/outboundfeeds/rss/",
-   "count": 1,
+   "count": 2,
    "ok": true
   },
   {
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "ys0nfo",
+   "title": "Securitize adds Stellar blockchain as institutional tokenization gathers steam",
+   "url": "https://www.coindesk.com/business/2026/10/28/securitize-adds-stellar-blockchain-as-institutional-tokenization-gathers-steam",
+   "publishedAt": "2026-10-28T09:00:00.000Z",
+   "excerpt": "The firms announced the agreement at Meridian 2026, the Stellar Development Foundation’s annual conference in Portugal.",
+   "image": "https://cdn.sanity.io/images/s3y3vcno/production/0df058fe321b648948d8a5b690588aaafbb157fe-2048x1152.jpg?fm=jpg&w=800&h=450&crop=focalpoint&fit=clip",
+   "source": "coindesk",
+   "sourceName": "CoinDesk",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
   {
    "id": "10bwwra",
    "title": "Janus Henderson, Centrifuge launch tokenized Nasdaq-100 fund on Stellar",
@@ -153,6 +167,20 @@
    "source": "coindesk",
    "sourceName": "CoinDesk",
    "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
+  {
+   "id": "1mngt01",
+   "title": "Introducing Stellar Project Thruput: blockchain compute, unrationed",
+   "url": "https://stellar.org/blog/foundation-news/introducing-stellar-project-thruput",
+   "publishedAt": "2026-10-26T20:18:48.000Z",
+   "excerpt": "Stellar Project Thruput is a technology preview of a new execution model that lets blockchain compute grow by adding machines. Live on FutureNet with open-source code and benchmarks.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/86e1663d8f8056e80b6315c548671e8a7ac3d1b9-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
    "tags": [
     "ecosystem"
    ]
@@ -645,8 +673,8 @@
    "publishedAt": "2026-08-25T12:22:44.000Z",
    "excerpt": "Stellar's Developer Preview introduces Stellar Private Payments—a Nethermind-built privacy pool that gives payments counterparty-level privacy on public rails.",
    "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/10070c3216d2314e97716c8103eb9bf7a0c28f40-1024x768.png",
-   "source": "sdf",
-   "sourceName": "Stellar Development Foundation",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
    "kind": "blog",
    "tags": [
     "developers"

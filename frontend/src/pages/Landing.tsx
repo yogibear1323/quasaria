@@ -519,7 +519,7 @@ export default function Landing() {
           </section>
 
           {/* Sizzle reel: not part of the 15-section approved outline, so its copy lives in lib/sizzle.ts */}
-          <Section id="watch" n={0} scene="quasar" onScene={onScene} kicker={SIZZLE_COPY.kicker} headline={SIZZLE_COPY.headline} pitch={SIZZLE_COPY.pitch} unnumbered><ExplainerVideo name="quasaria-home-tour" title="Quasaria tour" testid="home-video" note="About 1½ minutes · captions are part of the video." /></Section>
+          <Section id="watch" n={0} scene="quasar" onScene={onScene} kicker={SIZZLE_COPY.kicker} headline={SIZZLE_COPY.headline} pitch={SIZZLE_COPY.pitch} unnumbered><ExplainerVideo name="quasaria-home-tour" title="Quasaria tour" testid="home-video" note="About 1½ minutes · captions are part of the video." /><ExplainerVideo name="quasaria-explainer" title="What Quasaria is: your window into Stellar" testid="home-explainer-video" style={{ marginTop: 16 }} note="About 1½ minutes · captions are part of the video. Quasaria never holds your assets or keys." /></Section>
           <Section id="feature-videos" n={0} scene="quasar" onScene={onScene} kicker={FEATURE_VIDEOS_COPY.kicker} headline={FEATURE_VIDEOS_COPY.headline} pitch={FEATURE_VIDEOS_COPY.pitch} unnumbered><FeatureVideos /></Section>
           <Section id="markets" n={2} scene="constellation" onScene={onScene}><MarketsPreview /></Section>
           <Section id="news" n={12} scene="constellation" onScene={onScene} kicker="News" unnumbered><NewsPreview /></Section>

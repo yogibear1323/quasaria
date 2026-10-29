@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-10-29T10:03:05.158Z",
+ "generatedAt": "2026-10-29T18:30:24.072Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-10-29T09:10:46.111Z",
+  "updatedAt": "2026-10-29T15:05:01.315Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "wxc6bg",
+   "title": "Freighter is now Varial: Your wallet for discovering Stellar",
+   "url": "https://stellar.org/blog/foundation-news/freighter-is-now-varial",
+   "publishedAt": "2026-10-29T00:00:00.000Z",
+   "excerpt": "Freighter is now Varial, with a new name and a new focus: helping you discover and use the best apps, assets, and opportunities across the Stellar ecosystem.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/f48c6df90127b7c5be364e0425275a13b3fae272-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
   {
    "id": "1mngt01",
    "title": "Introducing Stellar Project Thruput: blockchain compute, unrationed",
@@ -534,21 +548,6 @@
    "kind": "blog",
    "tags": [
     "ecosystem"
-   ]
-  },
-  {
-   "id": "x7yccn",
-   "title": "USDT0 is now live on Stellar",
-   "url": "https://stellar.org/blog/foundation-news/usdt0-is-now-live-on-stellar",
-   "publishedAt": "2026-09-02T00:00:00.000Z",
-   "excerpt": "USDT0 is now live on Stellar, bringing access to global USDT liquidity for payments, DeFi, and emerging-market use cases.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/6a98cd24b9b768659e1fdfaee93d75d498340ea2-1024x768.png",
-   "source": "sdf",
-   "sourceName": "Stellar Development Foundation",
-   "kind": "blog",
-   "tags": [
-    "ecosystem",
-    "mainnet"
    ]
   },
   {

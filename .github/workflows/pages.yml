@@ -67,11 +67,12 @@ jobs:
               console.log("bundled news.json from news-data:", next.generatedAt, next.items.length, "items");
             } else console.log("keeping the committed news.json:", cur && cur.generatedAt);
           '
-      - name: Build (served under /<repo>/)
+      - name: Build (served at the root of https://quasaria.online/)
         run: npm run build
         env:
-          # "/quasaria/" for https://<owner>.github.io/quasaria/
-          VITE_BASE: /${{ github.event.repository.name }}/
+          # Custom domain (frontend/public/CNAME): the app lives at the site root.
+          VITE_BASE: /
+          VITE_SITE_URL: https://quasaria.online
           VITE_NETWORK: mainnet
           # Quasaria trading fee (0.1%, decided 2026-10-19). ON since 2026-10-19 (fee wallet funded, USDC + GLACIERQ trustlines).
           # Set VITE_FEE_BPS to "0" or remove it to turn the fee off (fee wallet = GCFL7SS3SMAT4X2VGROPYXX47P6QIXKYMRNGT5EIFYZRQUAN7GK433J2):

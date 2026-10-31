@@ -3,6 +3,7 @@ import { VaultLink } from "../components/VaultLink";
 import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import LpEarn from "../components/LpEarn";
 import PoolSections, { sectionOf } from "../components/PoolSections";
 import { PageHead, Tabs, TxStatus, useTx } from "../components/ui";
 import { AssetLogo } from "../components/AssetBits";
@@ -93,6 +94,8 @@ export default function Pools() {
         Stellar's native liquidity pools: add both sides of a pair and earn a share of the 0.30% fee on every swap. Impermanent loss can outweigh fees.
       </PageHead>
       <div className="notice" role="note" style={{ marginBottom: 12, fontSize: "0.82rem" }}><b>Plainly:</b> a pool is a protocol feature of Stellar, not a Quasaria contract. Your share is a pool-share trustline on your own account. Fees accrue inside the pool and are paid out when you withdraw. Past volume does not predict future fees, and the fee APR shown is an estimate that ignores impermanent loss.</div>
+
+      <LpEarn net={net} pricing={pricing} onBecome={() => { setSection("other"); setTimeout(() => document.querySelector('[data-testid="pair-picker"]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 60); }} />
 
       <div className="tabs" style={{ marginBottom: 10 }} role="tablist" data-testid="pool-sections">
         <button className={section === "other" ? "on" : ""} onClick={() => setSection("other")} data-testid="pool-sec-other">Other assets</button>

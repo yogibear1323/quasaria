@@ -836,3 +836,24 @@ html[data-tab-hidden] .holders-anim *, html[data-tab-hidden] .holders-anim *::be
 /* Pools: pinned GLACIERQ / XLM row */
 .t tr.pool-pin td { background: rgba(160, 220, 255, 0.07); border-top: 1px solid rgba(160, 220, 255, 0.28); border-bottom: 1px solid rgba(160, 220, 255, 0.28); }
 .pill.pin-badge { font-size: 0.55rem; background: rgba(160, 220, 255, 0.16); border-color: rgba(160, 220, 255, 0.45); color: #cfeeff; }
+
+/* Earn as a liquidity provider (Pools page) */
+.lp-earn-h { margin: 8px 0 6px; font-size: 1.35rem; }
+.lp-earn-sub { margin: 14px 0 8px; font-size: 1rem; }
+.lp-earn-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.lp-earn-card { position: relative; display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 12px 26px 12px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03); color: inherit; font: inherit; cursor: pointer; transition: transform .15s, border-color .15s; }
+.lp-earn-card:hover { transform: translateY(-2px); border-color: var(--gold, #E8A33D); }
+.lp-earn-card.on { border-color: var(--gold, #E8A33D); box-shadow: 0 0 0 1px var(--gold, #E8A33D) inset; }
+.lp-earn-rank { position: absolute; top: 8px; right: 10px; font-size: 0.75rem; opacity: 0.6; }
+.lp-earn-vol { font-size: 1.05rem; font-weight: 600; }
+.lp-earn-fee { color: var(--gold-honey, #F2B84B); font-size: 1.15rem; font-weight: 700; }
+.lp-earn-total { margin: 10px 0 0; font-size: 1rem; }
+.lp-earn-total .mono { color: var(--gold-honey, #F2B84B); font-weight: 700; font-size: 1.2rem; }
+.lp-earn-calc { margin-top: 14px; padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); }
+.lp-earn-out { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.lp-earn-out > div { display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 760px) {
+  .lp-earn-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lp-earn-out { grid-template-columns: 1fr; }
+  .lp-earn-h { font-size: 1.15rem; }
+}

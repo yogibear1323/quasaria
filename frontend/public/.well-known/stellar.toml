@@ -10,7 +10,7 @@ ACCOUNTS = [
 
 [DOCUMENTATION]
 ORG_NAME = "Quasaria"
-ORG_URL = "https://yogibear1323.github.io/quasaria/"
+ORG_URL = "https://quasaria.online/"
 ORG_LOGO = "https://yogibear1323.github.io/tokens/glacierq-512.png"
 ORG_DESCRIPTION = "Quasaria is a self-banking decentralized exchange on Stellar: swaps through the Stellar order book, liquidity pools, and Glacier (GLACIERQ) holder rewards. You hold the secret key and sign everything in your own browser."
 ORG_GITHUB = "yogibear1323"
@@ -24,7 +24,7 @@ display_decimals = 2
 name = "Glacier"
 desc = "Glacier (GLACIERQ) is the rewards token of Quasaria, a self-banking decentralized exchange on Stellar where you trade, earn and stay in full control of your keys. Holders earn daily rewards of 1% a month (12% a year) on balances from 1 million GLACIERQ, paid by ordinary Stellar payments from a fixed 50 billion reward reserve, out of a fixed 100 billion total supply (issuer locked). Rewards are not guaranteed and may be capped. Its mascot is the Quasaria yeti."
 conditions = "GLACIERQ rewards are paid from a finite reserve, put more GLACIERQ into circulation, dilute holders who do not receive them, are not guaranteed, and a daily cap (currently 10,000,000 GLACIERQ per day) can reduce them. Not financial advice."
-image = "https://yogibear1323.github.io/quasaria/tokens/glacierq-quasaria-512.png"
+image = "https://quasaria.online/tokens/glacierq-quasaria-512.png"
 fixed_number = 100000000000
 max_number = 100000000000
 is_unlimited = false

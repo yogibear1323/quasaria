@@ -47,8 +47,8 @@ export default function GlacierqAbout({ onClose }: { onClose?: () => void }) {
         <dt>Issuer</dt><dd className="mono" style={{ wordBreak: "break-all" }}>{issuer} <CopyButton value={issuer} what="issuer" /> {explorerAccountUrl(issuer, "mainnet") && <a href={explorerAccountUrl(issuer, "mainnet")!} {...ext}>StellarChain.io ↗</a>}</dd>
         <dt>Supply</dt><dd className="mono">{f?.supply != null ? `${f.supply.toLocaleString("en-US")} GLACIERQ` : "100,000,000,000 GLACIERQ"} (fixed)</dd>
         <dt>Issuer locked</dt><dd data-testid="glacierq-about-locked">{f == null ? "checking…" : f.locked ? "Yes: issuer signing weight is 0, so no more GLACIERQ can ever be issued" : f.locked === false ? "No" : dash}</dd>
-        <dt>Home domain</dt><dd><a href={`https://${f?.homeDomain ?? HOME}`} {...ext}>{f?.homeDomain ?? HOME}</a></dd>
-        <dt>stellar.toml</dt><dd><a href={TOML} {...ext}>{HOME}/.well-known/stellar.toml</a></dd>
+        <dt>Home domain (on-chain)</dt><dd><a href={`https://${f?.homeDomain ?? HOME}`} {...ext}>{f?.homeDomain ?? HOME}</a> <span className="muted" style={{ fontSize: "0.7rem" }}>(issuer locked, can't change)</span></dd>
+        <dt>stellar.toml</dt><dd><a href="https://quasaria.online/.well-known/stellar.toml" {...ext}>quasaria.online/.well-known/stellar.toml</a> <span className="muted" style={{ fontSize: "0.7rem" }}>(mirror; original at <a href={TOML} {...ext}>{HOME}/.well-known/stellar.toml</a>)</span></dd>
         <dt>Trustlines</dt><dd className="mono" data-testid="glacierq-about-trustlines">{f?.trustlines != null ? f.trustlines.toLocaleString("en-US") : f ? dash : "…"}</dd>
         <dt>Holder rewards</dt><dd>1% a month (12% a year) from 1M · same rate from 10M · paid daily · <Link to="/holders">Holders page</Link></dd>
         <dt>Explorer</dt><dd>{explorerAssetUrl(REWARD_ASSET_CODE, issuer, "mainnet") ? <a href={explorerAssetUrl(REWARD_ASSET_CODE, issuer, "mainnet")!} {...ext}>GLACIERQ on StellarChain.io</a> : dash}</dd>

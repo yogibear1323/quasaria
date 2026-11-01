@@ -11,7 +11,7 @@ ACCOUNTS = [
 [DOCUMENTATION]
 ORG_NAME = "Quasaria"
 ORG_URL = "https://quasaria.online/"
-ORG_LOGO = "https://yogibear1323.github.io/tokens/glacierq-512.png"
+ORG_LOGO = "https://quasaria.online/tokens/glacierq-512.png"
 ORG_DESCRIPTION = "Quasaria is a self-banking decentralized exchange on Stellar: swaps through the Stellar order book, liquidity pools, and Glacier (GLACIERQ) holder rewards. You hold the secret key and sign everything in your own browser."
 ORG_GITHUB = "yogibear1323"
 

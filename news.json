@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-03T06:52:57.416Z",
+ "generatedAt": "2026-11-03T17:06:32.745Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-03T06:34:27.454Z",
+  "updatedAt": "2026-11-03T17:05:20.952Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -88,7 +88,7 @@
    "kind": "status",
    "home": "https://status.stellar.org",
    "feed": "https://status.stellar.org/history.atom",
-   "count": 2,
+   "count": 3,
    "ok": true
   },
   {
@@ -129,6 +129,22 @@
   }
  ],
  "items": [
+  {
+   "id": "1q1i3xx",
+   "title": "Bell, Protocol 30 Testnet Upgrade",
+   "url": "https://status.stellar.org/incidents/4p75xxpd0kkv",
+   "publishedAt": "2026-11-03T17:05:18.000Z",
+   "excerpt": "Nov 3, 17:05 UTC Completed - The scheduled maintenance has been completed. Nov 3, 17:00 UTC In progress - Scheduled maintenance is currently in progress. We will provide updates as necessary. Oct…",
+   "image": null,
+   "source": "stellar-status",
+   "sourceName": "Stellar Status",
+   "kind": "status",
+   "tags": [
+    "protocol",
+    "mainnet",
+    "network-status"
+   ]
+  },
   {
    "id": "3rybrv",
    "title": "Stellar CLI v30.0.1 released",

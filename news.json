@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-02T21:43:55.491Z",
+ "generatedAt": "2026-11-03T06:52:57.416Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-02T20:29:19.063Z",
+  "updatedAt": "2026-11-03T06:34:27.454Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "3rybrv",
+   "title": "Stellar CLI v30.0.1 released",
+   "url": "https://github.com/stellar/stellar-cli/releases/tag/v30.0.1",
+   "publishedAt": "2026-11-03T03:03:01.000Z",
+   "excerpt": "What's New Token admin commands stellar token now covers the common admin operations for Stellar Asset Contracts: stellar token mint: mint new tokens to an address (#2716) stellar token clawback…",
+   "image": null,
+   "source": "stellar-cli",
+   "sourceName": "Stellar CLI releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
   {
    "id": "wxc6bg",
    "title": "Freighter is now Varial: Your wallet for discovering Stellar",
@@ -737,20 +751,6 @@
     "protocol",
     "developers",
     "mainnet"
-   ]
-  },
-  {
-   "id": "15w1bu3",
-   "title": "Stellar CLI v27.1.0 released",
-   "url": "https://github.com/stellar/stellar-cli/releases/tag/v27.1.0",
-   "publishedAt": "2026-07-31T13:55:51.000Z",
-   "excerpt": "Tokens & Assets stellar token transfer — transfer tokens for SEP-41 and Stellar Asset Contracts (#2644) stellar token balance — new command to check token…",
-   "image": null,
-   "source": "stellar-cli",
-   "sourceName": "Stellar CLI releases",
-   "kind": "release",
-   "tags": [
-    "developers"
    ]
   },
   {

@@ -1,0 +1,52 @@
+name: Market data
+
+# Refreshes the stellarchain.io market data every 15 minutes WITHOUT redeploying the site.
+# api.stellarchain.io sometimes stops sending CORS headers, so browsers can't call it directly.
+# This job fetches it server-side (frontend/scripts/fetch-market-snapshot.mjs, no secrets) and
+# force-pushes the two JSON files as a single commit to the `market-data` branch (no history
+# growth). The site reads them from raw.githubusercontent.com (CORS *), and every Pages build
+# also bundles the latest copy as the same-origin fallback. Off-the-hour minutes avoid the
+# top-of-hour cron backlog; GitHub may still delay scheduled runs under load.
+on:
+  schedule:
+    - cron: "4,19,34,49 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: frontend/scripts
+      - uses: actions/checkout@v7
+        with:
+          ref: market-data
+          path: .market-data
+        continue-on-error: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Fetch market data (stellarchain.io -> JSON)
+        run: |
+          mkdir -p out
+          cp .market-data/*.json out/ 2>/dev/null || true
+          node frontend/scripts/fetch-market-snapshot.mjs out/stellarchain-snapshot.json
+          test -s out/stellarchain-snapshot.json
+      - name: Publish to the market-data branch
+        run: |
+          cd out
+          git init -q -b market-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stellarchain-snapshot.json markets-mainnet.json 2>/dev/null || git add stellarchain-snapshot.json
+          git commit -q -m "market data $(date -u +%FT%TZ)"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" market-data

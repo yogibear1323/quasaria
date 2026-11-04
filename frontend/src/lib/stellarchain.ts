@@ -211,6 +211,8 @@ export interface ClientOptions {
   now?: () => number;
   /** false = never call the live API from this client (snapshot only). The API sends no CORS headers for github.io. */
   live?: boolean;
+  /** If the snapshot is newer than this (ms), use it without calling the live API (avoids CORS-blocked requests). */
+  preferSnapshotMaxAgeMs?: number;
 }
 
 export class StellarchainError extends Error {
@@ -232,6 +234,7 @@ export class StellarchainClient {
   private readonly snapshotSrc: ClientOptions["snapshot"];
   private snapshotP: Promise<MarketSnapshot | null> | null = null;
   private readonly live: boolean;
+  private readonly preferSnapMs: number;
 
   constructor(o: ClientOptions = {}) {
     this.base = (o.baseUrl ?? STELLARCHAIN_BASE).replace(/\/$/, "");
@@ -242,6 +245,7 @@ export class StellarchainClient {
     this.now = o.now ?? Date.now;
     this.snapshotSrc = o.snapshot ?? null;
     this.live = o.live ?? true;
+    this.preferSnapMs = o.preferSnapshotMaxAgeMs ?? 0;
   }
 
   /** GET a path (relative to /v1) with the required JSON-LD Accept header, cached. */
@@ -304,6 +308,11 @@ export class StellarchainClient {
   private async withSnapshot<R, T>(live: () => Promise<{ data: R; fresh: boolean; at: number }>, fromLive: (r: R) => T, fromSnap: (s: MarketSnapshot) => { value: T; at: string } | null): Promise<T & Sourced> {
     let r: { data: R; fresh: boolean; at: number } | null = null;
     let err: unknown = null;
+    if (this.preferSnapMs > 0) {
+      const snap0 = await this.loadSnapshot();
+      const s0 = snap0 ? fromSnap(snap0) : null;
+      if (s0 && !isStale(s0.at, this.preferSnapMs, this.now())) return { ...s0.value, source: "snapshot", snapshotAt: s0.at };
+    }
     try {
       r = await live();
       if (r.fresh) return { ...fromLive(r.data), source: "live" };
@@ -398,9 +407,32 @@ export class StellarchainClient {
 const BASE_URL: string = import.meta.env?.BASE_URL ?? "/";
 export const SNAPSHOT_URL = `${BASE_URL.replace(/\/?$/, "/")}data/stellarchain-snapshot.json`;
 
-/** Shared browser instance: live API first, build-time snapshot as fallback. */
-/** On GitHub Pages the API blocks browsers (no CORS), so the site reads only the snapshot that the build/30-min refresh writes. */
+/**
+ * Market data refreshed every 15 min by the "Market data" workflow (market-data.yml), committed to the
+ * `market-data` branch and read from raw.githubusercontent.com (CORS *), so it stays fresh without a redeploy.
+ * The copy bundled into the Pages build (same origin) is the fallback; whichever is newer wins.
+ */
+export const MARKET_DATA_LIVE_BASE = (import.meta.env?.VITE_MARKET_DATA_URL as string | undefined) || "https://raw.githubusercontent.com/yogibear1323/quasaria/market-data/";
+const genAt = (j: { generatedAt?: string | null } | null) => (j?.generatedAt ? Date.parse(j.generatedAt) || 0 : 0);
+/** Fetch the branch copy and the bundled copy of a data file; return the newer valid one. */
+export async function loadNewestJson<T extends { generatedAt?: string | null }>(file: string, valid: (j: T) => boolean, f: typeof fetch = (...a) => fetch(...a)): Promise<T | null> {
+  const get = (u: string) =>
+    f(u, { headers: { Accept: "application/json" }, cache: "no-cache" })
+      .then((r) => (r.ok ? (r.json() as Promise<T>) : null))
+      .then((j) => (j && typeof j === "object" && valid(j) ? j : null))
+      .catch(() => null);
+  const [a, b] = await Promise.all([get(`${MARKET_DATA_LIVE_BASE}${file}`), get(`${BASE_URL.replace(/\/?$/, "/")}data/${file}`)]);
+  if (a && b) return genAt(a) >= genAt(b) ? a : b;
+  return a ?? b;
+}
+
+/** Shared browser instance: the refreshed market-data file first (if < 45 min old), then the live API, then the newest snapshot. */
+/** On github.io the API never sends CORS headers, so the live API is skipped there. */
 const BROWSER_LIVE = typeof window === "undefined" || !/\.github\.io$/.test(window.location.hostname);
-export const stellarchain = new StellarchainClient({ snapshot: typeof window !== "undefined" ? SNAPSHOT_URL : null, live: BROWSER_LIVE });
+export const stellarchain = new StellarchainClient({
+  snapshot: typeof window !== "undefined" ? () => loadNewestJson<MarketSnapshot>("stellarchain-snapshot.json", (j) => j.version === 1) : null,
+  live: BROWSER_LIVE,
+  preferSnapshotMaxAgeMs: 45 * 60_000,
+});
 /** Full mainnet list (top 1,000) written by scripts/fetch-market-snapshot.mjs; loaded only by the Markets tab. */
 export const MARKETS_FULL_URL = `${BASE_URL.replace(/\/?$/, "/")}data/markets-mainnet.json`;

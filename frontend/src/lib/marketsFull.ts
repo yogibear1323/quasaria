@@ -1,10 +1,10 @@
 /**
  * Markets tab: the full mainnet list (top 1,000) from public/data/markets-mainnet.json
- * (written at build / every 30-min refresh by scripts/fetch-market-snapshot.mjs; the
+ * (written at build and every 15 min to the market-data branch by scripts/fetch-market-snapshot.mjs; the
  * browser never calls stellarchain.io), sorting, paging, search beyond the list
  * (stellar.expert + Horizon, both CORS-enabled) and the per-asset About data.
  */
-import { MARKETS_FULL_URL, normalizeMarketAsset, type MarketAsset, type RawMarketAsset } from "./stellarchain";
+import { loadNewestJson, normalizeMarketAsset, type MarketAsset, type RawMarketAsset } from "./stellarchain";
 import type { LiveRow } from "./liveMarkets";
 
 export const PAGE_SIZE = 100;
@@ -12,10 +12,13 @@ export const MAX_PAGES = 10;
 
 export type FullList = { at: string | null; assets: MarketAsset[]; raw: Map<string, RawMarketAsset>; sources?: { stellarchain?: number; stellarExpert?: number } };
 let fullP: Promise<FullList | null> | null = null;
-export function loadFullList(url = MARKETS_FULL_URL, f: typeof fetch = fetch): Promise<FullList | null> {
+type FullJson = { generatedAt?: string; fetchedAt?: string; member?: RawMarketAsset[]; sources?: FullList["sources"] };
+/** With no arguments: the newer of the 15-min refreshed `market-data` branch copy and the bundled copy. */
+export function loadFullList(url?: string, f: typeof fetch = fetch): Promise<FullList | null> {
   if (!fullP)
-    fullP = f(url, { headers: { Accept: "application/json" } })
-      .then((r) => (r.ok ? r.json() : null))
+    fullP = (url
+      ? f(url, { headers: { Accept: "application/json" } }).then((r) => (r.ok ? (r.json() as Promise<FullJson>) : null))
+      : loadNewestJson<FullJson>("markets-mainnet.json", (j) => Array.isArray(j.member) && j.member.length > 0))
       .then((j: { generatedAt?: string; fetchedAt?: string; member?: RawMarketAsset[]; sources?: FullList["sources"] } | null) => {
         if (!j?.member?.length) return null;
         const raw = new Map<string, RawMarketAsset>();

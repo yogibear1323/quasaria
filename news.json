@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-06T16:47:54.462Z",
+ "generatedAt": "2026-11-06T23:12:53.133Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-06T15:14:44.858Z",
+  "updatedAt": "2026-11-06T22:04:35.274Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "9ehm7v",
+   "title": "Stellar Ambassador Program: September and October 2026",
+   "url": "https://stellar.org/blog/ecosystem/stellar-ambassador-program-september-october-2026",
+   "publishedAt": "2026-11-06T00:00:00.000Z",
+   "excerpt": "From hackathons in Istanbul and Lima to new Instawards across 11 chapters, here's what the Stellar Ambassador Program's chapters built in September and October 2026.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/b82f5d9ffdf00e276232cee7af8540a81d42b01a-2400x1264.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
   {
    "id": "1q1i3xx",
    "title": "Bell, Protocol 30 Testnet Upgrade",
@@ -562,20 +576,6 @@
    "source": "cointelegraph",
    "sourceName": "Cointelegraph",
    "kind": "outlet",
-   "tags": [
-    "ecosystem"
-   ]
-  },
-  {
-   "id": "l9vc9p",
-   "title": "A Bank-Issued Stablecoin Moves Real Money on Stellar",
-   "url": "https://stellar.org/blog/ecosystem/a-bank-issued-stablecoin-moves-real-money-on-stellar",
-   "publishedAt": "2026-09-09T00:00:00.000Z",
-   "excerpt": "U.S. Bank completed its first pilot transaction on the Stellar network, using USBDC, its proprietary dollar-backed stablecoin, to move a cross-border payment between its entities in North America…",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/bbf3adcc73ac5d5c54a589d5536399845c6907e5-2048x1536.png",
-   "source": "sdf",
-   "sourceName": "Stellar Development Foundation",
-   "kind": "blog",
    "tags": [
     "ecosystem"
    ]

@@ -3,7 +3,7 @@ import { VaultLink } from "../components/VaultLink";
 import { NETWORK, IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import LpEarn from "../components/LpEarn";
+import LpCalculator from "../components/calc/LpCalculator";
 import PoolSections, { sectionOf } from "../components/PoolSections";
 import { PageHead, Tabs, TxStatus, useTx } from "../components/ui";
 import { AssetLogo } from "../components/AssetBits";
@@ -13,7 +13,7 @@ import { useXlmUsd } from "../lib/markets";
 import { useAsync } from "../lib/useAsync";
 import { fmt, fmtCompact } from "../lib/format";
 import {
-  BASE_RESERVE, MAINNET_BROWSE, NETS, buildDepositTx, buildWithdrawTx, curatedList, deriveXlmUsd, depositReserveCost, feeApr, fetchAccountBalances, fetchAssetBalance,
+  BASE_RESERVE, MAINNET_BROWSE, NETS, buildDepositTx, buildWithdrawTx, curatedList, deriveXlmUsd, depositReserveCost, fetchAccountBalances, fetchAssetBalance,
   fetchPoolById, fetchPoolForPair, fetchPoolsByLookup, parseLookup, fetchPositions, loadCuratedPools, fetchRecentPools, fetchVolume24h, keyOf, orderAssets, poolIdFor, poolVerified, pooled, previewDeposit, previewWithdraw, spot, tvlUsd,
   verifyAsset, volumeUnit, type AssetRef, type NetId, type PoolRow, type Pricing,
 } from "../lib/nativePools";
@@ -22,6 +22,7 @@ import { feeEnabled, feePctText, feeText, loadFeeReceiver, planFees } from "../l
 import { HORIZON_URL } from "../lib/config";
 import { toSdk } from "../lib/nativePools";
 import { REWARD_ASSET_CODE, REWARD_ISSUER } from "../lib/rewards";
+import { tableFeeApr } from "../lib/lpQuote";
 
 const logoOf = (net: NetId, a: AssetRef) => !a.issuer ? XLM_LOGO : curatedList(net).find((c) => c.code === a.code && c.issuer === a.issuer)?.logo ?? null;
 function AssetChip({ net, a, size = 20 }: { net: NetId; a: AssetRef; size?: number }) {
@@ -95,7 +96,7 @@ export default function Pools() {
       </PageHead>
       <div className="notice" role="note" style={{ marginBottom: 12, fontSize: "0.82rem" }}><b>Plainly:</b> a pool is a protocol feature of Stellar, not a Quasaria contract. Your share is a pool-share trustline on your own account. Fees accrue inside the pool and are paid out when you withdraw. Past volume does not predict future fees, and the fee APR shown is an estimate that ignores impermanent loss.</div>
 
-      <LpEarn net={net} pricing={pricing} onBecome={() => { setSection("other"); setTimeout(() => document.querySelector('[data-testid="pair-picker"]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 60); }} />
+      <LpCalculator variant="compact" net={net} pricing={pricing} onOpenPool={(id) => { setSection("other"); setScope("recent"); setQ(id); setLookup(id); setSel(id); setTimeout(() => document.querySelector('[data-testid="pool-table"]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }} />
 
       <div className="tabs" style={{ marginBottom: 10 }} role="tablist" data-testid="pool-sections">
         <button className={section === "other" ? "on" : ""} onClick={() => setSection("other")} data-testid="pool-sec-other">Other assets</button>
@@ -133,7 +134,7 @@ export default function Pools() {
                     <td>{pin?.id === p.id && <><span className="pill pin-badge" title="Pinned">📌 Pinned</span> </>}<AssetChip net={net} a={p.a} /> <span className="muted">/</span> <AssetChip net={net} a={p.b} /> {poolVerified(net, p) ? <span className="pill green" style={{ fontSize: "0.55rem" }}>✔ verified</span> : null}</td>
                     <td className="mono">{usd(t)}</td>
                     <td className="mono">{p.volume == null ? "…" : vUsd != null ? `${usd(vUsd)}${p.truncated ? "+" : ""}` : `${amt(p.volume)} ${vu.unit.code}`}</td>
-                    <td className="mono">{(() => { const a = feeApr(vUsd, t); return a == null ? "—" : `${fmt(a, 2)}%`; })()}</td>
+                    <td className="mono" title={p.truncated ? "24h trade list was cut off, so the annualized rate is withheld" : "Pool fee rate before your deposit, from this 24h volume. The calculator includes your deposit."}>{(() => { const a = tableFeeApr(vUsd, t, !!p.truncated, p.volume == null, p.feeBp); return a === "loading" ? "…" : a === "incomplete" ? "incomplete" : a === "unknown" ? "—" : `${fmt(a, 2)}%`; })()}</td>
                     <td className="mono muted" style={{ fontSize: "0.72rem" }}>{amt(p.reserveA)} {p.a.code} / {amt(p.reserveB)} {p.b.code}</td>
                     <td className="mono">{p.holders}</td>
                     <td><button className="btn small ghost">Open</button></td>

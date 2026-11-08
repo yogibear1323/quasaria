@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { PageHead } from "../components/ui";
 import { useWallet } from "../lib/wallet";
 import { useAccount } from "../lib/useAccount";
-import { BUY_NOTE, BUY_PROVIDERS } from "../lib/buyProviders";
+import { BUY_NOTE, BUY_PROVIDERS, MAINNET_BUY_NOTICE } from "../lib/buyProviders";
 import { MAINNET_USDC_ISSUER } from "../lib/liveMarkets";
 import { Receive } from "./Wallet";
 import BuyWidget from "../components/BuyWidget";
@@ -47,7 +47,9 @@ export default function Buy() {
         <p className="muted" style={{ fontSize: "0.82rem", marginBottom: 0 }} data-testid="buy-note">{BUY_NOTE}</p>
       </div>
       <div className="notice" role="note" style={{ marginTop: 12, fontSize: "0.84rem" }} data-testid="buy-network-note">
-        <b>Heads up:</b> during this preview Quasaria runs on the Stellar <b>test network</b>, which uses free test XLM with no value. XLM you buy from these providers is real XLM on the main network, and it lands on the same address (one key works on both) but will not show here until Quasaria goes live. To try Quasaria now, {w.address ? <button className="btn small" onClick={() => w.openModal("fund")}>get free test XLM</button> : "create a keypair and use the free test XLM option"}.
+        {IS_MAINNET ? <><b>Heads up:</b> {MAINNET_BUY_NOTICE}</> : <>
+          <b>Heads up:</b> during this preview Quasaria runs on the Stellar <b>test network</b>, which uses free test XLM with no value. XLM you buy from these providers is real XLM on the main network, and it lands on the same address (one key works on both) but will not show here until Quasaria goes live. To try Quasaria now, {w.address ? <button className="btn small" onClick={() => w.openModal("fund")}>get free test XLM</button> : "create a keypair and use the free test XLM option"}.
+        </>}
       </div>
 
       <h2 className="buy-step" style={{ margin: "22px 0 8px" }}>3. Optional: USDC</h2>

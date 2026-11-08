@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageHead } from "../components/ui";
 import { NetworkStatusLine, NewsChips, NewsDisclaimer, NewsGrid, NewsHeader, NewsSources } from "../components/News";
@@ -10,9 +10,6 @@ export default function News() {
   const [params, setParams] = useSearchParams();
   const raw = params.get("cat");
   const tag: NewsTagId | "all" = NEWS_TAGS.some((t) => t.id === raw) ? (raw as NewsTagId) : "all";
-  useEffect(() => {
-    document.title = "Stellar news · Quasaria";
-  }, []);
   const items = useMemo(() => filterByTag(news.items, tag), [news.items, tag]);
   return (
     <div className="news-page">

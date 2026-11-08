@@ -12,21 +12,24 @@ export const MAX_PAGES = 10;
 
 export type FullList = { at: string | null; assets: MarketAsset[]; raw: Map<string, RawMarketAsset>; sources?: { stellarchain?: number; stellarExpert?: number } };
 let fullP: Promise<FullList | null> | null = null;
+let fullAt = 0;
+const FULL_RELOAD_MS = 5 * 60_000;
 type FullJson = { generatedAt?: string; fetchedAt?: string; member?: RawMarketAsset[]; sources?: FullList["sources"] };
-/** With no arguments: the newer of the 15-min refreshed `market-data` branch copy and the bundled copy. */
+/** With no arguments: the newer of the refreshed `market-data` branch copy and the bundled copy. Re-read every 5 min. */
 export function loadFullList(url?: string, f: typeof fetch = fetch): Promise<FullList | null> {
-  if (!fullP)
-    fullP = (url
-      ? f(url, { headers: { Accept: "application/json" } }).then((r) => (r.ok ? (r.json() as Promise<FullJson>) : null))
-      : loadNewestJson<FullJson>("markets-mainnet.json", (j) => Array.isArray(j.member) && j.member.length > 0))
-      .then((j: { generatedAt?: string; fetchedAt?: string; member?: RawMarketAsset[]; sources?: FullList["sources"] } | null) => {
-        if (!j?.member?.length) return null;
-        const raw = new Map<string, RawMarketAsset>();
-        const assets = j.member.filter((m) => typeof m.issuer === "string" && !!m.issuer).map((m) => { const a = normalizeMarketAsset(m); raw.set(a.key, m); return a; }).sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
-        return { at: j.fetchedAt ?? j.generatedAt ?? null, assets, raw, sources: j.sources };
-      })
-      .catch(() => null);
-  return fullP;
+  if (!url && fullP && Date.now() - fullAt < FULL_RELOAD_MS) return fullP;
+  const p = (url
+    ? f(url, { headers: { Accept: "application/json" } }).then((r) => (r.ok ? (r.json() as Promise<FullJson>) : null))
+    : loadNewestJson<FullJson>("markets-mainnet.json", (j) => Array.isArray(j.member) && j.member.length > 0))
+    .then((j: { generatedAt?: string; fetchedAt?: string; member?: RawMarketAsset[]; sources?: FullList["sources"] } | null) => {
+      if (!j?.member?.length) return null;
+      const raw = new Map<string, RawMarketAsset>();
+      const assets = j.member.filter((m) => typeof m.issuer === "string" && !!m.issuer).map((m) => { const a = normalizeMarketAsset(m); raw.set(a.key, m); return a; }).sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
+      return { at: j.fetchedAt ?? j.generatedAt ?? null, assets, raw, sources: j.sources };
+    })
+    .catch(() => null);
+  if (!url) { fullAt = Date.now(); fullP = p; }
+  return p;
 }
 export function _resetFullList() { fullP = null; }
 

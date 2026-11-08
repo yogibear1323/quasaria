@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { allocation, closeJar, createJar, deposit, emptyLedger, jarView, loadLedger, migrateV1, moveUnits, renameJar, resolveShortfall, saveLedger, toUnits, withdraw, type Ledger } from "../src/lib/jarsLedger";
 import { planJarSwap } from "../src/lib/jarsSwap";
-import { parseEtherfuse, isStale } from "../src/lib/jarsPrice";
+import { parseEtherfuse, isStale, ustryPriceAgeLabel, ustryRateLabel } from "../src/lib/jarsPrice";
 import { JAR_SYNC_ENABLED, buildSyncTx, openLedger, readSyncEntries, sealLedger, syncCost } from "../src/lib/jarsSync";
 
 const X = (v: number) => BigInt(Math.round(v * 1e7));
@@ -114,6 +114,14 @@ describe("price source", () => {
     expect(p).toMatchObject({ usd: 1.078221, ratePct: 3.6, at: 1792984662000 });
     expect(parseEtherfuse({ token_cost_in_usd: "99" })).toBeNull();
     expect(isStale(1000, 1000 + 31 * 60_000)).toBe(true); expect(isStale(1000, 1000 + 60_000)).toBe(false);
+    const now = Date.parse("2026-11-08T15:21:44Z");
+    const liveShape = parseEtherfuse({ token_cost_in_usd: "1.05", current_basis_points: 100, current_time: "2026-11-08T15:21:44Z", sources: { a: { updated_at: Math.floor(now / 1000) } } });
+    expect(liveShape?.ratePct).toBe(1);
+    expect(ustryRateLabel(liveShape)).toMatch(/Etherfuse weekly rate: 1\.00% APY/);
+    expect(ustryPriceAgeLabel(liveShape, now).text).toMatch(/^Public USTRY price · just now$/);
+    expect(ustryRateLabel(null)).toBe("USTRY weekly rate unavailable");
+    expect(ustryPriceAgeLabel(null).text).toBe("Public USTRY price unavailable");
+    expect(ustryPriceAgeLabel(null).text).not.toMatch(/Stale price/);
   });
 });
 

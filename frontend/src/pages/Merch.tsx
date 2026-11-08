@@ -1,6 +1,6 @@
 import { IS_MAINNET } from "../lib/config";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { CATEGORIES, EMAIL_RE, MERCH_APPLE_ICON, MERCH_CONTACT_EMAIL, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, MERCH_TITLE, PRODUCTS, fmtExample, readNotify, saveNotify, type Category, type Product } from "../merch/catalog";
+import { CATEGORIES, EMAIL_RE, MERCH_APPLE_ICON, MERCH_CONTACT_EMAIL, MERCH_FAVICON_PNG, MERCH_FAVICON_SVG, MERCH_MARK, PRODUCTS, fmtExample, readNotify, saveNotify, type Category, type Product } from "../merch/catalog";
 import "../theme/merch-frost.css";
 
 const YETI_LG = `${(import.meta.env?.BASE_URL ?? "/").replace(/\/?$/, "/")}frost/yeti-cutout-lg.webp`;
@@ -8,11 +8,9 @@ const YETI_LG = `${(import.meta.env?.BASE_URL ?? "/").replace(/\/?$/, "/")}frost
 /** While the store is open: yeti favicon / touch icon / tab title (restored when you leave). */
 function useMerchHead() {
   useEffect(() => {
-    const prevTitle = document.title;
-    document.title = MERCH_TITLE;
     const swaps: [string, string][] = [['link[rel="icon"][type="image/svg+xml"]', MERCH_FAVICON_SVG], ['link[rel="icon"][sizes="32x32"]', MERCH_FAVICON_PNG], ['link[rel="apple-touch-icon"]', MERCH_APPLE_ICON]];
     const undo = swaps.flatMap(([sel, href]) => { const el = document.querySelector<HTMLLinkElement>(sel); if (!el) return []; const old = el.getAttribute("href") ?? ""; el.setAttribute("href", href); return [() => el.setAttribute("href", old)]; });
-    return () => { document.title = prevTitle; undo.forEach((f) => f()); };
+    return () => { undo.forEach((f) => f()); };
   }, []);
 }
 

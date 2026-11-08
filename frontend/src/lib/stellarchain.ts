@@ -93,11 +93,26 @@ export interface MarketSnapshot {
 export type DataSource = "live" | "cache" | "snapshot";
 export type Sourced = { source: DataSource; /** ISO time the snapshot/cache was taken (not set for live). */ snapshotAt?: string };
 
-/** "snapshot, updated Sep 26, 7:25 AM" — shown whenever the build-time snapshot is used. */
-export function snapshotLabel(at: string | null | undefined): string {
+/**
+ * Clock time for a saved snapshot. No `timeZone` means the viewer's zone (the browser's local zone,
+ * America/Phoenix for an Arizona user). The short zone name is included so a UTC instant is not shown
+ * as a bare clock that could be read as Arizona.
+ */
+export function formatLocalStamp(at: string, timeZone?: string): string {
+  return new Date(at).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+    ...(timeZone ? { timeZone } : {}),
+  });
+}
+
+/** "snapshot, updated Nov 8, 2:04 AM MST" in Arizona for 2026-11-08T09:04:10Z. */
+export function snapshotLabel(at: string | null | undefined, timeZone?: string): string {
   if (!at || !Number.isFinite(Date.parse(at))) return "snapshot";
-  const d = new Date(at);
-  return `snapshot, updated ${d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`;
+  return `snapshot, updated ${formatLocalStamp(at, timeZone)}`;
 }
 
 /** Saved market JSON newer than this is used instead of calling api.stellarchain.io. Older copies are still shown, and labelled stale. */
@@ -106,9 +121,9 @@ export const SNAPSHOT_FRESH_MS = 45 * 60_000;
 export const SNAPSHOT_RELOAD_MS = 5 * 60_000;
 
 /** Provenance for a saved copy: fresh, stale (older than 45 min), or time unknown. Never calls it live. */
-export function savedDataLabel(at: string | null | undefined, now = Date.now()): string {
+export function savedDataLabel(at: string | null | undefined, now = Date.now(), timeZone?: string): string {
   if (!at || !Number.isFinite(Date.parse(at))) return "saved copy, time unknown";
-  const label = snapshotLabel(at);
+  const label = snapshotLabel(at, timeZone);
   return isStale(at, SNAPSHOT_FRESH_MS, now) ? `stale ${label}` : label;
 }
 

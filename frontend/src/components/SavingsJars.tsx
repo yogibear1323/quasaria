@@ -183,9 +183,9 @@ export function SavingsJars() {
           <span className={`pill ${priceAge.stale ? "neg" : ""}`} data-testid="jar-price-age">{priceAge.text}</span>
         </div>
       </div>
-      <p className="muted l-tiny" data-testid="jar-price-meaning">The weekly rate and dollar price are Etherfuse's public quote for the USTRY token. They are not the vault's on-chain oracle price. Holdings above use that on-chain price and stay without a price when the oracle is stale.</p>
+      <p className="muted l-tiny" data-testid="jar-price-meaning">The percentage is Etherfuse's published annualized rate for the USTRY token, from their public quote. They update that rate weekly; it is not yield earned in a week. The dollar figure beside it is the same public token price. Neither is the vault's on-chain oracle price, which holdings above show in XLM and leave blank when that oracle is stale.</p>
       <p className="jars-note" data-testid="jars-note">
-        Each Snowbank holds USTRY, Etherfuse's tokenized US Treasury bill. Its value comes from USTRY's dollar price rising, which compounds on its own, so every Snowbank grows independently. The rate changes weekly and isn't guaranteed; on weekends the price can sit flat.
+        Each Snowbank holds USTRY, Etherfuse's tokenized US Treasury bill. Its value comes from USTRY's dollar price rising, which compounds on its own, so every Snowbank grows independently. The annualized rate is updated weekly and isn't guaranteed; on weekends the quoted price can sit flat.
         Fund a Snowbank with USTRY you already hold, or with XLM that gets swapped into USTRY when you deposit (you review the quote and sign). Snowbanks are labels in this browser: the USTRY stays in your wallet and can still be spent elsewhere. Etherfuse can freeze or claw back USTRY.
         {JAR_SYNC_ENABLED ? " Snowbanks are saved on this device; turn on sync below to carry them to your other devices (optional, encrypted, you sign each sync)." : " Snowbanks are saved on this device for now; cross-device sync is coming."}
       </p>

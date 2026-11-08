@@ -117,9 +117,13 @@ describe("price source", () => {
     const now = Date.parse("2026-11-08T15:21:44Z");
     const liveShape = parseEtherfuse({ token_cost_in_usd: "1.05", current_basis_points: 100, current_time: "2026-11-08T15:21:44Z", sources: { a: { updated_at: Math.floor(now / 1000) } } });
     expect(liveShape?.ratePct).toBe(1);
-    expect(ustryRateLabel(liveShape)).toMatch(/Etherfuse weekly rate: 1\.00% APY/);
+    expect(ustryRateLabel(liveShape)).toBe("Etherfuse public quote: 1.00% annualized · updated weekly · not the on-chain oracle price");
+    expect(ustryRateLabel(liveShape)).not.toMatch(/weekly rate|% weekly|per week|earned this week|APY/i);
+    const documented = parseEtherfuse({ token_cost_in_usd: "1.10", current_basis_points: 554, current_time: "2026-11-08T15:21:44Z", sources: { a: { updated_at: Math.floor(now / 1000) } } });
+    expect(ustryRateLabel(documented)).toContain("5.54% annualized");
+    expect(ustryRateLabel(documented)).not.toMatch(/5\.54% weekly|weekly yield/);
     expect(ustryPriceAgeLabel(liveShape, now).text).toMatch(/^Public USTRY price · just now$/);
-    expect(ustryRateLabel(null)).toBe("USTRY weekly rate unavailable");
+    expect(ustryRateLabel(null)).toBe("USTRY annualized rate unavailable");
     expect(ustryPriceAgeLabel(null).text).toBe("Public USTRY price unavailable");
     expect(ustryPriceAgeLabel(null).text).not.toMatch(/Stale price/);
   });

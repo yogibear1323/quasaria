@@ -78,11 +78,15 @@ describe("build-time snapshot fallback", () => {
     expect(o?.xlmPriceUsd).toBeCloseTo(0.3);
   });
   it("labels snapshot data with its time, and an old copy as stale rather than live", () => {
-    expect(snapshotLabel("2026-09-26T14:25:43Z")).toMatch(/^snapshot, updated Sep 26, \d{1,2}:25 (AM|PM)$/);
+    expect(snapshotLabel("2026-09-26T14:25:43Z")).toMatch(/^snapshot, updated Sep 26, \d{1,2}:25 (AM|PM) /);
     expect(snapshotLabel(undefined)).toBe("snapshot");
+    // 09:04 UTC is 2:04 AM in Arizona (MST, no daylight time). The zone name is part of the label.
+    expect(snapshotLabel("2026-11-08T09:04:10.639Z", "America/Phoenix")).toBe("snapshot, updated Nov 8, 2:04 AM MST");
+    expect(snapshotLabel("2026-11-08T09:04:10.639Z", "UTC")).toBe("snapshot, updated Nov 8, 9:04 AM UTC");
+    expect(snapshotLabel("2026-11-08T09:04:10.639Z", "America/Phoenix")).not.toContain("9:04");
     const now = Date.parse("2026-11-08T15:30:00Z");
-    expect(savedDataLabel("2026-11-08T15:10:00Z", now)).toMatch(/^snapshot, updated Nov 8/);
-    expect(savedDataLabel("2026-09-26T14:25:43Z", now)).toMatch(/^stale snapshot, updated Sep 26/);
+    expect(savedDataLabel("2026-11-08T15:10:00Z", now, "America/Phoenix")).toBe("snapshot, updated Nov 8, 8:10 AM MST");
+    expect(savedDataLabel("2026-09-26T14:25:43Z", now, "America/Phoenix")).toMatch(/^stale snapshot, updated Sep 26, 7:25 AM MST$/);
     expect(savedDataLabel(undefined, now)).toBe("saved copy, time unknown");
   });
   it("uses a saved copy under 45 minutes old without calling the API", async () => {

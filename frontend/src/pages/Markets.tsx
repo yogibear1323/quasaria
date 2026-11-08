@@ -6,7 +6,7 @@ import { clampPage, filterRows, loadFullList, pageCount, PAGE_SIZE, searchBeyond
 import { FeedBadge, PageHead, Stat, Tabs } from "../components/ui";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
-import { asOf, savedDataLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
+import { asOf, formatLocalStamp, savedDataLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
 import { hms, LIVE_ASSET_COUNT as LIVE_N, MAINNET_USDC_ISSUER, REFRESH_MS, snapshotRow, useLiveMarkets, type LiveRow } from "../lib/liveMarkets";
 import { IS_MAINNET, OFFLINE_DEMO, USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
@@ -21,7 +21,7 @@ import "../theme/markets-fancy.css";
 
 const chg = (v: number | null) => (v === null ? <span className="muted">—</span> : <span className={v >= 0 ? "pos" : "neg"}>{v >= 0 ? "+" : ""}{fmt(v, 2)}%</span>);
 const priceFmt = (v: number) => (v >= 100 ? fmt(v, 2) : v >= 1 ? fmt(v, 4) : v >= 0.0001 ? fmt(v, 6) : v.toExponential(2));
-const snapTime = (at: string | null | undefined) => (at && Number.isFinite(Date.parse(at)) ? new Date(at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "unknown time");
+const snapTime = (at: string | null | undefined) => (at && Number.isFinite(Date.parse(at)) ? formatLocalStamp(at) : "unknown time");
 const SnapMark = ({ title }: { title: string }) => (
   <sup className="muted" style={{ fontSize: "0.55rem", marginLeft: 2, color: "var(--amber)" }} title={title}>snap</sup>
 );

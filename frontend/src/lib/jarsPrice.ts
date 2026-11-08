@@ -1,7 +1,8 @@
 /**
  * USD prices for Savings Jars. USTRY: Etherfuse's own NAV API (the same source the USTRY keeper uses as its
  * primary). XLM/USD: the XLM/USDC (Circle) order-book mid on mainnet Horizon, as the header ticker does.
- * The rate shown is Etherfuse's live `current_basis_points` (variable, reset weekly), never a fixed number.
+ * `current_basis_points` is Etherfuse's published annualized bond rate (docs: 554 = 5.54%), not a weekly yield.
+ * Etherfuse's support page says that annualized rate is updated weekly. The number is never hardcoded.
  */
 import { fetchXlmUsd } from "./liveMarkets";
 
@@ -26,10 +27,14 @@ export function parseEtherfuse(j: unknown): UstryPrice | null {
   return { usd, ratePct: Number.isFinite(bp) && bp >= 0 && bp < 5000 ? bp / 100 : null, at };
 }
 
-/** Public Etherfuse weekly rate. Not the vault's on-chain oracle price, and not a figure Quasaria computes. */
+/**
+ * Public Etherfuse annualized rate. Docs: `current_basis_points` is the bond's annualized rate
+ * (554 = 5.54%). Support says that rate is updated weekly; the week is the refresh cadence, not the
+ * amount earned. Not the vault's on-chain oracle price, and not a figure Quasaria computes.
+ */
 export function ustryRateLabel(p: UstryPrice | null): string {
-  if (p?.ratePct == null) return "USTRY weekly rate unavailable";
-  return `Etherfuse weekly rate: ${p.ratePct.toFixed(2)}% APY · public quote, variable, reset weekly`;
+  if (p?.ratePct == null) return "USTRY annualized rate unavailable";
+  return `Etherfuse public quote: ${p.ratePct.toFixed(2)}% annualized · updated weekly · not the on-chain oracle price`;
 }
 
 /** Public token price age. A missing quote is unavailable, not a stale on-chain price. */

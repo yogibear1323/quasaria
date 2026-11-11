@@ -10,7 +10,7 @@ import "../theme/space-yeti.css";
 import { Link, useNavigate } from "react-router-dom";
 import outlineMd from "../../../docs/landing-outline.md?raw";
 import pairsDoc from "../../../docs/stablecoin-pairs.json";
-import { POOL_LIST, assetById } from "../lib/assets";
+import LpCalculator from "../components/calc/LpCalculator";
 import logo from "../assets/logo-light.svg";
 import WorldBackground, { type Scene } from "../world/WorldBackground";
 import WorldList from "../world/WorldList";
@@ -34,7 +34,7 @@ import { useWallet } from "../lib/wallet";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
 import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION } from "../lib/stellarchain";
 import { ASSETS, fetchOrderBook, horizon } from "../lib/stellar";
-import { readPool, useChain, type PoolInfo } from "../lib/chain";
+import { readPool, useChain } from "../lib/chain";
 import { CONTRACTS, OFFLINE_DEMO, NETWORK, IS_MAINNET, USDC_ISSUER, HORIZON_URL } from "../lib/config";
 import { ammAmountOut } from "../lib/math";
 import { REWARD_ASSET_CODE, REWARD_DISCLOSURE, REWARD_ISSUER, REWARD_TOTAL_SUPPLY, TOKENOMICS, dailyReward, tierFor, pctYear } from "../lib/rewards";
@@ -50,7 +50,6 @@ type Pair = (typeof pairsDoc.pairs)[number];
 const PAIRS = pairsDoc.pairs as Pair[];
 const VERIFIED = PAIRS.filter((p) => p.verified && p.primary);
 // v3 asset pools (the v2 XLM/stablecoin pools are retired; see deployments/testnet-assets.json → retired)
-const TESTNET_POOLS = POOL_LIST.map((p) => ({ pool: p.pool, code: p.base, mock: assetById(p.base)?.testnet.kind === "mirror" }));
 
 // ---------------------------------------------------------------- shell bits
 function Section({ id, n, scene, onScene, children, kicker, wide, unnumbered, headline, pitch }: { id: string; n: number; scene: Scene; onScene: (s: Scene) => void; children: ReactNode; kicker?: string; wide?: boolean; unnumbered?: boolean; headline?: string; pitch?: string }) {
@@ -323,58 +322,18 @@ function StablecoinVisual() {
 }
 
 // ---------------------------------------------------------------- 6. liquidity
-type PoolRow = { id: string; label: string; mock: boolean; info: PoolInfo };
-async function readLandingPools(): Promise<PoolRow[]> {
-  const list = [{ id: POOL_XLM_QUSD, label: "XLM/QUSD", mock: false }, ...TESTNET_POOLS.slice(0, 5).map((p) => ({ id: p.pool!, label: `XLM/${p.code}`, mock: p.mock }))];
-  const rows = await Promise.all(list.map(async (l) => ({ ...l, info: await readPool(l.id) })));
-  return rows;
-}
-
 function LiquidityVisual() {
-  const pools = useChain(readLandingPools, []);
-  const [sel, setSel] = useState(0);
-  const [deposit, setDeposit] = useState(1000);
-  const [volume, setVolume] = useState(2_000);
-  const row = pools.data?.[sel];
-  const xlmSide = row ? (row.info.tokenA === CONTRACTS.xlmSac ? row.info.reserveA : row.info.reserveB) : 0;
-  const tvlXlm = xlmSide * 2;
-  const share = row ? deposit / (tvlXlm + deposit) : 0;
-  const feeRate = row ? row.info.feeBps / 10_000 : 0.003;
-  const daily = volume * feeRate * share;
+  const xlm = useXlmUsd();
+  const pricing = { xlmUsd: NETWORK === "mainnet" ? (xlm?.price ?? null) : null };
   return (
     <div className="l-grid-2">
       <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Pools on testnet</h3><Label kind={pools.live ? "live" : "example"}>{pools.loading ? "reading…" : pools.live ? "Soroban reserves" : "unavailable"}</Label></div>
-        <table className="t l-click" style={{ marginTop: 8 }}>
-          <thead><tr><th>Pool</th><th>Reserves</th><th>Fee</th></tr></thead>
-          <tbody>
-            {pools.data?.map((p, i) => {
-              const xa = p.info.tokenA === CONTRACTS.xlmSac;
-              return (
-                <tr key={p.id} onClick={() => setSel(i)} className={i === sel ? "l-sel" : ""}>
-                  <td><b>{p.label}</b> {p.mock && <span className="pill l-tiny">testnet mirror of {p.label.split("/")[1]}</span>}</td>
-                  <td className="mono l-tiny">{fmtCompact(xa ? p.info.reserveA : p.info.reserveB)} XLM / {fmtCompact(xa ? p.info.reserveB : p.info.reserveA)}</td>
-                  <td className="mono">{p.info.feeBps / 100}%</td>
-                </tr>
-              );
-            })}
-            {!pools.data && <tr><td colSpan={3} className="muted">{pools.loading ? "Reading pools…" : "Pools unavailable."}</td></tr>}
-          </tbody>
-        </table>
-        <Link to="/pools" className="btn ghost small" style={{ marginTop: 10, display: "inline-block" }}>All pools →</Link>
+        <h3 style={{ marginTop: 0 }}>Native pool fees</h3>
+        <p className="muted">A Stellar liquidity pool charges 0.30% on each swap. The fee stays in the pool and is shared by pool shares. There is no separate liquidity-provider reward.</p>
+        <p className="muted l-tiny">The estimator reads one pair at a time: live reserves and a finished 24 hour list of that pool's trades. It does not fill in a sample volume or a sample pool.</p>
+        <Link to="/pools" className="btn ghost small" style={{ display: "inline-block" }}>All pools</Link>
       </div>
-      <div className="card">
-        <div className="row between"><h3 style={{ margin: 0 }}>Fee estimator {row ? `· ${row.label}` : ""}</h3><Label kind="estimate" /></div>
-        <div className="field" style={{ marginTop: 12 }}><label>Your deposit (total value, XLM)</label><input className="input" type="number" min={0} value={deposit} onChange={(e) => setDeposit(Math.max(0, Number(e.target.value)))} /></div>
-        <div className="field"><label>Assumed daily swap volume (XLM) · your assumption</label><input type="range" min={0} max={100_000} step={500} value={volume} onChange={(e) => setVolume(Number(e.target.value))} /><span className="mono l-tiny">{fmt(volume, 0)} XLM / day</span></div>
-        <div className="l-est">
-          <div><span className="muted l-tiny">Pool share</span><b className="mono">{fmt(share * 100, 2)}%</b></div>
-          <div><span className="muted l-tiny">Est. fees / day</span><b className="mono">{fmt(daily, 3)} XLM</b></div>
-          <div><span className="muted l-tiny">Est. fees / 30 days</span><b className="mono">{fmt(daily * 30, 2)} XLM</b></div>
-          <div><span className="muted l-tiny">Est. APR</span><b className="mono">{deposit > 0 ? fmt((daily * 365 / deposit) * 100, 2) : "0.00"}%</b></div>
-        </div>
-        <p className="muted l-tiny">Estimate only, not a promise: it assumes the volume you entered, constant prices and your pool share at today's live reserves. It ignores impermanent loss, Withdraw any time.</p>
-      </div>
+      <LpCalculator variant="compact" pricing={pricing} defer />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { clampPage, filterRows, loadFullList, pageCount, PAGE_SIZE, searchBeyond
 import { FeedBadge, PageHead, Stat, Tabs } from "../components/ui";
 import { AssetLogo, Sparkline } from "../components/AssetBits";
 import { loadMarkets, useXlmUsd, type MarketRow, type MarketsResult } from "../lib/markets";
-import { asOf, snapshotLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
+import { asOf, formatLocalStamp, savedDataLabel, STELLARCHAIN_ATTRIBUTION, stellarchain, type MarketOverview, type ScNetwork } from "../lib/stellarchain";
 import { hms, LIVE_ASSET_COUNT as LIVE_N, MAINNET_USDC_ISSUER, REFRESH_MS, snapshotRow, useLiveMarkets, type LiveRow } from "../lib/liveMarkets";
 import { IS_MAINNET, OFFLINE_DEMO, USDC_ISSUER } from "../lib/config";
 import { fmt, fmtCompact } from "../lib/format";
@@ -21,7 +21,7 @@ import "../theme/markets-fancy.css";
 
 const chg = (v: number | null) => (v === null ? <span className="muted">—</span> : <span className={v >= 0 ? "pos" : "neg"}>{v >= 0 ? "+" : ""}{fmt(v, 2)}%</span>);
 const priceFmt = (v: number) => (v >= 100 ? fmt(v, 2) : v >= 1 ? fmt(v, 4) : v >= 0.0001 ? fmt(v, 6) : v.toExponential(2));
-const snapTime = (at: string | null | undefined) => (at && Number.isFinite(Date.parse(at)) ? new Date(at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "last deploy");
+const snapTime = (at: string | null | undefined) => (at && Number.isFinite(Date.parse(at)) ? formatLocalStamp(at) : "unknown time");
 const SnapMark = ({ title }: { title: string }) => (
   <sup className="muted" style={{ fontSize: "0.55rem", marginLeft: 2, color: "var(--amber)" }} title={title}>snap</sup>
 );
@@ -63,10 +63,6 @@ export default function Markets() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
   useEffect(() => {
-    if (OFFLINE_DEMO) return;
-    loadFullList().then(setFull);
-  }, []);
-  useEffect(() => {
     if (OFFLINE_DEMO || network !== "testnet") return;
     let alive = true;
     setData(null);
@@ -77,13 +73,21 @@ export default function Markets() {
   }, [network, q]);
   useEffect(() => {
     if (OFFLINE_DEMO) return;
-    stellarchain.overview("mainnet").then(setOverview).catch(() => setOverview(null));
-    // testnet asset per code (best-ranked), so a mainnet row's Exchange button can open the matching TESTNET market
-    stellarchain.loadSnapshot().then((s) => {
-      const m = new Map<string, string>();
-      for (const a of [...(s?.marketAssets?.testnet?.member ?? [])].sort((x, y) => (x.rankPosition ?? 1e9) - (y.rankPosition ?? 1e9))) if (!m.has(a.code)) m.set(a.code, a.assetKey);
-      setTestnetByCode(m);
-    });
+    let alive = true;
+    const readSaved = () => {
+      loadFullList().then((list) => alive && list && setFull(list));
+      stellarchain.overview("mainnet").then((o) => alive && setOverview(o)).catch(() => alive && setOverview(null));
+      // testnet asset per code (best-ranked), so a mainnet row's Exchange button can open the matching TESTNET market
+      stellarchain.loadSnapshot().then((s) => {
+        if (!alive) return;
+        const m = new Map<string, string>();
+        for (const a of [...(s?.marketAssets?.testnet?.member ?? [])].sort((x, y) => (x.rankPosition ?? 1e9) - (y.rankPosition ?? 1e9))) if (!m.has(a.code)) m.set(a.code, a.assetKey);
+        setTestnetByCode(m);
+      });
+    };
+    readSaved();
+    const t = setInterval(readSaved, 5 * 60_000);
+    return () => { alive = false; clearInterval(t); };
   }, []);
 
   const trade = (r: MarketRow) => {
@@ -154,7 +158,7 @@ export default function Markets() {
             <span className="pill mono" data-testid="live-updated" title={`Horizon mainnet, refreshed every ~${REFRESH_MS / 1000}s while this tab is visible`}>Updated {hms(live.updatedAt)}</span>
           </>
         )}
-        {live.mode === "fallback" && <span className="pill gold" data-testid="feed-badge" title="stellarchain.io data saved when the site was last deployed">Snapshot from {snapTime(live.snapshotAt)}</span>}
+        {live.mode === "fallback" && <span className="pill gold" data-testid="feed-badge" data-fresh="stale" title="Horizon is not answering, so these rows are the saved stellarchain.io list, not live trades">Saved list · {savedDataLabel(live.snapshotAt, live.now)}</span>}
         {live.mode === "loading" && <span className="pill cyan" data-testid="live-connecting">Connecting to Stellar mainnet…</span>}
       </div>
     ) : (
@@ -164,11 +168,11 @@ export default function Markets() {
   const xlmSub = liveXlm
     ? `live · Horizon mainnet XLM/USDC (Circle)${liveXlm.change24h !== null ? ` · 24h ${liveXlm.change24h >= 0 ? "+" : ""}${fmt(liveXlm.change24h, 2)}%` : ""}`
     : snapXlm
-      ? `mainnet · stellarchain.io ${snapXlm.source === "snapshot" ? snapshotLabel(snapXlm.snapshotAt) : `as of ${asOf(snapXlm.updatedAt)}`}`
+      ? `mainnet · stellarchain.io ${snapXlm.source === "snapshot" ? savedDataLabel(snapXlm.snapshotAt, live.now) : `as of ${asOf(snapXlm.updatedAt)}`}`
       : network === "mainnet"
         ? live.mode === "loading" ? "loading…" : "unavailable"
         : xlm
-      ? `${xlm.source === "stellarchain" ? (xlm.feed === "snapshot" ? `stellarchain.io · ${snapshotLabel(xlm.snapshotAt)}` : "stellarchain.io") : xlm.source === "horizon" ? "Horizon testnet (fallback)" : "unavailable"}${xlm.updatedAt ? ` · as of ${asOf(xlm.updatedAt)}` : ""}${xlm.stale ? " · stale" : ""}`
+      ? `${xlm.source === "stellarchain" ? (xlm.feed === "snapshot" ? `stellarchain.io · ${savedDataLabel(xlm.snapshotAt, live.now)}` : "stellarchain.io") : xlm.source === "horizon" ? "Horizon testnet (fallback)" : "unavailable"}${xlm.updatedAt ? ` · as of ${asOf(xlm.updatedAt)}` : ""}${xlm.stale ? " · stale" : ""}`
       : "loading…";
 
   return (
@@ -182,8 +186,8 @@ export default function Markets() {
       {network === "mainnet" && !OFFLINE_DEMO && <MarketsHero rows={allRows} live={live.mode === "live"} onPick={(c) => { setSearch(c); }} />}
       <div className="grid g-4 mk-stats" style={{ marginBottom: 18 }}>
         <div className="card"><Stat label="XLM / USD" value={usdPerXlm ? `$${fmt(usdPerXlm, 4)}` : "—"} sub={xlmSub} className="gold" /></div>
-        <div className="card"><Stat label="Tracked assets" value={overview?.trackedAssets ? fmtCompact(overview.trackedAssets) : "—"} sub={overview ? `mainnet · as of ${asOf(overview.updatedAt)}${overview.source === "snapshot" ? ` · ${snapshotLabel(overview.snapshotAt)}` : ""}` : "stellarchain overview"} /></div>
-        <div className="card"><Stat label="Accounts" value={overview?.totalAccounts ? fmtCompact(overview.totalAccounts) : "—"} sub={overview?.source === "snapshot" ? `mainnet · stellarchain.io ${snapshotLabel(overview.snapshotAt)}` : "mainnet"} /></div>
+        <div className="card"><Stat label="Tracked assets" value={overview?.trackedAssets ? fmtCompact(overview.trackedAssets) : "—"} sub={overview ? `mainnet · as of ${asOf(overview.updatedAt)}${overview.source === "snapshot" ? ` · ${savedDataLabel(overview.snapshotAt, live.now)}` : ""}` : "stellarchain overview"} /></div>
+        <div className="card"><Stat label="Accounts" value={overview?.totalAccounts ? fmtCompact(overview.totalAccounts) : "—"} sub={overview?.source === "snapshot" ? `mainnet · stellarchain.io ${savedDataLabel(overview.snapshotAt, live.now)}` : "mainnet"} /></div>
         <div className="card"><Stat label="Contracts" value={overview?.totalContracts ? fmtCompact(overview.totalContracts) : "—"} sub={overview && overview.trades24h === 0 ? "24h trades: 0 reported (snapshot may lag)" : "mainnet"} /></div>
       </div>
       <ExplainerVideo name="quasaria-markets-explainer" src={`${import.meta.env.BASE_URL ?? "/"}videos/quasaria-markets-explainer.mp4?v=2`} poster={`${import.meta.env.BASE_URL ?? "/"}videos/quasaria-markets-explainer-poster.jpg?v=2`} title="How to use Markets" testid="markets-video" collapsible style={{ marginBottom: 18 }} />
@@ -211,7 +215,7 @@ export default function Markets() {
             </div>
             {live.mode === "fallback" && (
               <div className="notice warn" data-testid="fallback-notice">
-                <b>Live feed unavailable, showing saved copy.</b> Snapshot from {snapTime(live.snapshotAt)} (stellarchain.io data saved at the last deploy). Retrying Stellar mainnet in the background{retryIn !== null ? ` (next try in ${retryIn}s)` : ""} — the table switches back to live data automatically.
+                <b>Live Horizon feed unavailable, showing the saved asset list.</b> {savedDataLabel(live.snapshotAt, live.now)}. This is not live trade data. Retrying Stellar mainnet in the background{retryIn !== null ? ` (next try in ${retryIn}s)` : ""} — the table switches back to live prices when Horizon answers.
                 {live.error ? <span className="muted"> Reason: {live.error}{live.rateLimited ? " (Horizon rate limit — backing off)" : ""}.</span> : null}
               </div>
             )}
@@ -229,7 +233,7 @@ export default function Markets() {
               <tbody>
                 {live.mode === "loading" && !allRows.length && <><tr><td colSpan={13} className="muted">Loading live Stellar mainnet data…</td></tr>{Array.from({ length: 8 }, (_, i) => <tr key={i} className="mk-skrow" aria-hidden="true"><td colSpan={13}><i className="mk-sk" /></td></tr>)}</>}
                 {live.mode !== "loading" && !allRows.length && <tr><td colSpan={13} className="muted">No market data available (live feed and saved snapshot both unavailable).</td></tr>}
-                {page === 1 && xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} change24h={liveXlm?.change24h ?? null} live={!!liveXlm} asOf={liveXlm ? undefined : snapXlm ? (snapXlm.source === "snapshot" ? snapshotLabel(snapXlm.snapshotAt) : `as of ${asOf(snapXlm.updatedAt)}`) : undefined} onExchange={() => nav("/exchange")} aboutOpen={aboutKey === "XLM"} onAbout={() => setAboutKey((k) => (k === "XLM" ? null : "XLM"))} />}
+                {page === 1 && xlmMatches(q) && <XlmRow usdPerXlm={usdPerXlm} change24h={liveXlm?.change24h ?? null} live={!!liveXlm} asOf={liveXlm ? undefined : snapXlm ? (snapXlm.source === "snapshot" ? savedDataLabel(snapXlm.snapshotAt, live.now) : `as of ${asOf(snapXlm.updatedAt)}`) : undefined} onExchange={() => nav("/exchange")} aboutOpen={aboutKey === "XLM"} onAbout={() => setAboutKey((k) => (k === "XLM" ? null : "XLM"))} />}
                 {page === 1 && glacierqMatches(q) && <GlacierqRow usdPerXlm={usdPerXlm} onExchange={(k) => nav(`/exchange?base=${encodeURIComponent(k)}&quote=XLM`)} aboutOpen={aboutKey === "GLACIERQ"} onAbout={() => setAboutKey((k) => (k === "GLACIERQ" ? null : "GLACIERQ"))} />}
                 {liveRows.map((r) => {
                   const snapRow = r.source === "snapshot";
@@ -298,12 +302,12 @@ export default function Markets() {
               </div>
             )}
             <p className="muted" style={{ fontSize: "0.75rem", marginTop: 10 }}>
-              Live data: Stellar <b>mainnet</b> public Horizon (<a href="https://horizon.stellar.org" target="_blank" rel="noreferrer">horizon.stellar.org</a>), refreshed every ~{REFRESH_MS / 1000}s while this tab is visible (paused when hidden). Price = last trade vs XLM (order-book mid when there was no trade in 24h); live price from the network-wide trade feed (polled every ~30s); 1h / 24h / 7d change, 24h volume, trades and the 24h trend from Horizon hourly trade aggregations (refreshed every ~10 min per asset to respect Horizon's rate limits); trustlines (authorized holders) and supply from Horizon /assets; USD via the XLM/USDC pair (Circle issuer {MAINNET_USDC_ISSUER.slice(0, 4)}…{MAINNET_USDC_ISSUER.slice(-4)}). The asset list (top {allRows.length.toLocaleString()}: stellarchain.io rank{full?.sources?.stellarExpert ? `, topped up with ${full.sources.stellarExpert} from stellar.expert's rating` : ""}), rank, logos and org names (from issuers' stellar.toml) come from the list saved at every deploy and 30-minute refresh{full?.at ? ` (${snapTime(full.at)})` : ""}; the top {LIVE_N} update live from Horizon and the rest show the saved values (marked snapshot). If Horizon can't be reached, the saved snapshot is shown and labelled with its time. {IS_MAINNET ? "Quasaria trades on Stellar mainnet." : "Mainnet rows are reference-only — Quasaria trades on TESTNET."} Listing ≠ endorsement: always verify the issuer.
+              Live prices: Stellar <b>mainnet</b> public Horizon (<a href="https://horizon.stellar.org" target="_blank" rel="noreferrer">horizon.stellar.org</a>), refreshed every ~{REFRESH_MS / 1000}s while this tab is visible (paused when hidden). Price = last trade vs XLM (order-book mid when there was no trade in 24h); live price from the network-wide trade feed (polled every ~30s); 1h / 24h / 7d change, 24h volume, trades and the 24h trend from Horizon hourly trade aggregations (refreshed every ~10 min per asset to respect Horizon's rate limits); trustlines (authorized holders) and supply from Horizon /assets; USD via the XLM/USDC pair (Circle issuer {MAINNET_USDC_ISSUER.slice(0, 4)}…{MAINNET_USDC_ISSUER.slice(-4)}). The asset list (top {allRows.length.toLocaleString()}: stellarchain.io rank{full?.sources?.stellarExpert ? `, topped up with ${full.sources.stellarExpert} from stellar.expert's rating` : ""}), rank, logos and org names (from issuers' stellar.toml) come from the newer of the market-data branch and the copy saved with the site{full?.at ? ` (${savedDataLabel(full.at, live.now)})` : ""}; the top {LIVE_N} update live from Horizon and the rest show the saved values (marked snapshot). If Horizon can't be reached, the saved list is shown and labelled with its time. A saved copy older than 45 minutes is marked stale and is not described as live. {IS_MAINNET ? "Quasaria trades on Stellar mainnet." : "Mainnet rows are reference-only — Quasaria trades on TESTNET."} Listing ≠ endorsement: always verify the issuer.
             </p>
           </>
         ) : (
           <>
-            {data?.source === "snapshot" && <div className="notice" data-testid="snapshot-notice">The live stellarchain.io API isn't reachable from this site, so this table shows the {snapshotLabel(data.snapshotAt)} ({asOf(data.snapshotAt ?? "")}), fetched when the site was last deployed. Testnet prices are still refreshed from Horizon where possible.</div>}
+            {data?.source === "snapshot" && <div className="notice" data-testid="snapshot-notice">The live stellarchain.io API isn't reachable from this browser, so this table shows the {savedDataLabel(data.snapshotAt)} ({data.snapshotAt ? asOf(data.snapshotAt) : "time unknown"}). A copy older than 45 minutes is stale, not live. Testnet prices are still refreshed from Horizon where possible.</div>}
             {data?.error && <div className="notice warn">stellarchain.io unavailable ({data.error}). Showing nothing until it recovers; the Exchange page keeps working from Horizon.</div>}
             <table className="t mk-table">
               <thead>

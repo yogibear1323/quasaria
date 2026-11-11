@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { StellarchainClient, snapshotLabel, type MarketSnapshot, type RawMarketAsset } from "../src/lib/stellarchain";
+import { StellarchainClient, loadNewestJson, savedDataLabel, snapshotLabel, type MarketSnapshot, type RawMarketAsset } from "../src/lib/stellarchain";
 // @ts-expect-error plain ESM build script, no types
 import { trimAsset } from "../scripts/fetch-market-snapshot.mjs";
 
@@ -77,9 +77,65 @@ describe("build-time snapshot fallback", () => {
     expect(o?.source).toBe("cache");
     expect(o?.xlmPriceUsd).toBeCloseTo(0.3);
   });
-  it("labels snapshot data with its time", () => {
-    expect(snapshotLabel("2026-09-26T14:25:43Z")).toMatch(/^snapshot, updated Sep 26, \d{1,2}:25 (AM|PM)$/);
+  it("labels snapshot data with its time, and an old copy as stale rather than live", () => {
+    expect(snapshotLabel("2026-09-26T14:25:43Z")).toMatch(/^snapshot, updated Sep 26, \d{1,2}:25 (AM|PM) /);
     expect(snapshotLabel(undefined)).toBe("snapshot");
+    // 09:04 UTC is 2:04 AM in Arizona (MST, no daylight time). The zone name is part of the label.
+    expect(snapshotLabel("2026-11-08T09:04:10.639Z", "America/Phoenix")).toBe("snapshot, updated Nov 8, 2:04 AM MST");
+    expect(snapshotLabel("2026-11-08T09:04:10.639Z", "UTC")).toBe("snapshot, updated Nov 8, 9:04 AM UTC");
+    expect(snapshotLabel("2026-11-08T09:04:10.639Z", "America/Phoenix")).not.toContain("9:04");
+    const now = Date.parse("2026-11-08T15:30:00Z");
+    expect(savedDataLabel("2026-11-08T15:10:00Z", now, "America/Phoenix")).toBe("snapshot, updated Nov 8, 8:10 AM MST");
+    expect(savedDataLabel("2026-09-26T14:25:43Z", now, "America/Phoenix")).toMatch(/^stale snapshot, updated Sep 26, 7:25 AM MST$/);
+    expect(savedDataLabel(undefined, now)).toBe("saved copy, time unknown");
+  });
+  it("uses a saved copy under 45 minutes old without calling the API", async () => {
+    const now = Date.parse("2026-11-08T10:40:00Z");
+    const fresh: MarketSnapshot = { ...SNAP, overview: { mainnet: { ...SNAP.overview.mainnet!, fetchedAt: "2026-11-08T10:20:00Z" } } };
+    const f = vi.fn(async () => { throw new Error("should not call the API"); });
+    const c = new StellarchainClient({ fetch: f as unknown as typeof fetch, storage: null, snapshot: async () => fresh, now: () => now, preferSnapshotMaxAgeMs: 45 * 60_000 });
+    const o = await c.overview("mainnet");
+    expect(o?.source).toBe("snapshot");
+    expect(o?.snapshotAt).toBe("2026-11-08T10:20:00Z");
+    expect(f).not.toHaveBeenCalled();
+  });
+  it("after a CORS failure, the next call uses the saved copy and does not hit the API again", async () => {
+    const f = down();
+    const now = Date.parse("2026-11-08T15:30:00Z");
+    const c = new StellarchainClient({ fetch: f as unknown as typeof fetch, storage: null, snapshot: async () => SNAP, now: () => now, preferSnapshotMaxAgeMs: 45 * 60_000 });
+    const a = await c.overview("mainnet");
+    const b = await c.overview("mainnet");
+    expect(a?.source).toBe("snapshot");
+    expect(b?.source).toBe("snapshot");
+    expect(a?.xlmPriceUsd).toBeCloseTo(0.2177);
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("saved market JSON", () => {
+  it("picks the newer file with a simple GET (no cache mode, no custom headers)", async () => {
+    const f = vi.fn(async (url: string) => {
+      const branch = String(url).includes("market-data");
+      const body = { version: 1, generatedAt: branch ? "2026-11-08T09:04:10.639Z" : "2026-10-12T01:47:09.934Z" };
+      return new Response(JSON.stringify(body), { status: 200 });
+    });
+    const j = await loadNewestJson<{ version: number; generatedAt: string }>("stellarchain-snapshot.json", (x) => x.version === 1, f as unknown as typeof fetch, Date.parse("2026-11-08T15:21:00Z"));
+    expect(j?.generatedAt).toBe("2026-11-08T09:04:10.639Z");
+    expect(f).toHaveBeenCalledTimes(2);
+    for (const [url, init] of f.mock.calls) {
+      expect(String(url)).toMatch(/[?&]qzv=\d+/);
+      expect(init).toBeUndefined();
+    }
+    expect(String(f.mock.calls[0][0])).toContain("market-data/stellarchain-snapshot.json");
+    expect(String(f.mock.calls[1][0])).toContain("/data/stellarchain-snapshot.json");
+  });
+  it("keeps the bundled copy when the branch read fails", async () => {
+    const f = vi.fn(async (url: string) => {
+      if (String(url).includes("market-data")) throw new TypeError("Failed to fetch");
+      return new Response(JSON.stringify({ version: 1, generatedAt: "2026-10-12T01:47:09.934Z" }), { status: 200 });
+    });
+    const j = await loadNewestJson<{ generatedAt: string }>("stellarchain-snapshot.json", (x) => !!x.generatedAt, f as unknown as typeof fetch, 0);
+    expect(j?.generatedAt).toBe("2026-10-12T01:47:09.934Z");
   });
 });
 

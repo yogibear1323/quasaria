@@ -9,6 +9,7 @@ import logo from "../assets/logo-light.svg";
 import { MERCH_MARK } from "../merch/catalog";
 import { Orbits } from "./Quasar";
 import { NAV_GROUP, NAV_KEY, NAV_MORE, NAV_REST, NAV_SWAP, isActive, sceneFor } from "../lib/nav";
+import { titleForPath } from "../lib/documentTitle";
 import WorldBackground from "../world/WorldBackground";
 import WorldNav from "../world/WorldNav";
 import { useWallet } from "../lib/wallet";
@@ -123,6 +124,7 @@ export default function Layout() {
   const loc = useLocation();
   const w = useWallet();
   const scene = sceneFor(loc.pathname);
+  useEffect(() => { document.title = titleForPath(loc.pathname); }, [loc.pathname]);
   // The merch store carries the yeti mark (same image as the GLACIERQ token icon) instead of the Q.
   const isMerch = loc.pathname === "/merch" || loc.pathname.startsWith("/merch/");
   const mark = isMerch ? MERCH_MARK : logo;

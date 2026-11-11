@@ -33,7 +33,7 @@
  * data is missing, or the whole table when the feed is down.
  */
 import { useEffect, useRef, useState } from "react";
-import { normalizeMarketAsset, num, stellarchain, type MarketAsset, type MarketSnapshot, type StorageLike } from "./stellarchain";
+import { normalizeMarketAsset, num, SNAPSHOT_RELOAD_MS, stellarchain, type MarketAsset, type MarketSnapshot, type StorageLike } from "./stellarchain";
 
 export const MAINNET_HORIZON = "https://horizon.stellar.org";
 /** Circle's USDC issuer on Stellar mainnet (home_domain circle.com). */
@@ -486,6 +486,7 @@ export class LiveMarketsFeed {
   private base: MarketAsset[] = [];
   private tracked: AssetId[] = [];
   private snapAt: string | null = null;
+  private snapLoadedAt = 0;
   private live = new Map<string, AssetLive>();
   private cursor: string | null = null;
   private first = true;
@@ -524,12 +525,19 @@ export class LiveMarketsFeed {
     }
   }
 
-  private async ensureBase() {
-    if (this.base.length) return;
+  private async ensureBase(now = this.now()) {
+    const due = !this.base.length || now - this.snapLoadedAt >= SNAPSHOT_RELOAD_MS;
+    if (!due) return;
     const s = await this.loadSnap().catch(() => null);
     const { assets, at } = snapshotAssets(s, this.count);
-    this.base = assets;
-    this.snapAt = at;
+    if (!assets.length && this.base.length) return;
+    const first = !this.base.length;
+    if (assets.length) {
+      this.base = assets;
+      this.snapAt = at;
+    }
+    this.snapLoadedAt = now;
+    if (!first) return;
     this.tracked = assets.map((a) => ({ code: a.code, issuer: a.issuer }));
     if (!assets.some((a) => a.key === USDC_KEY)) this.tracked.push({ code: "USDC", issuer: MAINNET_USDC_ISSUER }); // for XLM/USD
     for (const a of this.tracked) {
@@ -640,7 +648,7 @@ export class LiveMarketsFeed {
 
   async tick(): Promise<FeedState> {
     const now = this.now();
-    await this.ensureBase();
+    await this.ensureBase(now);
     this.setState({ snapshotAt: this.snapAt });
     if (!this.base.length) return this.fallback("saved snapshot missing (no asset list)", now);
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { allocation, closeJar, createJar, deposit, emptyLedger, jarView, loadLedger, migrateV1, moveUnits, renameJar, resolveShortfall, saveLedger, toUnits, withdraw, type Ledger } from "../src/lib/jarsLedger";
 import { planJarSwap } from "../src/lib/jarsSwap";
-import { parseEtherfuse, isStale } from "../src/lib/jarsPrice";
+import { parseEtherfuse, isStale, ustryPriceAgeLabel, ustryRateLabel } from "../src/lib/jarsPrice";
 import { JAR_SYNC_ENABLED, buildSyncTx, openLedger, readSyncEntries, sealLedger, syncCost } from "../src/lib/jarsSync";
 
 const X = (v: number) => BigInt(Math.round(v * 1e7));
@@ -114,6 +114,18 @@ describe("price source", () => {
     expect(p).toMatchObject({ usd: 1.078221, ratePct: 3.6, at: 1792984662000 });
     expect(parseEtherfuse({ token_cost_in_usd: "99" })).toBeNull();
     expect(isStale(1000, 1000 + 31 * 60_000)).toBe(true); expect(isStale(1000, 1000 + 60_000)).toBe(false);
+    const now = Date.parse("2026-11-08T15:21:44Z");
+    const liveShape = parseEtherfuse({ token_cost_in_usd: "1.05", current_basis_points: 100, current_time: "2026-11-08T15:21:44Z", sources: { a: { updated_at: Math.floor(now / 1000) } } });
+    expect(liveShape?.ratePct).toBe(1);
+    expect(ustryRateLabel(liveShape)).toBe("Etherfuse public quote: 1.00% annualized · updated weekly · not the on-chain oracle price");
+    expect(ustryRateLabel(liveShape)).not.toMatch(/weekly rate|% weekly|per week|earned this week|APY/i);
+    const documented = parseEtherfuse({ token_cost_in_usd: "1.10", current_basis_points: 554, current_time: "2026-11-08T15:21:44Z", sources: { a: { updated_at: Math.floor(now / 1000) } } });
+    expect(ustryRateLabel(documented)).toContain("5.54% annualized");
+    expect(ustryRateLabel(documented)).not.toMatch(/5\.54% weekly|weekly yield/);
+    expect(ustryPriceAgeLabel(liveShape, now).text).toMatch(/^Public USTRY price · just now$/);
+    expect(ustryRateLabel(null)).toBe("USTRY annualized rate unavailable");
+    expect(ustryPriceAgeLabel(null).text).toBe("Public USTRY price unavailable");
+    expect(ustryPriceAgeLabel(null).text).not.toMatch(/Stale price/);
   });
 });
 

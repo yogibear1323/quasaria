@@ -2,7 +2,7 @@ import { NETWORK } from "../lib/config";
 import { explorerAccountUrl } from "../lib/explorer";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useWallet } from "../lib/wallet";
-import { snapshotLabel, type DataSource } from "../lib/stellarchain";
+import { isStale, savedDataLabel, SNAPSHOT_FRESH_MS, snapshotLabel, type DataSource } from "../lib/stellarchain";
 import { TX_EVENT } from "../game/GameProvider";
 import { CountUpText } from "../game/widgets";
 import { burst } from "../game/fx";
@@ -125,13 +125,17 @@ export function ViewerNote({ address, isDemo, role }: { address: string; isDemo:
   );
 }
 
-/** Market-data provenance: live stellarchain.io, expired browser cache, or the build-time snapshot. */
-export function FeedBadge({ source, snapshotAt }: { source?: DataSource; snapshotAt?: string }) {
+/** Market-data provenance: live stellarchain.io, expired browser cache, or a saved copy (fresh or stale). */
+export function FeedBadge({ source, snapshotAt, now = Date.now() }: { source?: DataSource; snapshotAt?: string; now?: number }) {
   if (!source) return null;
   if (source === "live") return <span className="pill green" data-testid="feed-badge">● live · stellarchain.io</span>;
-  const label = source === "snapshot" ? snapshotLabel(snapshotAt) : snapshotLabel(snapshotAt).replace("snapshot", "cached");
+  const stale = source === "snapshot" && isStale(snapshotAt, SNAPSHOT_FRESH_MS, now);
+  const label = source === "snapshot" ? savedDataLabel(snapshotAt, now) : snapshotLabel(snapshotAt).replace("snapshot", "cached");
+  const title = source === "snapshot"
+    ? `Saved stellarchain.io copy from ${snapshotAt ?? "an unknown time"}${stale ? " — older than 45 minutes, so it is not current" : ""}. The direct API is not used while this copy is under 45 minutes old.`
+    : `Last live response, cached in this browser (${snapshotAt ?? "unknown"}).`;
   return (
-    <span className="pill gold" data-testid="feed-badge" title={source === "snapshot" ? `stellarchain.io data fetched at build time (${snapshotAt ?? "unknown"}); the live API is not reachable from this site` : `last live response, cached in this browser (${snapshotAt ?? "unknown"})`}>
+    <span className={`pill ${stale ? "neg" : "gold"}`} data-testid="feed-badge" data-fresh={stale ? "stale" : "saved"} title={title}>
       {label}
     </span>
   );

@@ -11,7 +11,7 @@ import {
   SCALE, allocation, closeJar, createJar, deposit, fmt7, jarView, loadLedger, moveUnits, renameJar, resolveShortfall, saveLedger, toUnits, toUnitsN, withdraw,
   type Holding, type Jar, type Ledger,
 } from "../lib/jarsLedger";
-import { isStale, loadJarPrices, type JarPrices } from "../lib/jarsPrice";
+import { isStale, loadJarPrices, ustryPriceAgeLabel, ustryRateLabel, type JarPrices } from "../lib/jarsPrice";
 import { JAR_DEFAULT_SLIPPAGE, JAR_MAX_SLIPPAGE, USTRY, USTRY_REF, planJarSwap, type JarSwapPlan } from "../lib/jarsSwap";
 import { JAR_SYNC_ENABLED } from "../lib/jarsSync";
 import { JarSync } from "./JarSync";
@@ -23,7 +23,6 @@ const ICONS = ["🧊", "🏔️", "❄️", "🌨️", "⛷️", "🐾"];
 const usd = (v: bigint | null) => (v === null ? "—" : (Number(v) / 1e7).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 const signedUsd = (v: bigint | null) => (v === null ? "—" : `${v >= 0n ? "+" : "−"}${usd(v < 0n ? -v : v)}`);
 const n = (v: number, d = 7) => v.toLocaleString("en-US", { maximumFractionDigits: d });
-const age = (at: number | undefined) => { if (!at) return "unknown"; const m = Math.round((Date.now() - at) / 60000); return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`; };
 const usdUnits = (p: number | null | undefined) => (p && p > 0 ? toUnitsN(p) : null);
 
 /** Jar deposit amount check: > 0 and a valid 7-decimal number. NO cap for jars (owner decision). */
@@ -54,6 +53,15 @@ export function SavingsJars() {
   const [absorb, setAbsorb] = useState("");
 
   const persist = useCallback((next: Ledger) => { if (w.address) saveLedger(w.address, next); setLedger(next); }, [w.address]);
+
+  // Public Etherfuse quote. Loaded even when signed out: the rate and dollar price are not wallet data.
+  useEffect(() => {
+    let alive = true;
+    const go = () => { loadJarPrices().then((p) => { if (alive) setPrices(p); }); };
+    go();
+    const t = setInterval(go, 5 * 60_000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!w.address) { setLedger(null); return; }
@@ -163,19 +171,21 @@ export function SavingsJars() {
   const tU = totals("USTRY"), tV = totals("VAULT");
   const unassignedUsd = ustryAlloc && ustryUsd ? (ustryAlloc.unassigned * ustryUsd) / SCALE : null;
   const combined = tU.value !== null && (tV.units === 0n || tV.value !== null) ? tU.value + (tV.value ?? 0n) : null;
-  const rate = prices.ustry?.ratePct;
+  const rateLabel = ustryRateLabel(prices.ustry);
+  const priceAge = ustryPriceAgeLabel(prices.ustry);
 
   return (
     <section className="jars" data-testid="savings-jars">
       <div className="jars-head">
         <div><div className="vault-kicker">Goals on top of USTRY in your own wallet</div><h2>Snowbanks</h2></div>
         <div className="jar-badges">
-          <span className="pill" data-testid="jar-rate">{rate != null ? `Etherfuse USTRY rate now: ${rate.toFixed(2)}% APY · variable, reset weekly` : "USTRY rate unavailable"}</span>
-          <span className={`pill ${stale ? "neg" : ""}`} data-testid="jar-price-age">{stale ? "Stale price" : "Price"} · {age(prices.ustry?.at)}</span>
+          <span className="pill" data-testid="jar-rate">{rateLabel}</span>
+          <span className={`pill ${priceAge.stale ? "neg" : ""}`} data-testid="jar-price-age">{priceAge.text}</span>
         </div>
       </div>
+      <p className="muted l-tiny" data-testid="jar-price-meaning">The percentage is Etherfuse's published annualized rate for the USTRY token, from their public quote. They update that rate weekly; it is not yield earned in a week. The dollar figure beside it is the same public token price. Neither is the vault's on-chain oracle price, which holdings above show in XLM and leave blank when that oracle is stale.</p>
       <p className="jars-note" data-testid="jars-note">
-        Each Snowbank holds USTRY, Etherfuse's tokenized US Treasury bill. Its value comes from USTRY's dollar price rising, which compounds on its own, so every Snowbank grows independently. The rate changes weekly and isn't guaranteed; on weekends the price can sit flat.
+        Each Snowbank holds USTRY, Etherfuse's tokenized US Treasury bill. Its value comes from USTRY's dollar price rising, which compounds on its own, so every Snowbank grows independently. The annualized rate is updated weekly and isn't guaranteed; on weekends the quoted price can sit flat.
         Fund a Snowbank with USTRY you already hold, or with XLM that gets swapped into USTRY when you deposit (you review the quote and sign). Snowbanks are labels in this browser: the USTRY stays in your wallet and can still be spent elsewhere. Etherfuse can freeze or claw back USTRY.
         {JAR_SYNC_ENABLED ? " Snowbanks are saved on this device; turn on sync below to carry them to your other devices (optional, encrypted, you sign each sync)." : " Snowbanks are saved on this device for now; cross-device sync is coming."}
       </p>

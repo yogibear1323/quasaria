@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import Buy from "../src/pages/Buy";
 import { WalletProvider } from "../src/lib/wallet";
-import { BUY_PROVIDERS } from "../src/lib/buyProviders";
+import { BUY_PROVIDERS, MAINNET_BUY_NOTICE } from "../src/lib/buyProviders";
+import BuyWidget from "../src/components/BuyWidget";
 
 const src = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
 const html = renderToStaticMarkup(<MemoryRouter><WalletProvider><Buy /></WalletProvider></MemoryRouter>);
@@ -19,6 +20,16 @@ describe("Buy page", () => {
     expect(html).toContain("third-party sites, not affiliated with Quasaria");
     expect(html).toContain("fees, limits, availability in your country and ID checks");
     expect(html).toContain('data-testid="buy-network-note"');
+    // This test build is testnet, so the preview warning stays. The mainnet sentence must not claim that.
+    expect(html).toContain("test network");
+    expect(MAINNET_BUY_NOTICE).not.toMatch(/test network|free test XLM|will not show here until/i);
+    expect(src("../src/pages/Buy.tsx")).toContain("IS_MAINNET");
+    expect(src("../src/pages/Buy.tsx")).toContain("MAINNET_BUY_NOTICE");
+    const mainnetWidget = renderToStaticMarkup(<BuyWidget address={"G".repeat(56)} publicKey="pk_prod_abcdefgh" network="mainnet" />);
+    expect(mainnetWidget).not.toMatch(/test network|free test XLM|not pre-filled|would not show up here/i);
+    const testnetWidget = renderToStaticMarkup(<BuyWidget address={null} publicKey="pk_test_abcdefgh" network="testnet" />);
+    expect(testnetWidget).toContain("test network");
+    expect(testnetWidget).toContain("not pre-filled");
   });
   it("shows the verified USDC issuers", () => {
     expect(html).toContain("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN");

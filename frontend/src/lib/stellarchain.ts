@@ -93,11 +93,38 @@ export interface MarketSnapshot {
 export type DataSource = "live" | "cache" | "snapshot";
 export type Sourced = { source: DataSource; /** ISO time the snapshot/cache was taken (not set for live). */ snapshotAt?: string };
 
-/** "snapshot, updated Sep 26, 7:25 AM" — shown whenever the build-time snapshot is used. */
-export function snapshotLabel(at: string | null | undefined): string {
+/**
+ * Clock time for a saved snapshot. No `timeZone` means the viewer's zone (the browser's local zone,
+ * America/Phoenix for an Arizona user). The short zone name is included so a UTC instant is not shown
+ * as a bare clock that could be read as Arizona.
+ */
+export function formatLocalStamp(at: string, timeZone?: string): string {
+  return new Date(at).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+    ...(timeZone ? { timeZone } : {}),
+  });
+}
+
+/** "snapshot, updated Nov 8, 2:04 AM MST" in Arizona for 2026-11-08T09:04:10Z. */
+export function snapshotLabel(at: string | null | undefined, timeZone?: string): string {
   if (!at || !Number.isFinite(Date.parse(at))) return "snapshot";
-  const d = new Date(at);
-  return `snapshot, updated ${d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`;
+  return `snapshot, updated ${formatLocalStamp(at, timeZone)}`;
+}
+
+/** Saved market JSON newer than this is used instead of calling api.stellarchain.io. Older copies are still shown, and labelled stale. */
+export const SNAPSHOT_FRESH_MS = 45 * 60_000;
+/** How often an open tab re-reads the saved JSON. Short enough to pick up a refresh, long enough to avoid a request storm. */
+export const SNAPSHOT_RELOAD_MS = 5 * 60_000;
+
+/** Provenance for a saved copy: fresh, stale (older than 45 min), or time unknown. Never calls it live. */
+export function savedDataLabel(at: string | null | undefined, now = Date.now(), timeZone?: string): string {
+  if (!at || !Number.isFinite(Date.parse(at))) return "saved copy, time unknown";
+  const label = snapshotLabel(at, timeZone);
+  return isStale(at, SNAPSHOT_FRESH_MS, now) ? `stale ${label}` : label;
 }
 
 // ---- normalized shapes
@@ -213,6 +240,8 @@ export interface ClientOptions {
   live?: boolean;
   /** If the snapshot is newer than this (ms), use it without calling the live API (avoids CORS-blocked requests). */
   preferSnapshotMaxAgeMs?: number;
+  /** Re-read the saved JSON after this many ms instead of keeping the first response forever. */
+  snapshotReloadMs?: number;
 }
 
 export class StellarchainError extends Error {
@@ -233,8 +262,14 @@ export class StellarchainClient {
   private readonly inflight = new Map<string, Promise<unknown>>();
   private readonly snapshotSrc: ClientOptions["snapshot"];
   private snapshotP: Promise<MarketSnapshot | null> | null = null;
+  private snapshotLoadedAt = 0;
   private readonly live: boolean;
   private readonly preferSnapMs: number;
+  private readonly snapshotReloadMs: number;
+  /** After a browser network/CORS failure, further live calls wait until this time (no extra console errors). */
+  private liveBlockedUntil = 0;
+  private liveFailures = 0;
+  private liveLastError: StellarchainError | null = null;
 
   constructor(o: ClientOptions = {}) {
     this.base = (o.baseUrl ?? STELLARCHAIN_BASE).replace(/\/$/, "");
@@ -246,6 +281,32 @@ export class StellarchainClient {
     this.snapshotSrc = o.snapshot ?? null;
     this.live = o.live ?? true;
     this.preferSnapMs = o.preferSnapshotMaxAgeMs ?? 0;
+    this.snapshotReloadMs = o.snapshotReloadMs ?? SNAPSHOT_RELOAD_MS;
+  }
+
+  /** True while a recent browser network failure says not to call the API again yet. */
+  private liveCooling(): boolean {
+    return this.liveBlockedUntil > this.now();
+  }
+
+  /**
+   * HTTP statuses mean the browser could read the response. A missing status is a network or CORS
+   * failure: one attempt, then 15 minutes, so a stale saved copy is not accompanied by a request on every page.
+   */
+  private noteLiveFailure(e: StellarchainError) {
+    this.liveLastError = e;
+    if (e.status) {
+      this.liveBlockedUntil = this.now() + 20_000;
+      return;
+    }
+    this.liveFailures = Math.min(this.liveFailures + 1, 8);
+    this.liveBlockedUntil = this.now() + 15 * 60_000;
+  }
+
+  private noteLiveSuccess() {
+    this.liveFailures = 0;
+    this.liveBlockedUntil = 0;
+    this.liveLastError = null;
   }
 
   /** GET a path (relative to /v1) with the required JSON-LD Accept header, cached. */
@@ -286,18 +347,18 @@ export class StellarchainClient {
     return p;
   }
 
-  /** The build-time snapshot (fetched once, null if absent/invalid). */
+  /** The saved snapshot. Re-read after `snapshotReloadMs` so a long-lived tab picks up a newer file. */
   loadSnapshot(): Promise<MarketSnapshot | null> {
     if (!this.snapshotSrc) return Promise.resolve(null);
-    if (!this.snapshotP) {
-      const src = this.snapshotSrc;
-      this.snapshotP = (typeof src === "function"
-        ? src()
-        : this.f(src, { headers: { Accept: "application/json" } }).then((r) => (r.ok ? (r.json() as Promise<MarketSnapshot>) : null))
-      )
-        .then((s) => (s && typeof s === "object" && s.version === 1 ? s : null))
-        .catch(() => null);
-    }
+    if (this.snapshotP && this.now() - this.snapshotLoadedAt < this.snapshotReloadMs) return this.snapshotP;
+    const src = this.snapshotSrc;
+    this.snapshotLoadedAt = this.now();
+    this.snapshotP = (typeof src === "function"
+      ? src()
+      : this.f(src).then((r) => (r.ok ? (r.json() as Promise<MarketSnapshot>) : null))
+    )
+      .then((s) => (s && typeof s === "object" && s.version === 1 ? s : null))
+      .catch(() => null);
     return this.snapshotP;
   }
 
@@ -339,16 +400,25 @@ export class StellarchainClient {
   }
 
   private async fetchJson<T>(url: string): Promise<T> {
-    if (!this.live) throw new StellarchainError("live API disabled in this browser (no CORS); using the build-time snapshot");
+    if (!this.live) throw new StellarchainError("live API disabled in this browser (no CORS); using the saved snapshot");
+    if (this.liveCooling()) throw this.liveLastError ?? new StellarchainError("stellarchain cooling down after a browser network block");
     const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
     const timer = ctl ? setTimeout(() => ctl.abort(), this.timeout) : null;
     try {
       const res = await this.f(url, { headers: { Accept: "application/ld+json" }, signal: ctl?.signal });
-      if (!res.ok) throw new StellarchainError(`stellarchain ${res.status} for ${url}`, res.status);
-      return (await res.json()) as T;
+      if (!res.ok) {
+        const err = new StellarchainError(`stellarchain ${res.status} for ${url}`, res.status);
+        this.noteLiveFailure(err);
+        throw err;
+      }
+      const data = (await res.json()) as T;
+      this.noteLiveSuccess();
+      return data;
     } catch (e) {
       if (e instanceof StellarchainError) throw e;
-      throw new StellarchainError(`stellarchain request failed: ${(e as Error).message}`);
+      const err = new StellarchainError(`stellarchain request failed: ${(e as Error).message}`);
+      this.noteLiveFailure(err);
+      throw err;
     } finally {
       if (timer) clearTimeout(timer);
     }
@@ -408,26 +478,34 @@ const BASE_URL: string = import.meta.env?.BASE_URL ?? "/";
 export const SNAPSHOT_URL = `${BASE_URL.replace(/\/?$/, "/")}data/stellarchain-snapshot.json`;
 
 /**
- * Market data refreshed every 15 min by the "Market data" workflow (market-data.yml), committed to the
+ * Market data refreshed by the "Market data" workflow (market-data.yml), committed to the
  * `market-data` branch and read from raw.githubusercontent.com (CORS *), so it stays fresh without a redeploy.
  * The copy bundled into the Pages build (same origin) is the fallback; whichever is newer wins.
+ *
+ * The GET is deliberately simple: no custom headers and no `cache` mode. `cache: "no-cache"` makes the
+ * browser send Cache-Control and Pragma, which is a CORS preflight. raw.githubusercontent.com answers
+ * that preflight with 403 and no Allow-Headers, so the branch file never loads and the page is stuck
+ * on the bundled copy. A query bucket bypasses the CDN's 5-minute cache without a preflight.
  */
 export const MARKET_DATA_LIVE_BASE = (import.meta.env?.VITE_MARKET_DATA_URL as string | undefined) || "https://raw.githubusercontent.com/yogibear1323/quasaria/market-data/";
 const genAt = (j: { generatedAt?: string | null } | null) => (j?.generatedAt ? Date.parse(j.generatedAt) || 0 : 0);
 /** Fetch the branch copy and the bundled copy of a data file; return the newer valid one. */
-export async function loadNewestJson<T extends { generatedAt?: string | null }>(file: string, valid: (j: T) => boolean, f: typeof fetch = (...a) => fetch(...a)): Promise<T | null> {
-  const get = (u: string) =>
-    f(u, { headers: { Accept: "application/json" }, cache: "no-cache" })
+export async function loadNewestJson<T extends { generatedAt?: string | null }>(file: string, valid: (j: T) => boolean, f: typeof fetch = (...a) => fetch(...a), now = Date.now()): Promise<T | null> {
+  const bucket = Math.floor(now / SNAPSHOT_RELOAD_MS);
+  const get = (u: string) => {
+    const url = `${u}${u.includes("?") ? "&" : "?"}qzv=${bucket}`;
+    return f(url)
       .then((r) => (r.ok ? (r.json() as Promise<T>) : null))
       .then((j) => (j && typeof j === "object" && valid(j) ? j : null))
       .catch(() => null);
+  };
   const [a, b] = await Promise.all([get(`${MARKET_DATA_LIVE_BASE}${file}`), get(`${BASE_URL.replace(/\/?$/, "/")}data/${file}`)]);
   if (a && b) return genAt(a) >= genAt(b) ? a : b;
   return a ?? b;
 }
 
-/** Shared browser instance: the refreshed market-data file first (if < 45 min old), then the live API, then the newest snapshot. */
-/** On github.io the API never sends CORS headers, so the live API is skipped there. */
+/** Shared browser instance: a saved copy under 45 min old, then one direct API try, then the newest saved copy. */
+/** On github.io the API never sends CORS headers, so the live API is skipped there. quasaria.online still tries once, then backs off. */
 const BROWSER_LIVE = typeof window === "undefined" || !/\.github\.io$/.test(window.location.hostname);
 export const stellarchain = new StellarchainClient({
   snapshot: typeof window !== "undefined" ? () => loadNewestJson<MarketSnapshot>("stellarchain-snapshot.json", (j) => j.version === 1) : null,

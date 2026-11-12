@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-12T11:21:11.369Z",
+ "generatedAt": "2026-11-12T19:58:08.342Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-12T11:06:54.273Z",
+  "updatedAt": "2026-11-12T19:19:15.589Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -115,7 +115,7 @@
    "kind": "outlet",
    "home": "https://www.coindesk.com",
    "feed": "https://www.coindesk.com/arc/outboundfeeds/rss/",
-   "count": 0,
+   "count": 1,
    "ok": true
   },
   {
@@ -129,6 +129,49 @@
   }
  ],
  "items": [
+  {
+   "id": "1tbhz34",
+   "title": "Horizon v30.0.1 released",
+   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v30.0.1",
+   "publishedAt": "2026-11-12T17:12:57.000Z",
+   "excerpt": "This release fixes ingestion and transaction submission bugs. Fixed Ingestion reads a ledger's meta from captive core whatever its size. A ledger whose meta was larger than 256 MiB stopped…",
+   "image": null,
+   "source": "stellar-horizon",
+   "sourceName": "Horizon releases",
+   "kind": "release",
+   "tags": [
+    "protocol"
+   ]
+  },
+  {
+   "id": "1es5e4o",
+   "title": "Stellar RPC v30.0.1 released",
+   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v30.0.1",
+   "publishedAt": "2026-11-12T17:06:18.000Z",
+   "excerpt": "Stellar RPC v30.0.1 Breaking Changes JSON-RPC batches with more than MAX_REQUEST_BATCH_SIZE calls (default 10) are now rejected with one error, and none of their calls run. simulateTransaction error…",
+   "image": null,
+   "source": "stellar-rpc",
+   "sourceName": "Stellar RPC releases",
+   "kind": "release",
+   "tags": [
+    "protocol",
+    "developers"
+   ]
+  },
+  {
+   "id": "1ac68g8",
+   "title": "DTCC adds Solana to Wall Street tokenization plans, targeting 2027 rollout",
+   "url": "https://www.coindesk.com/business/2026/11/12/dtcc-adds-solana-to-wall-street-tokenization-plans-targeting-2027-rollout",
+   "publishedAt": "2026-11-12T15:45:48.000Z",
+   "excerpt": "The securities infrastructure giant plans to bring tokenized stocks, ETFs and U.S. Treasuries to Solana as it expands next year's roadmap beyond Stellar and Arc.",
+   "image": "https://cdn.sanity.io/images/s3y3vcno/production/017c04b0a6f702fccd76ffd5aa923321e5b66146-2048x1152.jpg?fm=jpg&w=800&h=450&crop=focalpoint&fit=clip",
+   "source": "coindesk",
+   "sourceName": "CoinDesk",
+   "kind": "outlet",
+   "tags": [
+    "ecosystem"
+   ]
+  },
   {
    "id": "9ehm7v",
    "title": "Stellar Ambassador Program: September and October 2026",
@@ -623,21 +666,6 @@
    ]
   },
   {
-   "id": "lg5eql",
-   "title": "Stellar RPC v28.0.1 released",
-   "url": "https://github.com/stellar/stellar-rpc/releases/tag/v28.0.1",
-   "publishedAt": "2026-08-27T18:41:17.000Z",
-   "excerpt": "Bump grpc, go-jose and opentelemetry to latest by @Shaptic in #958 Point integration tests at stellar-core 28.0.1 stable by @karthikiyer56 in #957 Full Changelog: v28.0.0...v28.0.1",
-   "image": null,
-   "source": "stellar-rpc",
-   "sourceName": "Stellar RPC releases",
-   "kind": "release",
-   "tags": [
-    "protocol",
-    "developers"
-   ]
-  },
-  {
    "id": "1v95zqq",
    "title": "Testnet Adapter, Protocol 28 Upgrade",
    "url": "https://status.stellar.org/incidents/svgqjdzmtfsp",
@@ -679,20 +707,6 @@
    "kind": "blog",
    "tags": [
     "developers"
-   ]
-  },
-  {
-   "id": "9fcg36",
-   "title": "Horizon v28.0.0 released",
-   "url": "https://github.com/stellar/stellar-horizon/releases/tag/v28.0.0",
-   "publishedAt": "2026-08-20T00:37:40.000Z",
-   "excerpt": "Bump core to v27.1.0 for CI. by @dmkozh in #198 Decompose Horizon integration tests into a callable workflow by @Shaptic in #202 Protocol 28 GA: remaining pins + release workflow fix…",
-   "image": null,
-   "source": "stellar-horizon",
-   "sourceName": "Horizon releases",
-   "kind": "release",
-   "tags": [
-    "protocol"
    ]
   },
   {

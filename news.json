@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-13T11:04:40.066Z",
+ "generatedAt": "2026-11-13T19:45:47.302Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-13T07:09:37.977Z",
+  "updatedAt": "2026-11-13T17:24:44.739Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -106,7 +106,7 @@
    "kind": "outlet",
    "home": "https://cointelegraph.com/tags/stellar",
    "feed": "https://cointelegraph.com/rss/tag/stellar",
-   "count": 4,
+   "count": 3,
    "ok": true
   },
   {
@@ -793,20 +793,6 @@
    "source": "stellar-community",
    "sourceName": "Stellar Community (Medium)",
    "kind": "blog",
-   "tags": [
-    "ecosystem"
-   ]
-  },
-  {
-   "id": "yhs584",
-   "title": "Tradable’s $1B Stellar deal adds to institutional tokenization boom",
-   "url": "https://cointelegraph.com/news/tradables-1b-stellar-deal-adds-to-institutional-tokenization-boom",
-   "publishedAt": "2026-07-16T16:19:16.000Z",
-   "excerpt": "Tradable will bring up to $1 billion in private credit assets to Stellar, extending the blockchain’s push into institutional finance and tokenized real-world assets.",
-   "image": "https://s3-images.ctmedia.io/media/article-covers/hi-what-are-smart-contracts-stellar.jpg",
-   "source": "cointelegraph",
-   "sourceName": "Cointelegraph",
-   "kind": "outlet",
    "tags": [
     "ecosystem"
    ]

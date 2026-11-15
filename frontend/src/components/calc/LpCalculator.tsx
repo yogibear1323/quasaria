@@ -7,8 +7,9 @@ import { fmtAmt, fmtUsd, pctStr, AmountField, CalcDisclaimer, CalcHead, CalcStat
 import { quoteNativeLp, type NativeLpQuote } from "../../lib/lpQuote";
 import { fetchTradeWindow } from "../../lib/lpQuoteData";
 import { isRewardAsset, REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_RATE_TEXT } from "../../lib/rewards";
+import { AssetLogo } from "../AssetBits";
 import {
-  NETS, curatedPairs, fetchPoolById, fetchPoolForPair, keyOf, sameAsset, volumeUnit,
+  NETS, calculatorAssetLogo, calculatorPairLabel, calculatorPairs, curatedPairs, fetchPoolById, fetchPoolForPair, keyOf, sameAsset, volumeUnit,
   type AssetRef, type NetId, type PoolRow, type Pricing,
 } from "../../lib/nativePools";
 
@@ -30,10 +31,6 @@ export type LpCalcProps = {
 type Load = { phase: "idle" | "loading" | "missing" | "error" | "ready"; pool: PoolRow | null; walk: Awaited<ReturnType<typeof fetchTradeWindow>> | null };
 
 const idleLoad = (): Load => ({ phase: "idle", pool: null, walk: null });
-
-function pairLabel(a: AssetRef, b: AssetRef) {
-  return `${a.code} / ${b.code}`;
-}
 
 /** Prefer the GLACIERQ / XLM pair when that issuer exists. No pool list is fetched to decide this. */
 function defaultPairIndex(net: NetId, pairs: [AssetRef, AssetRef][]) {
@@ -154,7 +151,16 @@ export default function LpCalculator({ variant = "full", net = NETWORK, pricing 
   const priced = useMemo(() => ({ xlmUsd }), [xlmUsd]);
   const root = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(!defer);
-  const pairs = useMemo(() => curatedPairs(net), [net]);
+  const pairs = useMemo(() => calculatorPairs(net), [net]);
+  const curatedKeys = useMemo(() => new Set(curatedPairs(net).map(([a, b]) => `${keyOf(a)}|${keyOf(b)}`)), [net]);
+  const displayName = useMemo(() => {
+    const names = new Map<string, string>();
+    for (const [a, b] of pairs) {
+      if (a.display) names.set(keyOf(a), a.display);
+      if (b.display) names.set(keyOf(b), b.display);
+    }
+    return (a: AssetRef) => names.get(keyOf(a)) ?? a.code;
+  }, [pairs]);
   const [pairIdx, setPairIdx] = useState(() => defaultPairIndex(net, pairs));
   useEffect(() => { setPairIdx(defaultPairIndex(net, pairs)); }, [net, pairs]);
   const [idText, setIdText] = useState("");
@@ -225,11 +231,11 @@ export default function LpCalculator({ variant = "full", net = NETWORK, pricing 
     if (load.phase !== "ready" || !load.pool || !unit) return null;
     const unitIsA = sameAsset(unit.unit, load.pool.a);
     return quoteNativeLp({
-      pool: { reserveA: load.pool.reserveA, reserveB: load.pool.reserveB, feeBp: load.pool.feeBp, codeA: load.pool.a.code, codeB: load.pool.b.code },
-      walk: load.walk, nowMs, deposit, driver, unitCode: unit.unit.code, unitIsA, usdPerUnit: unit.usd,
+      pool: { reserveA: load.pool.reserveA, reserveB: load.pool.reserveB, feeBp: load.pool.feeBp, codeA: displayName(load.pool.a), codeB: displayName(load.pool.b) },
+      walk: load.walk, nowMs, deposit, driver, unitCode: displayName(unit.unit), unitIsA, usdPerUnit: unit.usd,
       platform: { enabled: feeEnabled(), bps: FEE_BPS }, priceChangePct: change,
     });
-  }, [load, unit, nowMs, deposit, driver, change]);
+  }, [load, unit, nowMs, deposit, driver, change, displayName]);
 
   const glacierMoved = useMemo(() => {
     if (!load.pool || !quote?.amountA || !quote.amountB) return null;
@@ -238,15 +244,24 @@ export default function LpCalculator({ variant = "full", net = NETWORK, pricing 
     return null;
   }, [load.pool, quote]);
 
-  const codeA = load.pool?.a.code ?? pair?.[0].code ?? "A";
-  const codeB = load.pool?.b.code ?? pair?.[1].code ?? "B";
+  const codeA = load.pool ? displayName(load.pool.a) : (pair?.[0].display ?? pair?.[0].code ?? "A");
+  const codeB = load.pool ? displayName(load.pool.b) : (pair?.[1].display ?? pair?.[1].code ?? "B");
+  const extraPair = !!pair && !curatedKeys.has(`${keyOf(pair[0])}|${keyOf(pair[1])}`);
   const controls = (
     <div className="calc-grid">
       <div>
         <div className="field">
-          <label htmlFor="lp-pair">Pool on {NETS[net].label}</label>
+          <label htmlFor="lp-pair">
+            Pool on {NETS[net].label}
+            {extraPair && pair && (
+              <span data-testid="lp-pair-logos" style={{ display: "inline-flex", alignItems: "center", gap: 4, marginLeft: 8, verticalAlign: "middle" }}>
+                <AssetLogo code={pair[0].code} issuer={pair[0].issuer} logo={calculatorAssetLogo(pair[0])} size={16} />
+                <AssetLogo code={pair[1].code} issuer={pair[1].issuer} logo={calculatorAssetLogo(pair[1])} size={16} />
+              </span>
+            )}
+          </label>
           <select id="lp-pair" className="input" value={String(pairIdx)} onChange={(e) => { setIdText(""); setPairIdx(Number(e.target.value)); }} aria-label="Liquidity pool" data-testid="lp-pair" disabled={!pairs.length}>
-            {pairs.map(([a, b], i) => <option key={`${keyOf(a)}|${keyOf(b)}`} value={i}>{pairLabel(a, b)}</option>)}
+            {pairs.map(([a, b], i) => <option key={`${keyOf(a)}|${keyOf(b)}`} value={i}>{calculatorPairLabel(a, b)}</option>)}
           </select>
           <div className="calc-hint">{IS_MAINNET ? "Mainnet native pools. " : "This build reads native pools on its active network. "}Pick a pair. Nothing is fetched for the other pairs.</div>
         </div>
@@ -289,7 +304,7 @@ export default function LpCalculator({ variant = "full", net = NETWORK, pricing 
         loading={load.phase === "loading"}
         loadError={loadError}
         quote={blocked || offline ? null : quote}
-        reserves={load.pool ? { reserveA: load.pool.reserveA, reserveB: load.pool.reserveB, feeBp: load.pool.feeBp, codeA: load.pool.a.code, codeB: load.pool.b.code, id: load.pool.id } : null}
+        reserves={load.pool ? { reserveA: load.pool.reserveA, reserveB: load.pool.reserveB, feeBp: load.pool.feeBp, codeA: displayName(load.pool.a), codeB: displayName(load.pool.b), id: load.pool.id } : null}
         controls={controls}
         glacierMoved={glacierMoved}
         onOpenPool={onOpenPool && load.pool ? () => onOpenPool(load.pool!.id) : undefined}

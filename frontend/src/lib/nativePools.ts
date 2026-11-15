@@ -13,6 +13,8 @@ import { HORIZON_URL, NETWORK, TESTNET_USDC_ISSUER } from "./config";
 import curated from "../config/lp-curated.json";
 import testnetDoc from "../config/testnet-assets.json";
 import { GLACIERQ_ICON_128, REWARD_ASSET_CODE, REWARD_ISSUER } from "./rewards";
+import { VERIFIED_ASSETS } from "./stablecoins";
+import { XLM_LOGO } from "./xlm";
 
 export type NetId = "testnet" | "mainnet";
 /** Build flag: show the read-only mainnet data switch. Off unless VITE_MAINNET_BROWSE=1. */
@@ -120,6 +122,61 @@ export function curatedPairs(net: NetId): [AssetRef, AssetRef][] {
   for (const c of list) if (c.issuer) add(XLM, c);
   const usdc = list.find((c) => c.code === "USDC" && c.issuer);
   if (usdc) for (const c of list) if (c.issuer && c.category === "stablecoin") add(usdc, c);
+  return out;
+}
+
+export type CalcAsset = AssetRef & { display?: string };
+
+/** Official bundled logo (public/tokens), matched by code and issuer. XLM uses the native mark. */
+export function calculatorAssetLogo(a: AssetRef): string | null {
+  if (!a.issuer) return XLM_LOGO;
+  return VERIFIED_ASSETS.find((v) => v.code === a.code && v.issuer === a.issuer)?.logo ?? null;
+}
+
+export function calculatorPairLabel(a: CalcAsset, b: CalcAsset): string {
+  return `${a.display ?? a.code} / ${b.display ?? b.code}`;
+}
+
+/** Issuer comes from VERIFIED_ASSETS (code + org), not a second copy of the address. */
+function verifiedCalcAsset(code: string, org: string, display?: string): CalcAsset {
+  const v = VERIFIED_ASSETS.find((a) => a.code === code && a.org === org);
+  if (!v) throw new Error(`Verified asset list has no ${org} ${code}`);
+  return { code: v.code, issuer: v.issuer, display };
+}
+
+/**
+ * Pairs the calculator offers in addition to curatedPairs. Mainnet only.
+ * Checked on Horizon mainnet 2026-11-15: each is a CAP-38 fee-30 pool with both reserves above zero.
+ * USDC/TESOURO is omitted: Horizon has no native pool for Circle USDC and Etherfuse TESOURO.
+ * USDY and BENJI are not included. These pairs are not added to curatedPairs, so the Pools
+ * verified-pairs table and pair picker stay unchanged.
+ */
+export function calculatorExtraPairs(): [CalcAsset, CalcAsset][] {
+  const ustry = verifiedCalcAsset("USTRY", "Etherfuse");
+  const cetes = verifiedCalcAsset("CETES", "Etherfuse");
+  const tesouro = verifiedCalcAsset("TESOURO", "Etherfuse");
+  const usdc = verifiedCalcAsset("USDC", "Circle");
+  const mykobo = verifiedCalcAsset("EURC", "Mykobo", "EURC (Mykobo)");
+  return [
+    orderAssets(XLM, ustry),
+    orderAssets(XLM, cetes),
+    orderAssets(XLM, tesouro),
+    orderAssets(usdc, ustry),
+    orderAssets(usdc, cetes),
+    orderAssets(XLM, mykobo),
+    orderAssets(mykobo, usdc),
+  ];
+}
+
+/** Curated pairs, plus the treasury and Mykobo EURC pools on mainnet. */
+export function calculatorPairs(net: NetId): [CalcAsset, CalcAsset][] {
+  const out: [CalcAsset, CalcAsset][] = curatedPairs(net).map(([a, b]) => [a, b]);
+  if (net !== "mainnet") return out;
+  const seen = new Set(out.map(([a, b]) => `${keyOf(a)}|${keyOf(b)}`));
+  for (const [a, b] of calculatorExtraPairs()) {
+    const k = `${keyOf(a)}|${keyOf(b)}`;
+    if (!seen.has(k)) { seen.add(k); out.push([a, b]); }
+  }
   return out;
 }
 

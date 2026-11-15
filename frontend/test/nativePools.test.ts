@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Asset, Keypair } from "@stellar/stellar-sdk";
-import { MAINNET_SIGNING, XLM, assertSignable, curatedList, curatedPairs, fix7, orderAssets, poolIdFor, previewDeposit, previewWithdraw, verifyAsset, depositReserveCost, parseLookup, type PoolRow } from "../src/lib/nativePools";
+import { MAINNET_SIGNING, XLM, assertSignable, calculatorAssetLogo, calculatorExtraPairs, calculatorPairLabel, calculatorPairs, curatedList, curatedPairs, fix7, orderAssets, poolIdFor, previewDeposit, previewWithdraw, usdUnit, verifyAsset, depositReserveCost, parseLookup, type PoolRow } from "../src/lib/nativePools";
+import { VERIFIED_ASSETS } from "../src/lib/stablecoins";
 import { minReceived } from "../src/lib/swap";
 import { TESTNET_USDC_ISSUER } from "../src/lib/config";
 
@@ -77,6 +78,52 @@ describe("native pools: ids, assets and verification", () => {
     const m = curatedList("mainnet");
     expect(m.find((c) => c.code === "USDC")?.issuer).toBe("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN");
     expect(m.filter((c) => c.code === "USDC")).toHaveLength(1);
+  });
+});
+
+describe("calculator-only treasury and Mykobo pairs", () => {
+  const added = calculatorExtraPairs();
+  const label = (p: (typeof added)[number]) => calculatorPairLabel(p[0], p[1]);
+  const byLabel = Object.fromEntries(added.map((p) => [label(p), p]));
+  const ids: Record<string, string> = {
+    "XLM / USTRY": "54111f0a14be039184cb23f5d01c1409d3ca5b1044604a2f24647c5be193c261",
+    "XLM / CETES": "42b17d04a3545f42f096ded1ea5a74e2393316ff1e20f3644258dbf15d37d837",
+    "XLM / TESOURO": "bd5f863bbaecf5f9831dd68794308521566df827db3e4fbf1861f76045ef292f",
+    "USDC / USTRY": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+    "USDC / CETES": "c941868b109249b0659e4e52799039f8486529c9d0a531e1b6b5816a37cdb940",
+    "XLM / EURC (Mykobo)": "461f6345f6b34f6b038f595ea282dad0b5fdcc15151186f2bb956a1a93bc430f",
+    "EURC (Mykobo) / USDC": "7a3b99b13f01fbb89754c9721b41aaafac773d0f6e222a7024aa9e4310a9debf",
+  };
+
+  it("adds the Horizon fee-30 pools and leaves curated pairs unchanged", () => {
+    expect(added.map(label)).toEqual(Object.keys(ids));
+    for (const [name, id] of Object.entries(ids)) expect(poolIdFor(byLabel[name][0], byLabel[name][1])).toBe(id);
+    const curatedKeys = new Set(curatedPairs("mainnet").map(([a, b]) => `${a.code}:${a.issuer}|${b.code}:${b.issuer}`));
+    for (const [a, b] of added) expect(curatedKeys.has(`${a.code}:${a.issuer}|${b.code}:${b.issuer}`)).toBe(false);
+    expect(calculatorPairs("mainnet")).toHaveLength(curatedPairs("mainnet").length + added.length);
+    expect(calculatorPairs("testnet")).toEqual(curatedPairs("testnet"));
+    const codes = calculatorPairs("mainnet").flatMap(([a, b]) => [a.code, b.code]);
+    expect(codes).not.toContain("BENJI");
+    expect(codes).not.toContain("USDY");
+    expect(calculatorPairs("mainnet").some(([a, b]) => [a.code, b.code].includes("TESOURO") && [a.code, b.code].includes("USDC"))).toBe(false);
+  });
+
+  it("uses the verified issuers and bundled logos, and does not invent a treasury USD price", () => {
+    const issuer = (code: string, org: string) => VERIFIED_ASSETS.find((a) => a.code === code && a.org === org)!.issuer;
+    expect(byLabel["XLM / USTRY"][1]).toMatchObject({ code: "USTRY", issuer: issuer("USTRY", "Etherfuse") });
+    expect(byLabel["USDC / CETES"][0]).toMatchObject({ code: "USDC", issuer: issuer("USDC", "Circle") });
+    expect(byLabel["XLM / EURC (Mykobo)"][1]).toMatchObject({ code: "EURC", issuer: issuer("EURC", "Mykobo"), display: "EURC (Mykobo)" });
+    expect(calculatorAssetLogo(byLabel["XLM / USTRY"][1])).toContain("ustry.png");
+    expect(calculatorAssetLogo(byLabel["XLM / CETES"][1])).toContain("cetes.png");
+    expect(calculatorAssetLogo(byLabel["XLM / TESOURO"][1])).toContain("tesouro.png");
+    expect(calculatorAssetLogo(byLabel["XLM / EURC (Mykobo)"][1])).toContain("eurc-mykobo.png");
+    expect(calculatorAssetLogo(byLabel["EURC (Mykobo) / USDC"][1])).toContain("usdc.svg");
+    expect(calculatorAssetLogo(XLM)).toContain("xlm.svg");
+    expect(calculatorAssetLogo(byLabel["XLM / EURC (Mykobo)"][1])).not.toContain("eurc-circle.svg");
+    const ustry = byLabel["XLM / USTRY"][1];
+    expect(verifyAsset("mainnet", ustry).status).toBe("unverified");
+    expect(usdUnit("mainnet", ustry, { xlmUsd: 0.5 })).toBeNull();
+    expect(usdUnit("mainnet", byLabel["XLM / EURC (Mykobo)"][1], { xlmUsd: 0.5 })).toBeNull();
   });
 });
 

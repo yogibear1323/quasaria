@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-14T22:28:52.966Z",
+ "generatedAt": "2026-11-15T06:39:27.383Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-14T20:44:22.603Z",
+  "updatedAt": "2026-11-15T06:09:10.865Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -115,7 +115,7 @@
    "kind": "outlet",
    "home": "https://www.coindesk.com",
    "feed": "https://www.coindesk.com/arc/outboundfeeds/rss/",
-   "count": 1,
+   "count": 0,
    "ok": true
   },
   {
@@ -156,20 +156,6 @@
    "tags": [
     "protocol",
     "developers"
-   ]
-  },
-  {
-   "id": "1ac68g8",
-   "title": "DTCC adds Solana to Wall Street tokenization plans, targeting 2027 rollout",
-   "url": "https://www.coindesk.com/business/2026/11/12/dtcc-adds-solana-to-wall-street-tokenization-plans-targeting-2027-rollout",
-   "publishedAt": "2026-11-12T15:45:48.000Z",
-   "excerpt": "The securities infrastructure giant plans to bring tokenized stocks, ETFs and U.S. Treasuries to Solana as it expands next year's roadmap beyond Stellar and Arc.",
-   "image": "https://cdn.sanity.io/images/s3y3vcno/production/017c04b0a6f702fccd76ffd5aa923321e5b66146-2048x1152.jpg?fm=jpg&w=800&h=450&crop=focalpoint&fit=clip",
-   "source": "coindesk",
-   "sourceName": "CoinDesk",
-   "kind": "outlet",
-   "tags": [
-    "ecosystem"
    ]
   },
   {

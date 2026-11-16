@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-16T06:36:44.516Z",
+ "generatedAt": "2026-11-16T19:38:39.106Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-16T05:44:40.691Z",
+  "updatedAt": "2026-11-16T18:37:15.934Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -25,7 +25,7 @@
    "kind": "blog",
    "home": "https://stellar.org/blog/developers",
    "feed": "https://stellar.org/blog/developers/rss.xml",
-   "count": 4,
+   "count": 5,
    "ok": true
   },
   {
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "18d387y",
+   "title": "Q3 2026: The rail, put to work",
+   "url": "https://stellar.org/blog/foundation-news/q3-2026-the-rail-put-to-work",
+   "publishedAt": "2026-11-16T00:00:00.000Z",
+   "excerpt": "Stellar's Q3 2026 quarterly update: U.S. Bank's live USBDC pilot, $33.2B in total volume (up 71%), real-world assets past $5B, 3,922 monthly active developers, and Project Thruput.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/323ddb310c6ba90380b185ccd742ee0b371c114c-2048x1536.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "ecosystem"
+   ]
+  },
   {
    "id": "1tbhz34",
    "title": "Horizon v30.0.1 released",
@@ -587,8 +601,8 @@
    "publishedAt": "2026-09-14T00:00:00.000Z",
    "excerpt": "Pyth Pro is live on Stellar mainnet. How the pull oracle works, how to verify the deployment yourself without spending a stroop, and how to choose an oracle.",
    "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/19f194fb1dd1860807c7b80f49f218835cb6cdf8-1024x768.png",
-   "source": "sdf",
-   "sourceName": "Stellar Development Foundation",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
    "kind": "blog",
    "tags": [
     "developers",

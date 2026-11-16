@@ -1,15 +1,20 @@
+import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { impermanentLoss } from "../src/lib/calc";
 import { feeAmount } from "../src/lib/fees";
 import {
-  consumePage, emptyWalkState, finishWalk, matchedDeposit, quoteNativeLp, tableFeeApr, valueInUnit, volumeOfTrade, WINDOW_MAX_AGE_MS,
+  consumePage, emptyWalkState, finishWalk, matchedDeposit, monthlyFeeUsd, quoteNativeLp, tableFeeApr, valueInUnit, volumeOfTrade, WINDOW_MAX_AGE_MS,
   type NativePoolSide, type UnitTrade, type VolumeWalk,
 } from "../src/lib/lpQuote";
 import { fetchTradeWindow, parsePoolTrade } from "../src/lib/lpQuoteData";
 import { LpQuoteBody } from "../src/components/calc/LpCalculator";
-import type { AssetRef } from "../src/lib/nativePools";
+import { calculatorExtraPairs, curatedList, usdUnit, type AssetRef } from "../src/lib/nativePools";
+import { WalletProvider } from "../src/lib/wallet";
+import Landing from "../src/pages/Landing";
+import Pools from "../src/pages/Pools";
+import Calculators from "../src/pages/Calculators";
 
 const XLM: AssetRef = { code: "XLM", issuer: null };
 const USDC: AssetRef = { code: "USDC", issuer: "GDRIVERISSUERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" };
@@ -29,6 +34,10 @@ const quote = (over: Partial<Parameters<typeof quoteNativeLp>[0]> = {}) => quote
 const trade = (atMs: number, baseAmount: number, counterAmount: number, base: AssetRef = XLM, counter: AssetRef = USDC): UnitTrade => ({
   atMs, base, baseAmount, counter, counterAmount,
 });
+
+const body = (q: ReturnType<typeof quoteNativeLp>, variant: "full" | "compact" = "full") => renderToStaticMarkup(
+  <MemoryRouter><LpQuoteBody variant={variant} loading={false} loadError={null} quote={q} reserves={null} controls={null} glacierMoved={null} canOpen={false} /></MemoryRouter>,
+);
 
 describe("post-deposit share and fees", () => {
   it("matches both sides and dilutes the share", () => {
@@ -108,10 +117,13 @@ describe("zero, unknown, truncated, stale, invalid", () => {
     const q = quote({ usdPerUnit: null });
     expect(q.depositValue!.usd).toBeNull();
     expect(q.fees!.usdPerUnit).toBeNull();
+    expect(q.fees!.monthlyUsd).toBeNull();
     expect(q.usdUnavailable).toBe(true);
     const priced = quote({ usdPerUnit: 0.5 });
     expect(priced.depositValue!.usd).toBeCloseTo(1000);
     expect(priced.fees!.usdPerUnit).toBe(0.5);
+    expect(priced.fees!.monthlyUsd).toBeCloseTo(priced.fees!.monthly * 0.5);
+    expect(priced.fees!.monthlyUsdVia).toBe("unit");
   });
 });
 
@@ -229,25 +241,190 @@ describe("Horizon trade window", () => {
 });
 
 describe("quote view", () => {
-  const body = (q: ReturnType<typeof quoteNativeLp>) => renderToStaticMarkup(
-    <MemoryRouter><LpQuoteBody variant="full" loading={false} loadError={null} quote={q} reserves={null} controls={null} glacierMoved={null} canOpen={false} /></MemoryRouter>,
-  );
-
   it("shows the annualized rate for a complete window and withholds it when truncated", () => {
     const html = body(quote());
     expect(html).toContain("lp-apr");
     expect(html).toContain("No liquidity-provider incentive");
     expect(html).toContain("not paid on pool shares");
     expect(html).not.toContain("data-testid=\"lp-net\"");
-    const cut = body(quote({ walk: walk({ truncated: true, reachedCutoff: false }), priceChangePct: 100 }));
+    const cut = body(quote({ walk: walk({ truncated: true, reachedCutoff: false }), priceChangePct: 100, usdPerUnit: 0.25, assetUsd: { a: 0.25, b: null } }));
     expect(cut).toContain("lp-withheld");
+    expect(cut).toContain("monthly USD estimate");
     expect(cut).not.toContain("data-testid=\"lp-apr\"");
     expect(cut).not.toContain("data-testid=\"lp-daily\"");
+    expect(cut).not.toContain("data-testid=\"lp-monthly-usd\"");
   });
 
-  it("labels a verified zero and does not print a dollar amount without a price", () => {
+  it("labels a verified zero as $0.00 and does not invent a price for the deposit", () => {
     const html = body(quote({ walk: walk({ volumeInUnit: 0, tradesInWindow: 0 }) }));
     expect(html).toContain("lp-zero");
     expect(html).toContain("USD unavailable");
+    expect(html).toContain("$0.00");
+    expect(html).toContain("data-testid=\"lp-monthly-usd\"");
+  });
+});
+
+describe("monthly fee USD", () => {
+  const xlm = { a: 0.25, b: null as number | null };
+  const priced = { usdPerUnit: 0.25, assetUsd: xlm };
+
+  it("prices an XLM fee leg at the live XLM price and does not add the other leg", () => {
+    expect(monthlyFeeUsd(10, true, 1000, 500, 0.25, null)).toEqual({ usd: 2.5, via: "unit" });
+    const q = quote(priced);
+    expect(q.fees!.monthly).toBeCloseTo(90);
+    expect(q.fees!.monthlyUsd).toBeCloseTo(90 * 0.25);
+    expect(q.fees!.monthlyUsdVia).toBe("unit");
+    const both = quote({ ...priced, assetUsd: { a: 0.25, b: 1 } });
+    expect(both.fees!.monthlyUsd).toBeCloseTo(90 * 0.25);
+    expect(both.fees!.monthlyUsdVia).toBe("unit");
+  });
+
+  it("values the other leg through the pool ratio when only XLM has a USD price", () => {
+    expect(monthlyFeeUsd(90, true, 1000, 500, null, 0.25)).toEqual({ usd: 90 * (500 / 1000) * 0.25, via: "pool-ratio" });
+    const q = quote({ usdPerUnit: null, unitCode: "GLACIERQ", assetUsd: { a: null, b: 0.25 } });
+    expect(q.fees!.code).toBe("GLACIERQ");
+    expect(q.fees!.usdPerUnit).toBeNull();
+    expect(q.fees!.monthlyUsd).toBeCloseTo(90 * (500 / 1000) * 0.25);
+    expect(q.fees!.monthlyUsdVia).toBe("pool-ratio");
+  });
+
+  it("prices a USDC fee leg at one dollar", () => {
+    expect(monthlyFeeUsd(90, false, 1000, 500, null, 1)).toEqual({ usd: 90, via: "unit" });
+    const q = quote({ driver: "B", deposit: 500, unitIsA: false, unitCode: "USDC", usdPerUnit: 1, assetUsd: { a: null, b: 1 } });
+    expect(q.fees!.monthly).toBeCloseTo(90);
+    expect(q.fees!.monthlyUsd).toBeCloseTo(90);
+    expect(q.fees!.monthlyUsdVia).toBe("unit");
+  });
+
+  it("values the other leg through the pool ratio when only USDC has a USD price", () => {
+    expect(monthlyFeeUsd(90, true, 1000, 500, null, 1)).toEqual({ usd: 45, via: "pool-ratio" });
+    const q = quote({ usdPerUnit: null, unitCode: "USTRY", assetUsd: { a: null, b: 1 } });
+    expect(q.fees!.monthlyUsd).toBeCloseTo(45);
+    expect(q.fees!.monthlyUsdVia).toBe("pool-ratio");
+  });
+
+  it("uses curated USD prices: XLM and USDC count, EUR pegs and GLACIERQ do not", () => {
+    const pricing = { xlmUsd: 0.25 };
+    const list = curatedList("mainnet");
+    const usdc = list.find((a) => a.code === "USDC" && a.peg === "USD");
+    const circleEurc = list.find((a) => a.code === "EURC" && a.peg === "EUR");
+    const mykobo = calculatorExtraPairs().flat().find((a) => a.display === "EURC (Mykobo)");
+    expect(usdc && circleEurc && mykobo).toBeTruthy();
+    expect(usdUnit("mainnet", { code: "XLM", issuer: null }, pricing)).toBe(0.25);
+    expect(usdUnit("mainnet", usdc!, pricing)).toBe(1);
+    expect(usdUnit("mainnet", circleEurc!, pricing)).toBeNull();
+    expect(usdUnit("mainnet", mykobo!, pricing)).toBeNull();
+    expect(usdUnit("testnet", { code: "XLM", issuer: null }, pricing)).toBeNull();
+    const xlmPool = quote({
+      usdPerUnit: 0.25,
+      assetUsd: { a: usdUnit("mainnet", { code: "XLM", issuer: null }, pricing), b: usdUnit("mainnet", circleEurc!, pricing) },
+    });
+    expect(xlmPool.fees!.monthlyUsd).toBeCloseTo(90 * 0.25);
+    const usdcPool = quote({
+      driver: "B", deposit: 500, unitIsA: false, unitCode: "USDC", usdPerUnit: 1,
+      assetUsd: { a: usdUnit("mainnet", mykobo!, pricing), b: usdUnit("mainnet", usdc!, pricing) },
+    });
+    expect(usdcPool.fees!.monthlyUsd).toBeCloseTo(90);
+    expect(usdcPool.fees!.monthlyUsdVia).toBe("unit");
+  });
+
+  it("is unavailable when neither leg has a USD price", () => {
+    expect(monthlyFeeUsd(90, true, 1000, 500, null, null)).toBeNull();
+    const q = quote({ usdPerUnit: null, assetUsd: { a: null, b: null } });
+    expect(q.window).toBe("complete");
+    expect(q.fees!.monthly).toBeCloseTo(90);
+    expect(q.fees!.monthlyUsd).toBeNull();
+    expect(q.fees!.monthlyUsdVia).toBeNull();
+  });
+
+  it("withholds the USD figure when the 24h window is truncated, failed, stale, or missing", () => {
+    expect(quote({ ...priced, walk: walk({ truncated: true, reachedCutoff: false, volumeInUnit: 1_000_000 }) }).fees).toBeNull();
+    expect(quote({ ...priced, walk: walk({ ok: false, volumeInUnit: 0, tradesInWindow: 0, reachedCutoff: false }) }).fees).toBeNull();
+    expect(quote({ ...priced, walk: walk({ fetchedAtMs: NOW - WINDOW_MAX_AGE_MS - 1 }), nowMs: NOW }).fees).toBeNull();
+    expect(quote({ ...priced, walk: null }).fees).toBeNull();
+  });
+
+  it("is $0 for a complete window with no swaps", () => {
+    expect(monthlyFeeUsd(0, true, 1000, 500, 0.25, null)).toEqual({ usd: 0, via: "unit" });
+    expect(monthlyFeeUsd(0, true, 1000, 500, null, null)).toEqual({ usd: 0, via: null });
+    const q = quote({ ...priced, walk: walk({ volumeInUnit: 0, tradesInWindow: 0 }) });
+    expect(q.fees!.zeroVolume).toBe(true);
+    expect(q.fees!.daily).toBe(0);
+    expect(q.fees!.monthly).toBe(0);
+    expect(q.fees!.monthlyUsd).toBe(0);
+  });
+
+  it("does not subtract the Quasaria deposit cost or add a holder reward", () => {
+    const plain = quote(priced);
+    const charged = quote({ ...priced, platform: { enabled: true, bps: 10 } });
+    expect(charged.platform.deposit.map((l) => l.amount)).toEqual([feeAmount(1000, 10), feeAmount(500, 10)]);
+    expect(charged.fees!.monthlyUsd).toBeCloseTo(plain.fees!.monthlyUsd!);
+    expect(charged.fees!.monthlyUsd).toBeCloseTo(charged.fees!.monthly * 0.25);
+  });
+});
+
+describe("monthly USD on each calculator placement", () => {
+  const earn = quote({ usdPerUnit: 0.25, assetUsd: { a: 0.25, b: null } });
+  const page = (node: ReactNode) => renderToStaticMarkup(<MemoryRouter><WalletProvider>{node}</WalletProvider></MemoryRouter>);
+
+  it("shows the estimate on the full /calculators placement", () => {
+    const shell = page(<Calculators />);
+    expect(shell).toContain('data-testid="calc-lp"');
+    expect(shell).toContain('data-testid="lp-pool-id"');
+    expect(shell).not.toContain("calc compact");
+    const html = body(earn, "full");
+    expect(html).toContain('data-testid="lp-monthly-usd"');
+    expect(html).toContain("≈ $22.50");
+    expect(html).toContain("Estimate based on the last 24h of trading fees, scaled to 30 days.");
+    expect(html).toContain("Not guaranteed.");
+    expect(html).toContain("It varies with volume and price.");
+    expect(html).toContain("No liquidity-provider incentive");
+    expect(html).toContain('data-testid="lp-platform"');
+    expect(html).not.toContain("USD estimate unavailable");
+  });
+
+  it("shows the estimate on the compact Landing placement", () => {
+    const shell = page(<Landing />);
+    expect(shell).toContain('data-testid="calc-lp"');
+    expect(shell).toContain("calc compact");
+    expect(shell).not.toContain('data-testid="lp-pool-id"');
+    const html = body(earn, "compact");
+    expect(html).toContain("calc compact");
+    expect(html).toContain('data-testid="lp-monthly-usd"');
+    expect(html).toContain("≈ $22.50");
+    expect(html).toContain("Estimate based on the last 24h of trading fees");
+  });
+
+  it("shows the estimate on the compact Pools placement", () => {
+    const shell = page(<Pools />);
+    expect(shell).toContain('data-testid="calc-lp"');
+    expect(shell).toContain("calc compact");
+    expect(shell).toContain("Verified pairs");
+    expect(shell).not.toContain('data-testid="lp-pool-id"');
+    const html = body(earn, "compact");
+    expect(html).toContain('data-testid="lp-monthly-usd"');
+    expect(html).toContain("≈ $22.50");
+    expect(html).toContain("lp-monthly");
+  });
+
+  it("says the estimate is unavailable when neither leg has a USD price, and labels a pool-ratio price", () => {
+    const missing = body(quote({ usdPerUnit: null, assetUsd: { a: null, b: null } }));
+    expect(missing).toContain("USD estimate unavailable");
+    expect(missing).toContain("Neither asset has a direct USD price");
+    expect(missing).not.toContain("≈ $");
+    const crossed = body(quote({ usdPerUnit: null, unitCode: "USTRY", assetUsd: { a: null, b: 1 } }));
+    expect(crossed).toContain("≈ $45.00");
+    expect(crossed).toContain("valued with this pool&#x27;s reserve ratio");
+    expect(crossed).toContain("USD unavailable");
+  });
+
+  it("shows $0.00 for a complete window with no swaps and hides the figure when the window is incomplete", () => {
+    const zero = body(quote({ ...{ usdPerUnit: 0.25, assetUsd: { a: 0.25, b: null } }, walk: walk({ volumeInUnit: 0, tradesInWindow: 0 }) }));
+    expect(zero).toContain("$0.00");
+    expect(zero).toContain("lp-zero");
+    expect(zero).not.toContain("USD estimate unavailable");
+    const stale = body(quote({ usdPerUnit: 0.25, assetUsd: { a: 0.25, b: null }, walk: walk({ fetchedAtMs: NOW - WINDOW_MAX_AGE_MS - 1 }), nowMs: NOW }));
+    expect(stale).not.toContain('data-testid="lp-monthly-usd"');
+    expect(stale).toContain("monthly USD estimate");
   });
 });

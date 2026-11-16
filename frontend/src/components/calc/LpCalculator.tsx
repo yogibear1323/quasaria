@@ -9,7 +9,7 @@ import { fetchTradeWindow } from "../../lib/lpQuoteData";
 import { isRewardAsset, REWARD_ASSET_CODE, REWARD_ISSUER, REWARD_RATE_TEXT } from "../../lib/rewards";
 import { AssetLogo } from "../AssetBits";
 import {
-  NETS, calculatorAssetLogo, calculatorPairLabel, calculatorPairs, curatedPairs, fetchPoolById, fetchPoolForPair, keyOf, sameAsset, volumeUnit,
+  NETS, calculatorAssetLogo, calculatorPairLabel, calculatorPairs, curatedPairs, fetchPoolById, fetchPoolForPair, keyOf, sameAsset, usdUnit, volumeUnit,
   type AssetRef, type NetId, type PoolRow, type Pricing,
 } from "../../lib/nativePools";
 
@@ -18,6 +18,13 @@ const IL_PRESETS = [
   { pct: 0, label: "0" },
   { pct: 100, label: "2×" },
 ] as const;
+
+const MONTHLY_USD_NOTE = "Estimate based on the last 24h of trading fees, scaled to 30 days. Not guaranteed. It varies with volume and price.";
+
+function formatMonthlyUsd(n: number): string {
+  if (n === 0) return "$0.00";
+  return fmtUsd(n);
+}
 
 export type LpCalcProps = {
   variant?: "full" | "compact";
@@ -92,6 +99,14 @@ export function LpQuoteBody({
             <div className="calc-results" style={{ marginTop: 10 }}>
               <CalcStat label="Est. pool fees / day" tone="pos" testId="lp-daily">{fmtAmt(quote.fees.daily)} <span className="unit">{quote.fees.code}</span>{quote.fees.usdPerUnit != null ? <span className="calc-usd">{fmtUsd(quote.fees.daily * quote.fees.usdPerUnit)}</span> : <span className="calc-usd">USD unavailable</span>}</CalcStat>
               <CalcStat label="Est. pool fees / 30 days" testId="lp-monthly">{fmtAmt(quote.fees.monthly)} <span className="unit">{quote.fees.code}</span></CalcStat>
+              <CalcStat label="Est. monthly earnings (USD)" tone="pos" testId="lp-monthly-usd">
+                {quote.fees.monthlyUsd != null ? formatMonthlyUsd(quote.fees.monthlyUsd) : "USD estimate unavailable"}
+                <span className="calc-usd" data-testid="lp-monthly-usd-note">
+                  {quote.fees.monthlyUsd == null
+                    ? "Neither asset has a direct USD price (XLM or a USD-pegged stablecoin)."
+                    : <>{MONTHLY_USD_NOTE}{quote.fees.monthlyUsdVia === "pool-ratio" ? " The fee asset is valued with this pool's reserve ratio." : ""}</>}
+                </span>
+              </CalcStat>
               <CalcStat label="Est. pool fees / 365 days" testId="lp-yearly">{fmtAmt(quote.fees.yearly)} <span className="unit">{quote.fees.code}</span></CalcStat>
               <CalcStat label="Simple annualized fee rate" tone="cyan" testId="lp-apr">{pctStr(quote.fees.apr, 2)}<span className="calc-usd">{quote.fees.zeroVolume ? "Complete window, no measured volume. Not a forecast." : "If this volume and your share stayed constant. Not a forecast or a guaranteed reward."}</span></CalcStat>
             </div>
@@ -104,14 +119,14 @@ export function LpQuoteBody({
             <h3>Quasaria deposit and withdraw costs</h3>
             {feeOn && quote.platform.enabled ? (
               <>
-                <p className="muted">This build charges {(FEE_BPS / 100).toFixed(2)}% of each asset sent on deposit, and {(FEE_BPS / 100).toFixed(2)}% of each asset received on a later withdraw of these same amounts (price unchanged). This is not pool-fee income and is not subtracted from the estimate above.</p>
+                <p className="muted">This build charges {(FEE_BPS / 100).toFixed(2)}% of each asset sent on deposit, and {(FEE_BPS / 100).toFixed(2)}% of each asset received on a later withdraw of these same amounts (price unchanged). This is not pool-fee income and is not subtracted from the fee estimate above, including the monthly USD figure.</p>
                 <ul className="calc-notes">
                   {quote.platform.deposit.map((l) => <li key={`d-${l.code}`}>Deposit cost: {fmtAmt(l.amount)} {l.code}</li>)}
                   {quote.platform.withdraw.map((l) => <li key={`w-${l.code}`}>Withdraw cost, same amounts: {fmtAmt(l.amount)} {l.code}</li>)}
                 </ul>
                 <p className="muted l-tiny">The fee is skipped when the fee wallet cannot receive that asset. This preview does not look the wallet up.</p>
               </>
-            ) : feeOn ? <p className="muted">This build charges {(FEE_BPS / 100).toFixed(2)}% on deposit and on withdraw. Enter a deposit to see the amounts. They are not subtracted from pool fees.</p>
+            ) : feeOn ? <p className="muted">This build charges {(FEE_BPS / 100).toFixed(2)}% on deposit and on withdraw. Enter a deposit to see the amounts. They are not subtracted from pool fees or from the monthly USD figure.</p>
               : <p className="muted">The Quasaria deposit and withdraw fee is off in this build.</p>}
           </section>
 
@@ -130,6 +145,7 @@ export function LpQuoteBody({
           <ul className="calc-notes">
             <li>Each swap is counted once, in {quote.depositValue?.code ?? "one asset"} only. The other side of the same trade is not added.</li>
             <li>Daily fee = 24h volume × pool fee × your share after this deposit. A 30-day figure is daily × 30. A yearly figure is daily × 365, simple, not compounded.</li>
+            <li>The monthly USD figure is that 30-day fee. XLM uses the live XLM price. A USD-pegged stablecoin is one dollar. If the fee asset has no USD price and the other asset does, the fee asset is valued at this pool's reserve ratio. No {REWARD_ASSET_CODE} holder reward is added.</li>
             <li>Volume and your share are assumed constant, and the fee leg assumes prices stay put. Past trades are not a promise of future fees.</li>
             {variant === "full" && <li>The loss figure uses 2·√k / (1 + k) − 1. It ignores fees, later deposits, and the path prices took to get there.</li>}
           </ul>
@@ -233,9 +249,10 @@ export default function LpCalculator({ variant = "full", net = NETWORK, pricing 
     return quoteNativeLp({
       pool: { reserveA: load.pool.reserveA, reserveB: load.pool.reserveB, feeBp: load.pool.feeBp, codeA: displayName(load.pool.a), codeB: displayName(load.pool.b) },
       walk: load.walk, nowMs, deposit, driver, unitCode: displayName(unit.unit), unitIsA, usdPerUnit: unit.usd,
+      assetUsd: { a: usdUnit(net, load.pool.a, priced), b: usdUnit(net, load.pool.b, priced) },
       platform: { enabled: feeEnabled(), bps: FEE_BPS }, priceChangePct: change,
     });
-  }, [load, unit, nowMs, deposit, driver, change, displayName]);
+  }, [load, unit, nowMs, deposit, driver, change, displayName, net, priced]);
 
   const glacierMoved = useMemo(() => {
     if (!load.pool || !quote?.amountA || !quote.amountB) return null;
@@ -295,7 +312,7 @@ export default function LpCalculator({ variant = "full", net = NETWORK, pricing 
   );
 
   const offline = OFFLINE_DEMO ? "Network reads are off in this session, so the fee rate is withheld." : null;
-  const loadError = offline ?? (load.phase === "error" ? "Horizon could not be read, so daily, monthly, yearly fees and the annualized rate are withheld." : null);
+  const loadError = offline ?? (load.phase === "error" ? "Horizon could not be read, so daily, monthly, yearly fees, the monthly USD estimate, and the annualized rate are withheld." : null);
 
   return (
     <div ref={root}>

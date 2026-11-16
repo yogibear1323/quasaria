@@ -3,6 +3,11 @@
  * Pure: no network, no placeholders. A missing, truncated, failed, or stale
  * 24h trade window withholds fee amounts and the annualized rate.
  * A zero is returned only for a complete window whose measured volume is zero.
+ * The 30-day figure in USD uses that same fee. The fee asset is priced directly
+ * when it is XLM or a USD-pegged stable. Otherwise, if the other asset has a
+ * USD price, the fee asset is valued at this pool's reserve ratio. If neither
+ * asset has a USD price, the monthly USD figure is unavailable. An incomplete
+ * window withholds it. A complete window with no swaps is $0.00.
  *
  * Fee base: each pool trade is counted once, in one asset (the unit). The
  * protocol fee is `feeBp` / 10_000 of swap input; using the unit-asset amount
@@ -151,6 +156,57 @@ export function tableFeeApr(volumeUsd: number | null, tvl: number | null, trunca
 
 export type NativePoolSide = { reserveA: number; reserveB: number; feeBp: number; codeA: string; codeB: string };
 
+export type MonthlyUsdVia = "unit" | "pool-ratio";
+
+const finiteUsd = (p: number | null | undefined): number | null => (p != null && Number.isFinite(p) && p > 0 ? p : null);
+
+/**
+ * USD price of one unit of the asset the fee figure is already denominated in.
+ * Direct when that asset's own price was supplied (live XLM, or $1 for a USD-pegged stable).
+ * If only the other asset has a USD price, convert at this pool's reserve ratio
+ * (other reserve / fee-asset reserve) and then that price. Null when neither asset
+ * has a USD price. This does not invent a second fee or add a holder reward.
+ */
+export function feeAssetUsdPerUnit(
+  unitIsA: boolean,
+  reserveA: number,
+  reserveB: number,
+  usdA: number | null,
+  usdB: number | null,
+): { usdPerUnit: number; via: MonthlyUsdVia } | null {
+  const direct = finiteUsd(unitIsA ? usdA : usdB);
+  if (direct != null) return { usdPerUnit: direct, via: "unit" };
+  const other = finiteUsd(unitIsA ? usdB : usdA);
+  if (other == null) return null;
+  const reserveUnit = unitIsA ? reserveA : reserveB;
+  const reserveOther = unitIsA ? reserveB : reserveA;
+  if (!(reserveUnit > 0) || !(reserveOther > 0) || !Number.isFinite(reserveUnit) || !Number.isFinite(reserveOther)) return null;
+  const usdPerUnit = (reserveOther / reserveUnit) * other;
+  if (!Number.isFinite(usdPerUnit) || !(usdPerUnit > 0)) return null;
+  return { usdPerUnit, via: "pool-ratio" };
+}
+
+/**
+ * USD value of the existing 30-day fee (already share × 24h fees × 30).
+ * A zero fee is $0.00 with no price required. A non-zero fee with no price path is null.
+ */
+export function monthlyFeeUsd(
+  monthlyInUnit: number,
+  unitIsA: boolean,
+  reserveA: number,
+  reserveB: number,
+  usdA: number | null,
+  usdB: number | null,
+): { usd: number; via: MonthlyUsdVia | null } | null {
+  if (!Number.isFinite(monthlyInUnit) || monthlyInUnit < 0) return null;
+  const px = feeAssetUsdPerUnit(unitIsA, reserveA, reserveB, usdA, usdB);
+  if (monthlyInUnit === 0) return { usd: 0, via: px?.via ?? null };
+  if (!px) return null;
+  const usd = monthlyInUnit * px.usdPerUnit;
+  if (!Number.isFinite(usd) || usd < 0) return null;
+  return { usd, via: px.via };
+}
+
 export type NativeLpQuote = {
   window: WindowKind | "none";
   asOfIso: string | null;
@@ -174,7 +230,12 @@ export type NativeLpQuote = {
     /** Fraction, e.g. 0.12 = 12% a year, simple. */
     apr: number;
     code: string;
+    /** Direct USD price of the fee asset only. Null when that asset itself has no USD price. */
     usdPerUnit: number | null;
+    /** Existing 30-day fee in USD. Null when the window is complete but neither leg can be priced. */
+    monthlyUsd: number | null;
+    /** Null when monthlyUsd is unavailable, or when the fee is zero and neither leg has a USD price. */
+    monthlyUsdVia: MonthlyUsdVia | null;
     zeroVolume: boolean;
   };
   feeBp: number | null;
@@ -186,9 +247,9 @@ const iso = (ms: number | null | undefined) => (ms != null && Number.isFinite(ms
 
 const WINDOW_TEXT: Record<WindowKind, string> = {
   complete: "",
-  truncated: "The 24 hour trade list was cut off before the window finished, so daily, monthly, yearly fees and the annualized rate are withheld.",
-  unavailable: "The 24 hour pool trades could not be read, so daily, monthly, yearly fees and the annualized rate are withheld.",
-  stale: "This read is older than 15 minutes, so daily, monthly, yearly fees and the annualized rate are withheld. Refresh for a new window.",
+  truncated: "The 24 hour trade list was cut off before the window finished, so daily, monthly, yearly fees, the monthly USD estimate, and the annualized rate are withheld.",
+  unavailable: "The 24 hour pool trades could not be read, so daily, monthly, yearly fees, the monthly USD estimate, and the annualized rate are withheld.",
+  stale: "This read is older than 15 minutes, so daily, monthly, yearly fees, the monthly USD estimate, and the annualized rate are withheld. Refresh for a new window.",
 };
 
 export function quoteNativeLp(i: {
@@ -201,6 +262,11 @@ export function quoteNativeLp(i: {
   unitCode: string;
   unitIsA: boolean;
   usdPerUnit: number | null;
+  /**
+   * Direct USD price of each pool asset (XLM live price, or 1 for a USD-pegged stable).
+   * When omitted, only `usdPerUnit` is used, and only for the fee asset.
+   */
+  assetUsd?: { a: number | null; b: number | null };
   platform: { enabled: boolean; bps: number };
   priceChangePct: number;
 }): NativeLpQuote {
@@ -258,13 +324,18 @@ export function quoteNativeLp(i: {
   if (kind !== "complete" || !i.walk) return base;
   const daily = i.walk.volumeInUnit * (feeBp / 10_000) * dep.share;
   if (!Number.isFinite(daily) || daily < 0 || value == null) {
-    base.windowProblem = "The fee figure could not be valued in one asset, so the annualized rate is withheld.";
+    base.windowProblem = "The fee figure could not be valued in one asset, so the annualized rate and the monthly USD estimate are withheld.";
     base.fees = null;
     return base;
   }
   const apr = (daily * YEAR_DAYS) / value;
+  const monthly = daily * MONTH_DAYS;
+  const usdA = i.assetUsd ? i.assetUsd.a : (i.unitIsA ? usdPer : null);
+  const usdB = i.assetUsd ? i.assetUsd.b : (i.unitIsA ? null : usdPer);
+  const converted = monthlyFeeUsd(monthly, i.unitIsA, i.pool.reserveA, i.pool.reserveB, usdA, usdB);
   base.fees = {
-    daily, monthly: daily * MONTH_DAYS, yearly: daily * YEAR_DAYS, apr, code: i.unitCode, usdPerUnit: usdPer, zeroVolume: i.walk.volumeInUnit === 0,
+    daily, monthly, yearly: daily * YEAR_DAYS, apr, code: i.unitCode, usdPerUnit: usdPer,
+    monthlyUsd: converted?.usd ?? null, monthlyUsdVia: converted?.via ?? null, zeroVolume: i.walk.volumeInUnit === 0,
   };
   return base;
 }

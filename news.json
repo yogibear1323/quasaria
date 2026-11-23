@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-23T12:28:40.481Z",
+ "generatedAt": "2026-11-23T15:22:05.606Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-23T12:19:18.986Z",
+  "updatedAt": "2026-11-23T13:54:48.623Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "1mw0jpq",
+   "title": "Soroban Rust SDK v30",
+   "url": "https://stellar.org/blog/developers/soroban-rust-sdk-v30",
+   "publishedAt": "2026-11-23T00:00:00.000Z",
+   "excerpt": "What contract developers need to know about Soroban Rust SDK v30: muxed contract addresses, ML-DSA signature verification, unique names in contract interfaces, and spec shaking optimisations.",
+   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/2ec79f012b3fd616573bf4e1c6d2991d35eaeed2-1323x992.png",
+   "source": "sdf",
+   "sourceName": "Stellar Development Foundation",
+   "kind": "blog",
+   "tags": [
+    "developers"
+   ]
+  },
   {
    "id": "18d387y",
    "title": "Q3 2026: The rail, put to work",
@@ -542,8 +556,8 @@
    "publishedAt": "2026-09-24T00:00:00.000Z",
    "excerpt": "How OpenZeppelin's confidential token for Stellar hides balances and amounts while preserving the account controls and scoped audit visibility issuers need.",
    "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/69e18d7f527e6bcfa8f95c47b1b8e39d74f67f32-2048x1536.png",
-   "source": "sdf",
-   "sourceName": "Stellar Development Foundation",
+   "source": "sdf-dev",
+   "sourceName": "Stellar Developers blog",
    "kind": "blog",
    "tags": [
     "developers"
@@ -795,20 +809,6 @@
    "kind": "blog",
    "tags": [
     "ecosystem"
-   ]
-  },
-  {
-   "id": "1b2obot",
-   "title": "Monitoring Stellar with Hypernative",
-   "url": "https://stellar.org/blog/developers/monitoring-stellar-with-hypernative",
-   "publishedAt": "2026-07-16T00:00:00.000Z",
-   "excerpt": "A hands-on tutorial for setting up onchain monitoring on Stellar with Hypernative, from large XLM transfer alerts to Blend pool utilization monitoring.",
-   "image": "https://cdn.sanity.io/images/e2r40yh6/production-i18n/0fe460f3614c65eed872e12ecd44e6f3cac35897-2048x1536.png",
-   "source": "sdf-dev",
-   "sourceName": "Stellar Developers blog",
-   "kind": "blog",
-   "tags": [
-    "developers"
    ]
   },
   {

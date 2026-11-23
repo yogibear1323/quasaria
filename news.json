@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-23T15:22:05.606Z",
+ "generatedAt": "2026-11-23T18:23:39.744Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-23T13:54:48.623Z",
+  "updatedAt": "2026-11-23T17:05:07.395Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -88,7 +88,7 @@
    "kind": "status",
    "home": "https://status.stellar.org",
    "feed": "https://status.stellar.org/history.atom",
-   "count": 3,
+   "count": 4,
    "ok": true
   },
   {
@@ -129,6 +129,21 @@
   }
  ],
  "items": [
+  {
+   "id": "fup2jp",
+   "title": "Stellar Public Network Protocol Upgrade Vote",
+   "url": "https://status.stellar.org/incidents/w33m5pjv2q6d",
+   "publishedAt": "2026-11-23T17:05:07.000Z",
+   "excerpt": "Nov 23, 17:05 UTC Completed - The scheduled maintenance has been completed. Nov 23, 17:00 UTC In progress - Scheduled maintenance is currently in progress. We will provide updates as necessary. Oct…",
+   "image": null,
+   "source": "stellar-status",
+   "sourceName": "Stellar Status",
+   "kind": "status",
+   "tags": [
+    "mainnet",
+    "network-status"
+   ]
+  },
   {
    "id": "1mw0jpq",
    "title": "Soroban Rust SDK v30",

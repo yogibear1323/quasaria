@@ -1,10 +1,10 @@
 {
  "version": 2,
- "generatedAt": "2026-11-24T00:37:58.887Z",
+ "generatedAt": "2026-11-24T03:24:53.187Z",
  "networkStatus": {
   "indicator": "none",
   "description": "All Systems Operational",
-  "updatedAt": "2026-11-23T22:48:33.315Z",
+  "updatedAt": "2026-11-24T02:49:22.667Z",
   "url": "https://status.stellar.org",
   "issues": [],
   "degraded": []
@@ -129,6 +129,20 @@
   }
  ],
  "items": [
+  {
+   "id": "1wg773t",
+   "title": "Soroban Rust SDK v30.0.0 released",
+   "url": "https://github.com/stellar/rs-soroban-sdk/releases/tag/v30.0.0",
+   "publishedAt": "2026-11-24T02:45:31.000Z",
+   "excerpt": "Important Contracts using soroban-sdk v30 must be built with stellar contract build from stellar-cli v30.0.0 or newer. See the migration guide for everything that needs to change when upgrading…",
+   "image": null,
+   "source": "soroban-sdk",
+   "sourceName": "Soroban Rust SDK releases",
+   "kind": "release",
+   "tags": [
+    "developers"
+   ]
+  },
   {
    "id": "fup2jp",
    "title": "Stellar Public Network Protocol Upgrade Vote",
@@ -764,20 +778,6 @@
    "kind": "release",
    "tags": [
     "protocol"
-   ]
-  },
-  {
-   "id": "1x31vab",
-   "title": "Soroban Rust SDK v27.0.6 released",
-   "url": "https://github.com/stellar/rs-soroban-sdk/releases/tag/v27.0.6",
-   "publishedAt": "2026-08-13T02:15:09.000Z",
-   "excerpt": "Error on contracttrait without a trait impl (#1992) Show a constructor and event publishing in the front page docs example (#2001) Full Changelog: v27.0.5...v27.0.6",
-   "image": null,
-   "source": "soroban-sdk",
-   "sourceName": "Soroban Rust SDK releases",
-   "kind": "release",
-   "tags": [
-    "developers"
    ]
   },
   {
